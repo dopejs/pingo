@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@dopejs/pingo": "workspace:*",
+    "@dopejs/pingo-ui": "workspace:*",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },

@@ -1132,3 +1132,60 @@ a {
     animation: none;
   }
 }
+
+/* Documentation live previews (`:::preview` blocks) */
+.preview {
+  margin: 16px 0 24px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--bg-elevated);
+}
+
+.preview__tabs {
+  display: flex;
+  gap: 4px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg-soft);
+}
+
+.preview__tab {
+  padding: 4px 12px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-soft);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.preview__tab--active {
+  background: var(--bg-elevated);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.preview__surface {
+  position: relative;
+  background: var(--bg-elevated);
+}
+
+.preview__error {
+  margin: 0;
+  padding: 24px;
+  color: var(--danger);
+  font-size: 13px;
+}
+
+.preview__code {
+  margin: 0;
+  max-height: 420px;
+  overflow: auto;
+  padding: 16px;
+  background: var(--bg-code);
+  color: #e6ebf2;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 12.5px;
+  line-height: 1.6;
+}

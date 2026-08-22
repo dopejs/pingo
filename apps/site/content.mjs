@@ -9,7 +9,30 @@ import container from "markdown-it-container";
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const docsRoot = path.join(repositoryRoot, "docs");
+const demosRoot = path.join(repositoryRoot, "apps/site/src/demos");
 const localePaths = ["zh-Hant", "ja", "ko", "es", "fr", "de", "ru", "ar", "he"];
+
+/**
+ * Demo ids available to `:::preview <id>` blocks, derived from file basenames
+ * under apps/site/src/demos. A preview reference that misses this set fails
+ * the site build instead of rendering an empty placeholder.
+ */
+async function collectDemoIds() {
+  const ids = new Set();
+  async function walk(directory) {
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      if (entry.isDirectory()) {
+        await walk(path.join(directory, entry.name));
+      } else if (/\.tsx?$/u.test(entry.name)) {
+        const id = entry.name.replace(/\.tsx?$/u, "");
+        if (ids.has(id)) throw new Error(`duplicate demo id: ${id}`);
+        ids.add(id);
+      }
+    }
+  }
+  await walk(demosRoot);
+  return ids;
+}
 
 function contentSourcePath(sourcePath) {
   const segments = sourcePath.split("/");
@@ -66,9 +89,22 @@ function slugify(value) {
     .replace(/^-+|-+$/gu, "");
 }
 
-function createMarkdown() {
+function createMarkdown(demoIds) {
   const markdown = new MarkdownIt({ html: true, linkify: true });
   markdown.use(anchor, { slugify });
+  markdown.use(container, "preview", {
+    render(tokens, index) {
+      if (tokens[index].nesting !== 1) return "</div>\n";
+      const id = tokens[index].info.trim().slice("preview".length).trim();
+      if (!/^[a-z0-9-]+$/u.test(id)) {
+        throw new Error(`invalid :::preview demo id "${id}" (kebab-case expected)`);
+      }
+      if (!demoIds.has(id)) {
+        throw new Error(`:::preview references unknown demo "${id}" (apps/site/src/demos)`);
+      }
+      return `<div class="component-preview" data-demo="${markdown.utils.escapeHtml(id)}">`;
+    },
+  });
   for (const name of ["tip", "warning", "danger", "info", "details"]) {
     markdown.use(container, name, {
       render(tokens, index) {
@@ -130,10 +166,18 @@ function navigationOrder() {
   return [
     "/guide/getting-started",
     "/guide/architecture",
+    "/guide/styling",
+    "/guide/scss-less",
+    "/guide/elements",
+    "/guide/elements-editing",
+    "/guide/elements-svg",
+    "/guide/widgets",
     "/guide/scrolling",
     "/guide/editing",
     "/guide/events",
     "/guide/accessibility",
+    "/components",
+    "/style-support",
     "/api",
     "/changelog",
   ];
@@ -152,7 +196,7 @@ function requestRoute(pathname) {
 }
 
 export async function loadSiteContent() {
-  const markdown = createMarkdown();
+  const markdown = createMarkdown(await collectDemoIds());
   const pages = [];
   for (const sourcePath of await markdownFiles(docsRoot)) {
     const absolute = path.join(docsRoot, sourcePath);

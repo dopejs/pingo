@@ -1,9 +1,11 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
+import { COMPONENT_CATALOG, COMPONENT_GROUPS, type ComponentGroup } from "./components-catalog";
 import { LanguageMenu } from "./LanguageMenu";
 import { SITE_LOCALES, localeForPath, pageHref, type SiteLocale } from "./locales";
 import { writeLanguagePreference } from "./language-preference";
 import { Playground } from "./playground/Playground";
+import { hydratePreviews } from "./preview/hydrate";
 import { SearchDialog } from "./SearchDialog";
 import type { PageLink, SiteDocumentPayload, SitePage, SitePayload } from "./types";
 
@@ -39,19 +41,58 @@ function linkFor(route: string): string {
 function navItems(locale: SiteLocale): readonly NavItem[] {
   return [
     { text: locale.ui.guide, route: "/guide/getting-started" },
+    { text: locale.ui.components, route: "/components" },
     { text: locale.ui.api, route: "/api" },
     { text: locale.ui.playground, route: "/playground" },
   ];
 }
 
+const GROUP_LABEL_KEYS: Record<
+  ComponentGroup,
+  "groupForm" | "groupLayout" | "groupOverlay" | "groupData" | "groupFeedback" | "groupProduct"
+> = {
+  form: "groupForm",
+  layout: "groupLayout",
+  overlay: "groupOverlay",
+  data: "groupData",
+  feedback: "groupFeedback",
+  product: "groupProduct",
+};
+
 function sidebarSections(page: SitePage, locale: SiteLocale): readonly NavSection[] {
-  if (page.route.includes("/guide/")) {
+  if (page.route.startsWith("/components")) {
+    return COMPONENT_GROUPS.map((group) => ({
+      text: locale.ui[GROUP_LABEL_KEYS[group]],
+      items: COMPONENT_CATALOG.filter((entry) => entry.group === group).map((entry) => ({
+        text: entry.name,
+        route: `/components/${entry.name}`,
+      })),
+    }));
+  }
+  if (page.route.includes("/guide/") || page.route === "/style-support") {
     return [
       {
         text: locale.ui.sectionStart,
         items: [
           { text: locale.ui.gettingStarted, route: "/guide/getting-started" },
           { text: locale.ui.architecture, route: "/guide/architecture" },
+        ],
+      },
+      {
+        text: locale.ui.sectionStyling,
+        items: [
+          { text: locale.ui.styling, route: "/guide/styling" },
+          { text: locale.ui.scssLess, route: "/guide/scss-less" },
+          { text: locale.ui.cssSupport, route: "/style-support" },
+        ],
+      },
+      {
+        text: locale.ui.sectionBaseElements,
+        items: [
+          { text: locale.ui.elements, route: "/guide/elements" },
+          { text: locale.ui.elementsEditing, route: "/guide/elements-editing" },
+          { text: locale.ui.elementsSvg, route: "/guide/elements-svg" },
+          { text: locale.ui.widgets, route: "/guide/widgets" },
         ],
       },
       {
@@ -256,7 +297,33 @@ function Pagination({ previous, next, locale }: SitePayload & { locale: SiteLoca
   );
 }
 
-function HomePage({ page }: { page: SitePage }): ReactNode {
+/**
+ * Renders server-generated article HTML and mounts live pingo previews into
+ * its `:::preview` placeholders after insertion.
+ */
+function DocContent({
+  html,
+  locale,
+  className,
+}: {
+  readonly html: string;
+  readonly locale: SiteLocale;
+  readonly className: string;
+}): ReactNode {
+  const ref = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const article = ref.current;
+    if (article === null) return;
+    return hydratePreviews(article, {
+      preview: locale.ui.preview,
+      code: locale.ui.code,
+      previewError: locale.ui.previewError,
+    });
+  }, [html, locale]);
+  return <article ref={ref} className={className} dangerouslySetInnerHTML={{ __html: html }} />;
+}
+
+function HomePage({ page, locale }: { page: SitePage; locale: SiteLocale }): ReactNode {
   const hero = page.hero;
   return (
     <main className="home-page">
@@ -295,10 +362,7 @@ function HomePage({ page }: { page: SitePage }): ReactNode {
           </article>
         ))}
       </section>
-      <article
-        className="doc-content home-content"
-        dangerouslySetInnerHTML={{ __html: page.html }}
-      />
+      <DocContent html={page.html} locale={locale} className="doc-content home-content" />
     </main>
   );
 }
@@ -331,7 +395,7 @@ export function App({ siteDocument, initialLocalePath }: AppProps): ReactNode {
 
   let content: ReactNode;
   if (page.layout === "home") {
-    content = <HomePage page={page} />;
+    content = <HomePage page={page} locale={locale} />;
   } else if (page.layout === "playground") {
     content = <Playground lang={locale.lang} />;
   } else {
@@ -339,7 +403,7 @@ export function App({ siteDocument, initialLocalePath }: AppProps): ReactNode {
       <div className="docs-grid">
         <Sidebar page={page} locale={locale} />
         <main className="doc-main">
-          <article className="doc-content" dangerouslySetInnerHTML={{ __html: page.html }} />
+          <DocContent html={page.html} locale={locale} className="doc-content" />
           <p className="last-updated">
             {locale.ui.lastUpdated}:{" "}
             <time dateTime={page.lastUpdated}>{page.lastUpdated.slice(0, 10)}</time>
