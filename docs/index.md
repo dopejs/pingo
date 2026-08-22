@@ -4,7 +4,7 @@ layout: home
 hero:
   name: Pingo
   text: canvas 渲染引擎
-  tagline: Rust/WASM 核心 + TypeScript 外壳 + 可插拔后端。为高性能交互、原生虚拟滚动与 canvas 内文本编辑而设计。
+  tagline: Rust/WASM 核心 + TypeScript 外壳 + 可插拔后端。为高性能交互、原生虚拟滚动与 canvas 内文本编辑而设计，附带基础组件、CSS 样式与 shadcn 对齐的 UI 组件库。
   image:
     light: /pingo-mark.svg
     dark: /pingo-mark-dark.svg
@@ -33,6 +33,12 @@ features:
     details: 版本化二进制流、可注入时钟与随机源、录制回放，以及增量与全量、优化与朴素、wasm 与 native 的差分 oracle。
   - title: 自动降级，永远有退路
     details: SharedArrayBuffer → postMessage → 主线程 Canvas2D 按能力自动选择，功能等价。迁移层支持按页面灰度与一键回退。
+  - title: 基础组件开箱即用
+    details: View/Text/Image、Input/TextArea、SVG/Path 等引擎级元素直接对应 Scene 节点，文本 shaping、caret 几何与编辑能力来自 Core，不需要 DOM 控件拼凑。
+  - title: CSS 与 SCSS/Less 支持
+    details: Shell 侧解析的版本化 CSS subset：类选择器、交互状态、继承与计算样式都有明确边界；SCSS/Less 在构建期编译校验，预处理器不进入浏览器 bundle。
+  - title: shadcn 对齐的 UI 组件库
+    details: "@dopejs/pingo-ui 的组件 API 与皮肤语义对齐 shadcn/ui——Button、Dialog、Table、Calendar 等全部渲染到 canvas，支持明暗主题与样式表覆盖。"
 ---
 
 ## 30 秒上手

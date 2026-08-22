@@ -118,6 +118,15 @@ const root = await createHostedCanvasRoot(canvas, {
 `onFrame` 每帧给出命令数、DisplayList 字节数以及 Core 侧的脏域计数、布局工作量与 picture hash，
 是性能排查的第一手数据。更多见[诊断](/diagnostics)。
 
+## 能力导览
+
+在五个内建元素之上，pingo 还提供三层作者面向的能力：
+
+- [基础组件](/guide/elements)：View/Text/Image、Input/TextArea、SVG/Path 等引擎级元素。
+- [样式](/guide/styling)：版本化 CSS subset——类选择器、交互状态、层叠与继承的明确边界；
+  需要变量与 mixin 时走构建期的 [SCSS / Less 管线](/guide/scss-less)。
+- [UI 组件库](/components)：`@dopejs/pingo-ui`，与 shadcn/ui 对齐的成品组件，全部渲染到 canvas。
+
 ## 下一步
 
 - [架构概览](/guide/architecture)：Shell 与 Core 如何分工
