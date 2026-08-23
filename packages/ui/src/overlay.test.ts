@@ -1,6 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { classes, createOverlayFocus, escapeHandler, overlayKeyHandler } from "./overlay";
+import {
+  classes,
+  createOverlayFocus,
+  dismissOnFocusLoss,
+  escapeHandler,
+  overlayKeyHandler,
+} from "./overlay";
 
 function handle(focus: () => void): { focus: () => void } {
   return { focus };
@@ -174,6 +180,35 @@ describe("escapeHandler", () => {
     }
     expect(close).toHaveBeenCalledOnce();
     expect(preventDefault).toHaveBeenCalledOnce();
+  });
+});
+
+describe("dismissOnFocusLoss", () => {
+  const settle = (): Promise<void> => new Promise((resolve) => queueMicrotask(resolve));
+
+  it("closes when focus leaves and nothing takes it back", async () => {
+    const close = vi.fn();
+    const handlers = dismissOnFocusLoss(close);
+    handlers.onFocusOut();
+    expect(close).not.toHaveBeenCalled();
+    await settle();
+    expect(close).toHaveBeenCalledOnce();
+  });
+
+  it("stays open when focus moves within the anchor", async () => {
+    const close = vi.fn();
+    const handlers = dismissOnFocusLoss(close);
+    // Both halves of one transition arrive in the same event transaction, so
+    // the focusin that follows a press inside the panel cancels the close.
+    handlers.onFocusOut();
+    handlers.onFocusIn();
+    await settle();
+    expect(close).not.toHaveBeenCalled();
+
+    // And the next departure is still armed.
+    handlers.onFocusOut();
+    await settle();
+    expect(close).toHaveBeenCalledOnce();
   });
 });
 
