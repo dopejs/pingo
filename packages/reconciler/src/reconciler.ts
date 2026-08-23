@@ -330,6 +330,11 @@ type EventHandlerKey = `${InputEventKind}:${"bubble" | "capture"}`;
 interface NormalizedEditable {
   readonly revision: bigint;
   readonly flags: number;
+  /**
+   * Shell-side only: Core's editable flags carry no disabled bit, and it needs
+   * none. A disabled field is simply one the Host never opens a session on.
+   */
+  readonly disabled: boolean;
   readonly maxGraphemes: number;
   readonly inputMode: string;
   readonly value: string;
@@ -430,6 +435,7 @@ const TEXT_KEYS = new Set([
 const EDITABLE_KEYS = new Set([
   ...TEXT_KEYS,
   "controller",
+  "disabled",
   "inputMode",
   "maxGraphemes",
   "multiline",
@@ -782,6 +788,10 @@ class ReconcilerRoot implements CoreDrivenPingoRoot {
     const instance = this.#hostsByNodeId.get(nodeId);
     if (instance === undefined || !instance.mounted || instance.editable === undefined) return;
     const editable = instance.editable;
+    // A disabled field has no session to activate. Every Host path that starts
+    // one -- a press on the editable, `ref.focus()`, the accessibility mirror --
+    // asks here first, so this is the single place that has to say no.
+    if (editable.disabled) return;
     const selection = instance.editableSelection ?? {
       anchor: editable.value.length,
       focus: editable.value.length,
@@ -2349,11 +2359,15 @@ function normalizeHostProps(
       throw new TypeError("EditableText controller is mutually exclusive with value and revision");
     }
     const onTransaction = normalizeEditCallback(editableProps.onTransaction);
+    const editableDisabled = editableProps.disabled === true;
     editable = {
       revision: controller?.revision ?? optionalRevision(editableProps.revision),
+      disabled: editableDisabled,
       flags:
         (editableProps.multiline === true ? 1 : 0) |
-        (editableProps.readOnly === true ? 2 : 0) |
+        // Disabled implies read-only: nothing should reach Core's session even
+        // if something manages to activate it.
+        (editableProps.readOnly === true || editableDisabled ? 2 : 0) |
         (editableProps.password === true ? 4 : 0),
       maxGraphemes: requireBoundedInteger(
         editableProps.maxGraphemes ?? 1_000_000,

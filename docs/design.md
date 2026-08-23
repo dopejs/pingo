@@ -1641,6 +1641,27 @@ hook，纯构建函数拆成 `checkboxDescriptor` / `switchDescriptor`，与 Sli
 拉伸；站点浏览器测试断言 form/checkbox/alert 三种形状的预览左右留白相等，并断言点击
 checkbox 与 switch 会改变画面像素。
 
+### 禁用字段不该拿到焦点（2026-08-23）
+
+`disabled` 此前只是被折叠成 `readOnly`：Core 的只读语义是"不接受编辑"，但仍然聚焦、仍然画
+光标——对只读是对的（值要能选中复制），对禁用是错的。于是禁用的 Input/TextArea 点一下就
+出现光标，还会拉起输入法。
+
+**修法留在 Shell**。Core 的 editable flags 没有 disabled 位，也不需要有：一个禁用字段就是
+Host 从不为它开启会话的字段。`EditableTextProps` 新增 `disabled`（可选，纯增量），
+reconciler 把它记在 Shell 侧的 `NormalizedEditable` 上，并让 `editableState(nodeId)` 对它
+返回 `undefined`。Host 所有开启会话的入口——按压命中 editable、`ref.focus()`、无障碍镜像的
+焦点请求——都先问这里，所以这一处就够了。同时在 wire flags 上强制置上 read-only 位，即使
+将来有别的路径激活了它也编辑不了。Core 仍然拿到这个节点，值照常绘制，语义树里仍是 textbox。
+
+**残留**：语义镜像里禁用字段仍然可 Tab 到（Core 的 `focusable` 只看节点类型），聚焦后不会
+开启会话、不显示光标，但顺序上仍占一格。要彻底解决需要 Core 知道 disabled，代价是一个 ABI
+flag 位；现在的问题不值得。
+
+**验证**：reconciler 单测断言禁用字段的 `editableState` 为 `undefined` 且 wire flags 带
+read-only；站点浏览器测试对禁用的 Input 与 TextArea 分别按装饰区与文字区，断言两者都不会
+让编辑上下文拿到该字段的值（去掉修复后这两条会失败）。
+
 ### 富单元格暴露的能力缺口
 
 新 demo 每行约 18 个节点（此前 3 个），1280×800 视口下 20 行物化 = 357 个 Scene 节点。

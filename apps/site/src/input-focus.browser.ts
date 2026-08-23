@@ -88,6 +88,21 @@ describe("decorated text control focus", () => {
     expect(await waitUntil(() => session().text === "hi")).toBe(true);
   });
 
+  it.each([
+    ["Input", () => createElement(Input, { value: "hi", width: 240, disabled: true })],
+    ["TextArea", () => createElement(TextArea, { value: "hi", width: 240, disabled: true })],
+  ])("never starts editing a disabled %s", async (_name, build) => {
+    const { press, session } = await mount(build());
+    // The decoration, then the value itself: a disabled control takes focus
+    // from neither, so it shows no caret and reaches no input method. The
+    // canvas carries an EditContext whenever the tree holds an editable, so
+    // what marks a live session is the value reaching it, not its existence.
+    press(2, 2);
+    expect(await waitUntil(() => session().text === "hi", 300)).toBe(false);
+    press(30, 25);
+    expect(await waitUntil(() => session().text === "hi", 300)).toBe(false);
+  });
+
   it("still lets Core place the caret when the press reaches the editable", async () => {
     const { press, session } = await mount(createElement(Input, { value: "hi", width: 240 }));
     // Past the end of the value but inside the editable: Core resolves that to

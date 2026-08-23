@@ -91,6 +91,10 @@ export function inputDescriptor(
         ...(field === undefined ? {} : { ref: field }),
         controller,
         readOnly,
+        // Not the same as readOnly: a disabled field takes no focus and shows
+        // no caret, where a read-only one still does so its value can be
+        // selected and copied.
+        ...(disabled ? { disabled: true } : {}),
         ...(props.password === undefined ? {} : { password: props.password }),
         ...(props.inputMode === undefined ? {} : { inputMode: props.inputMode }),
         ...(props.semanticLabel === undefined ? {} : { semanticLabel: props.semanticLabel }),

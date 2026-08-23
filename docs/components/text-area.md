@@ -32,7 +32,7 @@ root.render(
 
 ### 禁用
 
-传入 `disabled` 后字段不再接收输入，并应用禁用样式。
+传入 `disabled` 后字段不再接收输入，不接受焦点，也不显示光标，并应用禁用样式。
 
 ## Props
 
@@ -43,7 +43,7 @@ root.render(
 | `controller` | `TextEditingController` | — | 高级逃生舱：调用方持有的持久控制器 |
 | `onTransaction` | `(transaction: EditTransaction) => void` | — | 每次编辑事务的原始回调 |
 | `onSubmit` | `() => void` | — | 提交回调 |
-| `disabled` | `boolean` | `false` | 禁用态 |
+| `disabled` | `boolean` | `false` | 禁用态：不接受焦点，也不显示光标 |
 | `readOnly` | `boolean` | `false` | 只读态 |
 | `rows` | `number` | — | 可见行数，决定外壳最小高度 |
 | `className` | `string` | — | 追加在组件类名之后 |

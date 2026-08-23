@@ -15,7 +15,7 @@ const demo: PreviewDemo = {
         // makes the component inside fill this width.
         style: { flexDirection: "column" },
         children: createElement(Collapsible, {
-          trigger: "已锁定的部分",
+          trigger: "已禁用的部分",
           disabled: true,
           children: createElement(Label, { children: "升级后可用。" }),
         }),

@@ -14,7 +14,7 @@ const demo: PreviewDemo = {
         [
           createElement(Switch, { defaultChecked: true, semanticLabel: "飞行模式" }),
           createElement(Switch, { semanticLabel: "静音" }),
-          createElement(Switch, { checked: true, disabled: true, semanticLabel: "已锁定" }),
+          createElement(Switch, { checked: true, disabled: true, semanticLabel: "已禁用" }),
         ],
         16,
       ),

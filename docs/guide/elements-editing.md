@@ -97,7 +97,8 @@ DOM。两条路径过同一套编辑行为契约测试。
 | `value` | `string` | — | 受控文本 |
 | `revision` | `number \| bigint` | — | 受控值的权威 revision；过期值不会覆盖更新的 Core 输入 |
 | `controller` | `TextEditingController` | — | 稳定的本地 controller；与 `value`/`revision` 互斥 |
-| `readOnly` | `boolean` | `false` | 只读 |
+| `readOnly` | `boolean` | `false` | 只读：仍可聚焦、有光标，可选中复制 |
+| `disabled` | `boolean` | `false` | 禁用：不开启编辑会话，因此不接受焦点、不显示光标、不接入输入法 |
 | `password` | `boolean` | `false` | 密码模式（见下） |
 | `maxGraphemes` | `number` | — | grapheme 上限 |
 | `inputMode` | `EditableInputMode` | `"text"` | 软键盘提示：`decimal` `email` `none` `numeric` `search` `tel` `text` `url` |

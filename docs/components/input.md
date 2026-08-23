@@ -31,7 +31,7 @@ root.render(
 
 ### 前后缀与密码
 
-`prefix`/`suffix` 插槽可以放图标或单位；`password` 开启掩码输入；`disabled` 锁定整个字段。
+`prefix`/`suffix` 插槽可以放图标或单位；`password` 开启掩码输入；`disabled` 禁用整个字段。
 
 :::preview input-adornments
 :::
@@ -49,8 +49,8 @@ root.render(
 | `controller` | `TextEditingController` | — | 高级逃生舱：调用方持有的持久控制器 |
 | `onTransaction` | `(transaction: EditTransaction) => void` | — | 每次编辑事务的原始回调 |
 | `onSubmit` | `() => void` | — | 提交（回车）回调 |
-| `disabled` | `boolean` | `false` | 禁用态 |
-| `readOnly` | `boolean` | `false` | 只读态 |
+| `disabled` | `boolean` | `false` | 禁用态：不接受焦点，也不显示光标 |
+| `readOnly` | `boolean` | `false` | 只读态：仍可聚焦并选中复制 |
 | `password` | `boolean` | `false` | 掩码输入 |
 | `inputMode` | `"decimal" \| "email" \| "none" \| "numeric" \| "search" \| "tel" \| "text" \| "url"` | `"text"` | 软键盘布局提示 |
 | `className` | `string` | — | 追加在组件类名之后 |

@@ -509,6 +509,7 @@ describe("reconciler", () => {
           revision: 1n,
           multiline: true,
           readOnly: false,
+          disabled: false,
           password: false,
           maxGraphemes: 100,
           inputMode: "email",
@@ -521,6 +522,36 @@ describe("reconciler", () => {
       root.render(createElement("editableText", { value: "a", revision: 1n, bogus: 1 })),
     ).toThrow(/unknown editableText prop bogus/u);
   });
+  it("reports no editing session for a disabled field", () => {
+    const sink = new RecordingSink();
+    const root = createRoot(sink);
+    root.render(
+      createElement("container", {
+        children: [
+          createElement("editableText", { key: "on", value: "a", revision: 1n }),
+          createElement("editableText", {
+            key: "off",
+            value: "b",
+            revision: 1n,
+            disabled: true,
+          }),
+        ],
+      }),
+    );
+    const configured = mutationsOfType(sink.batches[0], "configureEditable");
+    expect(configured).toHaveLength(2);
+    const [enabled, disabled] = configured;
+    if (enabled === undefined || disabled === undefined) throw new Error("missing editable");
+    // Every Host path that starts a session asks here first, so this is what
+    // keeps a disabled field from taking focus, showing a caret, or reaching an
+    // input method. Core still gets the node, and still paints its value.
+    expect(root.editableState(enabled.nodeId)?.value).toBe("a");
+    expect(root.editableState(disabled.nodeId)).toBeUndefined();
+    // Disabled implies read-only on the wire, so nothing edits it even if
+    // something else manages to activate it.
+    expect([enabled.flags, disabled.flags]).toEqual([0, 2]);
+  });
+
   it("accepts context menu handlers on a container", () => {
     const sink = new RecordingSink();
     const root = createRoot(sink);

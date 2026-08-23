@@ -384,6 +384,14 @@ export interface EditableTextProps extends Omit<TextProps, "children"> {
   readonly revision?: number | bigint;
   readonly multiline?: boolean;
   readonly readOnly?: boolean;
+  /**
+   * Refuses editing outright, the way a disabled control does.
+   *
+   * Stronger than `readOnly`, which is focusable and shows a caret so its value
+   * can be selected and copied: a disabled field never opens an editing
+   * session, so it takes no focus, shows no caret and reaches no input method.
+   */
+  readonly disabled?: boolean;
   readonly password?: boolean;
   readonly maxGraphemes?: number;
   /** Soft-keyboard layout hint; defaults to plain text. */

@@ -67,6 +67,10 @@ export function textAreaDescriptor(
       ...(field === undefined ? {} : { ref: field }),
       controller,
       readOnly,
+      // Not the same as readOnly: a disabled field takes no focus and shows no
+      // caret, where a read-only one still does so its value can be selected
+      // and copied.
+      ...(disabled ? { disabled: true } : {}),
       ...(props.semanticLabel === undefined ? {} : { semanticLabel: props.semanticLabel }),
       onTransaction: (transaction) => {
         // The reconciler applies the transaction to the controller BEFORE

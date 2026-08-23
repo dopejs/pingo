@@ -28,7 +28,7 @@ const demo: PreviewDemo = {
           createElement(Input, {
             semanticLabel: "邀请码",
             width: 320,
-            value: "已锁定",
+            value: "已禁用",
             disabled: true,
           }),
         ],
