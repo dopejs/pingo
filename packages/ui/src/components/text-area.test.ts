@@ -80,6 +80,27 @@ describe("TextArea", () => {
     expect(onValueChange).toHaveBeenCalledWith("ab");
   });
 
+  it("hands a press on the decoration to the field", () => {
+    const focus = vi.fn();
+    // The descriptor only reads `nodeId` and `focus` off the mounted handle.
+    const ref = { current: { nodeId: 9, focus } } as unknown as Parameters<
+      typeof textAreaDescriptor
+    >[2];
+    const node = textAreaDescriptor(
+      {},
+      new TextEditingController({ value: "" }),
+      ref,
+    ) as unknown as Tree;
+    const press = node.props.onPointerDown as (event: unknown) => void;
+
+    // Most of a TextArea is decoration: one line of text inside a box at least
+    // 72 high.
+    press({ target: { nodeId: 2 } });
+    expect(focus).toHaveBeenCalledTimes(1);
+    press({ target: { nodeId: 9 } });
+    expect(focus).toHaveBeenCalledTimes(1);
+  });
+
   it("renders through createElement without throwing across re-renders", () => {
     const sink = new RecordingSink();
     const root = createRoot(sink);

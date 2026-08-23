@@ -4,9 +4,11 @@ import {
   memo,
   View,
   type EditableInputMode,
+  type NodeHandle,
+  type PingoEvent,
   type PingoNode,
 } from "@dopejs/pingo-jsx";
-import { useMemo } from "@dopejs/pingo-runtime";
+import { useMemo, useRef, type RefObject } from "@dopejs/pingo-runtime";
 
 import { useTheme } from "../theme";
 
@@ -34,8 +36,35 @@ export type InputProps = {
   readonly suffix?: PingoNode;
 };
 
-/** Builds the Input descriptor tree. Pure: safe to call without a component scope. */
-export function inputDescriptor(props: InputProps, controller: TextEditingController): PingoNode {
+/**
+ * Hands a press that landed on the decoration to the editable inside it.
+ *
+ * The editable covers only the box its own text needs: the border, the padding
+ * and the adornments belong to the wrapper, so a press on any of them hit no
+ * editable at all and did nothing — roughly half the area of something that
+ * looks like a single field. A press that did reach the editable is left alone:
+ * Core already focuses it and places the caret at the press, and focusing again
+ * from here would run first and suppress that placement.
+ */
+export function focusField(field: RefObject<NodeHandle | null>): (event: PingoEvent) => void {
+  return (event) => {
+    if (event.target.nodeId === field.current?.nodeId) return;
+    field.current?.focus();
+  };
+}
+
+/**
+ * Builds the Input descriptor tree. Pure: safe to call without a component scope.
+ *
+ * `field` is optional so the descriptor stays callable outside a component; the
+ * component supplies one, and without it the decorated area around the editable
+ * is inert.
+ */
+export function inputDescriptor(
+  props: InputProps,
+  controller: TextEditingController,
+  field?: RefObject<NodeHandle | null>,
+): PingoNode {
   const theme = useTheme();
   const disabled = props.disabled === true;
   const readOnly = disabled || props.readOnly === true;
@@ -52,12 +81,14 @@ export function inputDescriptor(props: InputProps, controller: TextEditingContro
       .filter((part) => part !== undefined && part !== "")
       .join(" "),
     ...(props.width === undefined ? {} : { width: props.width }),
+    ...(field === undefined || disabled ? {} : { onPointerDown: focusField(field) }),
     children: [
       props.prefix === undefined
         ? undefined
         : View({ className: slotClass("pui-input__prefix"), children: props.prefix }),
       EngineInput({
         className: "pui-input__field",
+        ...(field === undefined ? {} : { ref: field }),
         controller,
         readOnly,
         ...(props.password === undefined ? {} : { password: props.password }),
@@ -96,5 +127,6 @@ export const Input = memo(function InputImpl(props: InputProps): PingoNode {
     () => props.controller ?? new TextEditingController({ value: props.value ?? "" }),
     [],
   );
-  return inputDescriptor(props, controller);
+  const field = useRef<NodeHandle | null>(null);
+  return inputDescriptor(props, controller, field);
 });

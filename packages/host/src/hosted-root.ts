@@ -682,11 +682,28 @@ class HostedCanvasRootController implements HostedCanvasRoot {
         ]);
         return;
       case "focus":
+        // Focusing an editable has to start the editing session, not only move
+        // interaction focus: Core activates native text services from
+        // FocusEditable, so `ref.focus()` on an Input otherwise left the field
+        // marked focused with no caret, no keyboard and no IME. This is the one
+        // way a Shell can hand focus to a control from a press that landed on
+        // its decorated wrapper rather than on the editable itself.
+        if (this.#root?.editableState(request.nodeId) !== undefined) {
+          this.focusEditableWithOrigin(request.nodeId, "programmatic");
+          return;
+        }
         this.sendInputCommands([
           { type: "focusNode", eventId, nodeId: request.nodeId, origin: "programmatic" },
         ]);
         return;
       case "blur":
+        // Symmetrically: ending interaction focus on the active editor has to
+        // end its session, or the OS keeps typing into a field the Shell has
+        // already blurred.
+        if (this.#inputBridge.activeNodeId === request.nodeId) {
+          this.blurEditable();
+          return;
+        }
         this.sendInputCommands([{ type: "blurNode", eventId, nodeId: request.nodeId }]);
         return;
       case "scrollTo":

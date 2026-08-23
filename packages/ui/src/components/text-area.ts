@@ -1,8 +1,15 @@
 import { TextEditingController, type EditTransaction } from "@dopejs/pingo-editing";
-import { memo, TextArea as EngineTextArea, View, type PingoNode } from "@dopejs/pingo-jsx";
-import { useMemo } from "@dopejs/pingo-runtime";
+import {
+  memo,
+  TextArea as EngineTextArea,
+  View,
+  type NodeHandle,
+  type PingoNode,
+} from "@dopejs/pingo-jsx";
+import { useMemo, useRef, type RefObject } from "@dopejs/pingo-runtime";
 
 import { useTheme } from "../theme";
+import { focusField } from "./input";
 
 // Type alias (not interface) so the implicit index signature satisfies
 // memo's Props extends Record<string, unknown> constraint.
@@ -24,10 +31,19 @@ export type TextAreaProps = {
   readonly semanticLabel?: string;
 };
 
-/** Builds the TextArea descriptor tree. Pure: safe to call without a component scope. */
+/**
+ * Builds the TextArea descriptor tree. Pure: safe to call without a component
+ * scope.
+ *
+ * `field` is optional so the descriptor stays callable outside a component; the
+ * component supplies one, and without it the decorated area around the editable
+ * is inert. It matters more here than on Input: the editable is one line tall
+ * inside a box at least 72 high, so most of the control is decoration.
+ */
 export function textAreaDescriptor(
   props: TextAreaProps,
   controller: TextEditingController,
+  field?: RefObject<NodeHandle | null>,
 ): PingoNode {
   const theme = useTheme();
   const disabled = props.disabled === true;
@@ -45,8 +61,10 @@ export function textAreaDescriptor(
     ...(props.width === undefined ? {} : { width: props.width }),
     // Lockstep: rows * line-height-sm (20) + 2 * input-padding-y (6).
     ...(props.rows === undefined ? {} : { style: { minHeight: props.rows * 20 + 12 } }),
+    ...(field === undefined || disabled ? {} : { onPointerDown: focusField(field) }),
     children: EngineTextArea({
       className: "pui-input__field",
+      ...(field === undefined ? {} : { ref: field }),
       controller,
       readOnly,
       ...(props.semanticLabel === undefined ? {} : { semanticLabel: props.semanticLabel }),
@@ -78,5 +96,6 @@ export const TextArea = memo(function TextAreaImpl(props: TextAreaProps): PingoN
     () => props.controller ?? new TextEditingController({ value: props.value ?? "" }),
     [],
   );
-  return textAreaDescriptor(props, controller);
+  const field = useRef<NodeHandle | null>(null);
+  return textAreaDescriptor(props, controller, field);
 });

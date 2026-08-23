@@ -16,6 +16,11 @@ afterEach(() => setTheme("light"));
 type Host = { props: Record<string, unknown> & { className?: string } };
 type Tree = Host & { props: { children: readonly Host[] } };
 
+/** A mounted-field ref stub: the descriptor only reads `nodeId` and `focus`. */
+function fieldRef(nodeId: number, focus: () => void): Parameters<typeof inputDescriptor>[2] {
+  return { current: { nodeId, focus } } as unknown as Parameters<typeof inputDescriptor>[2];
+}
+
 function descriptor(props: Parameters<typeof inputDescriptor>[0]): Tree {
   return inputDescriptor(props, new TextEditingController({ value: "" })) as unknown as Tree;
 }
@@ -105,6 +110,33 @@ describe("Input", () => {
     const onTransaction = field(node).onTransaction as (t: EditTransaction) => void;
     onTransaction(transaction);
     expect(onValueChange).toHaveBeenCalledWith("ab");
+  });
+
+  it("hands a press on the decoration to the field, and leaves the field's own alone", () => {
+    const focus = vi.fn();
+    const ref = fieldRef(7, focus);
+    const node = inputDescriptor(
+      {},
+      new TextEditingController({ value: "" }),
+      ref,
+    ) as unknown as Tree;
+    const press = node.props.onPointerDown as (event: unknown) => void;
+
+    press({ target: { nodeId: 3 } });
+    expect(focus).toHaveBeenCalledTimes(1);
+    // Core focuses and places the caret itself when the press reached the
+    // field; focusing again from here would run first and swallow that.
+    press({ target: { nodeId: 7 } });
+    expect(focus).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not hand presses to a disabled field", () => {
+    const node = inputDescriptor(
+      { disabled: true },
+      new TextEditingController({ value: "" }),
+      fieldRef(7, vi.fn()),
+    ) as unknown as Tree;
+    expect(node.props.onPointerDown).toBeUndefined();
   });
 
   it("renders through createElement without throwing across re-renders", () => {
