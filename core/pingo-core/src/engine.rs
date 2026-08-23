@@ -3863,6 +3863,181 @@ mod tests {
         let filled = (10 * 100 + 10) * 4;
         assert_eq!(&image.pixels()[filled..filled + 4], &[12, 34, 56, 255]);
     }
+    #[test]
+    fn scroll_reuses_cached_subtrees_without_ghosting() {
+        let mut engine = CoreEngine::new(100.0, 100.0).expect("Core");
+        let paint = |id: u32, red: u8, green: u8, blue: u8| Mutation::DefineResource {
+            resource_id: id,
+            kind: ResourceKind::Paint,
+            bytes: SolidPaint {
+                red,
+                green,
+                blue,
+                alpha: 255,
+            }
+            .encode()
+            .to_vec(),
+        };
+        let child = |node: u32, resource: u32| {
+            [
+                Mutation::CreateNode {
+                    node_id: id(node),
+                    kind: NodeKind::Container,
+                    parent: id(1),
+                    before_sibling: NULL_NODE_ID,
+                },
+                Mutation::SetF32 {
+                    node_id: id(node),
+                    prop: Prop::Width,
+                    value: 100.0,
+                },
+                Mutation::SetF32 {
+                    node_id: id(node),
+                    prop: Prop::Height,
+                    value: 50.0,
+                },
+                Mutation::SetRef {
+                    node_id: id(node),
+                    prop: Prop::BackgroundColor,
+                    resource_id: resource,
+                },
+            ]
+        };
+        let mut mutations = vec![
+            Mutation::CreateNode {
+                node_id: id(0),
+                kind: NodeKind::Root,
+                parent: NULL_NODE_ID,
+                before_sibling: NULL_NODE_ID,
+            },
+            Mutation::CreateNode {
+                node_id: id(1),
+                kind: NodeKind::Scroll,
+                parent: id(0),
+                before_sibling: NULL_NODE_ID,
+            },
+            Mutation::SetF32 {
+                node_id: id(1),
+                prop: Prop::Width,
+                value: 100.0,
+            },
+            Mutation::SetF32 {
+                node_id: id(1),
+                prop: Prop::Height,
+                value: 100.0,
+            },
+        ];
+        mutations.extend([
+            paint(1, 255, 0, 0),
+            paint(2, 0, 255, 0),
+            paint(3, 0, 0, 255),
+        ]);
+        mutations.extend(child(2, 1));
+        mutations.extend(child(3, 2));
+        mutations.extend(child(4, 3));
+        engine.commit(&frame(1, mutations)).expect("frame");
+
+        let scrolled = engine
+            .input(&input(
+                1,
+                vec![InputCommand::ScrollTo {
+                    node_id: id(1),
+                    x: 0.0,
+                    y: 50.0,
+                }],
+            ))
+            .expect("scroll")
+            .expect("repaint");
+        let image = HeadlessRenderer::new()
+            .render(&scrolled.display_list, engine.scene(), 100, 100)
+            .expect("headless pixels");
+        // After scrolling 50px down, the red row (y 0..50) is off-screen and
+        // the green row (y 50..100) fills the viewport top. A stale red pixel
+        // here means the cached subtree was reused with its pre-scroll offset.
+        let top_left = &image.pixels()[..4];
+        assert_eq!(
+            top_left,
+            &[0, 255, 0, 255],
+            "ghosting: stale red row remains at the top"
+        );
+    }
+    #[test]
+    fn sibling_height_change_repaints_following_content_without_ghosting() {
+        let mut engine = CoreEngine::new(100.0, 200.0).expect("Core");
+        let paint = |rid: u32, red: u8, green: u8, blue: u8| Mutation::DefineResource {
+            resource_id: rid,
+            kind: ResourceKind::Paint,
+            bytes: SolidPaint {
+                red,
+                green,
+                blue,
+                alpha: 255,
+            }
+            .encode()
+            .to_vec(),
+        };
+        let boxed = |node: u32, height: f32, resource: u32| {
+            [
+                Mutation::CreateNode {
+                    node_id: id(node),
+                    kind: NodeKind::Container,
+                    parent: id(0),
+                    before_sibling: NULL_NODE_ID,
+                },
+                Mutation::SetF32 {
+                    node_id: id(node),
+                    prop: Prop::Width,
+                    value: 100.0,
+                },
+                Mutation::SetF32 {
+                    node_id: id(node),
+                    prop: Prop::Height,
+                    value: height,
+                },
+                Mutation::SetRef {
+                    node_id: id(node),
+                    prop: Prop::BackgroundColor,
+                    resource_id: resource,
+                },
+            ]
+        };
+        let mut mutations = vec![Mutation::CreateNode {
+            node_id: id(0),
+            kind: NodeKind::Root,
+            parent: NULL_NODE_ID,
+            before_sibling: NULL_NODE_ID,
+        }];
+        mutations.extend([paint(1, 255, 0, 0), paint(2, 0, 255, 0)]);
+        mutations.extend(boxed(1, 50.0, 1));
+        mutations.extend(boxed(2, 50.0, 2));
+        engine.commit(&frame(1, mutations)).expect("frame");
+
+        // Grow the first (red) box from 50 to 150. The green box below it
+        // must shift from y=50 to y=150. If its cached subtree is reused at
+        // the old offset, a green ghost lingers where the red box grew.
+        let resized = engine
+            .commit(&frame(
+                2,
+                vec![Mutation::SetF32 {
+                    node_id: id(1),
+                    prop: Prop::Height,
+                    value: 150.0,
+                }],
+            ))
+            .expect("resize");
+        let image = HeadlessRenderer::new()
+            .render(&resized.display_list, engine.scene(), 100, 200)
+            .expect("headless pixels");
+        // y=75 is inside the grown red box (0..150); it must be red, not the
+        // stale green of the box that should have moved to y=150.
+        let row = 75 * 100 + 10;
+        let pixel = &image.pixels()[row * 4..row * 4 + 4];
+        assert_eq!(
+            pixel,
+            &[255, 0, 0, 255],
+            "ghosting: stale green box lingers under the grown box"
+        );
+    }
 
     #[test]
     fn hit_tests_events_and_gates_later_work_until_the_path_is_drained() {
