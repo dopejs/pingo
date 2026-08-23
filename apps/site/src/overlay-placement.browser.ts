@@ -5,7 +5,13 @@ import {
   SelectTrigger,
   createPingoUiStyleSheet,
 } from "@dopejs/pingo-ui";
-import { createElement, createHostedCanvasRoot, type FrameReport } from "@dopejs/pingo";
+import {
+  createElement,
+  createHostedCanvasRoot,
+  useSignal,
+  type FrameReport,
+  type PingoNode,
+} from "@dopejs/pingo";
 import { afterEach, describe, expect, it } from "vitest";
 
 /**
@@ -128,6 +134,100 @@ describe("anchored placement", () => {
     await pause(120);
     return { closed, opened: ink(), canvas };
   }
+
+  it("opens and selects while the page re-renders under the press", async () => {
+    // The condition that broke every anchored overlay in real use: something
+    // re-renders between the focus leaving the anchor and the focus arriving
+    // inside it. Pairing those two events per render lost the cancellation, so
+    // the panel closed itself on the very press that opened it -- a select that
+    // "cannot be opened" -- and a press on an item closed the panel before the
+    // click could select anything.
+    const canvas = document.createElement("canvas");
+    canvas.width = WIDTH;
+    canvas.height = HEIGHT;
+    document.body.append(canvas);
+    const frames: FrameReport[] = [];
+    const picked: string[] = [];
+    const semantics: Array<Record<string, unknown>> = [];
+    const root = await createHostedCanvasRoot(canvas, {
+      styleSheets: [createPingoUiStyleSheet()],
+      onFrame: (report) => frames.push(report),
+      onSemantics: (snapshot: unknown) => {
+        semantics.length = 0;
+        semantics.push(...(Array.isArray(snapshot) ? (snapshot as Record<string, unknown>[]) : []));
+      },
+      transport: { preference: "main-thread", strict: true },
+    });
+    roots.push(root);
+    function Page(): PingoNode {
+      const ticks = useSignal(0);
+      return createElement("container", {
+        width: WIDTH,
+        height: HEIGHT,
+        style: { flexDirection: "column", paddingTop: "10px", alignItems: "center" },
+        onPointerDown: () => ticks.set(ticks.peek() + 1),
+        children: createElement("container", {
+          width: 200,
+          style: { flexDirection: "column" },
+          children: createElement(Select, {
+            value: "b",
+            onValueChange: (value: string) => picked.push(value),
+            // Reading the counter is what makes the press re-render the overlay.
+            semanticLabel: `press ${String(ticks.get())}`,
+            children: [
+              createElement(SelectTrigger, { placeholder: "pick" }),
+              createElement(SelectContent, {
+                children: ["a", "b", "c"].map((value) =>
+                  createElement(SelectItem, { key: value, value, children: `item ${value}` }),
+                ),
+              }),
+            ],
+          }),
+        }),
+      });
+    }
+    root.render(createElement(Page, {}));
+    expect(await waitUntil(() => frames.some((frame) => frame.cause === "mutation"))).toBe(true);
+
+    const rect = canvas.getBoundingClientRect();
+    const click = async (x: number, y: number): Promise<void> => {
+      canvas.dispatchEvent(
+        new PointerEvent("pointerdown", {
+          bubbles: true,
+          buttons: 1,
+          clientX: rect.left + x,
+          clientY: rect.top + y,
+          pointerId: 3,
+        }),
+      );
+      await pause(40);
+      canvas.dispatchEvent(
+        new PointerEvent("pointerup", {
+          bubbles: true,
+          buttons: 0,
+          clientX: rect.left + x,
+          clientY: rect.top + y,
+          pointerId: 3,
+        }),
+      );
+      canvas.dispatchEvent(
+        new MouseEvent("click", { bubbles: true, clientX: rect.left + x, clientY: rect.top + y }),
+      );
+      await pause(150);
+    };
+    const bounds = (node: Record<string, unknown> | undefined): Record<string, number> =>
+      (node?.bounds ?? {}) as Record<string, number>;
+
+    const trigger = bounds(semantics.find((node) => String(node.role) === "button"));
+    await click((trigger.left ?? 0) + 20, (trigger.top ?? 0) + 10);
+    const items = semantics.filter((node) => String(node.role) === "menuitem");
+    expect(items).toHaveLength(3);
+
+    const third = bounds(items[2]);
+    await click((third.left ?? 0) + 20, (third.top ?? 0) + (third.height ?? 0) / 2);
+    expect(picked).toEqual(["c"]);
+    expect(semantics.filter((node) => String(node.role) === "menuitem")).toHaveLength(0);
+  });
 
   it("drops below a trigger with room under it", async () => {
     const { closed, opened } = await open(10);
