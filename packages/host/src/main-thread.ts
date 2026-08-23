@@ -24,6 +24,7 @@ import {
   decodeInputBatch,
   type EditTransaction,
   type EventTransaction,
+  type InputCommand,
 } from "@dopejs/pingo-editing";
 
 import { encodeSystemTextMetricBatch } from "./system-text-metrics";
@@ -381,6 +382,28 @@ type ResourceAction =
  * for code points beyond that, which fall back to the estimate.
  */
 const MAXIMUM_COMPOSITION_CODE_POINTS = 4096;
+
+/**
+ * The text an edit puts into a value, when it carries any.
+ *
+ * `replace` and `insert` are ordinary typing and paste; the composition pair is
+ * IME preedit, which is in no Scene string either.
+ */
+function insertedText(
+  command: InputCommand,
+): { readonly nodeId: number; readonly text: string } | undefined {
+  switch (command.type) {
+    case "commitComposition":
+    case "insert":
+    case "replace":
+    case "updateComposition": {
+      const text = command.text;
+      return text === undefined || text.length === 0 ? undefined : { nodeId: command.nodeId, text };
+    }
+    default:
+      return undefined;
+  }
+}
 
 /** Editable flag bit the Shell sets for a password field. */
 const EDITABLE_PASSWORD_FLAG = 1 << 2;
@@ -787,10 +810,18 @@ export class CanvasFrameSink implements MutationSink {
   }
 
   /**
-   * Measures IME preedit code points before Core sees the composition command.
+   * Measures the code points an edit introduces before Core sees the command.
+   *
+   * Core places the caret from per-code-point advances, and the Host measures
+   * the ones the Scene string contains. Editing needs no Shell re-render, so
+   * everything typed after that is in no Scene string and had no measurement:
+   * the caret fell back to an estimate of 0.6em per code point and drifted
+   * further right with every keystroke -- 5px per character for a narrow letter
+   * like `l`, and it never came back because the value never returns to Scene.
    *
    * Runs only while some node is editable, so an ordinary scrolling frame never
-   * decodes its own input batch. A pair is remeasured only when the preedit
+   * decodes its own input batch, and ahead of Core so the caret is right on the
+   * very frame the character appears. A pair is remeasured only when the edit
    * introduces a code point Core has not been told about, which is at most once
    * per new character rather than once per keystroke.
    */
@@ -798,11 +829,11 @@ export class CanvasFrameSink implements MutationSink {
     if (this.#editableNodes.size === 0) return;
     const pending = new Map<string, CanvasSystemTextPair>();
     for (const command of decodeInputBatch(bytes).commands) {
-      if (command.type !== "updateComposition" && command.type !== "commitComposition") continue;
-      const text = command.text;
-      if (text === undefined || text.length === 0) continue;
-      const pair = this.#nodeTextPairs.get(command.nodeId);
-      if (pair === undefined || !this.#editableNodes.has(command.nodeId)) continue;
+      const edit = insertedText(command);
+      if (edit === undefined) continue;
+      const { nodeId, text } = edit;
+      const pair = this.#nodeTextPairs.get(nodeId);
+      if (pair === undefined || !this.#editableNodes.has(nodeId)) continue;
       const key = textPairKey(pair);
       let seen = this.#compositionCodePoints.get(key);
       if (seen === undefined) {
