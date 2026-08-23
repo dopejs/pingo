@@ -6,6 +6,7 @@
 // equal specificity.
 
 .pui-button {
+  @include t.border-box;
   justify-content: center;
   align-items: center;
   height: t.$button-height;
@@ -18,6 +19,7 @@
 }
 
 .pui-button--sm {
+  @include t.border-box;
   height: t.$button-height-sm;
   padding-left: t.$button-padding-x-sm;
   padding-right: t.$button-padding-x-sm;
@@ -25,12 +27,14 @@
 }
 
 .pui-button--lg {
+  @include t.border-box;
   height: t.$button-height-lg;
   padding-left: t.$button-padding-x-lg;
   padding-right: t.$button-padding-x-lg;
 }
 
 .pui-button--icon {
+  @include t.border-box;
   width: t.$button-height;
   padding-left: 0;
   padding-right: 0;

@@ -8,6 +8,7 @@
 }
 
 .pui-checkbox__box {
+  @include t.border-box;
   justify-content: center;
   align-items: center;
   width: t.$checkbox-size;

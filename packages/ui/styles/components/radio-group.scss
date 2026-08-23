@@ -17,6 +17,7 @@
 }
 
 .pui-radio__circle {
+  @include t.border-box;
   justify-content: center;
   align-items: center;
   width: t.$radio-size;

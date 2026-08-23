@@ -5,6 +5,7 @@
 // solution lands.
 
 .pui-input {
+  @include t.border-box;
   flex-direction: row;
   align-items: center;
   column-gap: t.$input-gap;

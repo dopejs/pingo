@@ -1,6 +1,7 @@
 @use "../tokens" as t;
 
 .pui-topbar {
+  @include t.border-box;
   flex-direction: row;
   align-items: center;
   column-gap: t.$list-row-gap;
@@ -34,6 +35,7 @@
 }
 
 .pui-sidebar {
+  @include t.border-box;
   flex-direction: column;
   width: t.$sidebar-width;
   padding: t.$sidebar-padding;
@@ -173,6 +175,7 @@
 }
 
 .pui-list-row {
+  @include t.border-box;
   flex-direction: row;
   align-items: center;
   column-gap: t.$list-row-gap;

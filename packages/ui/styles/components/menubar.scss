@@ -45,6 +45,7 @@
 }
 
 .pui-menubar__content {
+  @include t.border-box;
   position: absolute;
   top: t.$anchor-top;
   left: t.$zero;

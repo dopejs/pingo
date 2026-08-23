@@ -1,6 +1,7 @@
 @use "../tokens" as t;
 
 .pui-toggle {
+  @include t.border-box;
   align-items: center;
   justify-content: center;
   min-height: t.$button-height;

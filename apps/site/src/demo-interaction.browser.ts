@@ -246,6 +246,132 @@ describe("documentation previews", () => {
     );
   });
 
+  // The hover card is left out: it opens on hover and closes when the pointer
+  // leaves, which the test below covers. The rest open on a press, and an
+  // anchored overlay has no backdrop to absorb the next one -- Core moves focus
+  // to whatever a press hits, so focus leaving the anchor is what puts them
+  // away. Without it only Escape did.
+  it.each([
+    "select-basic",
+    "combobox-basic",
+    "date-picker-basic",
+    "popover-basic",
+    "popover-rich",
+    "dropdown-menu-basic",
+  ])("closes %s from a press outside it", async (name) => {
+    const { canvas, height } = await mount(name);
+    const closed = paintedRows(canvas, height);
+    const rect = canvas.getBoundingClientRect();
+    const press = (x: number, y: number): void => {
+      for (const [type, buttons] of [
+        ["pointerdown", 1],
+        ["pointerup", 0],
+      ] as const) {
+        canvas.dispatchEvent(
+          new PointerEvent(type, {
+            bubbles: true,
+            buttons,
+            clientX: rect.left + x,
+            clientY: rect.top + y,
+            pointerId: 4,
+          }),
+        );
+      }
+      canvas.dispatchEvent(
+        new MouseEvent("click", { bubbles: true, clientX: rect.left + x, clientY: rect.top + y }),
+      );
+    };
+    press(WIDTH / 2, closed.top + 10);
+    expect(await waitUntil(() => paintedRows(canvas, height).bottom > closed.bottom + 20)).toBe(
+      true,
+    );
+
+    press(20, height - 10);
+    expect(await waitUntil(() => paintedRows(canvas, height).bottom <= closed.bottom + 4)).toBe(
+      true,
+    );
+  });
+
+  it("closes a hover card when the pointer leaves it", async () => {
+    const { canvas, height } = await mount("hover-card-basic");
+    const closed = paintedRows(canvas, height);
+    const rect = canvas.getBoundingClientRect();
+    const move = (x: number, y: number): void => {
+      canvas.dispatchEvent(
+        new PointerEvent("pointermove", {
+          bubbles: true,
+          buttons: 0,
+          clientX: rect.left + x,
+          clientY: rect.top + y,
+          pointerId: 7,
+        }),
+      );
+    };
+    move(WIDTH / 2, closed.top + 8);
+    expect(await waitUntil(() => paintedRows(canvas, height).bottom > closed.bottom + 20)).toBe(
+      true,
+    );
+    move(20, height - 10);
+    expect(await waitUntil(() => paintedRows(canvas, height).bottom <= closed.bottom + 4)).toBe(
+      true,
+    );
+  });
+
+  it.each(["combobox-basic", "date-picker-basic"])(
+    "drops %s's panel below its trigger instead of over it",
+    async (name) => {
+      const { canvas, height } = await mount(name);
+      const closed = paintedRows(canvas, height);
+      const rect = canvas.getBoundingClientRect();
+      for (const [type, buttons] of [
+        ["pointerdown", 1],
+        ["pointerup", 0],
+      ] as const) {
+        canvas.dispatchEvent(
+          new PointerEvent(type, {
+            bubbles: true,
+            buttons,
+            clientX: rect.left + WIDTH / 2,
+            clientY: rect.top + closed.top + 10,
+            pointerId: 6,
+          }),
+        );
+      }
+      canvas.dispatchEvent(
+        new MouseEvent("click", {
+          bubbles: true,
+          clientX: rect.left + WIDTH / 2,
+          clientY: rect.top + closed.top + 10,
+        }),
+      );
+      expect(await waitUntil(() => paintedRows(canvas, height).bottom > closed.bottom + 20)).toBe(
+        true,
+      );
+
+      // The skin places a panel with `top: 100%`, and a percentage needs a
+      // definite basis the engine does not have for a column's height, so it
+      // resolved to zero and the panel covered its own trigger. These two never
+      // measured; the popover and the menus already did.
+      const context = canvas.getContext("2d");
+      if (context === null) throw new Error("Chromium did not provide Canvas2D");
+      const data = context.getImageData(0, 0, WIDTH, height).data;
+      let gap = 0;
+      for (let y = closed.bottom + 1; y < height; y += 1) {
+        let ink = false;
+        for (let x = 0; x < WIDTH; x += 1) {
+          if ((data[(y * WIDTH + x) * 4 + 3] ?? 0) >= 20) {
+            ink = true;
+            break;
+          }
+        }
+        if (ink) break;
+        gap += 1;
+      }
+      // A clear band between the trigger and the panel: they do not overlap.
+      expect(gap).toBeGreaterThanOrEqual(2);
+    },
+  );
+
   it("gives a select's list the width of the control it drops out of", async () => {
     const { canvas, height } = await mount("select-basic");
     const rect = canvas.getBoundingClientRect();

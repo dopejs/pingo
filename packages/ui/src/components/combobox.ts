@@ -13,9 +13,10 @@ import { useMemo, useSignal } from "@dopejs/pingo-runtime";
 import { ChevronDownIcon } from "../icons";
 import { classes, OverlayFocusContext, useOverlayFocus } from "../overlay";
 import { useTheme } from "../theme";
+import { useAnchoredPlacement, type AnchoredPlacement } from "../use-anchored";
 
 import { commandDescriptor, type CommandItem } from "./command";
-import { anchorDescriptor } from "./popover";
+import { ANCHOR_OFFSET, anchorDescriptor } from "./popover";
 
 export type ComboboxProps = {
   readonly items: readonly CommandItem[];
@@ -50,6 +51,15 @@ export function comboboxDescriptor(
     readonly focusItem: (value: string) => void;
     readonly registerItem: (value: string, handle: NodeHandle | null) => void;
     readonly commit: (value: string) => void;
+    /**
+     * Measured placement, or undefined outside a component scope.
+     *
+     * The skin cannot place the panel on its own: `top: 100%` needs a
+     * percentage basis the engine only has once the anchor's height is
+     * definite, and a column's is not, so the list landed on top of the field
+     * it belongs to. Measuring is the same path Popover and the menus take.
+     */
+    readonly placement?: AnchoredPlacement;
   },
 ): PingoNode {
   const dark = useTheme() === "dark" ? "pui-dark" : undefined;
@@ -57,6 +67,8 @@ export function comboboxDescriptor(
   const toggle = (): void => state.setOpen(!state.open);
   return anchorDescriptor({
     className: classes("pui-combobox", props.className),
+    ...(state.placement === undefined ? {} : { ref: state.placement.anchorRef }),
+    onDismiss: () => state.setOpen(false),
     children: [
       View({
         className: classes("pui-combobox__trigger", dark),
@@ -83,6 +95,8 @@ export function comboboxDescriptor(
       state.open
         ? View({
             className: classes("pui-combobox__content", dark),
+            ...(state.placement === undefined ? {} : { ref: state.placement.panelRef }),
+            ...(state.placement?.style === undefined ? {} : { style: state.placement.style }),
             children: commandDescriptor(
               {
                 items: props.items,
@@ -116,6 +130,7 @@ export const Combobox = memo(function ComboboxImpl(props: ComboboxProps): PingoN
   // .get() (not .peek()): uncontrolled changes must re-render this component.
   const open = props.open ?? openSignal.get();
   const value = props.value ?? valueSignal.get();
+  const placement = useAnchoredPlacement(open, "bottom", ANCHOR_OFFSET);
   const setOpen = (next: boolean): void => {
     openSignal.set(next);
     // The query resets on close rather than on open: leaving it would show a
@@ -131,6 +146,7 @@ export const Combobox = memo(function ComboboxImpl(props: ComboboxProps): PingoN
     children: comboboxDescriptor(props, {
       open,
       value,
+      placement,
       query: querySignal.get(),
       active: activeSignal.get(),
       setOpen,

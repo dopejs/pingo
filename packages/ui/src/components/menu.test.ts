@@ -100,21 +100,34 @@ describe("menuContentDescriptor", () => {
 });
 
 describe("menu trigger and items", () => {
-  it("shows the selected value or a placeholder", () => {
+  it("shows the selected value or a placeholder, next to a disclosure indicator", () => {
     const empty = menuTriggerDescriptor(
       { placeholder: "选择…" },
       context({ open: false }),
       true,
-    ) as unknown as { props: { children: Host } };
-    expect(empty.props.children.props.value).toBe("选择…");
-    expect(empty.props.children.props.className).toBe("pui-select__placeholder");
+    ) as unknown as { props: { children: readonly Host[] } };
+    const [label, indicator] = empty.props.children;
+    expect(label?.props.value).toBe("选择…");
+    expect(label?.props.className).toBe("pui-select__placeholder");
+    // A select renders its own label, so it owes the user the affordance that
+    // says the trigger opens something.
+    expect(indicator?.props.className).toBe("pui-select__indicator");
 
     const chosen = menuTriggerDescriptor(
       { placeholder: "选择…" },
       context({ open: false, value: "乙" }),
       true,
-    ) as unknown as { props: { children: Host } };
-    expect(chosen.props.children.props.value).toBe("乙");
+    ) as unknown as { props: { children: readonly Host[] } };
+    expect(chosen.props.children[0]?.props.value).toBe("乙");
+  });
+
+  it("leaves a dropdown trigger to its caller", () => {
+    const node = menuTriggerDescriptor(
+      { placeholder: "选择…" },
+      context({ open: false }),
+      false,
+    ) as unknown as { props: { children: readonly (Host | null)[] } };
+    expect(node.props.children[1]).toBeNull();
   });
 
   it("marks the selected item and reports it to the root", () => {

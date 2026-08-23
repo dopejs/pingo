@@ -11,6 +11,7 @@ import { createContext, useContext, useMemo, useSignal } from "@dopejs/pingo-run
 
 import {
   classes,
+  dismissOnFocusLoss,
   OverlayFocusContext,
   overlayKeyHandler,
   useOverlayFocus,
@@ -19,8 +20,8 @@ import {
 import { useAnchoredPlacement, type AnchoredPlacement } from "../use-anchored";
 import { useTheme } from "../theme";
 
-/** Gap between an anchor and its panel, matching `$popover-offset`. */
-const ANCHOR_OFFSET = 4;
+/** Gap between an anchored panel and its trigger, matching `$popover-offset`. */
+export const ANCHOR_OFFSET = 4;
 
 export type AnchorContextValue = {
   readonly open: boolean;
@@ -63,10 +64,19 @@ export function anchorDescriptor(props: {
   readonly className?: string;
   /** Ref used to measure the box the panel is positioned against. */
   readonly ref?: (handle: NodeHandle | null) => void;
+  /**
+   * Closes the overlay when focus leaves the whole anchor.
+   *
+   * On the wrapper rather than on the panel: the trigger, the panel and
+   * everything inside either are all within it, so opening, moving into the
+   * list and coming back are all internal, and only a press that leaves counts.
+   */
+  readonly onDismiss?: () => void;
 }): PingoNode {
   return View({
     className: classes("pui-anchor", props.className),
     ...(props.ref === undefined ? {} : { ref: props.ref }),
+    ...(props.onDismiss === undefined ? {} : dismissOnFocusLoss(props.onDismiss)),
     children: props.children,
   });
 }
@@ -105,7 +115,11 @@ export const Popover = memo(function PopoverImpl(props: PopoverProps): PingoNode
     // every overlay kind, so it reads one context regardless of which built it.
     children: createElement(OverlayFocusContext.Provider, {
       value: focus,
-      children: anchorDescriptor({ ...props, ref: placement.anchorRef }),
+      children: anchorDescriptor({
+        ...props,
+        ref: placement.anchorRef,
+        onDismiss: () => value.setOpen(false),
+      }),
     }),
   });
 });

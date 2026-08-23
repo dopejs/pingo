@@ -24,6 +24,7 @@
 }
 
 .pui-overlay__panel {
+  @include t.border-box;
   flex-direction: column;
   width: t.$overlay-width;
   padding: t.$overlay-padding;
@@ -49,6 +50,7 @@
 }
 
 .pui-anchor__content {
+  @include t.border-box;
   position: absolute;
   top: t.$anchor-top;
   left: t.$zero;
@@ -75,6 +77,19 @@
 // the popover default. `border-box` because the width has to be the whole box:
 // with the default content box the padding and the border land outside it and
 // the list stands wider than the control it drops out of.
+// Disclosure indicator for the anchored triggers that render their own label.
+// The combobox keeps its own class; these two had none at all, so the trigger
+// showed a label and nothing to say it opens something.
+.pui-select__indicator,
+.pui-date-picker__indicator {
+  width: t.$icon-size;
+  height: t.$icon-size;
+  color: t.$muted-foreground;
+  &.pui-dark {
+    color: t.$dark-muted-foreground;
+  }
+}
+
 .pui-select__content {
   box-sizing: border-box;
   width: t.$full;
@@ -131,6 +146,7 @@
 }
 
 .pui-tooltip__content {
+  @include t.border-box;
   width: t.$tooltip-width;
   padding-left: t.$tooltip-padding-x;
   padding-right: t.$tooltip-padding-x;
@@ -183,6 +199,7 @@
 }
 
 .pui-select__trigger {
+  @include t.border-box;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
@@ -212,6 +229,7 @@
 }
 
 .pui-command {
+  @include t.border-box;
   flex-direction: column;
   width: t.$overlay-width;
   padding: t.$popover-offset;

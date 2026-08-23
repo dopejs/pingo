@@ -38,6 +38,7 @@
 }
 
 .pui-slider__thumb {
+  @include t.border-box;
   position: absolute;
   width: t.$slider-thumb;
   height: t.$slider-thumb;
@@ -184,6 +185,7 @@
 }
 
 .pui-table__row {
+  @include t.border-box;
   align-items: center;
   min-height: t.$table-row-height;
   border-bottom-width: t.$border-width;
@@ -281,7 +283,11 @@
 }
 
 .pui-date-picker__trigger {
+  @include t.border-box;
   align-items: center;
+  // The value on one side and the disclosure indicator on the other, the same
+  // shape as the select and combobox triggers.
+  justify-content: space-between;
   min-height: t.$input-height;
   padding-left: t.$input-padding-x;
   padding-right: t.$input-padding-x;
@@ -371,6 +377,7 @@
 }
 
 .pui-context-menu__content {
+  @include t.border-box;
   position: absolute;
   flex-direction: column;
   min-width: t.$popover-width;

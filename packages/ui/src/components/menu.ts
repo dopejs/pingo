@@ -1,6 +1,7 @@
 import {
   createElement,
   memo,
+  Svg,
   Text,
   View,
   type NodeHandle,
@@ -9,6 +10,7 @@ import {
 } from "@dopejs/pingo-jsx";
 import { createContext, useContext, useMemo, useSignal } from "@dopejs/pingo-runtime";
 
+import { ChevronDownIcon } from "../icons";
 import { orderedValues, step } from "../keyboard";
 import { classes, escapeHandler, useOverlayFocus, type OverlayFocus } from "../overlay";
 import { useTheme } from "../theme";
@@ -94,7 +96,11 @@ function MenuRoot(props: MenuRootProps, closeOnSelect: boolean): PingoNode {
   };
   return createElement(MenuContext.Provider, {
     value,
-    children: anchorDescriptor({ ...props, ref: placement.anchorRef }),
+    children: anchorDescriptor({
+      ...props,
+      ref: placement.anchorRef,
+      onDismiss: () => value.setOpen(false),
+    }),
   });
 }
 
@@ -135,15 +141,21 @@ export function menuTriggerDescriptor(
     onPointerDown: (event: PingoEvent): void => event.currentTarget.focus(),
     onTap: toggle,
     onClick: toggle,
-    children:
-      props.children ??
-      Text({
-        className: classes(
-          context?.value === undefined ? "pui-select__placeholder" : undefined,
-          context?.value === undefined ? dark : undefined,
-        ),
-        value: label ?? "",
-      }),
+    children: props.children ??
+      // A select renders its own label, so it owes the user the affordance that
+      // says it opens something. A dropdown trigger is the caller's node.
+      [
+        Text({
+          className: classes(
+            context?.value === undefined ? "pui-select__placeholder" : undefined,
+            context?.value === undefined ? dark : undefined,
+          ),
+          value: label ?? "",
+        }),
+        select
+          ? Svg({ className: classes("pui-select__indicator", dark), source: ChevronDownIcon })
+          : null,
+      ],
   });
 }
 

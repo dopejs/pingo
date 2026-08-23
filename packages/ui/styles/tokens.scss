@@ -187,3 +187,12 @@ $dark-border: #27272a !default;
 $dark-input-border: #27272a !default;
 $dark-ring: #52525b !default;
 $dark-switch-thumb: #09090b !default;
+
+// shadcn's sizes are the whole box: its reset makes every element border-box,
+// while the engine implements the CSS default of content-box. A rule that
+// declares a size next to padding or a border has to say so itself, or the box
+// comes out padding and border wider than the token says -- a 36px input drawn
+// 50px tall.
+@mixin border-box {
+  box-sizing: border-box;
+}

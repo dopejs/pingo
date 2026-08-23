@@ -5,6 +5,7 @@
 }
 
 .pui-combobox__trigger {
+  @include t.border-box;
   align-items: center;
   justify-content: space-between;
   min-height: t.$input-height;
@@ -64,6 +65,7 @@
 }
 
 .pui-hover-card__content {
+  @include t.border-box;
   position: absolute;
   top: t.$anchor-top;
   left: t.$zero;

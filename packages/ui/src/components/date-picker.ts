@@ -1,6 +1,7 @@
 import {
   createElement,
   memo,
+  Svg,
   Text,
   View,
   type PingoEvent,
@@ -8,11 +9,13 @@ import {
 } from "@dopejs/pingo-jsx";
 import { useSignal } from "@dopejs/pingo-runtime";
 
+import { ChevronDownIcon } from "../icons";
 import { classes, OverlayFocusContext, useOverlayFocus } from "../overlay";
 import { useTheme } from "../theme";
+import { useAnchoredPlacement, type AnchoredPlacement } from "../use-anchored";
 
 import { calendarDescriptor, type CalendarDate, type CalendarProps } from "./calendar";
-import { anchorDescriptor } from "./popover";
+import { ANCHOR_OFFSET, anchorDescriptor } from "./popover";
 
 export type DatePickerProps = Omit<CalendarProps, "className"> & {
   readonly open?: boolean;
@@ -36,12 +39,23 @@ export function datePickerDescriptor(
     readonly month: CalendarDate;
     readonly setOpen: (open: boolean) => void;
     readonly setMonth: (month: CalendarDate) => void;
+    /**
+     * Measured placement, or undefined outside a component scope.
+     *
+     * The skin cannot place the panel on its own: `top: 100%` needs a
+     * percentage basis the engine only has once the anchor's height is
+     * definite, and a column's is not, so the panel landed on top of its own
+     * trigger. Measuring is the same path Popover and the menus already take.
+     */
+    readonly placement?: AnchoredPlacement;
   },
 ): PingoNode {
   const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   const toggle = (): void => state.setOpen(!state.open);
   return anchorDescriptor({
     className: classes("pui-date-picker", props.className),
+    ...(state.placement === undefined ? {} : { ref: state.placement.anchorRef }),
+    onDismiss: () => state.setOpen(false),
     children: [
       View({
         className: classes("pui-date-picker__trigger", dark),
@@ -51,21 +65,28 @@ export function datePickerDescriptor(
         onPointerDown: (event: PingoEvent): void => event.currentTarget.focus(),
         onTap: toggle,
         onClick: toggle,
-        children: Text({
-          className: classes(
-            "pui-date-picker__value",
-            props.value === undefined ? "pui-date-picker__value--placeholder" : undefined,
-            dark,
-          ),
-          value:
-            props.value === undefined
-              ? (props.placeholder ?? "选择日期")
-              : (props.format ?? formatDate)(props.value),
-        }),
+        children: [
+          Text({
+            className: classes(
+              "pui-date-picker__value",
+              props.value === undefined ? "pui-date-picker__value--placeholder" : undefined,
+              dark,
+            ),
+            value:
+              props.value === undefined
+                ? (props.placeholder ?? "选择日期")
+                : (props.format ?? formatDate)(props.value),
+          }),
+          // Says the trigger opens something, the way the select and combobox
+          // triggers do.
+          Svg({ className: classes("pui-date-picker__indicator", dark), source: ChevronDownIcon }),
+        ],
       }),
       state.open
         ? View({
             className: classes("pui-date-picker__content", dark),
+            ...(state.placement === undefined ? {} : { ref: state.placement.panelRef }),
+            ...(state.placement?.style === undefined ? {} : { style: state.placement.style }),
             children: calendarDescriptor(
               {
                 ...props,
@@ -94,10 +115,12 @@ export const DatePicker = memo(function DatePickerImpl(props: DatePickerProps): 
   const focus = useOverlayFocus();
   // .get() (not .peek()): opening and paging must re-render this component.
   const open = props.open ?? openSignal.get();
+  const placement = useAnchoredPlacement(open, "bottom", ANCHOR_OFFSET);
   return createElement(OverlayFocusContext.Provider, {
     value: focus,
     children: datePickerDescriptor(props, {
       open,
+      placement,
       month: props.month ?? monthSignal.get(),
       setOpen: (next) => {
         openSignal.set(next);
