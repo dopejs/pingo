@@ -37,9 +37,9 @@ root.render(
 );
 ```
 
-`createHostedCanvasRoot` detecta las capacidades del navegador y elige el transporte entre
-SharedArrayBuffer, postMessage y Canvas2D en el hilo principal; no necesitas escribir ramas para la
-degradación. `root.mode` devuelve el camino realmente elegido.
+`createHostedCanvasRoot` detecta automáticamente las capacidades del navegador y elige el
+transporte entre SharedArrayBuffer, postMessage y Canvas2D en el hilo principal; no necesitas
+escribir ramas para la degradación. `root.mode` devuelve el camino realmente elegido.
 
 ## Usar TSX
 
@@ -70,8 +70,8 @@ root.render(<OrderRow index={1} />);
 
 ## Elementos del host
 
-El motor sólo tiene cinco elementos integrados, que corresponden directamente a nodos del Scene.
-No hay cascada CSS ni selectores.
+El motor sólo tiene cinco elementos integrados, que corresponden directamente a nodos del
+Scene. No hay cascada CSS ni selectores:
 
 | Elemento       | Uso                                                                     |
 | -------------- | ----------------------------------------------------------------------- |
@@ -81,8 +81,8 @@ No hay cascada CSS ni selectores.
 | `virtualList`  | Lista virtual cuya ventana planifica el Core                            |
 | `editableText` | Primitiva de texto editable                                             |
 
-`TextField` y `TextArea` son widgets compuestos sobre `editableText` (borde, estado de error) y no
-introducen ninguna ruta de entrada nueva.
+`TextField` y `TextArea` son widgets compuestos sobre `editableText` (borde, estado de error)
+y no introducen ninguna ruta de entrada nueva.
 
 ## Estado y efectos
 
@@ -99,13 +99,13 @@ function Counter() {
 }
 ```
 
-Primitivas reactivas disponibles: `signal`, `computed`, `effect`, `batch`, `untracked`, y los hooks
-`useState`, `useSignal`, `useMemo`, `useCallback`, `useRef`, `useEffect`.
+Primitivas reactivas disponibles: `signal`, `computed`, `effect`, `batch`, `untracked`, y los
+hooks `useState`, `useSignal`, `useMemo`, `useCallback`, `useRef`, `useEffect`.
 
 ::: warning No hay lectura síncrona del layout
-No se admite la lectura síncrona del layout del Worker al estilo de `useLayoutEffect`: el layout
-ocurre en otro reloj. Cuando necesites su resultado usa el contrato asíncrono y no intentes leer
-geometría de forma síncrona durante el render.
+No se admite la lectura síncrona del layout del Worker al estilo de `useLayoutEffect`: el
+layout ocurre en otro reloj. Cuando necesites su resultado usa el contrato asíncrono y no
+intentes leer geometría de forma síncrona durante el render.
 :::
 
 ## Observar el comportamiento en ejecución
@@ -119,12 +119,26 @@ const root = await createHostedCanvasRoot(canvas, {
 });
 ```
 
-`onFrame` entrega en cada fotograma el número de comandos, los bytes del DisplayList y, del lado del
-Core, los contadores de nodos sucios, el trabajo de layout y el hash de la picture. Es la primera
-fuente de datos para investigar rendimiento. Más detalles en [diagnóstico](/diagnostics).
+`onFrame` entrega en cada fotograma el número de comandos, los bytes del DisplayList y, del
+lado del Core, los contadores de nodos sucios, el trabajo de layout y el hash de la picture.
+Es la primera fuente de datos para investigar rendimiento. Más detalles en
+[diagnóstico](/diagnostics).
+
+## Recorrido de capacidades
+
+Sobre los cinco elementos integrados, pingo ofrece tres capas de capacidades orientadas al
+autor:
+
+- [Elementos básicos](/guide/elements): View/Text/Image, Input/TextArea, SVG/Path y otros
+  elementos a nivel de motor.
+- [Estilos](/guide/styling): subconjunto de CSS versionado — límites explícitos de selectores
+  de clase, estados interactivos, cascada y herencia; cuando necesites variables y mixins usa
+  la [pipeline de SCSS / Less](/guide/scss-less) en tiempo de build.
+- [Biblioteca de componentes UI](/components): `@dopejs/pingo-ui`, componentes terminados
+  alineados con shadcn/ui, todos renderizados en canvas.
 
 ## Siguientes pasos
 
-- [Arquitectura](/es/guide/architecture): cómo se reparten el trabajo la capa TypeScript y el Core
-- [Scroll virtual](/es/guide/scrolling), [texto y edición](/es/guide/editing)
-- [Playground](/es/playground): demos interactivas en vivo
+- [Arquitectura](/guide/architecture): cómo se reparten el trabajo la Shell y el Core
+- [Scroll virtual](/guide/scrolling), [texto y edición](/guide/editing)
+- [Playground](/playground): demos interactivas en vivo

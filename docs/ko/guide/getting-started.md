@@ -121,6 +121,17 @@ const root = await createHostedCanvasRoot(canvas, {
 `onFrame`은 프레임마다 명령 수, DisplayList 바이트 수, Core 쪽 더티 개수, 레이아웃 작업량,
 picture 해시를 제공합니다. 성능 조사의 1차 자료입니다. 자세한 내용은 [진단](/diagnostics)을 보십시오.
 
+## 기능 둘러보기
+
+다섯 개의 내장 요소 위에 pingo는 세 겹의 작성자 지향 기능을 제공합니다.
+
+- [기본 컴포넌트](/ko/guide/elements)：View/Text/Image, Input/TextArea, SVG/Path 같은 엔진 레벨 요소.
+- [스타일](/ko/guide/styling)：버전화된 CSS subset——클래스 셀렉터, 인터랙션 상태, 캐스케이드와 상속의
+  명확한 경계. 변수와 mixin이 필요하면 빌드 타임의 [SCSS / Less 파이프라인](/ko/guide/scss-less)을
+  사용합니다.
+- [UI 컴포넌트 라이브러리](/ko/components)：`@dopejs/pingo-ui`, shadcn/ui에 맞춘 완성 컴포넌트이며
+  모두 canvas로 렌더링됩니다.
+
 ## 다음 단계
 
 - [아키텍처 개요](/ko/guide/architecture)：Shell과 Core의 역할 분담

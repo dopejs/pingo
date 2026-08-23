@@ -36,12 +36,12 @@ root.render(
 );
 ```
 
-`createHostedCanvasRoot` 會自動偵測瀏覽器能力，在 SharedArrayBuffer、postMessage 與主執行緒
+`createHostedCanvasRoot` 會自動探測瀏覽器能力，在 SharedArrayBuffer、postMessage 與主執行緒
 Canvas2D 之間選擇傳輸路徑，你不需要為降級寫分支。`root.mode` 回傳實際選中的路徑。
 
 ## 使用 TSX
 
-設定 `tsconfig.json`：
+配置 `tsconfig.json`：
 
 ```json
 {
@@ -52,13 +52,13 @@ Canvas2D 之間選擇傳輸路徑，你不需要為降級寫分支。`root.mode`
 }
 ```
 
-之後就能這樣寫：
+之後就能寫：
 
 ```tsx
 function OrderRow({ index }: { index: number }) {
   return (
     <container width={480} height={32} padding={[6, 12, 6, 12]}>
-      <text value={`訂單 #${index}`} fontSize={13} lineHeight={20} />
+      <text value={`订单 #${index}`} fontSize={13} lineHeight={20} />
     </container>
   );
 }
@@ -72,13 +72,13 @@ root.render(<OrderRow index={1} />);
 
 | 元素           | 用途                                           |
 | -------------- | ---------------------------------------------- |
-| `container`    | 通用分組、背景、內距、變換                     |
+| `container`    | 通用分組、背景、內邊距、變換                   |
 | `text`         | 文字執行（shaping、換行、caret 幾何來自 Core） |
 | `scroll`       | Core 擁有的可捲動容器                          |
 | `virtualList`  | Core 規劃視窗的虛擬列表                        |
 | `editableText` | 可編輯文字原語                                 |
 
-`TextField` 與 `TextArea` 是在 `editableText` 之上組合出的 widget（邊框、錯誤狀態），
+`TextField` 與 `TextArea` 是在 `editableText` 之上組合出的 widget（邊框、錯誤態），
 它們不引入新的輸入路徑。
 
 ## 狀態與副作用
@@ -92,7 +92,7 @@ function Counter() {
     const timer = setInterval(() => setCount((value) => value + 1), 1000);
     return () => clearInterval(timer);
   }, []);
-  return createElement("text", { value: `已過 ${count} 秒` });
+  return createElement("text", { value: `已过 ${count} 秒` });
 }
 ```
 
@@ -101,7 +101,7 @@ function Counter() {
 
 ::: warning 沒有同步版面讀取
 `useLayoutEffect` 式的同步 Worker 版面讀取不被支援——版面發生在另一個時鐘上。
-需要版面結果時使用非同步契約，不要試圖在繪製中同步讀取幾何。
+需要版面結果時使用非同步契約，不要試圖在渲染中同步讀取幾何。
 :::
 
 ## 觀測執行狀況
@@ -115,11 +115,20 @@ const root = await createHostedCanvasRoot(canvas, {
 });
 ```
 
-`onFrame` 每幀給出指令數、DisplayList 位元組數以及 Core 側的髒區計數、版面工作量與 picture hash，
+`onFrame` 每幀給出命令數、DisplayList 位元組數以及 Core 側的髒域計數、版面工作量與 picture hash，
 是效能排查的第一手資料。更多見[診斷](/diagnostics)。
+
+## 能力導覽
+
+在五個內建元素之上，pingo 還提供三層作者面向的能力：
+
+- [基礎元件](/guide/elements)：View/Text/Image、Input/TextArea、SVG/Path 等引擎級元素。
+- [樣式](/guide/styling)：版本化 CSS subset——類選擇器、互動狀態、層疊與繼承的明確邊界；
+  需要變數與 mixin 時走建構期的 [SCSS / Less 管線](/guide/scss-less)。
+- [UI 元件庫](/components)：`@dopejs/pingo-ui`，與 shadcn/ui 對齊的成品元件，全部渲染到 canvas。
 
 ## 下一步
 
-- [架構概覽](/zh-Hant/guide/architecture)：Shell 與 Core 如何分工
-- [虛擬捲動](/zh-Hant/guide/scrolling)、[文字與編輯](/zh-Hant/guide/editing)
-- [Playground](/zh-Hant/playground)：可互動的即時示範
+- [架構概覽](/guide/architecture)：Shell 與 Core 如何分工
+- [虛擬捲動](/guide/scrolling)、[文字與編輯](/guide/editing)
+- [Playground](/playground)：可互動的即時演示

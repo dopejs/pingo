@@ -1,0 +1,56 @@
+---
+title: Badge
+description: Неинтерактивный статусный ярлык, рендерится на холсте pingo.
+---
+
+# Badge
+
+Badge — неинтерактивный статусный ярлык для обозначения состояния, категории или количества, например «Администратор» или «Beta». Превью ниже рендерится движком pingo в реальном времени и переключается между светлой и тёмной темой вслед за темой сайта.
+
+:::preview badge-variants
+:::
+
+## Использование
+
+```tsx
+import { createElement } from "@dopejs/pingo";
+import { Badge } from "@dopejs/pingo-ui";
+
+root.render(createElement(Badge, { children: "Beta" }));
+```
+
+## Примеры
+
+### Варианты
+
+Четыре варианта покрывают типовую семантику: `default` (акцент), `secondary` (приглушённый), `destructive` (ошибка/опасность), `outline` (контурный). В превью они показаны по порядку.
+
+```tsx
+createElement(Badge, { children: "只读", variant: "secondary" });
+```
+
+### Сочетание с другими компонентами
+
+Badge часто выступает trailing-элементом строки списка или карточки и сочетается с `Avatar`, `ListRow`:
+
+```tsx
+createElement(ListRow, {
+  title: "张三",
+  leading: createElement(Avatar, { fallback: "张", size: 32 }),
+  trailing: createElement(Badge, { children: "管理员" }),
+  onPress: () => {},
+});
+```
+
+## Пропсы
+
+| Prop | Тип | По умолчанию | Описание |
+| --- | --- | --- | --- |
+| `children` | `string` | — | Текст ярлыка (обязателен) |
+| `variant` | `"default" \| "secondary" \| "destructive" \| "outline"` | `"default"` | Визуальный вариант |
+| `semanticLabel` | `string` | — | Доступное имя; если опущено, используется семантика по умолчанию |
+| `className` | `string` | — | Добавляется после имени класса компонента |
+
+## Доступность
+
+Badge не реагирует на указатель и клавиатуру — это чисто презентационный элемент. Когда текста недостаточно для передачи смысла (например, чисто числовой счётчик), давайте полное пояснение через `semanticLabel`.

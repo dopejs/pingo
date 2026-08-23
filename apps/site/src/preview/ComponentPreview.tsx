@@ -35,6 +35,7 @@ export function ComponentPreview({ id, labels }: ComponentPreviewProps): ReactNo
   const [visible, setVisible] = useState(false);
   const [tab, setTab] = useState<"preview" | "code">("preview");
   const [status, setStatus] = useState<Status>("idle");
+  const [failure, setFailure] = useState("");
   const [source, setSource] = useState<string>();
   const [demo, setDemo] = useState<PreviewDemo>();
 
@@ -48,7 +49,14 @@ export function ComponentPreview({ id, labels }: ComponentPreviewProps): ReactNo
       }
     });
     observer.observe(element);
-    return () => observer.disconnect();
+    // IntersectionObserver callbacks never fire in some throttled/headless
+    // contexts; fall back to mounting after a grace period so previews never
+    // stay blank there. In normal browsers the observer wins the race.
+    const fallback = window.setTimeout(() => setVisible(true), 4000);
+    return () => {
+      observer.disconnect();
+      window.clearTimeout(fallback);
+    };
   }, []);
 
   useEffect(() => {
@@ -57,6 +65,7 @@ export function ComponentPreview({ id, labels }: ComponentPreviewProps): ReactNo
     void loadPreviewDemo(id).then((loaded) => {
       if (cancelled) return;
       if (loaded === undefined) {
+        setFailure(`unknown demo: ${id}`);
         setStatus("error");
         return;
       }
@@ -102,8 +111,10 @@ export function ComponentPreview({ id, labels }: ComponentPreviewProps): ReactNo
         cleanup = await demo.activate?.(created);
         setStatus("ready");
       })
-      .catch(() => {
-        if (!disposed) setStatus("error");
+      .catch((cause: unknown) => {
+        if (disposed) return;
+        setFailure(cause instanceof Error ? cause.message : String(cause));
+        setStatus("error");
       });
 
     const themeObserver = new MutationObserver(() => {
@@ -175,7 +186,12 @@ export function ComponentPreview({ id, labels }: ComponentPreviewProps): ReactNo
           ref={canvasHost}
           style={{ height: `${String(demo?.height ?? 240)}px` }}
         >
-          {status === "error" && <p className="preview__error">{labels.previewError}</p>}
+          {status === "error" && (
+            <p className="preview__error">
+              {labels.previewError}
+              {failure === "" ? "" : `: ${failure}`}
+            </p>
+          )}
         </div>
       ) : (
         <pre className="preview__code">

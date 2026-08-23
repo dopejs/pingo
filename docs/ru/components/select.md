@@ -1,0 +1,82 @@
+---
+title: Select
+description: Композитный выпадающий селектор с навигацией с клавиатуры, рендерится на холсте pingo.
+---
+
+# Select
+
+Выпадающий селектор составляется из `Select`, `SelectTrigger`, `SelectContent` и `SelectItem`. Превью ниже рендерится движком pingo в реальном времени — список раскрыт, по нему можно перемещаться клавишами со стрелками, выбирать клавишей Enter, а также переключать светлую и тёмную тему вместе с темой сайта.
+
+:::preview select-basic
+:::
+
+## Использование
+
+```tsx
+import { createElement } from "@dopejs/pingo";
+import { Select, SelectContent, SelectItem, SelectTrigger } from "@dopejs/pingo-ui";
+
+root.render(
+  createElement(Select, {
+    value: "pingo-ui",
+    onValueChange: (value) => console.log(value),
+    children: [
+      createElement(SelectTrigger, { placeholder: "选择一个包" }),
+      createElement(SelectContent, {
+        children: [
+          createElement(SelectItem, { value: "pingo", children: "@dopejs/pingo" }),
+          createElement(SelectItem, { value: "pingo-ui", children: "@dopejs/pingo-ui" }),
+        ],
+      }),
+    ],
+  }),
+);
+```
+
+Все части взаимодействуют через context и должны монтироваться как компоненты через `createElement`. Триггер показывает текущее выбранное `value`; когда ничего не выбрано, показывается `placeholder`.
+
+## Примеры
+
+### Раскрыт по умолчанию
+
+`defaultOpen` раскрывает список с самого начала (как в превью выше); `onOpenChange` отслеживает открытие и закрытие.
+
+## Props
+
+### Select
+
+| Prop | Тип | По умолчанию | Описание |
+| --- | --- | --- | --- |
+| `value` | `string` | — | Выбранное значение, отображается на триггере |
+| `defaultOpen` | `boolean` | `false` | Изначально раскрыт |
+| `onValueChange` | `(value: string) => void` | — | Колбэк изменения выбора (после выбора список автоматически закрывается) |
+| `onOpenChange` | `(open: boolean) => void` | — | Колбэк открытия/закрытия |
+| `children` | `PingoNode` | — | Триггер и содержимое (обязательно) |
+| `className` | `string` | — | Добавляется к имени класса компонента |
+
+### SelectTrigger
+
+| Prop | Тип | По умолчанию | Описание |
+| --- | --- | --- | --- |
+| `children` | `PingoNode` | — | Пользовательское содержимое триггера; по умолчанию рендерится выбранное значение или текст-заполнитель |
+| `placeholder` | `string` | — | Текст-заполнитель, когда ничего не выбрано |
+| `className` | `string` | — | Добавляется к имени класса компонента |
+
+### SelectContent
+
+| Prop | Тип | По умолчанию | Описание |
+| --- | --- | --- | --- |
+| `children` | `PingoNode` | — | Список `SelectItem` (обязательно) |
+| `className` | `string` | — | Добавляется к имени класса компонента |
+
+### SelectItem
+
+| Prop | Тип | По умолчанию | Описание |
+| --- | --- | --- | --- |
+| `value` | `string` | — | Значение пункта (обязательно) |
+| `children` | `string` | — | Текст пункта (обязательно) |
+| `className` | `string` | — | Добавляется к имени класса компонента |
+
+## Доступность
+
+Триггер имеет семантику button и переключается между `expanded` и `collapsed`; содержимое имеет семантику menu. Клавиши со стрелками перемещают подсветку, `Enter`/`пробел` выбирают пункт, `Esc` закрывает список; после выбора фокус возвращается на триггер.

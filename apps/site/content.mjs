@@ -201,7 +201,14 @@ export async function loadSiteContent() {
   for (const sourcePath of await markdownFiles(docsRoot)) {
     const absolute = path.join(docsRoot, sourcePath);
     const [source, metadata] = await Promise.all([readFile(absolute, "utf8"), stat(absolute)]);
-    const parsed = matter(source);
+    let parsed;
+    try {
+      parsed = matter(source);
+    } catch (cause) {
+      throw new Error(
+        `frontmatter parse failed for docs/${sourcePath}: ${cause instanceof Error ? cause.message : String(cause)}`,
+      );
+    }
     const environment = { sourcePath };
     const tokens = markdown.parse(parsed.content, environment);
     const headings = [];

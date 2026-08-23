@@ -46,7 +46,7 @@ const root = await createHostedCanvasRoot(canvas, {
 console.log(root.mode); // "sab" | "post-message" | "main-thread"
 ```
 
-Der [Playground](/de/playground) dieser Website ist das lebende Beispiel: GitHub Pages kann keine
+Der [Playground](/playground) dieser Website ist das lebende Beispiel: GitHub Pages kann keine
 COOP/COEP-Header ausliefern, deshalb läuft die veröffentlichte Fassung über postMessage, und das
 Transport-Abzeichen oben auf der Seite zeigt das offen an.
 
@@ -91,6 +91,18 @@ nicht von der Thread-Reihenfolge ab. Ein `DOPR`-Archiv zeichnet Mutation- und In
 Originalreihenfolge auf und lässt sich ohne Browser in einer Headless-Umgebung deterministisch abspielen:
 So lässt sich ein Produktionsproblem lokal reproduzieren, während sensible Bearbeitungsströme explizit von
 der Aufzeichnung ausgenommen sind.
+
+## Komponenten und Styling
+
+Oberhalb dieses Kerns stehen drei Schichten an Autoren-APIs:
+
+- **Basis-Elemente** — Engine-Elemente wie View/Text/Image, Input/TextArea und SVG/Path, siehe
+  [Basis-Elemente](/guide/elements).
+- **Styling** — ein auf Shell-Seite geparstes, versioniertes CSS-Subset (Unterstützungstabelle siehe
+  [hier](/style-support)) sowie die [SCSS-/Less-Pipeline](/guide/scss-less) zur Build-Zeit; der Core
+  konsumiert nur normalisierte, typisierte Werte und parst keinen CSS-Text.
+- **UI-Komponentenbibliothek** — `@dopejs/pingo-ui`, fertige Komponenten im Sinne von shadcn/ui,
+  vollständig in den Canvas gerendert, siehe [Komponentendokumentation](/components).
 
 ## Tiefer einsteigen
 

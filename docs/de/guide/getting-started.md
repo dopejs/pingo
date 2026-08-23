@@ -71,7 +71,7 @@ root.render(<OrderRow index={1} />);
 ## Host-Elemente
 
 Die Engine kennt nur fünf eingebaute Elemente, die direkt Scene-Knoten entsprechen. Es gibt weder
-CSS-Kaskade noch Selektoren.
+CSS-Kaskade noch Selektoren:
 
 | Element        | Zweck                                                                 |
 | -------------- | --------------------------------------------------------------------- |
@@ -123,8 +123,20 @@ const root = await createHostedCanvasRoot(canvas, {
 die Zähler schmutziger Knoten, den Layout-Aufwand und den Picture-Hash. Das ist die primäre Datenquelle
 für Performanceanalysen. Mehr dazu unter [Diagnose](/diagnostics).
 
+## Überblick über die Fähigkeiten
+
+Oberhalb der fünf eingebauten Elemente bietet pingo drei Schichten an Autoren-APIs:
+
+- [Basis-Elemente](/guide/elements): View/Text/Image, Input/TextArea, SVG/Path und weitere
+  Engine-Elemente.
+- [Styling](/guide/styling): versioniertes CSS-Subset — Klassenselektoren, Interaktionszustände,
+  Kaskade und Vererbung mit klaren Grenzen; für Variablen und Mixins gibt es die
+  [SCSS-/Less-Pipeline](/guide/scss-less) zur Build-Zeit.
+- [UI-Komponentenbibliothek](/components): `@dopejs/pingo-ui`, fertige Komponenten im Sinne von
+  shadcn/ui, vollständig in den Canvas gerendert.
+
 ## Nächste Schritte
 
-- [Architektur](/de/guide/architecture): wie sich TypeScript-Schale und Core die Arbeit teilen
-- [Virtuelles Scrollen](/de/guide/scrolling), [Text und Bearbeitung](/de/guide/editing)
-- [Playground](/de/playground): interaktive Live-Demos
+- [Architektur](/guide/architecture): wie sich TypeScript-Schale und Core die Arbeit teilen
+- [Virtuelles Scrollen](/guide/scrolling), [Text und Bearbeitung](/guide/editing)
+- [Playground](/playground): interaktive Live-Demos

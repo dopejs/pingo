@@ -59,7 +59,7 @@ root.render(
 function OrderRow({ index }: { index: number }) {
   return (
     <container width={480} height={32} padding={[6, 12, 6, 12]}>
-      <text value={`الطلب رقم ${index}`} fontSize={13} lineHeight={20} />
+      <text value={`订单 #${index}`} fontSize={13} lineHeight={20} />
     </container>
   );
 }
@@ -69,7 +69,7 @@ root.render(<OrderRow index={1} />);
 
 ## عناصر المضيف
 
-في المحرّك خمسة عناصر مدمجة فقط، وكلّها تقابل عقد Scene مباشرة؛ لا تتالي CSS ولا محدِّدات.
+في المحرّك خمسة عناصر مدمجة فقط، وكلّها تقابل عقد Scene مباشرة؛ لا تتالي CSS ولا محدِّدات:
 
 | العنصر         | الغرض                                                  |
 | -------------- | ------------------------------------------------------ |
@@ -79,7 +79,7 @@ root.render(<OrderRow index={1} />);
 | `virtualList`  | قائمة افتراضية تخطّط النواة نافذتها                    |
 | `editableText` | بدائية النصّ القابل للتحرير                            |
 
-أمّا `TextField` و`TextArea` فهما عنصران مركَّبان فوق `editableText` (إطار وحالة خطأ) ولا يُدخلان أيّ
+أمّا `TextField` و`TextArea` فهما ودجتان مركّبتان فوق `editableText` (إطار وحالة خطأ) ولا تُدخِلان أيّ
 مسار إدخال جديد.
 
 ## الحالة والتأثيرات الجانبية
@@ -93,7 +93,7 @@ function Counter() {
     const timer = setInterval(() => setCount((value) => value + 1), 1000);
     return () => clearInterval(timer);
   }, []);
-  return createElement("text", { value: `مرّت ${count} ثانية` });
+  return createElement("text", { value: `已过 ${count} 秒` });
 }
 ```
 
@@ -117,11 +117,24 @@ const root = await createHostedCanvasRoot(canvas, {
 });
 ```
 
-تعطي `onFrame` في كلّ إطار عدد الأوامر وحجم DisplayList بالبايت، ومن جهة النواة عدّادات العقد المتّسخة
-وحجم عمل التخطيط وبصمة picture؛ وهي المصدر الأوّل لتحليل الأداء. للمزيد انظر [التشخيص](/diagnostics).
+تعطي `onFrame` في كلّ إطار عدد الأوامر وحجم DisplayList بالبايت، ومن جهة النواة عدّادات النطاقات
+المتّسخة وحجم عمل التخطيط وبصمة picture؛ وهي المصدر الأوّل لتحليل الأداء. للمزيد انظر
+[التشخيص](/diagnostics).
+
+## جولة في القدرات
+
+فوق العناصر المدمجة الخمسة يوفّر pingo ثلاث طبقات من القدرات الموجّهة للمؤلّفين:
+
+- [العناصر الأساسية](/guide/elements): عناصر بمستوى المحرّك مثل View/Text/Image وInput/TextArea
+  وSVG/Path.
+- [الأنماط](/guide/styling): مجموعة CSS فرعية مُصدَرة — حدود واضحة لمحدِّدات الأصناف وحالات التفاعل
+  والتتالي والوراثة؛ وعند الحاجة إلى المتغيّرات وmixin فالطريق هو خطّ أنابيب
+  [SCSS / Less](/guide/scss-less) وقت البناء.
+- [مكتبة مكوّنات الواجهة](/components): `@dopejs/pingo-ui`، مكوّنات جاهزة مواءَمة مع shadcn/ui تُرسَم
+  كلّها إلى canvas.
 
 ## الخطوة التالية
 
-- [نظرة عامة على البنية](/ar/guide/architecture): كيف يقتسم الغلاف والنواة العمل
-- [التمرير الافتراضي](/ar/guide/scrolling) و[النصّ والتحرير](/ar/guide/editing)
-- [Playground](/ar/playground): عروض حيّة قابلة للتفاعل
+- [نظرة عامة على البنية](/guide/architecture): كيف يقتسم الغلاف والنواة العمل
+- [التمرير الافتراضي](/guide/scrolling) و[النصّ والتحرير](/guide/editing)
+- [Playground](/playground): عروض حيّة قابلة للتفاعل

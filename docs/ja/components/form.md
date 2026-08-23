@@ -1,0 +1,72 @@
+---
+title: Form
+description: フォームコンテナとフィールドラッパー。レイアウト、セマンティクス、エラー/説明の情報スロットを担当。pingo canvas 上にレンダリング。
+---
+
+# Form
+
+`Form` はフォームコンテナで、`FormField` はラベル・コントロール・エラー/説明情報を 1 つのフィールドに
+組み立てます。下のプレビューは pingo エンジンによるリアルタイムレンダリングです。フィールド内の入力ボックスは
+実際に編集でき、サイトのテーマに合わせて明暗が切り替わります。
+
+:::preview form-basic
+:::
+
+## 使い方
+
+```tsx
+import { createElement } from "@dopejs/pingo";
+import { Form, FormField, Input } from "@dopejs/pingo-ui";
+
+root.render(
+  createElement(Form, {
+    children: createElement(FormField, {
+      label: "メールアドレス",
+      required: true,
+      error: emailError, // バリデーションルールは呼び出し側が保持
+      children: createElement(Input, {
+        semanticLabel: "メールアドレス",
+        onValueChange: (value) => validate(value),
+      }),
+    }),
+  }),
+);
+```
+
+バリデーションはコンポーネント内にありません。いつ検証するか、どんなエラーを出すか、どう組み合わせるかは
+すべてプロダクトの判断です。呼び出し側がルールを保持して `error` を渡し、コンポーネントはレイアウト、
+セマンティクス、情報スロットだけを担当します。
+
+## 例
+
+### エラーと説明
+
+`error` が存在するとフィールドは無効とマークされ、説明テキストを**置き換えます**。2 行のガイダンスのうち
+1 行が失敗メッセージなら、もう 1 行はそれに埋もれてしまうからです。`required` はラベルの後に `*` マークを
+追加します。
+
+## Props
+
+### Form
+
+| Prop | 型 | デフォルト | 説明 |
+| --- | --- | --- | --- |
+| `children` | `PingoNode` | — | フォームのコンテンツ（必須） |
+| `className` | `string` | — | コンポーネントのクラス名に追加される |
+
+### FormField
+
+| Prop | 型 | デフォルト | 説明 |
+| --- | --- | --- | --- |
+| `label` | `string` | — | フィールドラベル（必須） |
+| `children` | `PingoNode` | — | フィールドのコントロール（必須） |
+| `error` | `string` | — | エラーメッセージ。存在するとフィールドが無効とマークされ、説明を置き換える |
+| `description` | `string` | — | 補助の説明テキスト |
+| `required` | `boolean` | `false` | 必須マーク。ラベルの後に `*` を追加 |
+| `className` | `string` | — | コンポーネントのクラス名に追加される |
+
+## アクセシビリティ
+
+`Form` は `form` セマンティックロールを持ちます。`FormField` は `group` セマンティクスを持ちラベルで
+名前付けされ、無効時はセマンティック値が `invalid` になります。セマンティクスはコントロールではなく
+グループに付けられます。コントロールは呼び出し側のものであり、グループだけが存在を保証される要素だからです。

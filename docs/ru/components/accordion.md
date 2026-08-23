@@ -1,0 +1,63 @@
+---
+title: Accordion
+description: Вертикальный аккордеон с разворачиванием одного пункта за раз, рендерится на холсте pingo.
+---
+
+# Accordion
+
+Аккордеон организует связанный контент в разворачиваемые вертикальные группы, при этом одновременно развёрнут только один пункт. Превью ниже рендерится движком pingo в реальном времени — можно щёлкать по заголовкам для переключения, перемещать фокус клавишами-стрелками и разворачивать пункты клавишами Enter/Пробел.
+
+:::preview accordion-basic
+:::
+
+## Использование
+
+```tsx
+import { createElement } from "@dopejs/pingo";
+import { Accordion, AccordionItem } from "@dopejs/pingo-ui";
+
+root.render(
+  createElement(Accordion, {
+    defaultOpenValue: "intro",
+    children: [
+      createElement(AccordionItem, {
+        value: "intro",
+        title: "什么是 pingo-ui？",
+        children: createElement("text", { value: "渲染在 pingo canvas 上的组件库。" }),
+      }),
+      createElement(AccordionItem, {
+        value: "theme",
+        title: "支持暗色主题吗？",
+        children: createElement("text", { value: "支持，跟随主题自动切换。" }),
+      }),
+    ],
+  }),
+);
+```
+
+`Accordion` поддерживает как неконтролируемый режим (`defaultOpenValue`), так и контролируемый (`openValue` + `onValueChange`).
+
+## Пропсы
+
+### Accordion
+
+| Prop | Тип | По умолчанию | Описание |
+| --- | --- | --- | --- |
+| `openValue` | `string` | — | Контролируемый режим: `value` текущего развёрнутого пункта |
+| `defaultOpenValue` | `string` | — | Неконтролируемый режим: `value` изначально развёрнутого пункта |
+| `onValueChange` | `(value: string \| undefined) => void` | — | Колбэк смены развёрнутого пункта; при сворачивании всех пунктов — `undefined` |
+| `children` | `PingoNode` | — | Список `AccordionItem` (обязателен) |
+| `className` | `string` | — | Добавляется после имени класса компонента |
+
+### AccordionItem
+
+| Prop | Тип | По умолчанию | Описание |
+| --- | --- | --- | --- |
+| `value` | `string` | — | Уникальный идентификатор пункта (обязателен) |
+| `title` | `string` | — | Заголовок триггера (обязателен) |
+| `children` | `PingoNode` | — | Содержимое, отображаемое после разворачивания (обязательно) |
+| `className` | `string` | — | Добавляется после имени класса компонента |
+
+## Доступность
+
+Клавиши-стрелки (вверх/вниз) перемещают фокус между заголовками, не меняя состояние развёрнутости, Home/End переводят его в начало/конец; Enter или Пробел переключают разворачивание — в соответствии с требованием WAI-ARIA о разделении фокуса и выбора. Область содержимого при сворачивании скрывается через `display: none`, а не выгружается, поэтому развёрнутое состояние сохраняется.

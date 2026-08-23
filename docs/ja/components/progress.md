@@ -1,0 +1,55 @@
+---
+title: Progress
+description: タスクの完了進捗を表示するプログレスバー。pingo canvas 上にレンダリング。
+---
+
+# Progress
+
+Progress は、ダウンロード、アップロード、マルチステップタスクなどの確定的な進捗を、塗りつぶされたトラックで
+表示します。下のプレビューは pingo エンジンによるリアルタイムレンダリングで、サイトのテーマに合わせて
+明暗が切り替わります。
+
+:::preview progress-basic
+:::
+
+## 使い方
+
+```tsx
+import { createElement } from "@dopejs/pingo";
+import { Progress } from "@dopejs/pingo-ui";
+
+root.render(createElement(Progress, { value: 60 }));
+```
+
+トラックの幅は親コンテナを継承します。Progress を固定幅のコンテナに入れればバーの長さを制御できます。
+
+```tsx
+createElement("container", {
+  width: 320,
+  children: createElement(Progress, { value: 60 }),
+});
+```
+
+## 例
+
+### カスタム最大値
+
+`max` のデフォルトは 100 です。指定すると `value / max` で塗りつぶしの割合を計算し、常に 0–100 の範囲に
+クランプされます。
+
+```tsx
+createElement(Progress, { value: 3, max: 10 }); // 30%
+```
+
+## Props
+
+| Prop | 型 | デフォルト | 説明 |
+| --- | --- | --- | --- |
+| `value` | `number` | — | 現在の進捗（必須）。範囲外はクランプされる |
+| `max` | `number` | `100` | 最大値。最小でも 1 として扱われる |
+| `className` | `string` | — | コンポーネントのクラス名に追加される |
+
+## アクセシビリティ
+
+Progress は純粋な視覚要素で、セマンティックロールは付いていません。進捗がタスクの完了にとって重要な場合は、
+現在のパーセンテージや段階名を示すテキストを併記してください。
