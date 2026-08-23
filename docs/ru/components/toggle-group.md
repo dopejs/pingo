@@ -1,0 +1,68 @@
+---
+title: Toggle Group
+description: Набор двухпозиционных кнопок-переключателей с одиночным или множественным выбором, навигацией стрелками и рендерингом на canvas pingo.
+---
+
+# Toggle Group
+
+Группа переключателей объединяет несколько [Toggle](/components/toggle) в набор с одиночным или множественным выбором. Превью ниже выполняется движком pingo в реальном времени — можно переключать щелчком, перемещаться между элементами стрелками и менять светлую/тёмную тему вместе с сайтом.
+
+:::preview toggle-group-basic
+:::
+
+## Использование
+
+```tsx
+import { createElement } from "@dopejs/pingo";
+import { ToggleGroup, ToggleGroupItem } from "@dopejs/pingo-ui";
+
+root.render(
+  createElement(ToggleGroup, {
+    type: "single",
+    defaultValue: ["center"],
+    onValueChange: (value) => console.log(value),
+    children: [
+      createElement(ToggleGroupItem, { value: "left", children: "左对齐" }),
+      createElement(ToggleGroupItem, { value: "center", children: "居中" }),
+      createElement(ToggleGroupItem, { value: "right", children: "右对齐" }),
+    ],
+  }),
+);
+```
+
+`ToggleGroup` публикует набор выбранных элементов для `ToggleGroupItem` через context; оба должны монтироваться как компоненты с помощью `createElement`. При `type: "single"` новый выбор сбрасывает предыдущий; при `"multiple"` элементы добавляются по одному.
+
+## Примеры
+
+### Множественный выбор
+
+`type="multiple"` позволяет одновременно активировать несколько элементов, как в панели форматирования текста.
+
+:::preview toggle-group-multiple
+:::
+
+## Props
+
+### ToggleGroup
+
+| Prop | Тип | По умолчанию | Описание |
+| --- | --- | --- | --- |
+| `type` | `"single" \| "multiple"` | `"single"` | Одиночный выбор сбрасывает предыдущий; множественный добавляет элементы по одному |
+| `value` | `readonly string[]` | — | Управляемый набор выбранных значений |
+| `defaultValue` | `readonly string[]` | `[]` | Начальный набор выбранных значений для неуправляемого режима |
+| `onValueChange` | `(value: readonly string[]) => void` | — | Колбэк при изменении набора выбранных значений |
+| `children` | `PingoNode` | — | Список `ToggleGroupItem` (обязательный) |
+| `className` | `string` | — | Добавляется после имени класса компонента |
+
+### ToggleGroupItem
+
+| Prop | Тип | По умолчанию | Описание |
+| --- | --- | --- | --- |
+| `value` | `string` | — | Значение элемента (обязательное) |
+| `children` | `string` | — | Текст элемента (обязательный) |
+| `disabled` | `boolean` | `false` | Отключить отдельный элемент |
+| `className` | `string` | — | Добавляется после имени класса компонента |
+
+## Доступность
+
+Контейнер группы имеет семантику `group`, каждый элемент наследует семантику button от Toggle и семантические значения `on` / `off`. Обработка клавиатуры сосредоточена на группе: `←`/`→` перемещают фокус на соседний элемент, `Enter`/`пробел` переключают текущий элемент — добавление или удаление элементов не влияет на эту навигацию.

@@ -38,3 +38,17 @@ export function stage(context: PreviewDemoContext, children: readonly PingoNode[
     children,
   });
 }
+
+/**
+ * Fixed-width flex-column wrapper that stretches its child horizontally and
+ * sizes vertically to the child's content. Use it for components without an
+ * intrinsic width (accordion, calendar, combobox, ...) so they do not collapse
+ * to zero size under the stage's centered alignment.
+ */
+export function frame(width: number, children: readonly PingoNode[]): PingoNode {
+  return createElement("container", {
+    width,
+    style: { flexDirection: "column" },
+    children,
+  });
+}

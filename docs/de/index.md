@@ -3,15 +3,15 @@ layout: home
 
 hero:
   name: Pingo
-  text: Canvas-Rendering-Engine
-  tagline: Rust/WASM-Kern + TypeScript-Schale + austauschbare Backends. Entworfen für hochperformante Interaktion, natives virtuelles Scrollen und Textbearbeitung im Canvas — mit Basis-Elementen, CSS-Styling und einer an shadcn ausgerichteten UI-Komponentenbibliothek.
+  text: canvas Rendering-Engine
+  tagline: Rust/WASM-Kern + TypeScript-Hülle + austauschbare Backends. Entwickelt für hochperformante Interaktion, natives virtuelles Scrollen und Textbearbeitung im Canvas – mit Basiskomponenten, CSS-Styling und einer an shadcn ausgerichteten UI-Komponentenbibliothek.
   image:
     light: /pingo-mark.svg
     dark: /pingo-mark-dark.svg
     alt: Pingo
   actions:
     - theme: brand
-      text: Erste Schritte
+      text: Schnellstart
       link: /guide/getting-started
     - theme: alt
       text: Playground
@@ -21,24 +21,24 @@ hero:
       link: https://github.com/dopejs/pingo
 
 features:
-  - title: Zwei Uhren — keine Frame-Einbrüche bei blockiertem Hauptthread
-    details: UI-Uhr und Rendering-Uhr sind unabhängig voneinander. Scrollen, Animation, Layout und Komposition laufen geschlossen im Worker; blockiert der Hauptthread für 200 ms, bleibt das Bild dennoch durchgehend flüssig.
+  - title: Zwei Taktgeber – keine Frame-Einbrüche selbst bei blockiertem Hauptthread
+    details: UI-Takt und Rendering-Takt sind unabhängig voneinander. Scrollen, Animation, Layout und Compositing laufen in einem geschlossenen Kreislauf im Worker; das Bild bleibt selbst dann flüssig, wenn der Hauptthread 200 ms blockiert ist.
   - title: Natives virtuelles Scrollen
-    details: Präfixsummen-Baum, richtungsbasiertes Vorwärmen und Platzhalter-Nachbau liegen vollständig im Core. Beim Replay von 20.000 Frames einer festen Fixture mit einer Million Zeilen liegen P95/P99 im Submikrosekunden-Bereich, und im Scroll-Beharrungszustand wird die Schale überhaupt nicht zurückgerufen.
-  - title: Canvas-native Bearbeitung
-    details: Cursor, Auswahl, Ziehauswahl, Wortauswahl per Doppelklick, IME-Komposition, Positionierung des Kandidatenfensters, Zwischenablage sowie Rückgängig/Wiederherstellen sind vollständig in der Engine implementiert. Anwendungen erzeugen für Eingaben keine HTML-Steuerelemente mehr.
-  - title: Barrierefreiheit ist Teil der Architektur
-    details: Der Core exportiert einen Semantikbaum, den der Host als DOM-Schattbaum neben dem Canvas spiegelt. Screenreader funktionieren, und E2E-Tests wählen Elemente per Rolle/Label statt per Pixelvergleich.
-  - title: Determinismus und Differenztests
-    details: Versionierte Binärströme, injizierbare Uhren und Zufallsquellen, Aufzeichnung und Wiedergabe sowie Differenz-Orakel zwischen inkrementell und vollständig, optimiert und naiv, wasm und nativ.
-  - title: Automatischer Rückfall — es gibt immer einen Ausweg
-    details: SharedArrayBuffer → postMessage → Canvas2D im Hauptthread wird nach Fähigkeit automatisch gewählt, funktional gleichwertig. Die Migrationsschicht unterstützt seitenweises Rollout und Rückfall per Knopfdruck.
-  - title: Basis-Elemente sofort einsatzbereit
-    details: Engine-Elemente wie View/Text/Image, Input/TextArea und SVG/Path entsprechen direkt Scene-Knoten; Text-Shaping, Cursor-Geometrie und Bearbeitungsfähigkeiten kommen aus dem Core — kein Zusammenbau aus DOM-Steuerelementen nötig.
+    details: Präfixsummen-Baum, richtungsvorhersagendes Vorladen und Platzhalter-Nachbau liegen im Core. Bei der Wiedergabe von 20.000 Frames einer Millionen-Zeilen-Fixture liegen P95/P99 im Submikrosekundenbereich; im stationären Scrollzustand erfolgt keinerlei Rückruf an die Shell.
+  - title: Native Bearbeitung im Canvas
+    details: Caret, Auswahl, Ziehen-Auswählen, Wortauswahl per Doppelklick, IME-Composition, Positionierung des Kandidatenfensters, Zwischenablage sowie Rückgängig/Wiederholen sind vollständig in der Engine implementiert. Anwendungen müssen für Eingabefunktionen keine HTML-Steuerelemente mehr erzeugen.
+  - title: Barrierefreiheit als Teil der Architektur
+    details: Der Core exportiert einen semantischen Baum, den der Host als DOM-Schattenbaum neben dem Canvas spiegelt. Screenreader funktionieren, und E2E-Tests können Elemente anhand von role/label auswählen statt Pixel zu vergleichen.
+  - title: Determinismus und differenzielle Tests
+    details: Versionierte Binärstreams, injizierbare Taktgeber und Zufallsquellen, Aufzeichnung und Wiedergabe sowie differenzielle Orakel zwischen inkrementell und vollständig, optimiert und naiv, wasm und nativ.
+  - title: Automatischer Fallback – immer ein Rückweg
+    details: SharedArrayBuffer → postMessage → Canvas2D im Hauptthread wird automatisch nach Fähigkeiten gewählt, bei funktionaler Äquivalenz. Die Migrationsschicht unterstützt seitenweise schrittweise Freigabe und Ein-Klick-Rollback.
+  - title: Basiskomponenten sofort einsatzbereit
+    details: Engine-Elemente wie View/Text/Image, Input/TextArea, SVG/Path entsprechen direkt Scene-Knoten; Text-Shaping, Caret-Geometrie und Bearbeitungsfähigkeiten kommen aus dem Core – keine aus DOM-Steuerelementen zusammengestückelten Hilfskonstrukte.
   - title: CSS- und SCSS/Less-Unterstützung
-    details: "Ein versioniertes CSS-Subset, auf Shell-Seite geparst: Klassenselektoren, Interaktionszustände, Vererbung und berechnete Stile mit klaren Grenzen; SCSS/Less wird zur Build-Zeit kompiliert und geprüft, der Präprozessor landet nie im Browser-Bundle."
+    details: "Eine von der Shell geparste, versionierte CSS-Teilmenge: Klassenselektoren, Interaktionszustände, Vererbung und berechnete Stile haben klar definierte Grenzen; SCSS/Less werden zur Buildzeit kompiliert und validiert, der Präprozessor gelangt nicht ins Browser-Bundle."
   - title: An shadcn ausgerichtete UI-Komponentenbibliothek
-    details: "Die Komponenten-API und Skin-Semantik von @dopejs/pingo-ui ist an shadcn/ui ausgerichtet — Button, Dialog, Table, Calendar und mehr rendern vollständig in den Canvas, mit Hell-/Dunkel-Themes und Stylesheet-Überschreibungen."
+    details: "Die Komponenten-API und Skin-Semantik von @dopejs/pingo-ui sind an shadcn/ui ausgerichtet – Button, Dialog, Table, Calendar und weitere werden vollständig ins Canvas gerendert, mit Unterstützung für helle und dunkle Themes sowie Stylesheet-Overrides."
 ---
 
 ## In 30 Sekunden loslegen
@@ -58,32 +58,26 @@ root.render(
     height: 640,
     itemCount: 1_000_000,
     estimatedItemHeight: 32,
-    renderItem: (index) => createElement("text", { value: `Zeile ${index}` }),
+    renderItem: (index) => createElement("text", { value: `第 ${index} 行` }),
   }),
 );
 ```
 
-Eine Million Zeilen werden auf der Shell-Seite nie materialisiert, und während des Scrollens wird der
-Komponentenbaum nicht zurückgerufen — Fensterberechnung und Nachbau passieren vollständig im Core.
+Eine Million Zeilen werden auf Shell-Seite nicht materialisiert, und während des Scrollens erfolgt kein Rückruf an den Komponentenbaum – Fensterberechnung und Nachbau finden vollständig im Core statt.
 
 ## Was es nicht tut
 
-Pingo ist eine Rendering-Engine, kein Browser. **Nicht enthalten** sind SSR/HTML-First-Paint,
-allgemeine CSS-Kompatibilität (Boxmodell, Kaskade, Selektoren), Mini-Programm- oder native
-Anpassungsschichten und Rich-Text-Semantik auf Anwendungsebene (Kollaboration, Formeln,
-Markdown-Befehle).
+Pingo ist ein Rendering-Engine, kein Browser. Es übernimmt **kein** SSR/HTML-First-Paint, keine allgemeine CSS-Kompatibilität (Box-Modell, Kaskade, Selektoren),
+keine Adapterschicht für Mini-Programme oder native Plattformen und keine geschäftliche Rich-Text-Semantik (Kollaboration, Formeln, Markdown-Befehle).
 
-Die Engine **besitzt sehr wohl** Cursor, Auswahl, IME, Zwischenablage, Rückgängig/Wiederherstellen und
-die Primitive für editierbaren Text — diese werden nicht in die Anwendungsebene zurückgeschoben, um
-dort aus DOM-Steuerelementen zusammengebaut zu werden.
+Die Engine **besitzt sehr wohl** Caret, Auswahl, IME, Zwischenablage, Rückgängig/Wiederholen und editierbare Textprimitive – diese werden nicht in die Anwendungsschicht zurückgeschoben, um sie dort
+aus DOM-Steuerelementen zusammenzusetzen.
 
 ## Aktueller Stand
 
-Alle Engineering-Meilensteine P0–M8 sind abgeschlossen; M9 „Produktionsreife, inkrementelle
-Komposition und Release-Härtung" ist vollständig geplant, die Umsetzung hat aber noch nicht begonnen —
-Details im [M9-Plan](/m9-production-plan). Aktuelle Änderungen im Repository stehen noch unter
-Unreleased; das bedeutet nicht, dass bereits eine neue npm-Version veröffentlicht wurde.
+Alle technischen Meilensteine P0–M8 sind abgeschlossen; M9 „Produktionsreife, inkrementelles Compositing und Release-Härtung“ ist vollständig geplant, aber noch nicht mit der
+Implementierung begonnen – siehe [M9-Plan](/m9-production-plan). Die aktuellen Änderungen im Repository sind weiterhin als Unreleased markiert und stellen noch keine
+veröffentlichte neue npm-Version dar.
 
-Reale Geräteleistung, echte Eingabemethoden, Screenreader und die Medien-/Energiematrix gehören zur
-Plattform-Qualifizierung und werden separat verfolgt; visuelle Bidi-Navigation und ein standardmäßig
-aktiviertes WebGPU-Backend bleiben [dokumentierte Aufschübe](/plan).
+Leistungsmessungen auf realer Hardware, echte Eingabemethoden, Screenreader und die Medien-Leistungsmatrix sind Teil der separaten Plattform-Qualifikationserfassung;
+bidirektionale visuelle Navigation und die standardmäßige Aktivierung des WebGPU-Backends bleiben [dokumentierte Zurückstellungen](/plan).

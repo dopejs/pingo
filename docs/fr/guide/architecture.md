@@ -1,115 +1,82 @@
-# Architecture
+# Aperçu de l'architecture
 
 ## Propriété des deux côtés
 
 ```
-TSX / hooks          →  Mutation Stream  →   Scene / Layout / Paint
-（TypeScript Shell）      二进制、批量        （Rust Core，wasm）
+TSX / hooks          →   Flux de mutations  →   Scène / Disposition / Peinture
+（Coquille TypeScript）      binaire, par lots      （Cœur Rust, wasm）
                                                     ↓
-Canvas2D 回放器      ←   DisplayList      ←    Picture
+Relecteur Canvas2D   ←   DisplayList        ←    Picture
 ```
 
-**Le Shell possède l'arbre de composants, le Core possède le Scene. Les deux ne partagent aucun
-objet mutable.**
-Toute communication transfrontalière est un flux binaire versionné : little-endian, aligné sur
-quatre octets, découpé en instructions ; le récepteur valide opcode, longueur, alignement, ID et
-arithmétique avant tout accès mémoire, et une entrée malformée est rejetée atomiquement plutôt
-qu'appliquée partiellement.
+**La coquille possède l'arbre de composants, le cœur possède la scène. Ils ne partagent aucun objet mutable.**
+Toutes les communications transfrontalières sont des flux binaires versionnés : petit-boutiste, alignés sur quatre octets, sous forme d'instructions. Le récepteur effectue la validation de l'opcode, de la longueur, de l'alignement, de l'ID et les vérifications arithmétiques avant d'accéder à la mémoire ; les entrées malformées sont rejetées de manière atomique plutôt que partiellement appliquées.
 
-Cette frontière n'est pas une optimisation de performance mais une frontière de correction : même si
-les octets proviennent en général de l'encodeur de ce projet, le décodeur les traite comme une
-entrée non fiable, avec une couverture de fuzzing.
+Cette frontière n'est pas une optimisation de performance, mais une frontière de correction : même si les octets proviennent généralement de l'encodeur de ce projet, le décodeur traite les données comme non fiables et dispose d'une couverture par fuzzing.
 
-## Deux horloges
+## Double horloge
 
-L'horloge de l'interface (thread principal) et l'horloge de rendu (Worker) sont indépendantes :
+L'horloge de l'interface utilisateur (thread principal) et l'horloge de rendu (Worker) sont indépendantes l'une de l'autre :
 
-- Le thread principal collecte les entrées, exécute l'arbre de composants et soumet les frames de
-  Mutation.
-- Le Worker pilote la physique du défilement, les animations, la mise en page et la composition.
+- Le thread principal collecte les entrées, parcourt l'arbre de composants et soumet des trames de mutations.
+- Le Worker pilote la physique du défilement, les animations, la disposition et la composition.
 
-**En régime établi, le défilement n'appelle pas le Shell.** Les données manquantes sont rendues avec
-des substituts, puis reconstruites lors d'images ultérieures. Ainsi, quand le thread principal est
-bloqué 200 ms par du code métier, défilement et animations restent continus — ce scénario est gardé
-par un test automatique d'injection de panne.
+**L'état stationnaire du défilement n'appelle pas la coquille.** Les données manquantes sont rendues avec des espaces réservés, puis reconstruites dans les trames suivantes. Par conséquent, lorsque le thread principal est bloqué pendant 200 ms par du code métier, le défilement et les animations restent continus — ce scénario est protégé par des tests d'injection de pannes automatiques.
 
 ## Chaîne de repli
 
-La détection de capacités choisit le transport dans l'ordre, avec trois paliers fonctionnellement
-équivalents :
+La détection de capacités sélectionne le chemin de transport dans l'ordre, avec trois niveaux fonctionnellement équivalents :
 
 1. **SharedArrayBuffer** — nécessite l'isolation cross-origin (COOP/COEP)
-2. **postMessage** — quand SAB est absent
-3. **Canvas2D sur le thread principal** — quand Worker / OffscreenCanvas sont absents
+2. **postMessage** — en l'absence de SAB
+3. **Canvas2D sur thread principal** — en l'absence de Worker / OffscreenCanvas
 
 ```ts
 const root = await createHostedCanvasRoot(canvas, {
-  transport: { preference: "sab" }, // préférence facultative, repli si non satisfaite
+  transport: { preference: "sab" }, // Préférence facultative, repli automatique si non satisfaite
 });
 console.log(root.mode); // "sab" | "post-message" | "main-thread"
 ```
 
-Le [Playground](/playground) de ce site en est un exemple vivant : GitHub Pages ne peut pas émettre
-les en-têtes COOP/COEP, donc la production tourne sur le chemin postMessage, et le badge de
-transport en haut de page l'affiche fidèlement.
+Le [Playground](/playground) de ce site en est un exemple vivant : GitHub Pages ne peut pas envoyer les en-têtes de réponse COOP/COEP, donc la version en ligne fonctionne sur le chemin postMessage, et le marqueur de transport en haut de page l'affiche fidèlement.
 
 ## Modèle d'invalidation
 
-**La sémantique des props détermine le domaine d'invalidation** : l'appelant ne marque rien
-manuellement et il n'existe pas de porte de sortie de type `forceUpdate`.
+**La sémantique des props détermine le domaine d'invalidation**, l'appelant ne marque pas manuellement les éléments comme sales, et il n'existe pas d'échappatoire `forceUpdate`.
 
-Chaque propriété déclare dans un schéma à source unique si elle affecte la mise en page, le rendu,
-le hit testing ou la sémantique. Modifier une `opacity` ne déclenche pas de reflow ; modifier
-`width`, si. Les bitmaps de saleté sont entretenus par domaine, et `onFrame` expose le nombre de
-nœuds sales de chaque domaine.
+Chaque propriété est déclarée dans un schéma source unique indiquant si elle affecte la disposition, la peinture, le test de collision ou la sémantique. Modifier une `opacity` ne déclenche pas de redisposition ; modifier `width` le fait. Les bitmaps de saleté sont maintenus par domaine, et `onFrame` expose le nombre de nœuds sales dans chaque domaine.
 
-Ce choix est « invalidation la plus étroite possible + filet de tests de propriétés » : le rendu
-incrémental doit être identique au pixel près au rendu complet, et les tests différentiels réduisent
-tout contre-exemple au cas d'échec minimal.
+Ce choix repose sur une « invalidation la plus étroite possible + tests de propriétés en filet de sécurité » : le résultat du rendu incrémental doit être identique pixel par pixel au rendu complet, et les tests différentiels convergent les contre-exemples vers le cas d'échec minimal.
 
-## Représentation du Scene
+## Représentation de la scène
 
-Le Scene dans le Core est en SoA (structure de tableaux) :
+La scène dans le cœur est en SoA (structure de tableaux plutôt que tableau de structures) :
 
-- Les ID de nœuds contiennent une **génération** : la réutilisation d'un emplacement ne réactive
-  jamais un ID périmé.
-- Après chaque commit, le Scene reste **trié topologiquement** : un parent précède toujours ses
-  enfants.
-- Les éditions structurelles sont compactées une fois par commit, et non à chaque mutation.
-- Les résultats de mise en page sont comparés en masse via un double tampon SoA — aucune allocation
-  de fermeture ou d'écouteur par nœud sur le chemin chaud.
+- Les ID de nœuds contiennent une **génération**, la réutilisation des emplacements ne réactive pas les ID périmés.
+- Après le commit, l'**ordre topologique** est maintenu : les nœuds parents précèdent toujours les nœuds enfants.
+- Les modifications structurelles sont compactées une fois par commit, et non une fois par mutation.
+- Les résultats de disposition sont comparés par lots avec des SoA à double tampon ; aucun closure par nœud ni allocation d'écouteur sur le chemin critique.
 
-## Backends interchangeables
+## Backend enfichable
 
-Le Core produit un DisplayList binaire plat ; les backends ne sont que des relecteurs. Le backend
-Canvas2D est une boucle sur typed arrays avare en allocations — **appeler le wasm→JS une fois par
-dessin n'est pas un chemin de rendu acceptable**.
+Le cœur produit une DisplayList binaire aplatie, le backend n'est qu'un relecteur. Le backend Canvas2D est une boucle sur tableaux typés à allocation parcimonieuse — **appeler wasm→JS à chaque dessin n'est pas un chemin de rendu acceptable**.
 
-Le même DisplayList alimente aussi un prototype wgpu isolé, et les deux sorties sont comparées par
-différence de pixels. L'adoption de WebGPU est une décision fondée sur les données, voir
-[ADR-0006](/adr/0006-webgpu-backend-decision).
+La même DisplayList est également transmise à un prototype wgpu isolé, et les sorties des deux font l'objet d'une comparaison différentielle pixel par pixel.
+L'adoption de WebGPU est une décision fondée sur les données, voir [ADR-0006](/adr/0006-webgpu-backend-decision).
 
 ## Déterminisme
 
-Le temps, les sources aléatoires et les flux d'entrée sont injectables ou rejouables, et la sortie
-du Core ne dépend pas de l'ordonnancement des threads. Les archives `DOPR` enregistrent les flux de
-Mutation et d'Input dans l'ordre d'origine et se rejouent de façon déterministe en environnement
-headless, hors navigateur — un problème de production devient ainsi reproductible en local ; les
-flux d'édition sensibles sont explicitement exclus de l'enregistrement.
+Le temps, les sources aléatoires et les flux d'entrée sont injectables ou rejouables ; la sortie du cœur ne dépend pas de l'ordre d'ordonnancement des threads.
+L'archive `DOPR` enregistre les flux de mutations et d'entrées dans l'ordre d'origine, et peut être rejouée de manière déterministe hors navigateur dans un environnement headless — les problèmes en production peuvent ainsi être reproduits localement ; les flux d'édition sensibles sont explicitement exclus de l'enregistrement.
 
 ## Composants et styles
 
-Au-dessus de ce noyau se trouvent trois couches d'API orientées auteur :
+Au-dessus de ce noyau se trouvent trois couches d'API destinées aux auteurs :
 
-- **Éléments de base** — View/Text/Image, Input/TextArea, SVG/Path et autres éléments de niveau
-  moteur, voir [Éléments de base](/guide/elements).
-- **Styles** — un subset CSS versionné analysé côté Shell (table de prise en charge
-  [ici](/style-support)), plus la [pipeline SCSS/Less](/guide/scss-less) à la construction ; le Core
-  ne consomme que des valeurs typées normalisées et n'analyse jamais de texte CSS.
-- **Bibliothèque de composants UI** — `@dopejs/pingo-ui`, des composants prêts à l'emploi alignés
-  sur shadcn/ui, tous rendus dans le canvas, voir la [documentation des composants](/components).
+- **Composants de base** — éléments au niveau du moteur tels que View/Text/Image, Input/TextArea, SVG/Path, voir [Composants de base](/guide/elements).
+- **Styles** — un sous-ensemble CSS versionné analysé côté coquille (tableau de prise en charge [ici](/style-support)), ainsi que le pipeline de build [SCSS/Less](/guide/scss-less) ; le cœur ne consomme que des valeurs typées normalisées et n'analyse pas le texte CSS.
+- **Bibliothèque de composants UI** — `@dopejs/pingo-ui`, des composants finis alignés sur shadcn/ui, tous rendus sur canvas, voir [documentation des composants](/components).
 
 ## Pour aller plus loin
 
-Les algorithmes complets, les structures de données et les critères d'acceptation figurent dans le
-[document de conception technique](/design).
+Les algorithmes complets, les structures de données et les critères d'acceptation sont détaillés dans le [document de conception technique](/design).

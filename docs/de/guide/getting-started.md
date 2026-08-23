@@ -1,4 +1,4 @@
-# Erste Schritte
+# Schnellstart
 
 ## Installation
 
@@ -6,11 +6,10 @@
 pnpm add @dopejs/pingo
 ```
 
-Ihre Anwendung hängt nur von einem Paket ab: `@dopejs/pingo`. `@dopejs/pingo-host`,
-`@dopejs/pingo-jsx` und die übrigen sind interne Implementierungspakete und nicht Teil des
-öffentlichen Vertrags — der [Migrationsscanner](/migration) lehnt ihren direkten Import ab.
+Die Anwendung hängt nur von dem Paket `@dopejs/pingo` ab. `@dopejs/pingo-host`, `@dopejs/pingo-jsx` und andere sind interne Implementierungspakete
+und gehören nicht zum öffentlichen Vertrag – der [Migrations-Scanner](/migration) lehnt den direkten Import dieser Pakete ab.
 
-## Das erste Canvas einhängen
+## Die erste Leinwand einhängen
 
 ```ts
 import { createElement, createHostedCanvasRoot } from "@dopejs/pingo";
@@ -37,13 +36,12 @@ root.render(
 );
 ```
 
-`createHostedCanvasRoot` erkennt die Browserfähigkeiten und wählt den Transport zwischen
-SharedArrayBuffer, postMessage und Canvas2D im Hauptthread; Sie schreiben keine Verzweigungen für den
-Rückfall. `root.mode` liefert den tatsächlich gewählten Weg.
+`createHostedCanvasRoot` erkennt automatisch die Browserfähigkeiten und wählt den Übertragungspfad zwischen SharedArrayBuffer, postMessage und
+Canvas2D im Hauptthread aus. Du musst keine Verzweigungen für Fallbacks schreiben. `root.mode` gibt den tatsächlich gewählten Pfad zurück.
 
 ## TSX verwenden
 
-Konfigurieren Sie `tsconfig.json`:
+Konfiguriere `tsconfig.json`:
 
 ```json
 {
@@ -54,13 +52,13 @@ Konfigurieren Sie `tsconfig.json`:
 }
 ```
 
-Danach können Sie schreiben:
+Danach kannst du Folgendes schreiben:
 
 ```tsx
 function OrderRow({ index }: { index: number }) {
   return (
     <container width={480} height={32} padding={[6, 12, 6, 12]}>
-      <text value={`Bestellung Nr. ${index}`} fontSize={13} lineHeight={20} />
+      <text value={`订单 #${index}`} fontSize={13} lineHeight={20} />
     </container>
   );
 }
@@ -70,21 +68,20 @@ root.render(<OrderRow index={1} />);
 
 ## Host-Elemente
 
-Die Engine kennt nur fünf eingebaute Elemente, die direkt Scene-Knoten entsprechen. Es gibt weder
-CSS-Kaskade noch Selektoren:
+Die Engine besitzt nur fünf eingebaute Elemente, die direkt den Scene-Knoten entsprechen. Es gibt weder CSS-Kaskadierung noch Selektoren:
 
-| Element        | Zweck                                                                 |
-| -------------- | --------------------------------------------------------------------- |
-| `container`    | Allgemeine Gruppierung, Hintergrund, Innenabstand, Transformationen   |
-| `text`         | Textlauf (Shaping, Umbruch und Cursor-Geometrie stammen aus dem Core) |
-| `scroll`       | Vom Core verwalteter scrollbarer Container                            |
-| `virtualList`  | Virtuelle Liste, deren Fenster der Core plant                         |
-| `editableText` | Primitive für editierbaren Text                                       |
+| Element           | Zweck                                                    |
+| ----------------- | -------------------------------------------------------- |
+| `container`       | Allgemeine Gruppierung, Hintergrund, Innenabstand, Transformation |
+| `text`            | Textlauf (Shaping, Umbruch, Caret-Geometrie aus Core)    |
+| `scroll`          | Scrollbarer Container im Besitz von Core                 |
+| `virtualList`     | Virtuelle Liste mit von Core geplanter Fensterung        |
+| `editableText`    | Editierbare Textprimitive                                |
 
-`TextField` und `TextArea` sind Widgets, die auf `editableText` aufsetzen (Rahmen, Fehlerzustand); sie
-führen keinen neuen Eingabepfad ein.
+`TextField` und `TextArea` sind Widgets, die auf `editableText` aufbauen (Rahmen, Fehlerzustand).
+Sie führen keinen neuen Eingabepfad ein.
 
-## Zustand und Effekte
+## Zustand und Seiteneffekte
 
 ```ts
 import { signal, useEffect, useSignal, useState } from "@dopejs/pingo";
@@ -95,17 +92,16 @@ function Counter() {
     const timer = setInterval(() => setCount((value) => value + 1), 1000);
     return () => clearInterval(timer);
   }, []);
-  return createElement("text", { value: `${count} s vergangen` });
+  return createElement("text", { value: `已过 ${count} 秒` });
 }
 ```
 
-Verfügbare reaktive Primitiven: `signal`, `computed`, `effect`, `batch`, `untracked` sowie die Hooks
-`useState`, `useSignal`, `useMemo`, `useCallback`, `useRef`, `useEffect`.
+Verfügbare reaktive Primitive: `signal`, `computed`, `effect`, `batch`, `untracked`,
+sowie die Hooks `useState`, `useSignal`, `useMemo`, `useCallback`, `useRef`, `useEffect`.
 
-::: warning Kein synchrones Lesen des Layouts
-Synchrones Lesen des Worker-Layouts im Stil von `useLayoutEffect` wird nicht unterstützt — das Layout
-läuft auf einer anderen Uhr. Wenn Sie das Ergebnis brauchen, nutzen Sie den asynchronen Vertrag und
-versuchen Sie nicht, Geometrie während des Renderns synchron zu lesen.
+::: warning Kein synchrones Layout-Lesen
+Synchrones Worker-Layout-Lesen im Stil von `useLayoutEffect` wird nicht unterstützt – das Layout findet auf einem anderen Takt statt.
+Verwende asynchrone Verträge, wenn du Layout-Ergebnisse benötigst, und versuche nicht, Geometrie synchron während des Renderns zu lesen.
 :::
 
 ## Laufzeitverhalten beobachten
@@ -119,24 +115,20 @@ const root = await createHostedCanvasRoot(canvas, {
 });
 ```
 
-`onFrame` liefert pro Frame die Anzahl der Befehle, die Bytegröße der DisplayList sowie auf Core-Seite
-die Zähler schmutziger Knoten, den Layout-Aufwand und den Picture-Hash. Das ist die primäre Datenquelle
-für Performanceanalysen. Mehr dazu unter [Diagnose](/diagnostics).
+`onFrame` liefert pro Frame die Anzahl der Befehle, die DisplayList-Bytes sowie die Dirty-Bereich-Zähler, den Layout-Aufwand und den Picture-Hash auf Core-Seite.
+Das sind die wichtigsten Daten für die Performance-Analyse. Mehr dazu unter [Diagnose](/diagnostics).
 
 ## Überblick über die Fähigkeiten
 
-Oberhalb der fünf eingebauten Elemente bietet pingo drei Schichten an Autoren-APIs:
+Aufbauend auf den fünf eingebauten Elementen bietet pingo drei weitere Ebenen autororientierter Fähigkeiten:
 
-- [Basis-Elemente](/guide/elements): View/Text/Image, Input/TextArea, SVG/Path und weitere
-  Engine-Elemente.
-- [Styling](/guide/styling): versioniertes CSS-Subset — Klassenselektoren, Interaktionszustände,
-  Kaskade und Vererbung mit klaren Grenzen; für Variablen und Mixins gibt es die
-  [SCSS-/Less-Pipeline](/guide/scss-less) zur Build-Zeit.
-- [UI-Komponentenbibliothek](/components): `@dopejs/pingo-ui`, fertige Komponenten im Sinne von
-  shadcn/ui, vollständig in den Canvas gerendert.
+- [Basiskomponenten](/guide/elements): Engine-Elemente wie View/Text/Image, Input/TextArea, SVG/Path usw.
+- [Styling](/guide/styling): Versionierte CSS-Teilmenge – klare Grenzen für Klassenselektoren, Interaktionszustände, Kaskadierung und Vererbung;
+  wenn Variablen und Mixins benötigt werden, nutze die Build-Pipeline [SCSS / Less](/guide/scss-less).
+- [UI-Komponentenbibliothek](/components): `@dopejs/pingo-ui`, fertige Komponenten, die an shadcn/ui ausgerichtet sind und vollständig auf die Leinwand gerendert werden.
 
 ## Nächste Schritte
 
-- [Architektur](/guide/architecture): wie sich TypeScript-Schale und Core die Arbeit teilen
+- [Architekturüberblick](/guide/architecture): Wie Shell und Core die Aufgaben aufteilen
 - [Virtuelles Scrollen](/guide/scrolling), [Text und Bearbeitung](/guide/editing)
-- [Playground](/playground): interaktive Live-Demos
+- [Playground](/playground): Interaktive Live-Demo

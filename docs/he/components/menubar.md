@@ -1,0 +1,72 @@
+---
+title: Menubar
+description: שורת תפריטים בסגנון שולחן עבודה, שבה מספר תפריטים חולקים נקודת פתיחה אחת.
+---
+
+# Menubar
+
+Menubar היא שורת תפריטים החולקים נקודת פתיחה אחת, בדומה לשורת התפריטים ביישומי שולחן עבודה. התצוגה המקדימה שלהלן מרונדרת בזמן אמת על ידי מנוע pingo — לחצו על הכרטיסיות "קובץ", "עריכה" וכדומה כדי לפתוח ולסגור את התפריט המתאים, כאשר התצוגה עוקבת אחר ערכת הנושא של האתר ועוברת בין מצב בהיר לכהה.
+
+:::preview menubar-basic
+:::
+
+## שימוש
+
+```tsx
+import { createElement } from "@dopejs/pingo";
+import { Menubar, MenubarMenu } from "@dopejs/pingo-ui";
+
+root.render(
+  createElement(Menubar, {
+    onValueChange: (value) => {},
+    children: [
+      createElement(MenubarMenu, {
+        value: "file",
+        label: "קובץ",
+        children: createElement("text", { value: "חדש" }),
+      }),
+      createElement(MenubarMenu, {
+        value: "edit",
+        label: "עריכה",
+        children: createElement("text", { value: "בטל" }),
+      }),
+    ],
+  }),
+);
+```
+
+`MenubarMenu` קורא את מצב שורת התפריטים דרך context, ועליו להיות צאצא של `Menubar`; ה־`children` שלו הם תוכן החלונית המוצג בעת הפתיחה. הפתיחה והסגירה אינן מנוהלות כברירת מחדל; העברת `value` מעבירה למצב מנוהל (הערך הוא ה־`value` של התפריט הפתוח כעת).
+
+## דוגמאות
+
+### פתיחה מנוהלת
+
+העבירו `value` כדי לקבע את התפריט הפתוח, שימושי להנחיה ראשונית או לסנכרון עם מצב חיצוני.
+
+:::preview menubar-open
+:::
+
+## Props
+
+### Menubar
+
+| Prop | סוג | ברירת מחדל | תיאור |
+| --- | --- | --- | --- |
+| `value` | `string` | — | מנוהל: הערך של התפריט הפתוח כעת |
+| `onValueChange` | `(value: string \| undefined) => void` | — | קריאה חוזרת בעת שינוי התפריט הפתוח (`undefined` בעת סגירה) |
+| `children` | `PingoNode` | — | מספר רכיבי `MenubarMenu` (חובה) |
+| `className` | `string` | — | שם מחלקה נוסף |
+| `navigation` | `boolean` | `false` | שימוש בסמנטיקת ניווט (בשימוש פנימי על ידי [NavigationMenu](/components/navigation-menu)) |
+
+### MenubarMenu
+
+| Prop | סוג | ברירת מחדל | תיאור |
+| --- | --- | --- | --- |
+| `value` | `string` | — | מזהה התפריט (חובה) |
+| `label` | `string` | — | התווית המוצגת בשורה (חובה) |
+| `children` | `PingoNode` | — | תוכן החלונית בעת הפתיחה (חובה) |
+| `className` | `string` | — | שם מחלקה נוסף |
+
+## נגישות
+
+לשורת התפריטים יש סמנטיקת menubar, ללשוניות יש סמנטיקת menuitem והן חושפות מצב expanded/collapsed; מקשי החצים ימינה ושמאלה עוברים בין התפריטים, וכאשר תפריט פתוח הם מחליפים גם כן, `Escape` סוגר וממקד את הלשונית הנוכחית.

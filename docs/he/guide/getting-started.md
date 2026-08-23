@@ -6,11 +6,10 @@
 pnpm add @dopejs/pingo
 ```
 
-היישום תלוי בחבילה אחת בלבד: `@dopejs/pingo`. החבילות `@dopejs/pingo-host`, `@dopejs/pingo-jsx`
-והאחרות הן חבילות מימוש פנימיות שאינן חלק מהחוזה הציבורי, ו[סורק ההגירה](/migration) דוחה ייבוא ישיר
-שלהן.
+האפליקציה תלויה רק בחבילה `@dopejs/pingo`. `@dopejs/pingo-host`, `@dopejs/pingo-jsx` וכדומה הן חבילות מימוש פנימיות,
+שאינן חלק מהחוזה הציבורי — [סורק ההגירה](/migration) ידחה ייבוא ישיר שלהן.
 
-## הרכבת ה-canvas הראשון
+## הרכבת הקנבס הראשון
 
 ```ts
 import { createElement, createHostedCanvasRoot } from "@dopejs/pingo";
@@ -37,13 +36,12 @@ root.render(
 );
 ```
 
-‏`createHostedCanvasRoot` מזהה את יכולות הדפדפן ובוחר את נתיב ההעברה מבין SharedArrayBuffer,
-‏postMessage ו-Canvas2D בתהליכון הראשי; אינך צריך לכתוב הסתעפויות עבור הנסיגה. הנתיב שנבחר בפועל מוחזר
-ב-`root.mode`.
+`createHostedCanvasRoot` מזהה אוטומטית את יכולות הדפדפן ובוחר נתיב העברה בין SharedArrayBuffer, postMessage ו־Canvas2D בשרשור הראשי,
+אין צורך לכתוב הסתעפויות לגיבוי. `root.mode` מחזיר את הנתיב שנבחר בפועל.
 
-## שימוש ב-TSX
+## שימוש ב־TSX
 
-הגדר את `tsconfig.json`:
+הגדירו את `tsconfig.json`:
 
 ```json
 {
@@ -54,13 +52,13 @@ root.render(
 }
 ```
 
-לאחר מכן אפשר לכתוב:
+לאחר מכן ניתן לכתוב:
 
 ```tsx
 function OrderRow({ index }: { index: number }) {
   return (
     <container width={480} height={32} padding={[6, 12, 6, 12]}>
-      <text value={`הזמנה מס׳ ${index}`} fontSize={13} lineHeight={20} />
+      <text value={`הזמנה #${index}`} fontSize={13} lineHeight={20} />
     </container>
   );
 }
@@ -68,20 +66,20 @@ function OrderRow({ index }: { index: number }) {
 root.render(<OrderRow index={1} />);
 ```
 
-## רכיבי המארח
+## רכיבי מארח
 
-למנוע יש חמישה רכיבים מובנים בלבד, וכולם מתאימים ישירות לצמתי Scene. אין מפל CSS ואין בוררים.
+למנוע יש רק חמישה רכיבים מובנים, המקבילים ישירות לצמתי Scene, ללא שכבות CSS או בוררים:
 
-| רכיב           | תפקיד                                                       |
-| -------------- | ----------------------------------------------------------- |
-| `container`    | קיבוץ כללי, רקע, ריפוד פנימי, טרנספורמציות                  |
-| `text`         | רצף טקסט (עיצוב, שבירת שורות וגיאומטריית סמן מגיעים מהליבה) |
-| `scroll`       | מכולה נגללת שבבעלות הליבה                                   |
-| `virtualList`  | רשימה וירטואלית שהליבה מתכננת את החלון שלה                  |
-| `editableText` | פרימיטיב של טקסט ניתן לעריכה                                |
+| רכיב           | שימוש                                                        |
+| -------------- | ------------------------------------------------------------ |
+| `container`    | קיבוץ כללי, רקע, ריווח פנימי, טרנספורמציות                  |
+| `text`         | ריצת טקסט (עיצוב, שבירת שורות, גאומטריית caret מ־Core)       |
+| `scroll`       | מיכל גלילה בבעלות Core                                       |
+| `virtualList`  | רשימה וירטואלית עם תכנון חלון ב־Core                         |
+| `editableText` | פרימיטיב טקסט בר־עריכה                                      |
 
-‏`TextField` ו-`TextArea` הם widget-ים המורכבים מעל `editableText` (מסגרת, מצב שגיאה) ואינם מכניסים
-שום נתיב קלט חדש.
+`TextField` ו־`TextArea` הם וידג'טים מורכבים מעל `editableText` (מסגרת, מצב שגיאה),
+הם אינם מציגים נתיב קלט חדש.
 
 ## מצב ותופעות לוואי
 
@@ -98,15 +96,15 @@ function Counter() {
 }
 ```
 
-הפרימיטיבים הריאקטיביים הזמינים: `signal`, `computed`, `effect`, `batch`, `untracked`, ולצדם ההוקים
-‏`useState`, `useSignal`, `useMemo`, `useCallback`, `useRef`, `useEffect`.
+הפרימיטיבים הראקטיביים הזמינים: `signal`, `computed`, `effect`, `batch`, `untracked`,
+וכן ה־hooks: `useState`, `useSignal`, `useMemo`, `useCallback`, `useRef`, `useEffect`.
 
-::: warning אין קריאה סינכרונית של הפריסה
-קריאה סינכרונית של פריסת ה-Worker בסגנון `useLayoutEffect` אינה נתמכת — הפריסה מתרחשת על שעון אחר.
-כשדרושה התוצאה, השתמש בחוזה האסינכרוני ואל תנסה לקרוא גיאומטריה באופן סינכרוני בזמן הרינדור.
+::: warning אין קריאת פריסה סינכרונית
+קריאת פריסה סינכרונית בסגנון `useLayoutEffect` מה־Worker אינה נתמכת — הפריסה מתרחשת בשעון אחר.
+כאשר נדרשת תוצאת פריסה, השתמשו בחוזה אסינכרוני, ואל תנסו לקרוא גאומטריה באופן סינכרוני במהלך רינדור.
 :::
 
-## מעקב אחר ההתנהגות בזמן ריצה
+## ניטור מצב תקינות
 
 ```ts
 const root = await createHostedCanvasRoot(canvas, {
@@ -117,21 +115,20 @@ const root = await createHostedCanvasRoot(canvas, {
 });
 ```
 
-‏`onFrame` מספק בכל פריים את מספר הפקודות, את גודל ה-DisplayList בבתים, ומצד הליבה את מוני הצמתים
-המלוכלכים, את נפח עבודת הפריסה ואת גיבוב ה-picture. זהו מקור המידע הראשוני לניתוח ביצועים. פרטים נוספים
-ב[אבחון](/diagnostics).
+`onFrame` מספק בכל פריים את מספר הפקודות, גודל ה־DisplayList בבתים, וספירות האזורים המלוכלכים בצד Core, עומס הפריסה ו־picture hash,
+אלו הם הנתונים הראשוניים לאיתור בעיות ביצועים. למידע נוסף ראו [אבחון](/diagnostics).
 
-## סיור יכולות
+## סקירת יכולות
 
-מעל חמשת הרכיבים המובנים, pingo מציע שלוש שכבות של יכולות הפונות ליוצרים:
+מעל חמשת הרכיבים המובנים, pingo מספקת גם שלוש שכבות יכולות למפתחים:
 
-- [רכיבי בסיס](/he/guide/elements): ‏View/Text/Image, ‏Input/TextArea, ‏SVG/Path ורכיבים נוספים ברמת המנוע.
-- [סגנונות](/he/guide/styling): תת-קבוצת CSS מנוהלת-גרסאות — בוררי מחלקה, מצבי אינטראקציה, מפל וירושה
-  עם גבולות מוגדרים; כשצריך משתנים ו-mixin-ים עוברים לצינור [SCSS / Less](/he/guide/scss-less) בזמן הבנייה.
-- [ספריית רכיבי UI](/he/components): ‏`@dopejs/pingo-ui`, רכיבים מוגמרים מיושרי-shadcn/ui, כולם מרונדרים ל-canvas.
+- [רכיבי בסיס](/guide/elements): View/Text/Image, Input/TextArea, SVG/Path ורכיבים נוספים ברמת המנוע.
+- [עיצוב](/guide/styling): תת־קבוצת CSS עם גרסאות — בוררי מחלקות, מצבי אינטראקציה, גבולות ברורים של שכבות והורשה;
+  כשצריכים משתנים ו־mixin, עוברים דרך [צינור SCSS / Less](/guide/scss-less) בזמן הבנייה.
+- [ספריית רכיבי UI](/components): `@dopejs/pingo-ui`, רכיבים מוכנים המותאמים ל־shadcn/ui, כולם מרונדרים לקנבס.
 
-## הצעד הבא
+## הצעדים הבאים
 
-- [סקירת ארכיטקטורה](/he/guide/architecture): כיצד המעטפת והליבה מחלקות את העבודה
-- [גלילה וירטואלית](/he/guide/scrolling), [טקסט ועריכה](/he/guide/editing)
-- [Playground](/he/playground): הדגמות חיות שאפשר להפעיל
+- [סקירת ארכיטקטורה](/guide/architecture): כיצד מתחלקים התפקידים בין Shell ל־Core
+- [גלילה וירטואלית](/guide/scrolling), [טקסט ועריכה](/guide/editing)
+- [Playground](/playground): הדגמה חיה אינטראקטיבית

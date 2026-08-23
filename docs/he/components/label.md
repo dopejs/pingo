@@ -1,0 +1,49 @@
+---
+title: Label
+description: טקסט תווית לטופס, לשימוש עם רכיבי קלט, מרונדר על קנבס pingo.
+---
+
+# Label
+
+תוויות משמשות למתן שם גלוי לרכיבי טופס. התצוגה המקדימה שלהלן מרונדרת בזמן אמת על ידי מנוע pingo, ומתחלפת בין מצב בהיר לכהה בהתאם לערכת הנושא של האתר.
+
+:::preview label-basic
+:::
+
+## שימוש
+
+```tsx
+import { createElement } from "@dopejs/pingo";
+import { Input, Label } from "@dopejs/pingo-ui";
+
+root.render(
+  createElement("container", {
+    style: { flexDirection: "column" },
+    children: [
+      createElement(Label, { children: "邮箱" }),
+      createElement("container", { height: 8 }),
+      createElement(Input, { semanticLabel: "邮箱", width: 320 }),
+    ],
+  }),
+);
+```
+
+ל-pingo אין מאפיין `gap`, ולכן המרווח בין התווית לרכיב הקלט נעשה באמצעות מיכל בגודל קבוע.
+
+## דוגמאות
+
+### שם סמנטי
+
+קישור רכיבי קלט עדיין לא קיים ב-pingo, ולכן הקישור בין תווית לרכיב קלט מבוסס על מוסכמה: יש להעביר לרכיב הקלט `semanticLabel` זהה לתווית, כדי שקורא המסך יקריא את אותו השם.
+
+## Props
+
+| Prop | טיפוס | ברירת מחדל | תיאור |
+| --- | --- | --- | --- |
+| `children` | `string` | — | טקסט התווית (חובה) |
+| `className` | `string` | — | מתווסף לאחר שם המחלקה של הרכיב |
+| `semanticLabel` | `string` | — | עוקף את השם הנגיש; ברירת המחדל היא טקסט התווית |
+
+## נגישות
+
+ל-pingo עדיין אין מנגנון קישור label–control, ו-Label הוא טקסט מעוצב בלבד. יש להגדיר תמיד `semanticLabel` על רכיב הקלט המתאים, כדי שהשם הנגיש לא יהיה תלוי בקרבה חזותית.

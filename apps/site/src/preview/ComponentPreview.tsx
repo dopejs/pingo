@@ -101,6 +101,12 @@ export function ComponentPreview({ id, labels }: ComponentPreviewProps): ReactNo
         const created = await engine.createHostedCanvasRoot(canvas, {
           styleSheets: [ui.createPingoUiStyleSheet()],
           initializationTimeoutMs: 45_000,
+          onHostError: (error) => {
+            if (!disposed) {
+              setFailure(`${error.name}: ${error.message}`);
+              setStatus("error");
+            }
+          },
         });
         if (disposed) {
           await created.close();

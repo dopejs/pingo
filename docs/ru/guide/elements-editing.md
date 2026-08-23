@@ -1,0 +1,129 @@
+---
+title: "Редактируемые элементы: Input и TextArea"
+description: Нативные редактируемые текстовые примитивы движка — контракт управляемых транзакций revision, мост ввода EditContext, пароль и только чтение.
+---
+
+# Редактируемые элементы: Input и TextArea
+
+`Input` и `TextArea` (в `@dopejs/pingo` экспортируется как `UnstyledTextArea`, см. ниже) — это
+нативные редактируемые текстовые примитивы движка: caret, выделение, композиция IME, буфер обмена
+и отмена/повтор реализованы в Core, **не требуется накладывать никакие HTML-элементы ввода поверх
+canvas**. Превью ниже действительно редактируемое — кликните для фокуса, попробуйте китайский ввод,
+выделение перетаскиванием и Ctrl+Z.
+
+:::preview elements-input
+:::
+
+## Использование
+
+Управляемый вариант: `value` + монотонно возрастающий `revision`, подтверждение транзакций от Core
+в `onTransaction`:
+
+```tsx
+import { createElement, Input, type EditTransaction } from "@dopejs/pingo";
+
+let value = "订单备注";
+let revision = 1n;
+
+function applyDelta(current: string, transaction: EditTransaction): string {
+  const delta = transaction.delta;
+  return delta === undefined
+    ? current
+    : current.slice(0, delta.range.start) + delta.text + current.slice(delta.range.end);
+}
+
+createElement(Input, {
+  value,
+  revision,
+  semanticLabel: "订单备注",
+  onTransaction: (transaction) => {
+    value = applyDelta(value, transaction);
+    revision = transaction.revision;
+  },
+});
+```
+
+Для чисто локального состояния можно не передавать `value` / `revision`, а использовать
+`TextEditingController` (в сценариях с hooks — `useTextEditingController`); `controller`
+и `value`/`revision` взаимоисключающие.
+
+## Контракт транзакций revision
+
+Владение состоянием однозначно: **Shell владеет бизнес-данными, Core владеет мгновенным
+состоянием активной сессии редактирования.**
+
+1. Ввод поступает в Core, проверяется совпадение `base_revision` с текущей сессией;
+2. При успехе **немедленно применяется и перерисовывается** — каждое нажатие клавиши
+   не требует полного прохода конвейера рендеринга;
+3. Core отправляет обратно версионированную `EditTransaction`;
+4. Shell подтверждает (обновляет свои `value` / `revision`) или, при неудаче бизнес-валидации,
+   отправляет скорректированное значение с новым `revision`. Устаревший revision никогда
+   не перезапишет более новый ввод Core; подтверждение с тем же revision не очищает стек отмены.
+
+Поля `EditTransaction`:
+
+| Поле | Тип | Описание |
+| --- | --- | --- |
+| `nodeId` | `number` | Редактируемый узел, породивший транзакцию |
+| `baseRevision` | `bigint` | Revision, на котором основана транзакция |
+| `revision` | `bigint` | Новый revision после транзакции |
+| `delta` | `{ range: { start, end }, text }` | Текстовая разница; смещения в UTF-16, согласованы с EditContext/InputEvent. У транзакций только с выделением это поле отсутствует |
+| `selection` | `{ anchor, focus, anchorAffinity, focusAffinity }` | Выделение после транзакции |
+| `composition` | `{ start, end }` | Активный диапазон композиции IME |
+| `kind` | `"edit" \| "composition" \| "external" \| "undo" \| "redo"` | Категория транзакции |
+
+## Мост ввода: EditContext и запасной прокси
+
+Главный поток подключается к текстовым службам ввода операционной системы по приоритету:
+
+1. **EditContext** — привязывается к canvas, принимает текст/выделение/композицию и сообщает
+   методу ввода control, selection и границы символов, благодаря чему окно кандидатов
+   располагается рядом с caret.
+2. **Управляемый движком прокси ввода** — когда EditContext недоступен, хост поддерживает
+   **один** глобальный скрытый `textarea`, единообразно обрабатывающий `beforeinput`,
+   композицию, программную клавиатуру и буфер обмена.
+
+Это платформенная реализация запасного варианта, а не компонентная модель EmbedDOM:
+в Scene нет DOM, соответствующих каждому редактируемому узлу один к одному. Оба пути проходят
+один и тот же набор контрактных тестов поведения редактирования.
+
+## Многострочность: примитив TextArea
+
+Примитив `TextArea` разделяет с `Input` одну и ту же подсистему `editableText`, единственное
+отличие — инвариант `multiline`, зафиксированный компонентом. Enter вставляет перевод строки
+и не вызывает `onSubmit`; стрелки вверх/вниз при переходе между строками сохраняют ожидаемую
+колонку (desired-x).
+
+:::preview elements-textarea
+:::
+
+## Props (Input / UnstyledTextArea)
+
+Оба разделяют `EditableTextProps` (`multiline` наружу не выставляется, фиксируется компонентом):
+
+| Prop | Тип | По умолчанию | Описание |
+| --- | --- | --- | --- |
+| `value` | `string` | — | Управляемый текст |
+| `revision` | `number \| bigint` | — | Авторитетный revision управляемого значения; устаревшее значение не перезапишет более новый ввод Core |
+| `controller` | `TextEditingController` | — | Стабильный локальный controller; взаимоисключающий с `value`/`revision` |
+| `readOnly` | `boolean` | `false` | Только чтение |
+| `password` | `boolean` | `false` | Режим пароля (см. ниже) |
+| `maxGraphemes` | `number` | — | Максимум графем |
+| `inputMode` | `EditableInputMode` | `"text"` | Подсказка программной клавиатуре: `decimal` `email` `none` `numeric` `search` `tel` `text` `url` |
+| `onTransaction` | `(t: EditTransaction) => void` | — | Колбэк транзакций редактирования Core |
+| `onSubmit` | `() => void` | — | Отправка по Enter в однострочном режиме; в многострочном Enter оставляет перевод строки |
+
+Оформление текста наследует `TextProps`: `color`, `fontSize`, `fontWeight`, `lineHeight`,
+`fontFamily`, `font`; размеры, `padding`, `backgroundColor`, рамки (канал `style`) и т. д. —
+из [CommonProps](/api).
+
+## Доступность и конфиденциальность
+
+- Редактируемый узел自带 семантику `textbox`; используйте `semanticLabel` для имени
+  (особенно важно при отсутствии видимой подписи).
+- Содержимое пароля рисуется только внутри Core маскирующими глифами: открытый текст не попадает
+  в DisplayList, запись воспроизведения, devtools или значения доступности; цель пароля также
+  не записывается в буфер обмена.
+
+Более глубокое описание проекта (модель позиций текста, границы bidi, матрица контрактных тестов)
+см. в [Текст и редактирование](/guide/editing).

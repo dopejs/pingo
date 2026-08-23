@@ -1,0 +1,79 @@
+---
+title: Toast
+description: התראה קלה שצצה בפינה, נישאת על ידי ToastViewport ומרונדרת על קנבס pingo.
+---
+
+# Toast
+
+Toast היא התראה קלה המופיעה לזמן קצר בפינה, מתאימה למשוב מיידי כמו שמירה מוצלחת או כשל סנכרון. התצוגה המקדימה למטה מרונדרת בזמן אמת על ידי מנוע pingo — לחצו על הכפתור כדי להפעיל toast, והיא תעקוב אחרי החלפת הנושא הבהיר/כהה של האתר.
+
+:::preview toast-basic
+:::
+
+## שימוש
+
+Toast דורשת שימוש יחד עם `ToastViewport`. ה-viewport הוא מיכל פינתי במיקום אבסולוטי (ברירת מחדל: פינה עליונה ימנית), **וחייב להיות ממוקם תחת מיכל קרוב לשורש** — בלוק ההכלה במנוע זה הוא צומת האב ולא ה-ancestor המיוחס הקרוב ביותר; אם תמקמו אותו במיכל קטן, הוא יכסה רק את אותו מיכל קטן.
+
+```tsx
+import { createElement } from "@dopejs/pingo";
+import { Button, Toast, ToastViewport } from "@dopejs/pingo-ui";
+
+let open = false;
+
+function scene() {
+  return createElement("container", {
+    width: surfaceWidth,
+    height: surfaceHeight,
+    children: [
+      createElement(Button, {
+        children: "שמירה",
+        onPress: () => {
+          open = true;
+          root.render(scene());
+        },
+      }),
+      createElement(ToastViewport, {
+        children: createElement(Toast, {
+          open,
+          title: "נשמר",
+          description: "ההגדרה נכתבה למקומי.",
+        }),
+      }),
+    ],
+  });
+}
+```
+
+הצגה/הסתרה ותזמון הסגירה האוטומטית נשלטים על ידי האפליקציה עצמה: הפכו את `open` וקראו שוב ל-`root.render(...)` (הכפתור בתצוגה המקדימה פועל בדיוק כך).
+
+## דוגמאות
+
+### וריאנטים
+
+`variant="destructive"` משמש להתראות כשל. במקרה זה טקסט התיאור כבר לא משתמש בצבע קדם מוחלש — הרקע ההרסני כבר הפך את הקדם, והחלשה נוספת תיצור טקסט אפור על רקע אדום.
+
+:::preview toast-variants
+:::
+
+## Props
+
+### Toast
+
+| Prop | סוג | ברירת מחדל | תיאור |
+| --- | --- | --- | --- |
+| `open` | `boolean` | — | האם להציג; כאשר `false` מרונדר כ-`null` (חובה) |
+| `title` | `string` | — | כותרת (חובה) |
+| `description` | `string` | — | גוף התיאור, כאשר מושמט שורת התיאור לא מרונדרת |
+| `variant` | `"default" \| "destructive"` | `"default"` | וריאנט חזותי |
+| `className` | `string` | — | מצורף אחרי שם המחלקה של הרכיב |
+
+### ToastViewport
+
+| Prop | סוג | ברירת מחדל | תיאור |
+| --- | --- | --- | --- |
+| `children` | `PingoNode` | — | רשימת ה-toast בתוך ה-viewport, פריטים מרובים נערמים אנכית עם רווח של 8px (חובה) |
+| `className` | `string` | — | מצורף אחרי שם המחלקה של הרכיב |
+
+## נגישות
+
+ל-Toast יש תפקיד סמנטי `status`, וטכנולוגיות מסייעות יכריזו עליו כהודעת מצב. ה-toast אינו מפריע למיקוד הנוכחי; לתוצאות של פעולות קריטיות יש לשמור גם משוב מתמשך בדף (כגון `Alert`).

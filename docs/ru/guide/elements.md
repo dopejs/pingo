@@ -1,0 +1,127 @@
+---
+title: "Базовые элементы: View, Text и Image"
+description: Контейнер View и flex-раскладка, рендеринг текста Text, растровое изображение Image и явный шрифт PingoFont.
+---
+
+# Базовые элементы: View, Text и Image
+
+Хост-элементы pingo напрямую соответствуют узлам Scene, поэтому здесь нет накладных расходов
+CSS-каскада или сопоставления селекторов (возможности стилей см. в разделе
+[Стили](/guide/styling)). На этой странице рассматриваются три самых базовых элемента:
+универсальный бокс `View`, текст `Text` и растровое изображение `Image`. Превью ниже
+рендерится движком pingo в реальном времени и переключается между светлой и тёмной темой
+вместе с сайтом.
+
+:::preview elements-layout
+:::
+
+## View и раскладка
+
+`View` — это универсальный группирующий бокс (соответствует хост-элементу `container`),
+который не добавляет новый вид узла Scene:
+
+- `width` / `height` / `minWidth` / `maxWidth` / `padding` / `backgroundColor` / `opacity` /
+  `transform` — это прямые props; `padding` принимает число или четвёрку `[верх, право,
+  низ, лево]`.
+- `flexDirection`, `justifyContent`, `alignItems`, границы и скругления передаются через
+  инлайновый канал `style` (типизированное подмножество CSS, см. [Стили](/guide/styling)).
+- Расстояние между дочерними элементами задаётся явно контейнерами фиксированного размера —
+  именно так реализованы помощники `row` / `column` в превью.
+
+## Использование
+
+```tsx
+import { createElement, Text, View } from "@dopejs/pingo";
+
+root.render(
+  createElement(View, {
+    width: 420,
+    padding: 16,
+    backgroundColor: "#ffffffff",
+    style: { flexDirection: "column", borderRadius: 10 },
+    children: [
+      createElement(Text, { value: "标题", fontSize: 24, lineHeight: 32, fontWeight: 700 }),
+      createElement(View, { height: 8 }),
+      createElement(Text, { value: "正文", fontSize: 14, lineHeight: 22 }),
+    ],
+  }),
+);
+```
+
+## Text: текстовый прогон
+
+Шейпинг, перенос строк и измерение текста полностью выполняются Core — смешанный
+китайско-английский текст, эмодзи и комбинируемые символы не требуют участия Shell.
+Содержимое задаётся через `value` или строковый `children`.
+
+:::preview elements-text
+:::
+
+### Props (Text)
+
+| Prop | Тип | По умолчанию | Описание |
+| --- | --- | --- | --- |
+| `value` | `string` | — | Текстовое содержимое (альтернатива `children`) |
+| `children` | `string \| number` | — | Текстовое содержимое |
+| `color` | `Color` | `#000000ff` | Цвет текста, наследуемый |
+| `fontSize` | `number` | — | Размер шрифта (в логических пикселях) |
+| `lineHeight` | `number` | — | Высота строки (в логических пикселях) |
+| `fontWeight` | `number` | — | Насыщенность шрифта |
+| `fontFamily` | `string` | — | CSS-семейство шрифта |
+| `font` | `PingoFont` | — | Явный неизменяемый шрифт; при неподдерживаемом вводе весь фрагмент откатывается на запасной вариант |
+
+`Text` также наследует все [CommonProps](/api) (размеры, padding, события, `semanticRole` /
+`semanticLabel` и т. д.).
+
+## Image: растровое изображение
+
+`source` у `Image` — это `PingoImage`: **неизменяемая RGBA8-битовая карта**, которую держит
+сторона Shell и которая синхронизируется инлайном в ресурс Scene на границе коммита.
+Создаётся через `createImage`, который копирует и проверяет пиксели:
+
+```ts
+import { createImage, Image } from "@dopejs/pingo";
+
+const icon = createImage(pixels, 96, 96, { label: "应用图标" });
+createElement(Image, { source: icon, width: 48, height: 48 });
+```
+
+Если `width` / `height` не заданы, узел принимает пиксельные размеры изображения; если
+заданы — изображение масштабируется в бокс узла. `label` — это имя доступности; пустое
+значение означает декоративное изображение.
+
+:::preview elements-image
+:::
+
+Пиксели вместо закодированных байтов — осознанный выбор: транзакции ресурсов вступают в
+силу синхронно на границе коммита, тогда как любой формат кодирования требует асинхронного
+декодирования. Небольшие изображения вроде миниатюр списков хорошо подходят для этого пути;
+крупные изображения следует вести через путь кодирования с асинхронной стадией подготовки.
+
+## Шрифты: PingoFont и loadFont
+
+Prop `font` у `Text` / редактируемых элементов принимает явный неизменяемый SFNT-шрифт
+(TTF/OTF/TTC), который детерминированно шейпится Core. `createFont` принимает уже
+декодированные SFNT-байты; `loadFont` дополнительно обрабатывает сетевую загрузку и
+декодирование WOFF/WOFF2:
+
+```ts
+import { loadFont } from "@dopejs/pingo";
+
+const inter = await loadFont("/fonts/Inter-Regular.woff2", {
+  fallbackFamily: "sans-serif",
+});
+createElement(Text, { value: "Hello", font: inter, fontSize: 16 });
+```
+
+`PingoFontOptions`: `faceIndex` (индекс начертания в TTC-коллекции, по умолчанию `0`) и
+`fallbackFamily` (CSS-семейство, используемое при полном откате явного пути шрифта, по
+умолчанию `"sans-serif"`). При ошибке загрузки выбрасывается `PingoFontLoadError` со
+стабильным `code` (например, `fetch-failed`, `decode-failed`, `unsupported-format`).
+
+## Доступность
+
+`semanticRole` и `semanticLabel` — общие props для всех элементов: заголовки, кнопки и
+области следует семантически размечать на элементе, а имя `Image` берётся из `label` в
+`createImage`. Семантический снимок зеркалируется в DOM-теневое дерево рядом с canvas;
+подробнее см. в разделе [Доступность](/guide/accessibility).

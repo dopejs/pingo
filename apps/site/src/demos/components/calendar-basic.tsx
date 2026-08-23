@@ -1,11 +1,15 @@
-import { createElement, useSignal, type PingoNode } from "@dopejs/pingo";
+import { createElement, memo, useSignal, type PingoNode } from "@dopejs/pingo";
 import { Calendar, type CalendarDate } from "@dopejs/pingo-ui";
 
 import type { PreviewDemo } from "../../preview/contract";
-import { stage } from "../../preview/layout";
+import { frame, stage } from "../../preview/layout";
 
-// Fixed dates keep the rendered scene deterministic across visits.
-function SelectableCalendar(_props: Record<string, never>): PingoNode {
+// Fixed dates keep the rendered scene deterministic across visits. The
+// component is memo-wrapped: pingo function components rendered through
+// createElement resolve their hooks only when memoized.
+const SelectableCalendar = memo(function SelectableCalendar(
+  _props: Record<string, never>,
+): PingoNode {
   const selected = useSignal<CalendarDate>({ year: 2026, month: 8, day: 22 });
   return createElement(Calendar, {
     defaultMonth: { year: 2026, month: 8, day: 1 },
@@ -14,11 +18,11 @@ function SelectableCalendar(_props: Record<string, never>): PingoNode {
       selected.set(date);
     },
   });
-}
+});
 
 const demo: PreviewDemo = {
   height: 400,
-  render: (context): PingoNode => stage(context, [createElement(SelectableCalendar, {})]),
+  render: (context): PingoNode => stage(context, [frame(280, [createElement(SelectableCalendar, {})])]),
 };
 
 export default demo;

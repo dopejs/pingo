@@ -1,4 +1,4 @@
-# البداية السريعة
+# البدء السريع
 
 ## التثبيت
 
@@ -6,10 +6,9 @@
 pnpm add @dopejs/pingo
 ```
 
-يعتمد تطبيقك على حزمة واحدة فقط هي `@dopejs/pingo`. أمّا `@dopejs/pingo-host` و`@dopejs/pingo-jsx`
-وغيرهما فهي حزم تنفيذ داخلية خارج العقد العلني، و[ماسح الترحيل](/migration) يرفض استيرادها مباشرة.
+تعتمد الأعمال على حزمة واحدة فقط هي `@dopejs/pingo`. تُعد الحزم مثل `@dopejs/pingo-host` و`@dopejs/pingo-jsx` حزم تنفيذ داخلية، وليست جزءًا من العقد العام — سيرفض [ماسح الترحيل](/migration) استيرادها مباشرة.
 
-## تركيب أوّل canvas
+## تركيب أول لوحة رسم
 
 ```ts
 import { createElement, createHostedCanvasRoot } from "@dopejs/pingo";
@@ -36,9 +35,7 @@ root.render(
 );
 ```
 
-تكتشف `createHostedCanvasRoot` قدرات المتصفّح وتختار مسار النقل بين SharedArrayBuffer وpostMessage
-وCanvas2D على الخيط الرئيسي، فلا تحتاج إلى كتابة تفرّعات من أجل التراجع. وتعيد `root.mode` المسار الذي
-جرى اختياره فعلًا.
+يكتشف `createHostedCanvasRoot` تلقائيًا قدرات المتصفح، ويختار مسار النقل بين SharedArrayBuffer وpostMessage وCanvas2D في الخيط الرئيسي، فلا تحتاج إلى كتابة فروع للاحتياط. يعيد `root.mode` المسار المختار فعليًا.
 
 ## استخدام TSX
 
@@ -53,13 +50,13 @@ root.render(
 }
 ```
 
-عندها يمكنك أن تكتب:
+بعد ذلك يمكنك الكتابة:
 
 ```tsx
 function OrderRow({ index }: { index: number }) {
   return (
     <container width={480} height={32} padding={[6, 12, 6, 12]}>
-      <text value={`订单 #${index}`} fontSize={13} lineHeight={20} />
+      <text value={`الطلب #${index}`} fontSize={13} lineHeight={20} />
     </container>
   );
 }
@@ -69,18 +66,17 @@ root.render(<OrderRow index={1} />);
 
 ## عناصر المضيف
 
-في المحرّك خمسة عناصر مدمجة فقط، وكلّها تقابل عقد Scene مباشرة؛ لا تتالي CSS ولا محدِّدات:
+يمتلك المحرك خمسة عناصر مدمجة فقط، وهي تقابل عُقد Scene مباشرة، ولا توجد طبقات CSS أو محددات:
 
-| العنصر         | الغرض                                                  |
-| -------------- | ------------------------------------------------------ |
-| `container`    | تجميع عام وخلفية وحشو داخلي وتحويلات                   |
-| `text`         | مقطع نصّي (التشكيل والالتفاف وهندسة المؤشّر من النواة) |
-| `scroll`       | حاوية قابلة للتمرير تملكها النواة                      |
-| `virtualList`  | قائمة افتراضية تخطّط النواة نافذتها                    |
-| `editableText` | بدائية النصّ القابل للتحرير                            |
+| العنصر          | الاستخدام                                              |
+| --------------- | ------------------------------------------------------ |
+| `container`     | تجميع عام، خلفية، حشوة، تحويلات                       |
+| `text`          | تشغيل النص (التشكيل، الالتفاف، هندسة المؤشر من Core)   |
+| `scroll`        | حاوية قابلة للتمرير يملكها Core                        |
+| `virtualList`   | قائمة افتراضية بتخطيط نافذة من Core                    |
+| `editableText`  | بدائية نص قابلة للتحرير                                |
 
-أمّا `TextField` و`TextArea` فهما ودجتان مركّبتان فوق `editableText` (إطار وحالة خطأ) ولا تُدخِلان أيّ
-مسار إدخال جديد.
+`TextField` و`TextArea` هما ودجتان مركبتان فوق `editableText` (حدود، حالة خطأ)، ولا تقدمان مسار إدخال جديدًا.
 
 ## الحالة والتأثيرات الجانبية
 
@@ -93,20 +89,17 @@ function Counter() {
     const timer = setInterval(() => setCount((value) => value + 1), 1000);
     return () => clearInterval(timer);
   }, []);
-  return createElement("text", { value: `已过 ${count} 秒` });
+  return createElement("text", { value: `مرت ${count} ثانية` });
 }
 ```
 
-البدائيات التفاعلية المتاحة: `signal` و`computed` و`effect` و`batch` و`untracked`، إضافةً إلى الخطّافات
-‏`useState` و`useSignal` و`useMemo` و`useCallback` و`useRef` و`useEffect`.
+بدائيات الاستجابة المتاحة: `signal` و`computed` و`effect` و`batch` و`untracked`، بالإضافة إلى الخطافات `useState` و`useSignal` و`useMemo` و`useCallback` و`useRef` و`useEffect`.
 
-::: warning لا قراءة متزامنة للتخطيط
-القراءة المتزامنة لتخطيط الـ Worker على طريقة `useLayoutEffect` غير مدعومة، لأنّ التخطيط يجري على ساعة
-أخرى. استخدم العقد اللامتزامن عند الحاجة إلى نتيجة التخطيط، ولا تحاول قراءة الهندسة بشكل متزامن أثناء
-العرض.
+::: warning لا توجد قراءة تخطيط متزامنة
+قراءة التخطيط المتزامنة من Worker بأسلوب `useLayoutEffect` غير مدعومة — يحدث التخطيط على ساعة أخرى. استخدم العقود غير المتزامنة عند الحاجة إلى نتائج التخطيط، ولا تحاول قراءة الهندسة بشكل متزامن أثناء الرسم.
 :::
 
-## مراقبة السلوك أثناء التشغيل
+## مراقبة حالة التشغيل
 
 ```ts
 const root = await createHostedCanvasRoot(canvas, {
@@ -117,24 +110,18 @@ const root = await createHostedCanvasRoot(canvas, {
 });
 ```
 
-تعطي `onFrame` في كلّ إطار عدد الأوامر وحجم DisplayList بالبايت، ومن جهة النواة عدّادات النطاقات
-المتّسخة وحجم عمل التخطيط وبصمة picture؛ وهي المصدر الأوّل لتحليل الأداء. للمزيد انظر
-[التشخيص](/diagnostics).
+يقدم `onFrame` في كل إطار عدد الأوامر وعدد بايتات DisplayList وعدّادات المناطق المتسخة على جانب Core وحجم عمل التخطيط وpicture hash، وهي بيانات مباشرة لاستكشاف مشكلات الأداء. للمزيد انظر [التشخيص](/diagnostics).
 
 ## جولة في القدرات
 
-فوق العناصر المدمجة الخمسة يوفّر pingo ثلاث طبقات من القدرات الموجّهة للمؤلّفين:
+فوق العناصر الخمسة المدمجة، يقدم pingo ثلاث طبقات من القدرات الموجهة للمؤلفين:
 
-- [العناصر الأساسية](/guide/elements): عناصر بمستوى المحرّك مثل View/Text/Image وInput/TextArea
-  وSVG/Path.
-- [الأنماط](/guide/styling): مجموعة CSS فرعية مُصدَرة — حدود واضحة لمحدِّدات الأصناف وحالات التفاعل
-  والتتالي والوراثة؛ وعند الحاجة إلى المتغيّرات وmixin فالطريق هو خطّ أنابيب
-  [SCSS / Less](/guide/scss-less) وقت البناء.
-- [مكتبة مكوّنات الواجهة](/components): `@dopejs/pingo-ui`، مكوّنات جاهزة مواءَمة مع shadcn/ui تُرسَم
-  كلّها إلى canvas.
+- [المكونات الأساسية](/guide/elements): عناصر على مستوى المحرك مثل View/Text/Image وInput/TextArea وSVG/Path.
+- [التنسيق](/guide/styling): مجموعة CSS فرعية مُدارة بالإصدارات — محددات الفئة وحالات التفاعل وحدود واضحة للتتالي والوراثة؛ عند الحاجة إلى المتغيرات وmixin استخدم [خط أنابيب SCSS / Less](/guide/scss-less) في وقت البناء.
+- [مكتبة مكونات واجهة المستخدم](/components): `@dopejs/pingo-ui`، مكونات جاهزة متوافقة مع shadcn/ui، تُرسم جميعها على canvas.
 
-## الخطوة التالية
+## الخطوات التالية
 
-- [نظرة عامة على البنية](/guide/architecture): كيف يقتسم الغلاف والنواة العمل
-- [التمرير الافتراضي](/guide/scrolling) و[النصّ والتحرير](/guide/editing)
-- [Playground](/playground): عروض حيّة قابلة للتفاعل
+- [نظرة عامة على البنية](/guide/architecture): كيف يتقاسم Shell وCore العمل
+- [التمرير الافتراضي](/guide/scrolling)، [النص والتحرير](/guide/editing)
+- [Playground](/playground): عرض توضيحي تفاعلي مباشر

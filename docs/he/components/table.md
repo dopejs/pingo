@@ -1,0 +1,87 @@
+---
+title: Table
+description: טבלת נתונים עם גלילה וירטואלית, הגדרות העמודות מניעות גם את כותרת הטבלה וגם את השורות, הרינדור מתבצע על קנבס pingo.
+---
+
+# Table
+
+טבלה עם גלילה וירטואלית: הגדרות העמודות מניעות גם את כותרת הטבלה וגם כל שורה, עלות הרינדור של עשרת אלפים שורות זהה לעלות רינדור שורות מסך אחד. התצוגה המקדימה שלהלן מרונדרת בזמן אמת על ידי מנוע pingo — ניתן לגלול, ללחוץ על שורות, ולעקוב אחרי החלפת הנושא של האתר בין מצב בהיר לכהה.
+
+:::preview table-basic
+:::
+
+## שימוש
+
+`Table` היא פונקציית בנייה טהורה ולא רכיב memo, קריאה ישירה מחזירה צומת סצנה. כאשר קוראים לה בתוך טווח הרינדור של רכיב (כמו רכיב הפונקציה שלהלן), קריאת הנושא שלה תירשם להחלפות נושא האתר.
+
+```tsx
+import { createElement, type PingoNode } from "@dopejs/pingo";
+import { Table } from "@dopejs/pingo-ui";
+
+type FileRow = { name: string; size: string };
+
+function FileTable(): PingoNode {
+  return Table<FileRow>({
+    columns: [
+      {
+        key: "name",
+        header: "שם",
+        cell: (row) => createElement("text", { value: row.name }),
+      },
+      {
+        key: "size",
+        header: "גודל",
+        width: 96,
+        align: "end",
+        cell: (row) => createElement("text", { value: row.size }),
+      },
+    ],
+    rowCount: files.length,
+    getRow: (index) => files[index],
+    onRowPress: (index) => open(files[index]),
+  });
+}
+```
+
+גוף הטבלה הוא [VirtualList](/guide/scrolling), ודורש שהמיכל ההורה יספק גובה (בדוגמה המיכל החיצוני `height: 260`).
+
+## דוגמאות
+
+### מצב ריק
+
+כאשר `rowCount` הוא `0`, מרונדר `emptyLabel` (ברירת המחדל "אין נתונים"), ולא נוצרת רשימה וירטואלית.
+
+:::preview table-empty
+:::
+
+## Props
+
+### TableProps\<Row\>
+
+| Prop | סוג | ברירת מחדל | תיאור |
+| --- | --- | --- | --- |
+| `columns` | `readonly TableColumn<Row>[]` | — | הגדרות עמודות, מניעות גם את כותרת הטבלה וגם את השורות (חובה) |
+| `rowCount` | `number` | — | מספר השורות הכולל (חובה); כאשר `0` מרונדר מצב ריק |
+| `getRow` | `(index: number) => Row` | — | מחזיר נתוני שורה לפי מספר שורה, נקרא רק עבור החלון הנראה (חובה) |
+| `estimatedRowHeight` | `number` | `44` | גובה שורה משוער, משמש לתכנון הגלילה הוירטואלית |
+| `onRowPress` | `(index: number) => void` | — | קריאה חוזרת ללחיצה על שורה; כאשר מועבר, השורות ניתנות למיקוד |
+| `emptyLabel` | `string` | `"אין נתונים"` | טקסט מצב ריק |
+| `renderHeaderCell` | `(column: TableColumn<Row>, index: number) => PingoNode` | — | מחליף את תא כותרת ברירת המחדל של עמודה מסוימת |
+| `className` | `string` | — | מצורף אחרי שם המחלקה של הרכיב |
+
+### TableColumn\<Row\>
+
+| שדה | סוג | ברירת מחדל | תיאור |
+| --- | --- | --- | --- |
+| `key` | `string` | — | מזהה עמודה, משמש כ-key של הצומת (חובה) |
+| `header` | `string` | — | טקסט כותרת (חובה) |
+| `width` | `number` | — | רוחב קבוע (פיקסלים לוגיים); כאשר מושמט, הרוחב הנותר מחולק לפי `flex` |
+| `flex` | `number` | `1` | חלק בהקצאת הרוחב הנותר כאשר `width` לא מוגדר |
+| `align` | `"start" \| "center" \| "end"` | `"start"` | יישור אופקי של תוכן העמודה, משותף לכותרת ולתאים |
+| `cell` | `(row: Row, index: number) => PingoNode` | — | פונקציית בניית תוכן התא (חובה) |
+
+טבלה וירטואלית אינה יכולה למדוד רוחב עמודות לפי תוכן: שורות שלא רונדרו אינן משתתפות במדידה, ולכן רוחב העמודות יכול להגיע רק מהגדרות העמודות — דבר שגם מיישר באופן טבעי בין הכותרת לשורות.
+
+## נגישות
+
+לטבלה יש סמנטיקה של `table`, הכותרת היא `columnheader` וכל שורה היא `row`; כאשר מועבר `onRowPress`, השורות ניתנות למיקוד ולהפעלה באמצעות מצביע. למידע נוסף ראו [מדריך הנגישות](/guide/accessibility).

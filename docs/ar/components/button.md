@@ -1,0 +1,52 @@
+---
+title: Button
+description: زر لتشغيل إجراء أو حدث، يُعرض على لوحة pingo.
+---
+
+# Button
+
+الزر يُشغّل إجراءً. المعاينة التالية تُرسم مباشرة بواسطة محرك pingo — يمكنك النقر والتركيز، وتتبع تبديل السمة الفاتحة والداكنة للموقع.
+
+:::preview button-basic
+:::
+
+## الاستخدام
+
+```tsx
+import { createElement } from "@dopejs/pingo";
+import { Button } from "@dopejs/pingo-ui";
+
+root.render(
+  createElement(Button, {
+    children: "حفظ",
+    variant: "default",
+    onPress: () => save(),
+  }),
+);
+```
+
+## أمثلة
+
+### الحجم
+
+`size` يدعم `default` و`sm` و`lg` و`icon`.
+
+### التعطيل
+
+عند تمرير `disabled` يتوقف الزر عن الاستجابة للمؤشر ولوحة المفاتيح، وتُطبَّق أنماط التعطيل.
+
+## Props
+
+| Prop | النوع | القيمة الافتراضية | الوصف |
+| --- | --- | --- | --- |
+| `children` | `string` | — | نص الزر (مطلوب) |
+| `variant` | `"default" \| "secondary" \| "outline" \| "ghost" \| "destructive"` | `"default"` | الشكل البصري |
+| `size` | `"default" \| "sm" \| "lg" \| "icon"` | `"default"` | الحجم |
+| `disabled` | `boolean` | `false` | حالة التعطيل |
+| `onPress` | `() => void` | — | رد النداء عند التفعيل بالمؤشر/لوحة المفاتيح |
+| `semanticLabel` | `string` | `children` | الاسم المُتاح لإمكانية الوصول |
+| `className` | `string` | — | يُضاف بعد اسم فئة المكوّن |
+
+## إمكانية الوصول
+
+يتمتع الزر بدلالات button ودعم التفعيل بلوحة المفاتيح؛ `semanticLabel` يأخذ `children` افتراضيًا، ويُرجى توفيره صراحةً لأزرار الأيقونات.

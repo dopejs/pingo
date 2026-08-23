@@ -1,0 +1,57 @@
+---
+title: TopBar
+description: מולקולת סרגל עליון לאפליקציה, מורכבת מכותרת וחריצים קדמיים ואחוריים, מרונדרת על קנבס pingo.
+---
+
+# TopBar
+
+TopBar הוא מולקולת מוצר ייחודית של pingo: שילוב של כותרת עם שני חריצים — `leading` (לוגו, חזרה) ו-`actions` (כפתורים, אווטאר) — לשורת סרגל עליון אחת באפליקציה. עמודת הכותרת תופסת תמיד את השטח הנותר (`flexGrow`), ודוחפת את ה-actions לקצה הימני — ללא צורך במדידה כלשהי. התצוגה המקדימה להלן מרונדרת בזמן אמת על ידי מנוע pingo, ומתחלפת בין מצב בהיר לכהה בהתאם לערכת הנושא של האתר.
+
+:::preview topbar-basic
+:::
+
+יחסי ההרכבה עם רכיבי הבסיס של shadcn: TopBar עצמו אינו מספק כפתורים או אווטאר, הוא מגדיר **שלד פריסה**; החריצים `leading` ו-`actions` מקבלים כל `PingoNode`, ולרוב משלבים רכיבי בסיס כמו [Button](/components/button), IconButton, Avatar וכדומה. מספר פעולות נעטפות ב-container עם `flexDirection: "row"` ומועברות כך.
+
+## שימוש
+
+```tsx
+import { createElement } from "@dopejs/pingo";
+import { Avatar, Button, TopBar } from "@dopejs/pingo-ui";
+
+root.render(
+  createElement(TopBar, {
+    title: "לוח מחוונים",
+    leading: createElement(Avatar, { fallback: "P", size: 28 }),
+    actions: createElement(Button, {
+      children: "חדש",
+      variant: "outline",
+      onPress: () => create(),
+    }),
+  }),
+);
+```
+
+## דוגמאות
+
+### ללא כותרת
+
+כאשר משמיטים את `title`, עמודת הכותרת עדיין מרונדרת (עמודה גמישה ריקה), וה-actions עדיין נדחפים לקצה הימני; מתאים לסרגל כלים המכיל רק אזור פעולות.
+
+```tsx
+createElement(TopBar, {
+  actions: createElement(Button, { children: "ייצוא", onPress: () => {} }),
+});
+```
+
+## Props
+
+| Prop | סוג | ברירת מחדל | תיאור |
+| --- | --- | --- | --- |
+| `title` | `string` | — | טקסט הכותרת; בהשמטה מרונדרת עמודה גמישה ריקה |
+| `leading` | `PingoNode` | — | חריץ קדמי, ללוגו או כפתור חזרה |
+| `actions` | `PingoNode` | — | חריץ אחורי, נדחף לקצה הימני על ידי עמודת הכותרת |
+| `className` | `string` | — | מצורף לאחר שם המחלקה של הרכיב |
+
+## נגישות
+
+ל-TopBar יש תפקיד סמנטי של `banner`; כאשר מסופק `title`, טקסט הכותרת נושא תפקיד `heading`. תכונות הנגישות של רכיבים בתוך החריצים (כגון `semanticLabel` של IconButton) נמצאות באחריות כל רכיב בנפרד.

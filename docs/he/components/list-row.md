@@ -1,0 +1,60 @@
+---
+title: ListRow
+description: תת-רכיב מולקולרי של שורת רשימה, המשלב רכיבי בסיס כמו תמונת פרופיל ותגית עם מצבי בחירה/השבתה, ומרונדר על קנבס pingo.
+---
+
+# ListRow
+
+ListRow הוא מולקולה ייחודית ל-pingo: פריט רשימה בשורה אחת, שבה הכותרת והתיאור תופסים עמודה מתרחבת במרכז, וחריצי `leading` (תמונת פרופיל, אייקון) ו-`trailing` (תגית, מתג, חץ) ממוקמים בשני הקצוות. התצוגה המקדימה שלהלן מרונדרת בזמן אמת על ידי מנוע pingo — שורות לחיצות מקבלות משוב מצביע מלא, ועוקבות אחר ערכת הנושא של האתר למעבר בין בהיר לכהה.
+
+:::preview list-row-basic
+:::
+
+יחס ההרכבה עם רכיבי הבסיס של shadcn: ListRow מגדיר את פריסת השורה ומצבי האינטראקציה, ואינו מכיל רכיבי תוכן מובנים; חריצי `leading`/`trailing` מקבלים כל `PingoNode`, ושילובים אופייניים הם Avatar, Badge או Switch. כשיש צורך ברווח בין שורות סמוכות, יש להשתמש ב-container בגובה קבוע ליצירת המרווח (ל-pingo אין מאפיין gap).
+
+## שימוש
+
+```tsx
+import { createElement } from "@dopejs/pingo";
+import { Avatar, Badge, ListRow } from "@dopejs/pingo-ui";
+
+root.render(
+  createElement(ListRow, {
+    title: "张三",
+    description: "zhangsan@example.com",
+    leading: createElement(Avatar, { fallback: "张", size: 32 }),
+    trailing: createElement(Badge, { children: "管理员" }),
+    onPress: () => openMember("zhangsan"),
+  }),
+);
+```
+
+## דוגמאות
+
+### בחירה והשבתה
+
+`selected` מחיל סגנון בחירה וחושף את מצב הבחירה כלפי חוץ; שורה עם `disabled` אינה נושאת אף מעבד אירועים — חזק יותר מ"לבדוק בתוך המעבד".
+
+:::preview list-row-states
+:::
+
+### שורת תצוגה בלבד
+
+כאשר לא מועבר `onPress`, ההתנהגות היא פריט תצוגה בלבד: התפקיד הסמנטי הוא `listitem`, ללא סגנונות אינטראקציה או אירועים.
+
+## Props
+
+| Prop | סוג | ברירת מחדל | תיאור |
+| --- | --- | --- | --- |
+| `title` | `string` | — | טקסט הכותרת (חובה) |
+| `description` | `string` | — | טקסט תיאור משני |
+| `leading` | `PingoNode` | — | חריץ קדמי, לתמונת פרופיל או אייקון |
+| `trailing` | `PingoNode` | — | חריץ אחורי, לתגית, מתג או חץ |
+| `selected` | `boolean` | — | מצב בחירה; העברה חושפת ערכים סמנטיים `selected`/`unselected` |
+| `disabled` | `boolean` | `false` | מצב מושבת, ללא רישום מעבדי אירועים |
+| `onPress` | `() => void` | — | קריאה חוזרת ללחיצה; העברה הופכת את השורה לאינטראקטיבית |
+| `className` | `string` | — | מצורף לאחר שם מחלקת הרכיב |
+
+## נגישות
+
+לשורה אינטראקטיבית יש תפקיד סמנטי `button`, ולשורת תצוגה בלבד `listitem`; השם הנגיש נלקח מ-`title`. העברת `selected` חושפת ערכים סמנטיים `selected`/`unselected`. שורה מושבתת אינה נושאת אף מעבד מצביע/מקלדת, ומוצגת לטכנולוגיות מסייעות כפריט סטטי בלבד.

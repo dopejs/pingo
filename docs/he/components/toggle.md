@@ -1,0 +1,49 @@
+---
+title: Toggle
+description: כפתור החלפה דו־מצבי למיתוג מיידי כגון הדגשה והטיה, מרונדר על קנבס pingo.
+---
+
+# Toggle
+
+כפתור החלפה דו־מצבי – לחיצה אחת משאירה אותו פעיל, ולחיצה נוספת מכבה אותו. התצוגה המקדימה שלהלן מרונדרת בזמן אמת על ידי מנוע pingo – ניתן ללחוץ כדי להחליף מצב, והיא עוקבת אחר ערכת הנושא של האתר ומחליפה בין מצב בהיר לכהה.
+
+:::preview toggle-basic
+:::
+
+## שימוש
+
+```tsx
+import { createElement } from "@dopejs/pingo";
+import { Toggle } from "@dopejs/pingo-ui";
+
+root.render(
+  createElement(Toggle, {
+    children: "הדגשה",
+    defaultPressed: true,
+    onPressedChange: (pressed) => console.log(pressed),
+  }),
+);
+```
+
+`Toggle` מחזיק מצב פנימי באמצעות hooks, ויש לעטוף אותו כרכיב באמצעות `createElement`. העברת `pressed` מעבירה את הרכיב למצב נשלט; אחרת, השתמשו ב־`defaultPressed` כדי שהרכיב ינהל את מצבו בעצמו.
+
+## דוגמאות
+
+### מצב מושבת
+
+כאשר מועבר `disabled`, הכפתור מפסיק להגיב לעכבר ולמקלדת, ואינו מופעל עוד על ידי Enter או מקש רווח.
+
+## Props
+
+| Prop | סוג | ברירת מחדל | תיאור |
+| --- | --- | --- | --- |
+| `children` | `string` | — | טקסט הכפתור (חובה) |
+| `pressed` | `boolean` | — | מצב לחיצה נשלט |
+| `defaultPressed` | `boolean` | `false` | מצב לחיצה התחלתי בלתי נשלט |
+| `onPressedChange` | `(pressed: boolean) => void` | — | קריאה חוזרת בעת החלפת מצב |
+| `disabled` | `boolean` | `false` | מצב מושבת |
+| `className` | `string` | — | נוסף לאחר שם מחלקת הרכיב |
+
+## נגישות
+
+לרכיב סמנטיקה של button, והערך הסמנטי מתחלף בין `on` ל־`off` בהתאם למצב. בעת לחיצה עם העכבר מתבצע מיקוד אוטומטי, וניתן להפעיל את הכפתור הן באמצעות `Enter` והן באמצעות מקש רווח.

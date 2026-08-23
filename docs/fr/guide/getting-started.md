@@ -1,4 +1,4 @@
-# Démarrage
+# Démarrage rapide
 
 ## Installation
 
@@ -6,11 +6,10 @@
 pnpm add @dopejs/pingo
 ```
 
-Votre application ne dépend que d'un paquet : `@dopejs/pingo`. `@dopejs/pingo-host`,
-`@dopejs/pingo-jsx` et les autres sont des paquets d'implémentation interne, hors contrat public ;
-le [scanner de migration](/migration) refuse leur import direct.
+Votre application ne dépend que du package `@dopejs/pingo`. `@dopejs/pingo-host`, `@dopejs/pingo-jsx` et les autres sont des packages d'implémentation interne,
+ils ne font pas partie du contrat public — le [scanner de migration](/migration) refusera toute importation directe de ces derniers.
 
-## Monter un premier canvas
+## Monter votre premier canvas
 
 ```ts
 import { createElement, createHostedCanvasRoot } from "@dopejs/pingo";
@@ -37,9 +36,7 @@ root.render(
 );
 ```
 
-`createHostedCanvasRoot` détecte les capacités du navigateur et choisit le transport entre
-SharedArrayBuffer, postMessage et Canvas2D sur le thread principal ; vous n'écrivez aucune branche
-pour le repli. `root.mode` renvoie le chemin réellement retenu.
+`createHostedCanvasRoot` détecte automatiquement les capacités du navigateur et choisit le chemin de transfert entre SharedArrayBuffer, postMessage et le Canvas2D du thread principal — vous n'avez pas besoin d'écrire de branches de repli. `root.mode` renvoie le chemin réellement sélectionné.
 
 ## Utiliser TSX
 
@@ -70,19 +67,18 @@ root.render(<OrderRow index={1} />);
 
 ## Éléments hôtes
 
-Le moteur ne propose que cinq éléments intégrés, qui correspondent directement à des nœuds du Scene.
-Il n'y a ni cascade CSS ni sélecteurs.
+Le moteur ne possède que cinq éléments intégrés, qui correspondent directement aux nœuds de la Scene, sans cascade CSS ni sélecteurs :
 
-| Élément        | Rôle                                                                              |
-| -------------- | --------------------------------------------------------------------------------- |
-| `container`    | Regroupement générique, fond, marge intérieure, transformations                   |
-| `text`         | Suite de texte (shaping, retours à la ligne et géométrie du caret venant du Core) |
-| `scroll`       | Conteneur défilant possédé par le Core                                            |
-| `virtualList`  | Liste virtuelle dont le Core planifie la fenêtre                                  |
-| `editableText` | Primitive de texte éditable                                                       |
+| Élément        | Usage                                                                 |
+| -------------- | --------------------------------------------------------------------- |
+| `container`    | Groupement générique, arrière-plan, padding, transformations          |
+| `text`         | Exécution de texte (shaping, retour à la ligne, géométrie du caret issue du Core) |
+| `scroll`       | Conteneur défilable appartenant au Core                               |
+| `virtualList`  | Liste virtuelle à fenêtrage planifié par le Core                      |
+| `editableText` | Primitive de texte éditable                                           |
 
-`TextField` et `TextArea` sont des widgets composés au-dessus de `editableText` (bordure, état
-d'erreur) et n'introduisent aucun nouveau chemin de saisie.
+`TextField` et `TextArea` sont des widgets composés au-dessus de `editableText` (bordure, état d'erreur),
+ils n'introduisent pas de nouveau chemin d'entrée.
 
 ## État et effets
 
@@ -99,16 +95,15 @@ function Counter() {
 }
 ```
 
-Primitives réactives disponibles : `signal`, `computed`, `effect`, `batch`, `untracked`, ainsi que les
-hooks `useState`, `useSignal`, `useMemo`, `useCallback`, `useRef`, `useEffect`.
+Primitives réactives disponibles : `signal`, `computed`, `effect`, `batch`, `untracked`,
+ainsi que les hooks `useState`, `useSignal`, `useMemo`, `useCallback`, `useRef`, `useEffect`.
 
-::: warning Pas de lecture synchrone de la mise en page
-La lecture synchrone de la mise en page du Worker, à la manière de `useLayoutEffect`, n'est pas prise
-en charge : la mise en page se déroule sur une autre horloge. Quand vous avez besoin de son résultat,
-utilisez le contrat asynchrone et n'essayez pas de lire la géométrie de façon synchrone pendant le rendu.
+::: warning Pas de lecture de layout synchrone
+La lecture de layout synchrone dans le Worker, à la manière de `useLayoutEffect`, n'est pas prise en charge — le layout se produit sur une autre horloge.
+Lorsque vous avez besoin de résultats de layout, utilisez les contrats asynchrones ; n'essayez pas de lire la géométrie de manière synchrone pendant le rendu.
 :::
 
-## Observer le comportement d'exécution
+## Observer l'état de fonctionnement
 
 ```ts
 const root = await createHostedCanvasRoot(canvas, {
@@ -119,24 +114,20 @@ const root = await createHostedCanvasRoot(canvas, {
 });
 ```
 
-`onFrame` fournit à chaque image le nombre de commandes, la taille du DisplayList en octets ainsi que,
-côté Core, les compteurs de domaines sales, la charge de mise en page et le hash de la picture. C'est la
-source de première main pour analyser les performances. Plus de détails dans le [diagnostic](/diagnostics).
+`onFrame` fournit à chaque frame le nombre de commandes, la taille en octets de la DisplayList ainsi que le comptage des zones sales côté Core, la charge de travail de layout et le hash de picture —
+c'est la première source de données pour le diagnostic de performance. Pour en savoir plus, consultez [Diagnostics](/diagnostics).
 
-## Tour des capacités
+## Aperçu des capacités
 
-Au-dessus des cinq éléments intégrés, pingo offre trois couches de capacités orientées auteur :
+Au-dessus des cinq éléments intégrés, pingo offre également trois couches de capacités orientées auteur :
 
-- [Éléments de base](/guide/elements) : View/Text/Image, Input/TextArea, SVG/Path et autres éléments
-  de niveau moteur.
-- [Styles](/guide/styling) : un subset CSS versionné — sélecteurs de classe, états interactifs, limites
-  explicites de cascade et d'héritage ; pour les variables et les mixins, passez par la
-  [pipeline SCSS / Less](/guide/scss-less) à la construction.
-- [Bibliothèque de composants UI](/components) : `@dopejs/pingo-ui`, des composants prêts à l'emploi
-  alignés sur shadcn/ui, tous rendus dans le canvas.
+- [Composants de base](/guide/elements) : éléments de niveau moteur tels que View/Text/Image, Input/TextArea, SVG/Path.
+- [Styles](/guide/styling) : sous-ensemble CSS versionné — sélecteurs de classe, états d'interaction, limites explicites de la cascade et de l'héritage ;
+  pour les variables et les mixins, passez par le [pipeline SCSS / Less](/guide/scss-less) au moment de la compilation.
+- [Bibliothèque de composants UI](/components) : `@dopejs/pingo-ui`, des composants prêts à l'emploi alignés sur shadcn/ui, tous rendus sur canvas.
 
-## Étapes suivantes
+## Prochaines étapes
 
-- [Architecture](/guide/architecture) : comment la couche TypeScript et le Core se répartissent le travail
-- [Défilement virtuel](/guide/scrolling), [texte et édition](/guide/editing)
-- [Playground](/playground) : démonstrations interactives en direct
+- [Aperçu de l'architecture](/guide/architecture) : comment Shell et Core se répartissent les tâches
+- [Défilement virtuel](/guide/scrolling), [Texte et édition](/guide/editing)
+- [Playground](/playground) : démonstrations interactives en temps réel

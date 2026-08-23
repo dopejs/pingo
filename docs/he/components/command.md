@@ -1,0 +1,53 @@
+---
+title: Command
+description: לוח פקודות עם סינון הניתן לחיפוש, תומך בבחירה באמצעות מקלדת ואישור ב־Enter.
+---
+
+# Command
+
+Command הוא לוח פקודות עם תיבת חיפוש: הקלדה מסננת פריטים באופן מיידי, מקשי החצים מזיזים את הסמן, ו־Enter מאשר. התצוגה המקדימה שלהלן מרונדרת בזמן אמת על ידי מנוע pingo — פשוט הקלידו בתיבת החיפוש כדי לסנן, והתצוגה עוקבת אחר ערכת הנושא של האתר בין מצב בהיר לכהה.
+
+:::preview command-basic
+:::
+
+## שימוש
+
+```tsx
+import { createElement } from "@dopejs/pingo";
+import { Command } from "@dopejs/pingo-ui";
+
+root.render(
+  createElement(Command, {
+    items: [
+      { value: "open", label: "פתח קובץ" },
+      { value: "save", label: "שמור קובץ" },
+    ],
+    onSelect: (value) => run(value),
+    onDismiss: () => closePalette(),
+  }),
+);
+```
+
+הסינון הוא התאמת תת־מחרוזת של התווית שאינה רגישה לרישיות — התאמה לא מעורפלת במכוון: אסטרטגיית המיון היא החלטת מוצר, והרכיב אינו מקבל אותה במקום הקורא. `onDismiss` מגיב ל־`Escape` כאשר לא נמצא מקש ניווט תואם, ומתאים לעטיפת הלוח בתוך Dialog לחוויית "⌘K".
+
+## Props
+
+| Prop | טיפוס | ברירת מחדל | תיאור |
+| --- | --- | --- | --- |
+| `items` | `readonly CommandItem[]` | — | פריטי פקודה (חובה) |
+| `onSelect` | `(value: string) => void` | — | קריאה חוזרת לבחירת פריט (לחיצה או Enter) |
+| `onDismiss` | `() => void` | — | קריאה חוזרת ל־`Escape` |
+| `placeholder` | `string` | `"חיפוש"` | שם נגיש עבור תיבת החיפוש |
+| `emptyLabel` | `string` | `"אין תוצאות"` | טקסט המוצג כאשר הסינון ריק |
+| `className` | `string` | — | שם מחלקה נוסף |
+
+### CommandItem
+
+| שדה | טיפוס | תיאור |
+| --- | --- | --- |
+| `value` | `string` | ערך הפריט (חובה) |
+| `label` | `string` | טקסט התצוגה וההתאמה (חובה) |
+
+## נגישות
+
+למכולה יש סמנטיקה של search, לפריטים יש סמנטיקה של option והם חושפים מצב selected; מקשי החצים למעלה ולמטה מזיזים את הסמן, `Enter` מאשר, ו־`Escape` מפעיל את `onDismiss`.
