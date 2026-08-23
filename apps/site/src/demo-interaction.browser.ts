@@ -120,6 +120,59 @@ describe("documentation previews", () => {
     expect(changed).toBe(true);
   });
 
+  it("puts the caret against the digit in an OTP slot, not at its edge", async () => {
+    const { canvas, height } = await mount("input-otp-basic");
+    // Only the digits and the caret are dark; the slot borders are not.
+    const dark = (): number[] => {
+      const context = canvas.getContext("2d");
+      if (context === null) throw new Error("Chromium did not provide Canvas2D");
+      const data = context.getImageData(0, 0, WIDTH, height).data;
+      const columns: number[] = [];
+      for (let x = 0; x < WIDTH; x += 1) {
+        for (let y = 0; y < height; y += 1) {
+          const index = (y * WIDTH + x) * 4;
+          if ((data[index + 3] ?? 0) > 40 && (data[index] ?? 255) < 120) {
+            columns.push(x);
+            break;
+          }
+        }
+      }
+      return columns;
+    };
+    const before = dark();
+    const firstDigit = before[0];
+    if (firstDigit === undefined) throw new Error("the demo drew no digits");
+    // The first digit's ink ends where the run of adjacent columns does.
+    let digitEnd = firstDigit;
+    for (const column of before) {
+      if (column > digitEnd + 1) break;
+      digitEnd = column;
+    }
+
+    const rect = canvas.getBoundingClientRect();
+    for (const [type, buttons] of [
+      ["pointerdown", 1],
+      ["pointerup", 0],
+    ] as const) {
+      canvas.dispatchEvent(
+        new PointerEvent(type, {
+          bubbles: true,
+          buttons,
+          clientX: rect.left + digitEnd + 12,
+          clientY: rect.top + height / 2,
+          pointerId: 9,
+        }),
+      );
+    }
+    expect(await waitUntil(() => dark().length > before.length)).toBe(true);
+
+    // The slot centres one digit, and the caret has to follow it there. It used
+    // to be built from advances alone, which start every line at zero, so it
+    // stood at the slot's left edge -- a whole digit away from its own text.
+    const caret = dark().find((column) => !before.includes(column));
+    expect(caret).toBeGreaterThan(digitEnd);
+  });
+
   /** Vertical extent of everything painted, in canvas pixels. */
   function inkRows(canvas: HTMLCanvasElement): { readonly top: number } {
     const context = canvas.getContext("2d");

@@ -127,7 +127,16 @@ impl Default for CoreTextSystem {
 }
 
 impl CoreTextSystem {
-    pub(crate) fn editor_caret_stops(&self, scene: &Scene, node: NodeId) -> Option<Vec<CaretStop>> {
+    /// Caret stops in the node's own coordinates, `text-align` included.
+    ///
+    /// `box_width` is the laid-out border box, which is what paint aligns a
+    /// fallback line against.
+    pub(crate) fn editor_caret_stops(
+        &self,
+        scene: &Scene,
+        node: NodeId,
+        box_width: f32,
+    ) -> Option<Vec<CaretStop>> {
         let source = self.candidate.as_ref().unwrap_or(&self.active);
         if let Some(run) = source.get(&node) {
             return Some(run.layout.carets.clone());
@@ -138,7 +147,7 @@ impl CoreTextSystem {
             .filter(|resource| resource.kind == ResourceKind::TextStyle)
             .and_then(|resource| TextStyleResource::decode(text_run.style_id, resource).ok())?;
         let value = self.text_value(scene, node)?;
-        Some(self.fallback_caret_stops(scene, node, text_run, &value, &style))
+        Some(self.fallback_caret_stops(scene, node, text_run, &value, &style, box_width))
     }
 
     pub(crate) fn set_edit_overrides(&mut self, overrides: HashMap<NodeId, Arc<str>>) {
@@ -154,6 +163,7 @@ impl CoreTextSystem {
         scene: &Scene,
         visual: Option<ActiveEditorVisual>,
         caret_visible: bool,
+        box_width: f32,
     ) {
         self.editor_decorations.clear();
         self.editor_scroll.clear();
@@ -178,7 +188,8 @@ impl CoreTextSystem {
             let Some(value) = self.text_value(scene, visual.node) else {
                 return;
             };
-            let carets = self.fallback_caret_stops(scene, visual.node, text_run, &value, &style);
+            let carets =
+                self.fallback_caret_stops(scene, visual.node, text_run, &value, &style, box_width);
             decorations_from_carets(&carets, visual, caret_visible)
         };
         self.editor_decorations.insert(visual.node, decorations);
@@ -934,6 +945,40 @@ fn caret_stops(text: &str, breaks: &[usize], advances: &[f32], line_height: f32)
     carets
 }
 
+/// Shifts each line's caret stops by what `text-align` moved its glyphs.
+///
+/// Paint draws a fallback line from `size.width * 0.5` with the canvas set to
+/// centre it, or from `size.width` set to end it; the stops are built from
+/// advances alone and start every line at zero. Without this the caret of a
+/// centred field sits at its left edge instead of against the text -- which is
+/// exactly where an OTP slot puts it.
+fn align_caret_stops(carets: &mut [CaretStop], align: StyleKeyword, box_width: f32) {
+    if carets.is_empty() || !box_width.is_finite() || box_width <= 0.0 {
+        return;
+    }
+    let fraction = match align {
+        StyleKeyword::Center => 0.5,
+        StyleKeyword::End | StyleKeyword::Right => 1.0,
+        _ => return,
+    };
+    let Some(last_line) = carets.iter().map(|caret| caret.line).max() else {
+        return;
+    };
+    for line in 0..=last_line {
+        let width = carets
+            .iter()
+            .filter(|caret| caret.line == line)
+            .fold(0.0_f32, |widest, caret| widest.max(caret.x));
+        let offset = (box_width - width).max(0.0) * fraction;
+        if offset <= f32::EPSILON {
+            continue;
+        }
+        for caret in carets.iter_mut().filter(|caret| caret.line == line) {
+            caret.x += offset;
+        }
+    }
+}
+
 impl CoreTextSystem {
     /// Caret stops for a run that has no shaped layout yet, using the Host's
     /// measured advances when it has published them for this pair.
@@ -944,6 +989,7 @@ impl CoreTextSystem {
         run: TextRun,
         value: &str,
         style: &TextStyleResource,
+        box_width: f32,
     ) -> Vec<CaretStop> {
         let advances = self.value_advances(scene, run, value, style.font_size);
         // The breaks measurement recorded, not a fresh computation: paint, hit
@@ -952,7 +998,11 @@ impl CoreTextSystem {
             .wrapped_fallback
             .get(&node)
             .map_or(&[][..], |wrapped| wrapped.breaks.as_slice());
-        caret_stops(value, breaks, &advances, style.line_height)
+        let mut carets = caret_stops(value, breaks, &advances, style.line_height);
+        // The shaped path aligns its own carets in `apply_alignment`; this is
+        // the fallback path's equivalent, against the box paint aligns to.
+        align_caret_stops(&mut carets, style.text_align, box_width);
+        carets
     }
 
     /// One advance per code point of `value`, in order.

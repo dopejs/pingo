@@ -1683,6 +1683,28 @@ Shell 重渲染（这是引擎的既定契约），所以打进去的字符从�
 断言墨迹行内没有超过 4px 的空洞（光标紧贴文字）；去掉修复后该断言在第 4 个字符就失败。
 `pnpm m4:perf` 的按键 p95 0.108ms、丢帧 0，未受影响。
 
+### 居中字段的光标停在左边框（2026-08-23）
+
+回退路径的 caret stop 只由推进累加得到，每行从 0 开始，完全不理会 `text-align`；而 paint
+画回退行时用的是 `origin = size.width * 0.5` 配合画布的 `textAlign: center`（右对齐同理）。
+于是一个居中的字段，文字在中间、光标在左边框——OTP 的格子只有一个字符宽，光标就整整差出一
+个格子。整形路径（有真实字体资源时）在 `apply_alignment` 里已经同时移动了字形与 caret，
+只有回退路径漏了。
+
+**修法**：新增 `align_caret_stops`，按行取该行最宽的 stop 作为行宽，用与 paint 相同的规则
+（center 取一半空余、end/right 取全部空余）整体平移该行的所有 stop。对齐发生在 stop 本身，
+所以光标装饰、`place_caret` 的指针映射、以及上报给输入法的 IME 几何三处都自动跟着对齐，不
+需要各自再算一遍。对齐基准是**布局后的 border box 宽度**——paint 就是按它对齐的——因此
+`editor_caret_stops` / `update_editor_decorations` 多接一个 `box_width` 参数，由 engine 从
+布局快照取。
+
+**验证**：`pingo-core` 单测在 100px 盒子里放两个 16px 码点，断言 center 下 stop 为 34/66、
+end 下为 68/100、start 下仍为 0/32；站点浏览器测试点击 OTP 第一格，断言光标落在数字右侧而
+不是格子左边框（换回旧引擎该断言失败）。`pnpm m4:perf` 按键 p95 0.104ms、丢帧 0。
+
+**残留**：padding 仍然不内缩节点自身的文本（design 前文已记的老问题），所以对齐基准是
+border box 而不是 content box；两者在有内边距的居中字段上会差半个 padding。
+
 ### 富单元格暴露的能力缺口
 
 新 demo 每行约 18 个节点（此前 3 个），1280×800 视口下 20 行物化 = 357 个 Scene 节点。

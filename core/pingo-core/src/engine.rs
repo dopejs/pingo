@@ -1090,6 +1090,16 @@ impl CoreEngine {
     }
 
     /// Resolves a canvas-local caret placement into an authoritative selection.
+    /// Laid-out border-box width of a node, or zero when it has no geometry.
+    ///
+    /// Caret stops need it to place themselves the way paint aligns the line.
+    fn node_box_width(&self, node: NodeId) -> f32 {
+        self.layout
+            .snapshot()
+            .geometry(node)
+            .map_or(0.0, |(_, size)| size.width)
+    }
+
     fn resolve_place_caret(
         &self,
         node_id: u32,
@@ -1108,7 +1118,7 @@ impl CoreEngine {
             .ok_or(CoreError::InvalidEditableTarget { node })?;
         let carets = self
             .text
-            .editor_caret_stops(&self.scene, node)
+            .editor_caret_stops(&self.scene, node, self.node_box_width(node))
             .filter(|carets| !carets.is_empty())
             .ok_or(CoreError::InvalidEditableTarget { node })?;
         let mut local = geometry
@@ -1176,7 +1186,7 @@ impl CoreEngine {
         };
         let Some(carets) = self
             .text
-            .editor_caret_stops(&self.scene, node)
+            .editor_caret_stops(&self.scene, node, self.node_box_width(node))
             .filter(|carets| !carets.is_empty())
         else {
             return false;
@@ -1217,7 +1227,7 @@ impl CoreEngine {
         let geometry = self.hit.geometry(node)?;
         let carets = self
             .text
-            .editor_caret_stops(&self.scene, node)
+            .editor_caret_stops(&self.scene, node, self.node_box_width(node))
             .filter(|carets| !carets.is_empty())?;
         let focus = visual.selection[1];
         let caret = editor_range_rect(
@@ -1346,7 +1356,7 @@ impl CoreEngine {
             .ok_or(CoreError::InvalidEditableTarget { node })?;
         let carets = self
             .text
-            .editor_caret_stops(&self.scene, node)
+            .editor_caret_stops(&self.scene, node, self.node_box_width(node))
             .filter(|carets| !carets.is_empty())
             .ok_or(CoreError::InvalidEditableTarget { node })?;
         let selection = session.selection();
@@ -2185,7 +2195,11 @@ impl CoreEngine {
         let Some(geometry) = self.hit.geometry(visual.node) else {
             return empty_editing_geometry();
         };
-        let Some(carets) = self.text.editor_caret_stops(&self.scene, visual.node) else {
+        let Some(carets) = self.text.editor_caret_stops(
+            &self.scene,
+            visual.node,
+            self.node_box_width(visual.node),
+        ) else {
             return empty_editing_geometry();
         };
         let selection = [
@@ -2251,10 +2265,12 @@ impl CoreEngine {
         // Scrolling the value inside its own box moves every glyph in the node,
         // so the subtree cache cannot be trusted for that frame.
         let force_full_paint = force_full_paint | self.reveal_caret_in_editor();
+        let active_visual = self.editing.active_visual();
         self.text.update_editor_decorations(
             &self.scene,
-            self.editing.active_visual(),
+            active_visual,
             self.caret_visible,
+            active_visual.map_or(0.0, |visual| self.node_box_width(visual.node)),
         );
         let scene_nodes = self.scene.len();
         let dirty_layout_nodes = dirty_count(&self.scene, DirtyDomain::Layout);
@@ -3350,6 +3366,100 @@ mod tests {
                 max_graphemes: 100,
             },
         ]
+    }
+
+    /// The same tree with a chosen `text-align` and an explicit box width.
+    fn editable_tree_aligned(text: &str, width: f32, align: StyleKeyword) -> Vec<u8> {
+        let mut batch =
+            pingo_abi::MutationBatch::decode(&editable_tree_with_text(1, text)).expect("decode");
+        for instruction in &mut batch.instructions {
+            if let Mutation::DefineResource {
+                resource_id: 2,
+                bytes,
+                ..
+            } = &mut instruction.mutation
+            {
+                *bytes = TextStyleResource {
+                    paint_id: 1,
+                    font_size: 16.0,
+                    line_height: 20.0,
+                    weight: 400,
+                    family: "sans-serif".to_owned(),
+                    font_style: StyleKeyword::Normal,
+                    text_align: align,
+                    white_space: StyleKeyword::PreWrap,
+                    overflow_wrap: StyleKeyword::Anywhere,
+                    text_overflow: StyleKeyword::Clip,
+                }
+                .encode()
+                .expect("text style");
+            }
+        }
+        batch.instructions.push(instruction(Mutation::SetF32 {
+            node_id: id(1),
+            prop: Prop::Width,
+            value: width,
+        }));
+        batch.encode().expect("encode")
+    }
+
+    #[test]
+    fn a_centred_field_puts_its_caret_where_it_draws_the_text() {
+        // The recorded failure. Paint draws a fallback line from the middle of
+        // the box with the canvas set to centre it, but caret stops were built
+        // from advances alone and started every line at zero: the caret of a
+        // centred field sat at its left edge. An OTP slot is one centred
+        // character wide, so the caret stood a whole slot away from its digit.
+        let text = "ab";
+        let mut engine = CoreEngine::new(320.0, 240.0).expect("Core");
+        engine
+            .commit_with_system_text_metrics(
+                &editable_tree_aligned(text, 100.0, StyleKeyword::Center),
+                Some(&full_width_metrics(text, 32.0)),
+            )
+            .expect("frame");
+        let node = NodeId::from_raw(id(1)).expect("node");
+        let centred = engine
+            .text
+            .editor_caret_stops(&engine.scene, node, engine.node_box_width(node))
+            .expect("caret stops");
+        // Two 16px code points in a 100px box: the line starts at 34 and the
+        // stops follow it.
+        assert!(
+            (centred[0].x - 34.0).abs() < 0.01,
+            "start: {:?}",
+            centred[0]
+        );
+        assert!((centred[2].x - 66.0).abs() < 0.01, "end: {:?}", centred[2]);
+
+        let mut engine = CoreEngine::new(320.0, 240.0).expect("Core");
+        engine
+            .commit_with_system_text_metrics(
+                &editable_tree_aligned(text, 100.0, StyleKeyword::End),
+                Some(&full_width_metrics(text, 32.0)),
+            )
+            .expect("frame");
+        let ended = engine
+            .text
+            .editor_caret_stops(&engine.scene, node, engine.node_box_width(node))
+            .expect("caret stops");
+        assert!((ended[0].x - 68.0).abs() < 0.01, "start: {:?}", ended[0]);
+        assert!((ended[2].x - 100.0).abs() < 0.01, "end: {:?}", ended[2]);
+
+        // Start alignment is unchanged: the line already begins at the origin.
+        let mut engine = CoreEngine::new(320.0, 240.0).expect("Core");
+        engine
+            .commit_with_system_text_metrics(
+                &editable_tree_aligned(text, 100.0, StyleKeyword::Start),
+                Some(&full_width_metrics(text, 32.0)),
+            )
+            .expect("frame");
+        let started = engine
+            .text
+            .editor_caret_stops(&engine.scene, node, engine.node_box_width(node))
+            .expect("caret stops");
+        assert!((started[0].x).abs() < 0.01, "start: {:?}", started[0]);
+        assert!((started[2].x - 32.0).abs() < 0.01, "end: {:?}", started[2]);
     }
 
     /// The same tree with an explicit box narrower than the value it holds.
@@ -4753,7 +4863,7 @@ mod tests {
         let node = NodeId::from_raw(id(1)).expect("node");
         let stops = engine
             .text
-            .editor_caret_stops(&engine.scene, node)
+            .editor_caret_stops(&engine.scene, node, engine.node_box_width(node))
             .expect("caret stops");
         // "A、、B": the font trims the first mark, so it advances 16 - 8 = 8 and
         // the second keeps its full 16. The stop between the marks therefore
