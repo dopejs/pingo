@@ -404,6 +404,8 @@ const COMMON_KEYS = new Set([
   "onKeyDown",
   "onKeyUpCapture",
   "onKeyUp",
+  "onContextMenuCapture",
+  "onContextMenu",
   "opacity",
   "padding",
   "ref",

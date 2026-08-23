@@ -521,6 +521,22 @@ describe("reconciler", () => {
       root.render(createElement("editableText", { value: "a", revision: 1n, bogus: 1 })),
     ).toThrow(/unknown editableText prop bogus/u);
   });
+  it("accepts context menu handlers on a container", () => {
+    const sink = new RecordingSink();
+    const root = createRoot(sink);
+    expect(() =>
+      root.render(
+        createElement("container", {
+          onContextMenu: () => undefined,
+          onContextMenuCapture: () => undefined,
+        }),
+      ),
+    ).not.toThrow();
+    expect(() =>
+      root.render(createElement("container", { onContextMenu: () => undefined, bogus: 1 })),
+    ).toThrow(/unknown container prop bogus/u);
+  });
+
 
   it("applies revisioned edit deltas to the Shell mirror without stale prop overwrite", () => {
     const sink = new RecordingSink();
