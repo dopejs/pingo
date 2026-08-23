@@ -34,7 +34,7 @@ it("positional advances sum to the true rendered line width", () => {
     },
   ];
   const [metric] = registry.measureSystemTextPairs(context, actions, [
-    { stringId: 2, styleId: 3, measureAdvances: true },
+    { stringId: 2, styleId: 3, measureEditingAdvances: true },
   ]);
   if (metric === undefined) throw new Error("metric missing");
 

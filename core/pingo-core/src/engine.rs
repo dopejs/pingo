@@ -3443,7 +3443,7 @@ mod tests {
             .chars()
             .map(|character| (character, 16.0_f32))
             .collect::<Vec<_>>();
-        advances.sort_by(|left, right| left.0.cmp(&right.0));
+        advances.sort_by_key(|entry| entry.0);
         advances.dedup_by(|left, right| left.0 == right.0);
         system_metrics(SystemTextMetricCommand::Upsert(SystemTextMetric {
             string_id: 3,
@@ -3513,7 +3513,10 @@ mod tests {
             (size.height - 20.0).abs() < 0.01,
             "stayed on one line: {size:?}"
         );
-        assert!((size.width - 180.0).abs() < 0.01, "measured width: {size:?}");
+        assert!(
+            (size.width - 180.0).abs() < 0.01,
+            "measured width: {size:?}"
+        );
     }
 
     fn editable_tree_with_text(flags: u32, text: &str) -> Vec<u8> {

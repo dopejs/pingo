@@ -129,6 +129,12 @@ describe("M2 production transport matrix", () => {
       // differ when transport clocks sample a transition a different number of
       // times, even though the completed pixels are identical. Compare the
       // rendered contract instead of an internal resource identity.
+      // A Worker draws into a transferred OffscreenCanvas, and that surface
+      // reaches the visible canvas on the compositor's schedule rather than
+      // when the frame report arrives. Sample after two presentation ticks so
+      // the comparison is between settled frames rather than off by one.
+      await nextPresentation();
+      await nextPresentation();
       finalPixels.push(snapshotCanvas(canvas));
       await root.close();
       roots.pop();
@@ -476,6 +482,12 @@ function createCanvas(): HTMLCanvasElement {
   canvas.width = 160;
   document.body.append(canvas);
   return canvas;
+}
+
+function nextPresentation(): Promise<void> {
+  return new Promise((resolve) => {
+    requestAnimationFrame(() => resolve());
+  });
 }
 
 function snapshotCanvas(canvas: HTMLCanvasElement): number[] {

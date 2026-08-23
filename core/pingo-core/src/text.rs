@@ -1112,23 +1112,13 @@ impl CoreTextSystem {
         } else {
             constraints.max_width
         };
-        // The Host measured this exact string with the browser's own shaping, so
-        // when its longest line already fits there is nothing to break. Deciding
-        // that from the summed advances instead would wrap a line early wherever
-        // the font sets glyphs closer together than their isolated widths.
-        let measured_fits = metric
-            .filter(|_| metric_fresh)
-            .is_some_and(|metric| metric.max_line_width <= wrap_width);
-        let breaks = if measured_fits {
-            Vec::new()
-        } else {
-            soft_break_offsets_with_mode(
-                &layout_text,
-                |index| advances.get(index).copied().unwrap_or(0.0),
-                wrap_width,
-                style.overflow_wrap != StyleKeyword::Normal,
-            )
-        };
+        let breaks = fallback_breaks(
+            &layout_text,
+            &advances,
+            wrap_width,
+            style.overflow_wrap != StyleKeyword::Normal,
+            metric.filter(|_| metric_fresh).map(|m| m.max_line_width),
+        );
         if matches!(
             style.white_space,
             StyleKeyword::Normal | StyleKeyword::Nowrap | StyleKeyword::PreLine
@@ -1222,6 +1212,32 @@ fn decode_font(scene: &Scene, font_id: u32) -> Option<(u32, Arc<[u8]>)> {
         face_index,
         Arc::from(bytes.get(SFNT_FONT_DATA_OFFSET..data_end)?),
     ))
+}
+
+/// Soft-break offsets for one fallback run.
+///
+/// `measured_width` is the browser's own measurement of this exact string, when
+/// it still describes what is being laid out. It decides overflow on its own:
+/// summing isolated advances overshoots wherever the font sets glyphs closer
+/// together, and wrapping a line the browser draws in one is a visible defect.
+/// The break positions themselves still come from the advances, which is why
+/// those must be measured rather than estimated.
+fn fallback_breaks(
+    text: &str,
+    advances: &[f32],
+    wrap_width: f32,
+    emergency_wrap: bool,
+    measured_width: Option<f32>,
+) -> Vec<usize> {
+    if measured_width.is_some_and(|width| width <= wrap_width) {
+        return Vec::new();
+    }
+    soft_break_offsets_with_mode(
+        text,
+        |index| advances.get(index).copied().unwrap_or(0.0),
+        wrap_width,
+        emergency_wrap,
+    )
 }
 
 /// Measures a fallback run against the soft breaks it will be painted with.

@@ -64,7 +64,11 @@ describe("system-font fallback wrapping", () => {
       for (let x = 0; x < WIDTH; x += 1) {
         const index = (y * WIDTH + x) * 4;
         if ((data[index + 3] ?? 0) < 20) continue;
-        if ((data[index] ?? 0) > 240 && (data[index + 1] ?? 0) > 240 && (data[index + 2] ?? 0) > 240)
+        if (
+          (data[index] ?? 0) > 240 &&
+          (data[index + 1] ?? 0) > 240 &&
+          (data[index + 2] ?? 0) > 240
+        )
           continue;
         if (x > right) right = x;
         if (y < top) top = y;
