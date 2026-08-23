@@ -27,6 +27,7 @@ function context(overrides: Partial<MenuContextValue> = {}): MenuContextValue {
     focus: createOverlayFocus(),
     registerItem: () => {},
     focusItem: () => {},
+    panelRef: () => {},
     ...overrides,
   };
 }

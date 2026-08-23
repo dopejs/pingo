@@ -7,7 +7,7 @@ import {
   type PingoEvent,
   type PingoNode,
 } from "@dopejs/pingo-jsx";
-import { createContext, useContext, useSignal } from "@dopejs/pingo-runtime";
+import { createContext, useContext, useMemo, useSignal } from "@dopejs/pingo-runtime";
 
 import {
   classes,
@@ -26,6 +26,12 @@ export type AnchorContextValue = {
   readonly open: boolean;
   readonly setOpen: (open: boolean) => void;
   readonly focus: OverlayFocus;
+  /**
+   * Stable fan-out ref for the panel: hands it to focus on mount and to the
+   * measurement observer. Memoized so the reconciler does not detach/reattach
+   * the ref every render, which would re-focus the panel in a loop.
+   */
+  readonly panelRef: (handle: NodeHandle | null) => void;
   /**
    * Measured placement, or undefined when readback is off.
    *
@@ -73,6 +79,16 @@ export const Popover = memo(function PopoverImpl(props: PopoverProps): PingoNode
   // uncontrolled toggle re-renders it and republishes the context value.
   const open = props.open ?? internal.get();
   const placement = useAnchoredPlacement(open, "bottom", ANCHOR_OFFSET);
+  // Fan-out the panel to focus and to the measurement observer once, memoized:
+  // both halves are stable, so a fresh inline ref each render would make the
+  // reconciler detach/reattach and re-focus the panel every frame.
+  const panelRef = useMemo(
+    () => (handle: NodeHandle | null) => {
+      focus.panel(handle);
+      placement.panelRef(handle);
+    },
+    [focus, placement.panelRef],
+  );
   const value: AnchorContextValue = {
     open,
     setOpen: (next) => {
@@ -80,6 +96,7 @@ export const Popover = memo(function PopoverImpl(props: PopoverProps): PingoNode
       props.onOpenChange?.(next);
     },
     focus,
+    panelRef,
     placement,
   };
   return createElement(AnchorContext.Provider, {
@@ -134,16 +151,11 @@ export function anchorContentDescriptor(
   if (context?.open !== true) return null;
   const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   const placement = context.placement;
-  const panelRef = placement?.panelRef;
   return View({
     className: classes("pui-anchor__content", extra, dark, props.className),
-    // Two consumers for one ref: focus handoff and measurement. Without the
-    // fan-out the panel would have to choose between being focusable and being
-    // placed.
-    ref: (handle: NodeHandle | null) => {
-      context.focus.panel(handle);
-      panelRef?.(handle);
-    },
+    // One stable ref for focus handoff and measurement: the root memoizes it
+    // so an identity change does not re-focus the panel every render.
+    ref: context.panelRef,
     // No style at all when unmeasured, so the skin's static side stands and the
     // rendered tree is identical to the pre-E8 one.
     ...(placement?.style === undefined ? {} : { style: placement.style }),

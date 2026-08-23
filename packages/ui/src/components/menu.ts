@@ -30,6 +30,11 @@ export type MenuContextValue = {
   readonly focus: OverlayFocus;
   readonly registerItem: (value: string, handle: NodeHandle | null) => void;
   readonly focusItem: (value: string) => void;
+  /**
+   * Stable fan-out ref for the panel: focus handoff plus measurement,
+   * memoized so the reconciler does not re-focus the panel every render.
+   */
+  readonly panelRef: (handle: NodeHandle | null) => void;
   /** Measured placement, or undefined when readback is off. See Popover. */
   readonly placement?: AnchoredPlacement;
 };
@@ -52,6 +57,14 @@ function MenuRoot(props: MenuRootProps, closeOnSelect: boolean): PingoNode {
   const handles = useMemo(() => new Map<string, NodeHandle>(), []);
   const open = openSignal.get();
   const placement = useAnchoredPlacement(open, "bottom", ANCHOR_OFFSET);
+  // Stable fan-out ref so the reconciler does not re-focus the panel each render.
+  const panelRef = useMemo(
+    () => (handle: NodeHandle | null) => {
+      focus.panel(handle);
+      placement.panelRef(handle);
+    },
+    [focus, placement.panelRef],
+  );
   const value: MenuContextValue = {
     open,
     setOpen: (next) => {
@@ -76,6 +89,7 @@ function MenuRoot(props: MenuRootProps, closeOnSelect: boolean): PingoNode {
       else handles.set(item, handle);
     },
     focusItem: (item) => handles.get(item)?.focus(),
+    panelRef,
     placement,
   };
   return createElement(MenuContext.Provider, {
@@ -158,10 +172,7 @@ export function menuContentDescriptor(
   return View({
     className: classes("pui-anchor__content", "pui-menu__content", dark, props.className),
     semanticRole: "menu",
-    ref: (handle: NodeHandle | null) => {
-      context.focus.panel(handle);
-      context.placement?.panelRef(handle);
-    },
+    ref: context.panelRef,
     // Absent when unmeasured, so the skin's static side stands and the tree is
     // identical to the pre-E8 one.
     ...(context.placement?.style === undefined ? {} : { style: context.placement.style }),

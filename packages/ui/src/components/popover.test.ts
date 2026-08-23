@@ -14,7 +14,7 @@ afterEach(() => setTheme("light"));
 type Host = { props: Record<string, unknown> & { className?: string } };
 
 function context(open: boolean, setOpen = vi.fn()): AnchorContextValue {
-  return { open, setOpen, focus: createOverlayFocus() };
+  return { open, setOpen, focus: createOverlayFocus(), panelRef: vi.fn() };
 }
 
 describe("anchored overlay placement", () => {
@@ -31,25 +31,24 @@ describe("anchored overlay placement", () => {
     expect("style" in host.props).toBe(false);
   });
 
-  it("applies the measured placement and still hands the panel to focus", () => {
+  it("hands the panel through the root's stable ref unchanged", () => {
     const focus = createOverlayFocus();
+    const panelRef = vi.fn();
     const host = anchorContentDescriptor(
       { children: "x" },
       {
         open: true,
         setOpen: vi.fn(),
         focus,
+        panelRef,
         placement: measured,
       },
     ) as unknown as Host;
     expect(host.props["style"]).toEqual(measured.style);
-
-    // One ref, two consumers: without the fan-out the panel would have to
-    // choose between being focusable and being placed.
-    const handle = { nodeId: 5, focus: vi.fn() };
-    (host.props["ref"] as (value: unknown) => void)(handle);
-    expect(measured.panelRef).toHaveBeenCalledWith(handle);
-    expect(handle.focus).toHaveBeenCalledOnce();
+    // The descriptor must hand out the root's stable ref unchanged: the root
+    // fans it out to focus and to the measurement observer, so an identity
+    // change here would re-focus the panel every render.
+    expect(host.props["ref"]).toBe(panelRef);
   });
 
   it("hides a tooltip whose anchor scrolled away rather than stranding it", () => {
