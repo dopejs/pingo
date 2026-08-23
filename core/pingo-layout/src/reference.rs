@@ -699,17 +699,19 @@ fn child_item(scene: &Scene, container: &Box2, node: NodeId) -> Result<Item, Lay
     let child_height_basis = percentage_basis(basis.height, constraints.min_height);
     // align-items does not reach an out-of-flow child; its cross size comes
     // from its own box and its insets.
+    // The content box, not the child constraint: a scrollable axis relaxes the
+    // latter to infinity so content may overflow. See `engine::child_input`.
     if !out_of_flow && container.align == StyleKeyword::Stretch && container.cross_definite {
         if container.row {
             if !has_requested_dimension(scene, node, Prop::Height, StyleProperty::Height)
-                && constraints.max_height.is_finite()
+                && basis.height.is_finite()
             {
-                constraints.min_height = constraints.max_height;
+                constraints.min_height = basis.height;
             }
         } else if !has_requested_dimension(scene, node, Prop::Width, StyleProperty::Width)
-            && constraints.max_width.is_finite()
+            && basis.width.is_finite()
         {
-            constraints.min_width = constraints.max_width;
+            constraints.min_width = basis.width;
         }
     }
     let (auto_main_start, auto_main_end, auto_cross_start, auto_cross_end) = if container.row {

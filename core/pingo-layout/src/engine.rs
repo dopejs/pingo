@@ -1568,17 +1568,21 @@ fn constraints_for_child(
         width: subtract_insets(parent.percent.width, margin.horizontal()),
         height: subtract_insets(parent.percent.height, margin.vertical()),
     };
+    // Stretch fills the container's content box, which is what `basis` holds.
+    // Not `constraints`: a scrollable axis relaxes that to infinity so content
+    // may overflow, and reading the line's cross size off it turned every child
+    // of a scrolling panel back into shrink-to-fit.
     if parent.align == StyleKeyword::Stretch && parent.cross_definite {
         if parent.row {
             if !has_requested_dimension(scene, child, Prop::Height, StyleProperty::Height)
-                && constraints.max_height.is_finite()
+                && basis.height.is_finite()
             {
-                constraints.min_height = constraints.max_height;
+                constraints.min_height = basis.height;
             }
         } else if !has_requested_dimension(scene, child, Prop::Width, StyleProperty::Width)
-            && constraints.max_width.is_finite()
+            && basis.width.is_finite()
         {
-            constraints.min_width = constraints.max_width;
+            constraints.min_width = basis.width;
         }
     }
     // Second pass: the child's share of the line is already decided, so it is
@@ -2723,6 +2727,82 @@ mod tests {
         assert_eq!(
             engine.snapshot().geometry(filler),
             Some((Point::new(0.0, 20.0), Size::new(200.0, 10.0)))
+        );
+    }
+
+    #[test]
+    fn a_scrolling_container_still_stretches_its_children_across_the_line() {
+        // The recorded failure. A scrollable axis relaxes the child constraint
+        // to infinity so content may overflow, and `stretch` read the cross
+        // size of the line off that same relaxed constraint -- so every child
+        // of a scrolling panel silently fell back to shrink-to-fit. In the skin
+        // that made an option row shrink-wrap its label, and the hover and
+        // selected highlight became a pill around the text instead of a band
+        // across the list. Relaxation says how far a child may spill; it does
+        // not say how wide the line is.
+        let mut scene = Scene::new();
+        let root = id(0);
+        let panel = id(1);
+        let row = id(2);
+        commit(
+            &mut scene,
+            1,
+            vec![
+                Mutation::DefineResource {
+                    resource_id: 1,
+                    kind: ResourceKind::ComputedStyle,
+                    // Both axes, which is what the Shell hands down: CSS
+                    // couples a `visible` axis to `auto` when the other one
+                    // scrolls, so `overflow-y: auto` alone makes the cross axis
+                    // scrollable too. The panels in the skin are declared that
+                    // way and this is the geometry they produced.
+                    bytes: computed_style(&[
+                        (StyleProperty::Width, STYLE_VALUE_LENGTH, px(200.0)),
+                        (StyleProperty::PaddingLeft, STYLE_VALUE_LENGTH, px(4.0)),
+                        (StyleProperty::PaddingRight, STYLE_VALUE_LENGTH, px(4.0)),
+                        (
+                            StyleProperty::AlignItems,
+                            STYLE_VALUE_KEYWORD,
+                            keyword(StyleKeyword::Stretch),
+                        ),
+                        (
+                            StyleProperty::OverflowX,
+                            STYLE_VALUE_KEYWORD,
+                            keyword(StyleKeyword::Auto),
+                        ),
+                        (
+                            StyleProperty::OverflowY,
+                            STYLE_VALUE_KEYWORD,
+                            keyword(StyleKeyword::Auto),
+                        ),
+                    ]),
+                },
+                create(root, NodeKind::Root, None),
+                create(panel, NodeKind::Container, Some(root)),
+                create(row, NodeKind::Container, Some(panel)),
+                Mutation::SetRef {
+                    node_id: panel.raw(),
+                    prop: Prop::ComputedStyle,
+                    resource_id: 1,
+                },
+                set_f32(row, Prop::Height, 20.0),
+            ],
+        );
+        let mut engine = LayoutEngine::new();
+        engine
+            .layout(
+                &scene,
+                BoxConstraints::tight(Size::new(400.0, 100.0)).expect("viewport"),
+                &mut ZeroIntrinsicMeasurer,
+            )
+            .expect("layout");
+
+        // The row asked for no width, so it fills the panel's content box --
+        // the declared 200, since `box-sizing` is CSS's content-box default and
+        // the padding sits outside it. The row was 0 wide before the fix.
+        assert_eq!(
+            engine.snapshot().geometry(row),
+            Some((Point::new(4.0, 0.0), Size::new(200.0, 20.0)))
         );
     }
 
