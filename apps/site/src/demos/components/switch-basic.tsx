@@ -4,25 +4,17 @@ import { Switch } from "@dopejs/pingo-ui";
 import type { PreviewDemo } from "../../preview/contract";
 import { row, stage } from "../../preview/layout";
 
-// Switch is controlled: static on/off/disabled pairs, matching the storybook
-// showcase convention.
+// Uncontrolled: each switch owns its state, so the preview is clickable without
+// a stateful demo wrapper. Pass `checked` instead to own it yourself.
 const demo: PreviewDemo = {
   height: 120,
   render: (context): PingoNode =>
     stage(context, [
       row(
         [
-          createElement(Switch, {
-            checked: true,
-            semanticLabel: "飞行模式",
-            onCheckedChange: () => {},
-          }),
-          createElement(Switch, {
-            checked: false,
-            semanticLabel: "飞行模式",
-            onCheckedChange: () => {},
-          }),
-          createElement(Switch, { checked: true, disabled: true, semanticLabel: "飞行模式" }),
+          createElement(Switch, { defaultChecked: true, semanticLabel: "飞行模式" }),
+          createElement(Switch, { semanticLabel: "静音" }),
+          createElement(Switch, { checked: true, disabled: true, semanticLabel: "已锁定" }),
         ],
         16,
       ),

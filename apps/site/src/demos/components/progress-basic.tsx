@@ -9,14 +9,17 @@ import { column, stage } from "../../preview/layout";
 function bar(value: number): PingoNode {
   return createElement("container", {
     width: 320,
+    // A flex container with no style prop is on the direct-prop path,
+    // where align-items is flex-start; the CSS initial `stretch` is what
+    // makes the component inside fill this width.
+    style: { flexDirection: "column" },
     children: createElement(Progress, { value }),
   });
 }
 
 const demo: PreviewDemo = {
   height: 140,
-  render: (context): PingoNode =>
-    stage(context, [column([bar(25), bar(60), bar(90)], 16)]),
+  render: (context): PingoNode => stage(context, [column([bar(25), bar(60), bar(90)], 16)]),
 };
 
 export default demo;

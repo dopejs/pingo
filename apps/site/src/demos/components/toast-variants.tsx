@@ -7,7 +7,13 @@ import { column, stage } from "../../preview/layout";
 // Static variant showcase: the viewport width (320px) lives on
 // ToastViewport, so bare toasts get a fixed-width wrapper here.
 function framed(node: PingoNode): PingoNode {
-  return createElement("container", { width: 320, children: node });
+  // The style prop opts this wrapper into the CSS initial `align-items:
+  // stretch`, which is what makes the toast fill the 320.
+  return createElement("container", {
+    width: 320,
+    style: { flexDirection: "column" },
+    children: node,
+  });
 }
 
 const demo: PreviewDemo = {

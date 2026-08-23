@@ -25,7 +25,7 @@ use pingo_scene::{NodeId, Scene};
 
 use crate::engine::{
     DIRECTION_ROW, EdgeInsets, PercentBasis, flex_basis_main, has_requested_dimension,
-    intersect_constraints, justify_spacing, outer_dimension, percentage_basis,
+    intersect_constraints, is_tight, justify_spacing, outer_dimension, percentage_basis,
     resolve_style_length, style_border, style_margin, style_padding, subtract_insets,
 };
 use crate::{BoxConstraints, IntrinsicMeasurer, LayoutError, Point, Size};
@@ -115,6 +115,9 @@ struct Box2 {
     reverse: bool,
     justify: StyleKeyword,
     align: StyleKeyword,
+    /// Whether this container's cross size is known before its children lay out.
+    /// See the engine's `Frame::cross_definite`.
+    cross_definite: bool,
     gap: f32,
 }
 
@@ -643,6 +646,11 @@ fn describe(
         align: scene
             .style_keyword(node, StyleProperty::AlignItems, 0)
             .unwrap_or(StyleKeyword::FlexStart),
+        cross_definite: if row {
+            fixed_height.is_some() || is_tight(own.min_height, own.max_height)
+        } else {
+            fixed_width.is_some() || is_tight(own.min_width, own.max_width)
+        },
         gap,
     })
 }
@@ -691,7 +699,7 @@ fn child_item(scene: &Scene, container: &Box2, node: NodeId) -> Result<Item, Lay
     let child_height_basis = percentage_basis(basis.height, constraints.min_height);
     // align-items does not reach an out-of-flow child; its cross size comes
     // from its own box and its insets.
-    if !out_of_flow && container.align == StyleKeyword::Stretch {
+    if !out_of_flow && container.align == StyleKeyword::Stretch && container.cross_definite {
         if container.row {
             if !has_requested_dimension(scene, node, Prop::Height, StyleProperty::Height)
                 && constraints.max_height.is_finite()

@@ -1606,6 +1606,41 @@ backend 单测断言记忆化后重复码点不再测量、`clearMeasurementMemo
 清屏一项独立回滚；描边一项独立回滚；换行一项把宿主的 `measureAdvances` 改回只对可编辑对
 为真即可，Core 自动退回估算。
 
+### 收缩包裹与"点不动的开关"（2026-08-23）
+
+**一、`align-items: stretch` 让容器填满了父级**。stretch 是 CSS 的初始值，所以每个没写
+`align-items` 的列容器都会拿到它；实现却是在**下行**时把它变成对子节点的紧约束
+（`min_width = max_width`），紧的是"父级此刻能给的空间"。于是子节点撑满可用宽度，容器的
+cross 尺寸又取自子节点，容器也就撑满了——收缩包裹（shrink-to-fit）根本不存在，父级的
+`align-items: center` 没有东西可居中。文档站上 18 个组件预览因此贴着左边框。
+
+**修法**：只有容器**自己的** cross 尺寸已经确定时才下发这个紧约束。确定的来源是显式的
+宽/高，或者父级递下来的紧约束（stretch、已解析的 flex 目标都会产生它）。其余情况按自然
+尺寸测量，容器取子节点的最大值。引擎与 `reference.rs` 差分 oracle 同步修改，89 个
+pingo-layout 测试（含属性测试）全绿。
+
+**已知偏差**：CSS 会把 stretch 子项拉到容器**最终**的 cross 尺寸，包括收缩包裹算出来的那个；
+这里只在容器本来就有 cross 尺寸时拉伸。差别只在"一列中较窄的兄弟节点自带背景/边框"时可见。
+补齐它需要一趟真正的 cross 轴二次布局（现有的 flex 二次布局只解主轴），代价与风险都远大于
+这次修的问题，留待需要时再做。
+
+**副作用**：靠 stretch 拿宽度的组件（Slider、Progress、Alert、Collapsible、Tabs、
+DatePicker、Select、Combobox……）放进一个**收缩包裹**的容器里就会塌成内容宽度——这与 CSS
+一致，但文档站有 15 个 demo 是按旧行为写的。它们的定宽包装用的是直接 prop 的
+`createElement("container", { width })`，而没有 `style` prop 的节点走的是遗留直传路径，
+`align-items` 默认 flex-start，不是 CSS 的 stretch。给这些包装加上 `style` prop（或改用
+`frame()` 助手）即可恢复"组件填满定宽容器"。
+
+**二、Checkbox 与 Switch 是全库唯二只支持受控的组件**。Slider、Tabs、Collapsible、
+RadioGroup、Accordion 都支持 `defaultX` 自持状态，只有这两个必须由调用方持有 `checked`。
+文档 demo 传的是字面量 `checked` 加空回调，于是点了没有任何反应——正确但看上去就是坏的。
+两者补齐 `defaultChecked`，`checked` 变为可选（纯增量，不破坏现有调用）。组件因此开始使用
+hook，纯构建函数拆成 `checkboxDescriptor` / `switchDescriptor`，与 Slider 的做法一致。
+
+**验证**：`pingo-layout` 新增单测断言收缩包裹容器被父级居中、以及给它显式宽度后子节点重新
+拉伸；站点浏览器测试断言 form/checkbox/alert 三种形状的预览左右留白相等，并断言点击
+checkbox 与 switch 会改变画面像素。
+
 ### 富单元格暴露的能力缺口
 
 新 demo 每行约 18 个节点（此前 3 个），1280×800 视口下 20 行物化 = 357 个 Scene 节点。

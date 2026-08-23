@@ -703,6 +703,15 @@ struct Frame {
     justify: StyleKeyword,
     /// Cross-axis alignment for direct children.
     align: StyleKeyword,
+    /// Whether this container's own cross size is known before its children lay
+    /// out.
+    ///
+    /// `align-items: stretch` stretches a child to the container's *content*
+    /// cross size. A container that has no cross size of its own takes one from
+    /// its children, so stretching them against whatever space it was offered
+    /// would make it fill that space instead of shrinking to fit -- and a parent
+    /// that centres it would then have nothing left to centre.
+    cross_definite: bool,
     /// Space inserted between adjacent children.
     gap: f32,
     /// Whether a child has been placed, so `gap` applies from the second on.
@@ -1472,6 +1481,14 @@ fn make_frame(
     } else {
         fixed_height.unwrap_or(height_basis)
     };
+    // A declared cross extent is definite on its own; so is one the parent
+    // pinned by handing down a tight constraint, which is what a stretch or a
+    // resolved flex target does. Anything else is shrink-to-fit.
+    let cross_definite = if row {
+        fixed_height.is_some() || is_tight(constraints.min_height, constraints.max_height)
+    } else {
+        fixed_width.is_some() || is_tight(constraints.min_width, constraints.max_width)
+    };
     let gap = match scene.f32_prop(node, Prop::Gap).or_else(|| {
         resolve_style_length(
             scene.style_length(node, style_gap_property, 0),
@@ -1513,6 +1530,7 @@ fn make_frame(
         align: scene
             .style_keyword(node, StyleProperty::AlignItems, 0)
             .unwrap_or(StyleKeyword::FlexStart),
+        cross_definite,
         gap,
         placed: false,
         percent,
@@ -1550,7 +1568,7 @@ fn constraints_for_child(
         width: subtract_insets(parent.percent.width, margin.horizontal()),
         height: subtract_insets(parent.percent.height, margin.vertical()),
     };
-    if parent.align == StyleKeyword::Stretch {
+    if parent.align == StyleKeyword::Stretch && parent.cross_definite {
         if parent.row {
             if !has_requested_dimension(scene, child, Prop::Height, StyleProperty::Height)
                 && constraints.max_height.is_finite()
@@ -1974,6 +1992,11 @@ fn validate_virtual_dimension(node: NodeId, value: f32) -> Result<f32, LayoutErr
     } else {
         Err(LayoutError::InvalidVirtualGeometry { node, value })
     }
+}
+
+/// Whether a constraint pair pins one axis to a single value.
+pub(crate) fn is_tight(min: f32, max: f32) -> bool {
+    max.is_finite() && (max - min).abs() <= f32::EPSILON
 }
 
 pub(crate) fn intersect_constraints(
@@ -2594,6 +2617,112 @@ mod tests {
         assert_eq!(
             engine.snapshot().geometry(second),
             Some((Point::new(5.0, 30.0), Size::new(60.0, 30.0)))
+        );
+    }
+
+    #[test]
+    fn a_stretch_container_without_a_cross_size_of_its_own_shrinks_to_fit() {
+        // The recorded failure. `align-items: stretch` is the CSS initial value,
+        // so every unstyled column got it, and it was applied against whatever
+        // space the parent offered rather than against the container's own
+        // content width. The container therefore filled its parent, and the
+        // `align-items: center` above it had nothing left to centre: a whole
+        // column of documentation previews sat pinned to the left edge.
+        let mut scene = Scene::new();
+        let root = id(0);
+        let stage = id(1);
+        let column = id(2);
+        let leaf = id(3);
+        let filler = id(4);
+        commit(
+            &mut scene,
+            1,
+            vec![
+                Mutation::DefineResource {
+                    resource_id: 1,
+                    kind: ResourceKind::ComputedStyle,
+                    bytes: computed_style(&[(
+                        StyleProperty::AlignItems,
+                        STYLE_VALUE_KEYWORD,
+                        keyword(StyleKeyword::Center),
+                    )]),
+                },
+                Mutation::DefineResource {
+                    resource_id: 2,
+                    kind: ResourceKind::ComputedStyle,
+                    bytes: computed_style(&[(
+                        StyleProperty::AlignItems,
+                        STYLE_VALUE_KEYWORD,
+                        keyword(StyleKeyword::Stretch),
+                    )]),
+                },
+                create(root, NodeKind::Root, None),
+                create(stage, NodeKind::Container, Some(root)),
+                create(column, NodeKind::Container, Some(stage)),
+                create(leaf, NodeKind::Container, Some(column)),
+                create(filler, NodeKind::Container, Some(column)),
+                set_f32(stage, Prop::Width, 400.0),
+                set_f32(stage, Prop::Height, 100.0),
+                Mutation::SetRef {
+                    node_id: stage.raw(),
+                    prop: Prop::ComputedStyle,
+                    resource_id: 1,
+                },
+                Mutation::SetRef {
+                    node_id: column.raw(),
+                    prop: Prop::ComputedStyle,
+                    resource_id: 2,
+                },
+                set_f32(leaf, Prop::Width, 60.0),
+                set_f32(leaf, Prop::Height, 20.0),
+                set_f32(filler, Prop::Height, 10.0),
+            ],
+        );
+        let mut engine = LayoutEngine::new();
+        engine
+            .layout(
+                &scene,
+                BoxConstraints::tight(Size::new(400.0, 100.0)).expect("viewport"),
+                &mut ZeroIntrinsicMeasurer,
+            )
+            .expect("layout");
+
+        // The column takes its width from its widest child, and the stage
+        // centres it. Known deviation from CSS, which would also stretch the
+        // filler to the column's resolved 60: an item is stretched only against
+        // a cross size the container already had, never against one its own
+        // children produced.
+        assert_eq!(
+            engine.snapshot().geometry(column),
+            Some((Point::new(170.0, 0.0), Size::new(60.0, 30.0)))
+        );
+        assert_eq!(
+            engine.snapshot().geometry(filler),
+            Some((Point::new(0.0, 20.0), Size::new(0.0, 10.0)))
+        );
+
+        // A cross size of its own makes the column definite again, and the child
+        // that asked for no width fills it. The one that asked for 60 keeps it:
+        // a definite size is never stretched.
+        commit(&mut scene, 2, vec![set_f32(column, Prop::Width, 200.0)]);
+        engine
+            .layout(
+                &scene,
+                BoxConstraints::tight(Size::new(400.0, 100.0)).expect("viewport"),
+                &mut ZeroIntrinsicMeasurer,
+            )
+            .expect("layout");
+        assert_eq!(
+            engine.snapshot().geometry(column),
+            Some((Point::new(100.0, 0.0), Size::new(200.0, 30.0)))
+        );
+        assert_eq!(
+            engine.snapshot().geometry(leaf),
+            Some((Point::ZERO, Size::new(60.0, 20.0)))
+        );
+        assert_eq!(
+            engine.snapshot().geometry(filler),
+            Some((Point::new(0.0, 20.0), Size::new(200.0, 10.0)))
         );
     }
 

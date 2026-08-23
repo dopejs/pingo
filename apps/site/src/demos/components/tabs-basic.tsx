@@ -10,6 +10,10 @@ const demo: PreviewDemo = {
     stage(context, [
       createElement("container", {
         width: 360,
+        // A flex container with no style prop is on the direct-prop path,
+        // where align-items is flex-start; the CSS initial `stretch` is what
+        // makes the component inside fill this width.
+        style: { flexDirection: "column" },
         children: createElement(Tabs, {
           defaultValue: "account",
           children: [

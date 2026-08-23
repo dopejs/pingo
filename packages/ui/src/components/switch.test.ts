@@ -1,15 +1,19 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { setTheme } from "../theme";
-import { Switch, type SwitchProps } from "./switch";
+import { switchDescriptor, type SwitchProps } from "./switch";
 
 afterEach(() => setTheme("light"));
 
 type Host = { props: Record<string, unknown> };
 type Tree = Host & { props: { children: Host } };
 
+/** The descriptor with the state resolution and toggle the component does. */
 function render(props: SwitchProps): Tree {
-  return Switch.component(props) as unknown as Tree;
+  const checked = props.checked ?? props.defaultChecked ?? false;
+  return switchDescriptor(props, checked, () =>
+    props.onCheckedChange?.(!checked),
+  ) as unknown as Tree;
 }
 
 describe("Switch", () => {

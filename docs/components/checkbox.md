@@ -1,11 +1,11 @@
 ---
 title: Checkbox
-description: 受控的多选框，可带文字标签，渲染在 pingo canvas 上。
+description: 可受控也可自持状态的多选框，可带文字标签，渲染在 pingo canvas 上。
 ---
 
 # Checkbox
 
-多选框用于独立的布尔开关。下方预览由 pingo 引擎实时渲染，并跟随站点主题切换明暗。Checkbox 是受控组件：预览中展示静态的开/关/禁用组合，交互由调用方持有的状态驱动。
+多选框用于独立的布尔开关。下方预览由 pingo 引擎实时渲染，可以直接点击，并跟随站点主题切换明暗。不传 `checked` 时组件自己持有状态（`defaultChecked` 给初始值）；传了 `checked` 就由调用方持有，组件只负责回调。
 
 :::preview checkbox-basic
 :::
@@ -29,7 +29,13 @@ function NotificationSetting(): PingoNode {
 root.render(createElement(NotificationSetting));
 ```
 
-`checked` 由父组件持有，`onCheckedChange` 负责更新它——组件本身不保存状态。`label` 可选，提供后会在选框右侧渲染文字。
+`checked` 由父组件持有，`onCheckedChange` 负责更新它。不需要外部状态时省略 `checked`，组件会自己记住，与 Slider、Tabs、Collapsible 一致：
+
+```tsx
+createElement(Checkbox, { defaultChecked: true, label: "已启用通知" });
+```
+
+注意受控用法必须真的更新 `checked`：传了 `checked` 却忽略 `onCheckedChange`，控件永远不会变化，看上去就像点不动。`label` 可选，提供后会在选框右侧渲染文字。
 
 ## 示例
 
@@ -41,7 +47,8 @@ root.render(createElement(NotificationSetting));
 
 | Prop | 类型 | 默认值 | 说明 |
 | --- | --- | --- | --- |
-| `checked` | `boolean` | — | 选中状态（必填，受控） |
+| `checked` | `boolean` | — | 选中状态（受控用法；省略则组件自持） |
+| `defaultChecked` | `boolean` | `false` | 自持状态时的初始值 |
 | `onCheckedChange` | `(checked: boolean) => void` | — | 状态切换回调 |
 | `disabled` | `boolean` | `false` | 禁用态 |
 | `label` | `string` | — | 选框右侧的文字标签 |

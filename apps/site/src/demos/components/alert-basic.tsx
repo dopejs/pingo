@@ -7,7 +7,13 @@ import { column, stage } from "../../preview/layout";
 // Alert has no intrinsic width in the skin; wrap it in a fixed-width
 // container so it stretches like it would in a real layout.
 function framed(node: PingoNode): PingoNode {
-  return createElement("container", { width: 440, children: node });
+  // The style prop opts this wrapper into the CSS initial `align-items:
+  // stretch`, which is what makes the alert fill the 440.
+  return createElement("container", {
+    width: 440,
+    style: { flexDirection: "column" },
+    children: node,
+  });
 }
 
 const demo: PreviewDemo = {

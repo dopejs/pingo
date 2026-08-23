@@ -10,11 +10,20 @@ const demo: PreviewDemo = {
     stage(context, [
       createElement("container", {
         width: 320,
+        // A flex container with no style prop is on the direct-prop path,
+        // where align-items is flex-start; the CSS initial `stretch` is what
+        // makes the component inside fill this width.
+        style: { flexDirection: "column" },
         children: createElement(AspectRatio, {
           ratio: 16 / 9,
           children: createElement("container", {
             backgroundColor: "#3b82f6ff",
-            style: { width: "100%", height: "100%", justifyContent: "center", alignItems: "center" },
+            style: {
+              width: "100%",
+              height: "100%",
+              justifyContent: "center",
+              alignItems: "center",
+            },
             children: createElement("text", {
               value: "16 : 9",
               color: "#ffffffff",

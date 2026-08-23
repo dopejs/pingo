@@ -1,15 +1,19 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { setTheme } from "../theme";
-import { Checkbox, type CheckboxProps } from "./checkbox";
+import { checkboxDescriptor, type CheckboxProps } from "./checkbox";
 
 afterEach(() => setTheme("light"));
 
 type Host = { props: Record<string, unknown> };
 type Tree = { props: Record<string, unknown> & { children: unknown } };
 
+/** The descriptor with the state resolution and toggle the component does. */
 function render(props: CheckboxProps): Tree {
-  return Checkbox.component(props) as unknown as Tree;
+  const checked = props.checked ?? props.defaultChecked ?? false;
+  return checkboxDescriptor(props, checked, () =>
+    props.onCheckedChange?.(!checked),
+  ) as unknown as Tree;
 }
 
 describe("Checkbox", () => {
