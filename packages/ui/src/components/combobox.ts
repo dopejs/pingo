@@ -53,8 +53,9 @@ export function comboboxDescriptor(
     readonly commit: (value: string) => void;
     /** Focus handlers that close it, from `OverlayFocus.dismissHandlers`. */
     readonly dismiss?: {
-      readonly onFocusOut: () => void;
-      readonly onFocusIn: () => void;
+      readonly onPointerDownCapture: (event: PingoEvent) => void;
+      readonly onFocusOut: (event: PingoEvent) => void;
+      readonly onFocusIn: (event: PingoEvent) => void;
     };
     /**
      * Measured placement, or undefined outside a component scope.
@@ -74,6 +75,7 @@ export function comboboxDescriptor(
     className: classes("pui-combobox", props.className),
     ...(state.placement === undefined ? {} : { ref: state.placement.anchorRef }),
     ...(state.dismiss === undefined ? {} : { dismiss: state.dismiss }),
+
     children: [
       View({
         className: classes("pui-combobox__trigger", dark),

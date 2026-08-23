@@ -41,8 +41,9 @@ export function datePickerDescriptor(
     readonly setMonth: (month: CalendarDate) => void;
     /** Focus handlers that close it, from `OverlayFocus.dismissHandlers`. */
     readonly dismiss?: {
-      readonly onFocusOut: () => void;
-      readonly onFocusIn: () => void;
+      readonly onPointerDownCapture: (event: PingoEvent) => void;
+      readonly onFocusOut: (event: PingoEvent) => void;
+      readonly onFocusIn: (event: PingoEvent) => void;
     };
     /**
      * Measured placement, or undefined outside a component scope.

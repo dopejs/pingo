@@ -71,8 +71,9 @@ export function anchorDescriptor(props: {
    * list and coming back are all internal, and only a press that leaves counts.
    */
   readonly dismiss?: {
-    readonly onFocusOut: () => void;
-    readonly onFocusIn: () => void;
+    readonly onPointerDownCapture: (event: PingoEvent) => void;
+    readonly onFocusOut: (event: PingoEvent) => void;
+    readonly onFocusIn: (event: PingoEvent) => void;
   };
 }): PingoNode {
   return View({

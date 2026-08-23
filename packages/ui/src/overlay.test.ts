@@ -1,3 +1,4 @@
+import { type PingoEvent } from "@dopejs/pingo-jsx";
 import { describe, expect, it, vi } from "vitest";
 
 import { classes, createOverlayFocus, escapeHandler, overlayKeyHandler } from "./overlay";
@@ -178,53 +179,69 @@ describe("escapeHandler", () => {
 });
 
 describe("dismissHandlers", () => {
-  const settle = (): Promise<void> => new Promise((resolve) => queueMicrotask(resolve));
+  /** A focus event carrying only what the dismissal reads. */
+  const focusEvent = (eventId: number, relatedNodeId: number | null): PingoEvent =>
+    ({
+      eventId,
+      relatedTarget: relatedNodeId === null ? null : { nodeId: relatedNodeId },
+    }) as unknown as PingoEvent;
+  const press = (eventId: number): PingoEvent => ({ eventId }) as unknown as PingoEvent;
+  // The decision is deferred by a frame, so the arrival always wins whether it
+  // comes from the same batch, a re-entrant Core call, or a later message.
+  // Node has no rAF, which is the timer fallback this waits out.
+  const settle = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 40));
 
-  it("closes when focus leaves and nothing takes it back", async () => {
+  it("closes when a press outside moves focus away", async () => {
     const close = vi.fn();
     const handlers = createOverlayFocus().dismissHandlers(close);
-    handlers.onFocusOut();
+    handlers.onFocusOut(focusEvent(7, 99));
     expect(close).not.toHaveBeenCalled();
     await settle();
     expect(close).toHaveBeenCalledOnce();
   });
 
-  it("stays open when focus moves within the anchor", async () => {
+  it("stays open when the press that moved focus was inside the anchor", async () => {
     const close = vi.fn();
     const handlers = createOverlayFocus().dismissHandlers(close);
-    // Both halves of one transition arrive in the same event transaction, so
-    // the focusin that follows a press inside the panel cancels the close.
-    handlers.onFocusOut();
-    handlers.onFocusIn();
+    // The press and the focus change it causes share an event id, and a press
+    // inside the anchor is dispatched through it.
+    handlers.onPointerDownCapture(press(7));
+    handlers.onFocusOut(focusEvent(7, 99));
+    await settle();
+    expect(close).not.toHaveBeenCalled();
+  });
+
+  it("stays open when focus goes nowhere at all", async () => {
+    const close = vi.fn();
+    const handlers = createOverlayFocus().dismissHandlers(close);
+    // Core clears focus outright when a focus request names a node it does not
+    // have yet -- a panel's own `focus()` overtaking the commit that mounts it.
+    handlers.onFocusOut(focusEvent(7, null));
+    await settle();
+    expect(close).not.toHaveBeenCalled();
+  });
+
+  it("stays open when focus comes back, even across a re-render", async () => {
+    const close = vi.fn();
+    const focus = createOverlayFocus();
+    // The departure and the arrival routinely straddle a render: the handlers
+    // the arrival reaches are not the ones that raised the departure.
+    focus.dismissHandlers(close).onFocusOut(focusEvent(7, 99));
+    focus.dismissHandlers(close).onFocusIn(focusEvent(7, 42));
     await settle();
     expect(close).not.toHaveBeenCalled();
 
     // And the next departure is still armed.
-    handlers.onFocusOut();
+    focus.dismissHandlers(close).onFocusOut(focusEvent(8, 99));
     await settle();
     expect(close).toHaveBeenCalledOnce();
-  });
-
-  it("stays open when the arrival lands on a later render's handlers", async () => {
-    const close = vi.fn();
-    const focus = createOverlayFocus();
-    // What actually happens in the wild: a press inside the panel raises the
-    // departure, something in the same transaction re-renders the overlay, and
-    // the arrival reaches the handlers that render built. Pairing them in a
-    // per-render closure lost the cancellation, and the panel vanished before
-    // the press that landed on it could select anything.
-    focus.dismissHandlers(close).onFocusOut();
-    focus.dismissHandlers(close).onFocusIn();
-    await settle();
-    expect(close).not.toHaveBeenCalled();
   });
 
   it("keeps overlays independent of each other", async () => {
     const first = vi.fn();
     const second = vi.fn();
-    createOverlayFocus().dismissHandlers(first).onFocusOut();
-    const other = createOverlayFocus().dismissHandlers(second);
-    other.onFocusIn();
+    createOverlayFocus().dismissHandlers(first).onFocusOut(focusEvent(7, 99));
+    createOverlayFocus().dismissHandlers(second).onFocusIn(focusEvent(7, 42));
     await settle();
     // One overlay cancelling its own departure must not keep another open.
     expect(first).toHaveBeenCalledOnce();

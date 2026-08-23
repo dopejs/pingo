@@ -31,6 +31,11 @@ function stage(theme: PingoUiTheme, children: PingoNode): PingoNode {
     width: 480,
     padding: 24,
     backgroundColor: theme === "dark" ? "#09090bff" : "#ffffffff",
+    // A container with no style prop is on the direct-prop path, where
+    // align-items is flex-start rather than the CSS initial `stretch`: without
+    // this a form control shrinks to its own label instead of filling the
+    // field, and an anchored panel has no trigger width to match.
+    style: { flexDirection: "column" },
     children,
   });
 }

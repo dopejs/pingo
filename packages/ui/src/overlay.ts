@@ -43,22 +43,28 @@ export interface OverlayFocus {
   /**
    * Handlers that close the overlay when focus leaves it for good.
    *
-   * Core moves focus to whatever a pointer press lands on, and to nothing when
-   * it lands on nothing, so "the user pressed outside" is exactly "focus left
-   * the anchor". The departure and the arrival that cancels it reach the Shell
-   * as two events, and the decision waits a microtask so the arrival wins.
+   * Core moves focus to whatever a pointer press lands on, so "the user pressed
+   * outside" is "focus left the anchor because of a press the anchor never
+   * saw". The press and the focus change it causes carry the same `eventId`,
+   * and a press inside the anchor is dispatched through the anchor — so the
+   * anchor knows, from the id alone, whether the departure is its own doing.
    *
-   * Like `cycle`, the pending departure lives on this object rather than in the
-   * handlers: the descriptor is rebuilt on every render and the two events
-   * routinely straddle one — a press inside the panel raises the departure,
-   * something in the same transaction re-renders, and the arrival is delivered
-   * to the *next* render's handlers. Pairing them per render lost the
-   * cancellation, and the panel vanished before the press that opened it could
-   * select anything.
+   * That is the only signal robust enough. The matching `focusin` cannot be
+   * relied on: a handler that focuses something re-enters Core mid-dispatch and
+   * the arrival can go missing, and on the Worker transport a `focus()` issued
+   * as a panel mounts can reach Core before the commit that creates it, leaving
+   * a departure with no arrival at all. Both looked identical to "pressed
+   * outside", so an overlay closed on the press that opened it and a list
+   * closed without ever running its selection.
+   *
+   * Like `cycle`, the state lives on this object rather than in the handlers:
+   * the descriptor is rebuilt on every render and these events routinely
+   * straddle one.
    */
   readonly dismissHandlers: (close: () => void) => {
-    readonly onFocusOut: () => void;
-    readonly onFocusIn: () => void;
+    readonly onPointerDownCapture: (event: PingoEvent) => void;
+    readonly onFocusOut: (event: PingoEvent) => void;
+    readonly onFocusIn: (event: PingoEvent) => void;
   };
 }
 
@@ -69,11 +75,13 @@ export function useOverlayFocus(): OverlayFocus {
 /** Pure factory: safe to call without a component scope (tests use this). */
 export function createOverlayFocus(): OverlayFocus {
   let trigger: NodeHandle | null = null;
+  let panelNodeId: number | undefined;
   const controls = new Map<number, NodeHandle>();
-  // Whether focus has left the anchor without coming back yet, and what to run
-  // if it does not. Per overlay, not per render: see `dismissHandlers`.
-  let leaving = false;
-  let pendingClose: (() => void) | undefined;
+  // The focus departure waiting to be confirmed, and what to run if it is;
+  // and the id of the last press the anchor saw. Per overlay, not per render:
+  // see `dismissHandlers`.
+  let departure: { eventId: number; close: () => void } | undefined;
+  let pressedInsideEventId: number | undefined;
   // Position, not handle: a control that remounts at the same order keeps its
   // place. -1 means focus is still on the panel itself.
   let cursor = -1;
@@ -84,6 +92,7 @@ export function createOverlayFocus(): OverlayFocus {
       trigger = handle;
     },
     panel: (handle) => {
+      panelNodeId = handle?.nodeId;
       if (handle === null) {
         // Registrations belong to the panel instance going away; a reopened
         // panel re-registers, so keeping them would cycle onto dead handles.
@@ -114,20 +123,42 @@ export function createOverlayFocus(): OverlayFocus {
       return true;
     },
     dismissHandlers: (close) => ({
-      onFocusOut: () => {
-        leaving = true;
-        pendingClose = close;
-        queueMicrotask(() => {
-          if (!leaving) return;
-          leaving = false;
-          const run = pendingClose;
-          pendingClose = undefined;
-          run?.();
-        });
+      // Capture, so it runs however deep inside the anchor the press landed.
+      onPointerDownCapture: (event) => {
+        pressedInsideEventId = event.eventId;
       },
-      onFocusIn: () => {
-        leaving = false;
-        pendingClose = undefined;
+      onFocusOut: (event) => {
+        // The press that moved focus was inside this overlay: its own trigger,
+        // its panel, or anything in either.
+        if (pressedInsideEventId === event.eventId) return;
+        // Focus going nowhere is not a dismissal either. Core clears focus
+        // outright when a focus request names a node it does not have, which is
+        // what a panel's own `focus()` looks like when it overtakes the commit
+        // that mounts it.
+        if (event.relatedTarget === null) return;
+        const nodeId = event.relatedTarget.nodeId;
+        if (nodeId === panelNodeId || nodeId === trigger?.nodeId) return;
+        if (ordered().some((handle) => handle.nodeId === nodeId)) return;
+        departure = { eventId: event.eventId, close };
+        // A frame, not a microtask: the arrival that cancels this can come from
+        // a re-entrant Core call or, on the Worker transport, from a later
+        // message. A dismissal one frame late is invisible; a dismissal that
+        // fires while focus is still inside the overlay is what closed a list
+        // in the middle of the press that was choosing from it.
+        const settle = (): void => {
+          const pending = departure;
+          if (pending === undefined || pending.eventId !== event.eventId) return;
+          departure = undefined;
+          pending.close();
+        };
+        if (typeof requestAnimationFrame === "function") requestAnimationFrame(settle);
+        else setTimeout(settle, 16);
+      },
+      onFocusIn: (event) => {
+        // Any arrival inside the anchor cancels a pending departure: focus is
+        // demonstrably back inside, whichever event carried it there.
+        void event;
+        departure = undefined;
       },
     }),
   };
