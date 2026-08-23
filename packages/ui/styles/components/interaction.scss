@@ -209,6 +209,7 @@
 .pui-calendar {
   flex-direction: column;
   row-gap: t.$calendar-gap;
+  width: t.$calendar-width;
 }
 
 .pui-calendar__header {

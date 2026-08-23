@@ -2,12 +2,12 @@ import { createElement, type PingoNode } from "@dopejs/pingo";
 import { Button, HoverCard } from "@dopejs/pingo-ui";
 
 import type { PreviewDemo } from "../../preview/contract";
-import { column, stage } from "../../preview/layout";
+import { anchorStage, column } from "../../preview/layout";
 
 const demo: PreviewDemo = {
   height: 260,
   render: (context): PingoNode =>
-    stage(context, [
+    anchorStage(context, [
       createElement(HoverCard, {
         onOpenChange: () => {},
         children: createElement(Button, {

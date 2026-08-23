@@ -8,12 +8,12 @@ import {
 } from "@dopejs/pingo-ui";
 
 import type { PreviewDemo } from "../../preview/contract";
-import { stage } from "../../preview/layout";
+import { anchorStage } from "../../preview/layout";
 
 const demo: PreviewDemo = {
   height: 260,
   render: (context): PingoNode =>
-    stage(context, [
+    anchorStage(context, [
       createElement(DropdownMenu, {
         onValueChange: () => {},
         children: [

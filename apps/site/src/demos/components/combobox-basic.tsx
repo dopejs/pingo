@@ -2,12 +2,12 @@ import { createElement, type PingoNode } from "@dopejs/pingo";
 import { Combobox } from "@dopejs/pingo-ui";
 
 import type { PreviewDemo } from "../../preview/contract";
-import { frame, stage } from "../../preview/layout";
+import { anchorStage, frame } from "../../preview/layout";
 
 const demo: PreviewDemo = {
   height: 320,
   render: (context): PingoNode =>
-    stage(context, [
+    anchorStage(context, [
       // The trigger takes its width from its container, so the preview gives it
       // a definite one instead of leaving it to fill the whole stage.
       frame(280, [

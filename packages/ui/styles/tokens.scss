@@ -93,6 +93,10 @@ $table-cell-padding-y: 8px !default;
 $table-row-height: 44px !default;
 $calendar-gap: 8px !default;
 $calendar-cell: 36px !default;
+// Seven columns of $calendar-cell. Declared rather than left to the content so
+// the grid is definite: a shrink-to-fit calendar leaves its header shrinking to
+// the arrows and the month title instead of spanning the weeks below it.
+$calendar-width: 252px !default;
 $scrollbar-width: 8px !default;
 $scrollbar-radius: 4px !default;
 $popover-width: 260px !default;

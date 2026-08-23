@@ -2,12 +2,12 @@ import { createElement, type PingoNode } from "@dopejs/pingo";
 import { Button, Popover, PopoverContent, PopoverTrigger } from "@dopejs/pingo-ui";
 
 import type { PreviewDemo } from "../../preview/contract";
-import { stage } from "../../preview/layout";
+import { anchorStage } from "../../preview/layout";
 
 const demo: PreviewDemo = {
   height: 220,
   render: (context): PingoNode =>
-    stage(context, [
+    anchorStage(context, [
       createElement(Popover, {
         children: [
           createElement(PopoverTrigger, {

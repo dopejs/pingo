@@ -292,6 +292,110 @@ describe("documentation previews", () => {
     );
   });
 
+  // Same six, opened and then pressed *inside*. The dismissal watches focus
+  // leaving the anchor, and a press inside moves focus to a node within it, so
+  // the `focusin` that follows has to cancel the close.
+  it.each([
+    "select-basic",
+    "combobox-basic",
+    "date-picker-basic",
+    "popover-basic",
+    "popover-rich",
+    "dropdown-menu-basic",
+  ])("keeps %s open when the press lands inside the panel", async (name) => {
+    const { canvas, height } = await mount(name);
+    const closed = paintedRows(canvas, height);
+    const rect = canvas.getBoundingClientRect();
+    const press = (x: number, y: number): void => {
+      for (const [type, buttons] of [
+        ["pointerdown", 1],
+        ["pointerup", 0],
+      ] as const) {
+        canvas.dispatchEvent(
+          new PointerEvent(type, {
+            bubbles: true,
+            buttons,
+            clientX: rect.left + x,
+            clientY: rect.top + y,
+            pointerId: 8,
+          }),
+        );
+      }
+      canvas.dispatchEvent(
+        new MouseEvent("click", { bubbles: true, clientX: rect.left + x, clientY: rect.top + y }),
+      );
+    };
+    press(WIDTH / 2, closed.top + 10);
+    expect(await waitUntil(() => paintedRows(canvas, height).bottom > closed.bottom + 20)).toBe(
+      true,
+    );
+    const opened = paintedRows(canvas, height);
+    // The panel has to be wholly inside the preview, or a press meant for it
+    // lands past its edge and reads as a press outside.
+    expect(opened.bottom).toBeLessThan(height - 1);
+
+    // Just inside the panel's top border, which is padding rather than an item:
+    // selecting one is supposed to close the menu.
+    press(WIDTH / 2, closed.bottom + 11);
+    await waitUntil(() => false, 200);
+    expect(paintedRows(canvas, height).bottom).toBeGreaterThan(closed.bottom + 20);
+  });
+
+  it("spans the calendar header across the weeks below it", async () => {
+    const { canvas, height } = await mount("date-picker-basic");
+    const rect = canvas.getBoundingClientRect();
+    for (const [type, buttons] of [
+      ["pointerdown", 1],
+      ["pointerup", 0],
+    ] as const) {
+      canvas.dispatchEvent(
+        new PointerEvent(type, {
+          bubbles: true,
+          buttons,
+          clientX: rect.left + WIDTH / 2,
+          clientY: rect.top + 30,
+          pointerId: 9,
+        }),
+      );
+    }
+    canvas.dispatchEvent(
+      new MouseEvent("click", {
+        bubbles: true,
+        clientX: rect.left + WIDTH / 2,
+        clientY: rect.top + 30,
+      }),
+    );
+    expect(await waitUntil(() => paintedRows(canvas, height).bottom > 200)).toBe(true);
+
+    const context = canvas.getContext("2d");
+    if (context === null) throw new Error("Chromium did not provide Canvas2D");
+    const data = context.getImageData(0, 0, WIDTH, height).data;
+    // Dark ink only: the panel's border and background are far too light.
+    const darkSpan = (y: number): number => {
+      let left = -1;
+      let right = -1;
+      for (let x = 0; x < WIDTH; x += 1) {
+        const index = (y * WIDTH + x) * 4;
+        if ((data[index + 3] ?? 0) < 40 || (data[index] ?? 255) > 150) continue;
+        if (left < 0) left = x;
+        right = x;
+      }
+      return right - left;
+    };
+    let header = 0;
+    let weeks = 0;
+    for (let y = 60; y < height; y += 1) {
+      const span = darkSpan(y);
+      if (y < 95) header = Math.max(header, span);
+      else weeks = Math.max(weeks, span);
+    }
+    // The month title and its two arrows sit on the same axis as the seven
+    // columns. A shrink-to-fit calendar left the header at the width of its own
+    // three items -- about half the grid -- with both arrows beside the title.
+    expect(weeks).toBeGreaterThan(150);
+    expect(header).toBeGreaterThan(weeks - 20);
+  });
+
   it("closes a hover card when the pointer leaves it", async () => {
     const { canvas, height } = await mount("hover-card-basic");
     const closed = paintedRows(canvas, height);
