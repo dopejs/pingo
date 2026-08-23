@@ -58,27 +58,27 @@ function FileTable(): PingoNode {
 
 ### TableProps\<Row\>
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `columns` | `readonly TableColumn<Row>[]` | — | 열 정의. 헤더와 행을 함께 구동합니다(필수) |
-| `rowCount` | `number` | — | 전체 행 수(필수). `0`이면 빈 상태를 렌더링합니다 |
-| `getRow` | `(index: number) => Row` | — | 행 번호로 행 데이터를 가져옵니다. 보이는 창에 대해서만 호출됩니다(필수) |
-| `estimatedRowHeight` | `number` | `44` | 가상 스크롤 계획에 사용하는 예상 행 높이 |
-| `onRowPress` | `(index: number) => void` | — | 행 클릭 콜백. 전달하면 행에 포커스할 수 있습니다 |
-| `emptyLabel` | `string` | `"暂无数据"` | 빈 상태 문구 |
-| `renderHeaderCell` | `(column: TableColumn<Row>, index: number) => PingoNode` | — | 특정 열의 기본 헤더 셀을 대체합니다 |
-| `className` | `string` | — | 컴포넌트 클래스 이름 뒤에 추가합니다 |
+| Prop                 | 타입                                                     | 기본값       | 설명                                                                    |
+| -------------------- | -------------------------------------------------------- | ------------ | ----------------------------------------------------------------------- |
+| `columns`            | `readonly TableColumn<Row>[]`                            | —            | 열 정의. 헤더와 행을 함께 구동합니다(필수)                              |
+| `rowCount`           | `number`                                                 | —            | 전체 행 수(필수). `0`이면 빈 상태를 렌더링합니다                        |
+| `getRow`             | `(index: number) => Row`                                 | —            | 행 번호로 행 데이터를 가져옵니다. 보이는 창에 대해서만 호출됩니다(필수) |
+| `estimatedRowHeight` | `number`                                                 | `44`         | 가상 스크롤 계획에 사용하는 예상 행 높이                                |
+| `onRowPress`         | `(index: number) => void`                                | —            | 행 클릭 콜백. 전달하면 행에 포커스할 수 있습니다                        |
+| `emptyLabel`         | `string`                                                 | `"暂无数据"` | 빈 상태 문구                                                            |
+| `renderHeaderCell`   | `(column: TableColumn<Row>, index: number) => PingoNode` | —            | 특정 열의 기본 헤더 셀을 대체합니다                                     |
+| `className`          | `string`                                                 | —            | 컴포넌트 클래스 이름 뒤에 추가합니다                                    |
 
 ### TableColumn\<Row\>
 
-| 필드 | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `key` | `string` | — | 열 식별자. 노드의 key로 사용됩니다(필수) |
-| `header` | `string` | — | 헤더 문구(필수) |
-| `width` | `number` | — | 고정 너비(논리 픽셀). 생략하면 `flex`에 따라 남은 너비를 분배합니다 |
-| `flex` | `number` | `1` | `width`를 설정하지 않았을 때 남은 너비에 대한 분배 몫 |
-| `align` | `"start" \| "center" \| "end"` | `"start"` | 열 콘텐츠의 수평 정렬. 헤더와 셀이 함께 사용합니다 |
-| `cell` | `(row: Row, index: number) => PingoNode` | — | 셀 콘텐츠 빌더 함수(필수) |
+| 필드     | 타입                                     | 기본값    | 설명                                                                |
+| -------- | ---------------------------------------- | --------- | ------------------------------------------------------------------- |
+| `key`    | `string`                                 | —         | 열 식별자. 노드의 key로 사용됩니다(필수)                            |
+| `header` | `string`                                 | —         | 헤더 문구(필수)                                                     |
+| `width`  | `number`                                 | —         | 고정 너비(논리 픽셀). 생략하면 `flex`에 따라 남은 너비를 분배합니다 |
+| `flex`   | `number`                                 | `1`       | `width`를 설정하지 않았을 때 남은 너비에 대한 분배 몫               |
+| `align`  | `"start" \| "center" \| "end"`           | `"start"` | 열 콘텐츠의 수평 정렬. 헤더와 셀이 함께 사용합니다                  |
+| `cell`   | `(row: Row, index: number) => PingoNode` | —         | 셀 콘텐츠 빌더 함수(필수)                                           |
 
 가상 테이블은 콘텐츠에 따라 열 너비를 측정할 수 없습니다. 렌더링되지 않은 행은 측정에 참여하지 않으므로 열 너비는 오직 열 정의에서만 나옵니다. 이것이 헤더와 행이 자연스럽게 정렬되는 이유이기도 합니다.
 

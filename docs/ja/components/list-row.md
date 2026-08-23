@@ -52,16 +52,16 @@ root.render(
 
 ## Props
 
-| Prop | 型 | デフォルト | 説明 |
-| --- | --- | --- | --- |
-| `title` | `string` | — | タイトルテキスト（必須） |
-| `description` | `string` | — | 副次的な説明テキスト |
-| `leading` | `PingoNode` | — | 前部スロット。アバターやアイコンを配置 |
-| `trailing` | `PingoNode` | — | 尾部スロット。バッジ、スイッチ、矢印を配置 |
-| `selected` | `boolean` | — | 選択状態。渡すと `selected`/`unselected` セマンティック値を公開 |
-| `disabled` | `boolean` | `false` | 無効状態。イベントハンドラーは一切登録されない |
-| `onPress` | `() => void` | — | クリック時のコールバック。渡すと行がインタラクティブになる |
-| `className` | `string` | — | コンポーネントのクラス名に追加される |
+| Prop          | 型           | デフォルト | 説明                                                            |
+| ------------- | ------------ | ---------- | --------------------------------------------------------------- |
+| `title`       | `string`     | —          | タイトルテキスト（必須）                                        |
+| `description` | `string`     | —          | 副次的な説明テキスト                                            |
+| `leading`     | `PingoNode`  | —          | 前部スロット。アバターやアイコンを配置                          |
+| `trailing`    | `PingoNode`  | —          | 尾部スロット。バッジ、スイッチ、矢印を配置                      |
+| `selected`    | `boolean`    | —          | 選択状態。渡すと `selected`/`unselected` セマンティック値を公開 |
+| `disabled`    | `boolean`    | `false`    | 無効状態。イベントハンドラーは一切登録されない                  |
+| `onPress`     | `() => void` | —          | クリック時のコールバック。渡すと行がインタラクティブになる      |
+| `className`   | `string`     | —          | コンポーネントのクラス名に追加される                            |
 
 ## アクセシビリティ
 

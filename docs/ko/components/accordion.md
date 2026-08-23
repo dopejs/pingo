@@ -25,7 +25,9 @@ root.render(
       createElement(AccordionItem, {
         value: "intro",
         title: "pingo-ui란 무엇인가요?",
-        children: createElement("text", { value: "pingo canvas에 렌더링되는 컴포넌트 라이브러리입니다." }),
+        children: createElement("text", {
+          value: "pingo canvas에 렌더링되는 컴포넌트 라이브러리입니다.",
+        }),
       }),
       createElement(AccordionItem, {
         value: "theme",
@@ -44,22 +46,22 @@ root.render(
 
 ### Accordion
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `openValue` | `string` | — | 제어: 현재 펼쳐진 항목의 `value` |
-| `defaultOpenValue` | `string` | — | 비제어: 처음 펼쳐진 항목의 `value` |
-| `onValueChange` | `(value: string \| undefined) => void` | — | 펼쳐진 항목 변경 콜백. 모두 접히면 `undefined` |
-| `children` | `PingoNode` | — | `AccordionItem` 목록(필수) |
-| `className` | `string` | — | 컴포넌트 클래스 이름 뒤에 추가 |
+| Prop               | 타입                                   | 기본값 | 설명                                           |
+| ------------------ | -------------------------------------- | ------ | ---------------------------------------------- |
+| `openValue`        | `string`                               | —      | 제어: 현재 펼쳐진 항목의 `value`               |
+| `defaultOpenValue` | `string`                               | —      | 비제어: 처음 펼쳐진 항목의 `value`             |
+| `onValueChange`    | `(value: string \| undefined) => void` | —      | 펼쳐진 항목 변경 콜백. 모두 접히면 `undefined` |
+| `children`         | `PingoNode`                            | —      | `AccordionItem` 목록(필수)                     |
+| `className`        | `string`                               | —      | 컴포넌트 클래스 이름 뒤에 추가                 |
 
 ### AccordionItem
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 항목의 고유 식별자(필수) |
-| `title` | `string` | — | 트리거 제목(필수) |
-| `children` | `PingoNode` | — | 펼쳤을 때 보여 줄 내용(필수) |
-| `className` | `string` | — | 컴포넌트 클래스 이름 뒤에 추가 |
+| Prop        | 타입        | 기본값 | 설명                           |
+| ----------- | ----------- | ------ | ------------------------------ |
+| `value`     | `string`    | —      | 항목의 고유 식별자(필수)       |
+| `title`     | `string`    | —      | 트리거 제목(필수)              |
+| `children`  | `PingoNode` | —      | 펼쳤을 때 보여 줄 내용(필수)   |
+| `className` | `string`    | —      | 컴포넌트 클래스 이름 뒤에 추가 |
 
 ## 접근성
 

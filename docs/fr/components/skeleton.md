@@ -29,11 +29,11 @@ Assemblez plusieurs Skeleton de tailles différentes pour esquisser la structure
 
 ## Props
 
-| Prop | Type | Valeur par défaut | Description |
-| --- | --- | --- | --- |
-| `width` | `number` | — | Largeur du bloc de substitution (px), déterminée par la mise en page si omise |
-| `height` | `number` | — | Hauteur du bloc de substitution (px), déterminée par la mise en page si omise |
-| `className` | `string` | — | Ajouté après le nom de classe du composant |
+| Prop        | Type     | Valeur par défaut | Description                                                                   |
+| ----------- | -------- | ----------------- | ----------------------------------------------------------------------------- |
+| `width`     | `number` | —                 | Largeur du bloc de substitution (px), déterminée par la mise en page si omise |
+| `height`    | `number` | —                 | Hauteur du bloc de substitution (px), déterminée par la mise en page si omise |
+| `className` | `string` | —                 | Ajouté après le nom de classe du composant                                    |
 
 ## Accessibilité
 

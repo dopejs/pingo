@@ -135,11 +135,11 @@ Das zurückgegebene `StylePreprocessResult` enthält `cssText`, `styleSheet`, `d
 
 Jede Diagnose trägt eine Phasenmarkierung:
 
-| `stage`       | Herkunft                                                              |
-| ------------- | -------------------------------------------------------------------- |
-| `"scss"`      | Sass-Compile-Fehler (Syntaxfehler, undefinierte Variablen usw.)       |
-| `"less"`      | Rejection des Less-Compilers                                          |
-| `"pingo-css"` | `compileStyleSheet`-Diagnose: Ergebnis verlässt das CSS-Subset        |
+| `stage`       | Herkunft                                                        |
+| ------------- | --------------------------------------------------------------- |
+| `"scss"`      | Sass-Compile-Fehler (Syntaxfehler, undefinierte Variablen usw.) |
+| `"less"`      | Rejection des Less-Compilers                                    |
+| `"pingo-css"` | `compileStyleSheet`-Diagnose: Ergebnis verlässt das CSS-Subset  |
 
 Beide Compiler aktivieren Source Maps, und die Erzeugungspositionen der pingo-CSS-Diagnostics werden
 **nach bestem Bemühen auf die ursprüngliche SCSS-/Less-Datei mit Zeile und Spalte zurückgemappt**

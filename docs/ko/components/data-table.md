@@ -53,33 +53,33 @@ function MemberTable(): PingoNode {
 
 `TableProps<Row>`의 모든 필드를 상속합니다(`columns`는 정렬 가능한 버전으로 대체).
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `columns` | `readonly DataTableColumn<Row>[]` | — | 열 정의(필수). `TableColumn`보다 `sortable`이 하나 더 있습니다. |
-| `sort` | `SortState` | — | 현재 정렬 상태. 생략하면 정렬되지 않음을 의미합니다. |
-| `onSortChange` | `(sort: SortState \| undefined) => void` | — | 정렬 변경 콜백. `undefined`는 정렬 취소를 의미합니다. 전달하지 않으면 헤더를 클릭할 수 없습니다. |
-| `rowCount` | `number` | — | 전체 행 수(필수) |
-| `getRow` | `(index: number) => Row` | — | 행 번호로 행 데이터를 가져옵니다(필수). |
-| `estimatedRowHeight` | `number` | `44` | 예상 행 높이 |
-| `onRowPress` | `(index: number) => void` | — | 행 클릭 콜백 |
-| `emptyLabel` | `string` | `"데이터 없음"` | 빈 상태 문구 |
-| `renderHeaderCell` | `(column, index) => PingoNode` | — | 타입에는 존재하지만, 컴포넌트 내부에서 정렬 가능한 헤더를 구현하는 데 사용하므로 전달하면 덮어씁니다. |
-| `className` | `string` | — | 컴포넌트 클래스 이름 뒤에 추가됩니다. |
+| Prop                 | 타입                                     | 기본값          | 설명                                                                                                  |
+| -------------------- | ---------------------------------------- | --------------- | ----------------------------------------------------------------------------------------------------- |
+| `columns`            | `readonly DataTableColumn<Row>[]`        | —               | 열 정의(필수). `TableColumn`보다 `sortable`이 하나 더 있습니다.                                       |
+| `sort`               | `SortState`                              | —               | 현재 정렬 상태. 생략하면 정렬되지 않음을 의미합니다.                                                  |
+| `onSortChange`       | `(sort: SortState \| undefined) => void` | —               | 정렬 변경 콜백. `undefined`는 정렬 취소를 의미합니다. 전달하지 않으면 헤더를 클릭할 수 없습니다.      |
+| `rowCount`           | `number`                                 | —               | 전체 행 수(필수)                                                                                      |
+| `getRow`             | `(index: number) => Row`                 | —               | 행 번호로 행 데이터를 가져옵니다(필수).                                                               |
+| `estimatedRowHeight` | `number`                                 | `44`            | 예상 행 높이                                                                                          |
+| `onRowPress`         | `(index: number) => void`                | —               | 행 클릭 콜백                                                                                          |
+| `emptyLabel`         | `string`                                 | `"데이터 없음"` | 빈 상태 문구                                                                                          |
+| `renderHeaderCell`   | `(column, index) => PingoNode`           | —               | 타입에는 존재하지만, 컴포넌트 내부에서 정렬 가능한 헤더를 구현하는 데 사용하므로 전달하면 덮어씁니다. |
+| `className`          | `string`                                 | —               | 컴포넌트 클래스 이름 뒤에 추가됩니다.                                                                 |
 
 ### DataTableColumn\<Row\>
 
 `TableColumn<Row>`의 확장으로, 다음이 추가됩니다.
 
-| 필드 | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
+| 필드       | 타입      | 기본값  | 설명                                  |
+| ---------- | --------- | ------- | ------------------------------------- |
 | `sortable` | `boolean` | `false` | 헤더를 클릭하여 정렬할 수 있는지 여부 |
 
 ### SortState
 
-| 필드 | 타입 | 설명 |
-| --- | --- | --- |
-| `key` | `string` | 정렬 열의 `key` |
-| `direction` | `"ascending" \| "descending"` | 정렬 방향 |
+| 필드        | 타입                          | 설명            |
+| ----------- | ----------------------------- | --------------- |
+| `key`       | `string`                      | 정렬 열의 `key` |
+| `direction` | `"ascending" \| "descending"` | 정렬 방향       |
 
 현재 정렬 열의 헤더에는 `▲` / `▼` 표시가 나타납니다.
 

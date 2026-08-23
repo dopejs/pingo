@@ -15,12 +15,12 @@ description: "@dopejs/pingo-widgets は TextField、TextArea、Pressable、Butto
 
 ## エクスポートと命名
 
-| エクスポート | 説明 |
-| --- | --- |
-| `TextField` | 単一行入力：ボーダー + エラー状態の装飾。内部では `editableText` プリミティブのみを組み合わせます |
-| `TextArea` | 複数行バリアント。Enter で改行し、submit はホストフォームに委ねます |
-| `Pressable` | フォーカス可能なアクティベーション面：View + フォーカス + ネイティブ click/tap |
-| `Button` | `Pressable` + `Text` によるテキストボタンの簡便な組み合わせ |
+| エクスポート | 説明                                                                                              |
+| ------------ | ------------------------------------------------------------------------------------------------- |
+| `TextField`  | 単一行入力：ボーダー + エラー状態の装飾。内部では `editableText` プリミティブのみを組み合わせます |
+| `TextArea`   | 複数行バリアント。Enter で改行し、submit はホストフォームに委ねます                               |
+| `Pressable`  | フォーカス可能なアクティベーション面：View + フォーカス + ネイティブ click/tap                    |
+| `Button`     | `Pressable` + `Text` によるテキストボタンの簡便な組み合わせ                                       |
 
 命名に関する注意：`@dopejs/pingo` の `TextArea` は装飾付きのこのウィジェットを指します。複数行**プリミティブ**は
 `UnstyledTextArea` としてエクスポートされます（同様に `TextAreaProps` にはエイリアス `UnstyledTextAreaProps` があります）。
@@ -46,27 +46,27 @@ createElement(TextField, {
 
 ### Props（TextField）
 
-| Prop | 型 | デフォルト値 | 説明 |
-| --- | --- | --- | --- |
-| `value` | `string` | `""` | 制御対象テキスト |
-| `revision` | `number \| bigint` | `0n` | 制御対象値の正規 revision |
-| `controller` | `TextEditingController` | — | ローカル controller。`value`/`revision` とは排他的です |
-| `readOnly` | `boolean` | — | 読み取り専用 |
-| `password` | `boolean` | — | パスワードモード（平文は DisplayList とアクセシビリティ値に含まれません） |
-| `maxGraphemes` | `number` | — | grapheme の上限 |
-| `inputMode` | `EditableInputMode` | — | ソフトキーボードのレイアウトヒント |
-| `width` | `number` | `240` | ボーダーを含む全体幅 |
-| `height` | `number` | `lineHeight × rows + 16` | ボーダーを含む全体高さ |
-| `fontSize` | `number` | `14` | フォントサイズ |
-| `lineHeight` | `number` | `round(fontSize × 1.5)` | 行の高さ |
-| `color` | `Color` | `#1f2329ff` | テキスト色 |
-| `backgroundColor` | `Color` | `#ffffffff` | フィールドの背景色 |
-| `borderColor` | `Color` | `#c0c4ccff` | ボーダー色 |
-| `errorColor` | `Color` | `#d03050ff` | エラー状態のボーダーと説明の色 |
-| `error` | `string` | — | 空でなければエラー状態：エラー色のボーダー + 下方のエラー説明 |
-| `onTransaction` | `(t: EditTransaction) => void` | — | Core 編集トランザクションのコールバック |
-| `onSubmit` | `() => void` | — | 単一行 Enter での送信 |
-| `semanticLabel` | `string` | — | アクセシビリティ名（ロールは常に `textbox`） |
+| Prop              | 型                             | デフォルト値             | 説明                                                                      |
+| ----------------- | ------------------------------ | ------------------------ | ------------------------------------------------------------------------- |
+| `value`           | `string`                       | `""`                     | 制御対象テキスト                                                          |
+| `revision`        | `number \| bigint`             | `0n`                     | 制御対象値の正規 revision                                                 |
+| `controller`      | `TextEditingController`        | —                        | ローカル controller。`value`/`revision` とは排他的です                    |
+| `readOnly`        | `boolean`                      | —                        | 読み取り専用                                                              |
+| `password`        | `boolean`                      | —                        | パスワードモード（平文は DisplayList とアクセシビリティ値に含まれません） |
+| `maxGraphemes`    | `number`                       | —                        | grapheme の上限                                                           |
+| `inputMode`       | `EditableInputMode`            | —                        | ソフトキーボードのレイアウトヒント                                        |
+| `width`           | `number`                       | `240`                    | ボーダーを含む全体幅                                                      |
+| `height`          | `number`                       | `lineHeight × rows + 16` | ボーダーを含む全体高さ                                                    |
+| `fontSize`        | `number`                       | `14`                     | フォントサイズ                                                            |
+| `lineHeight`      | `number`                       | `round(fontSize × 1.5)`  | 行の高さ                                                                  |
+| `color`           | `Color`                        | `#1f2329ff`              | テキスト色                                                                |
+| `backgroundColor` | `Color`                        | `#ffffffff`              | フィールドの背景色                                                        |
+| `borderColor`     | `Color`                        | `#c0c4ccff`              | ボーダー色                                                                |
+| `errorColor`      | `Color`                        | `#d03050ff`              | エラー状態のボーダーと説明の色                                            |
+| `error`           | `string`                       | —                        | 空でなければエラー状態：エラー色のボーダー + 下方のエラー説明             |
+| `onTransaction`   | `(t: EditTransaction) => void` | —                        | Core 編集トランザクションのコールバック                                   |
+| `onSubmit`        | `() => void`                   | —                        | 単一行 Enter での送信                                                     |
+| `semanticLabel`   | `string`                       | —                        | アクセシビリティ名（ロールは常に `textbox`）                              |
 
 `TextArea` はこれに加えて `rows`（デフォルト `3`）を持ち、デフォルト高さの計算に使われます。
 
@@ -76,15 +76,15 @@ createElement(TextField, {
 ネイティブ click/tap を `onPress` にマッピングする `View` です。スタイルはすべて `style` と `children` で決まり、
 `disabled` の場合は透明度を下げてイベントを除去します。
 
-| Prop | 型 | デフォルト値 | 説明 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | コンテンツ（Button では `string \| number`、必須） |
-| `disabled` | `boolean` | `false` | 無効状態 |
-| `onPress` | `() => void` | — | アクティベーションのコールバック |
-| `className` | `string` | — | クラス名（スタイルシートへ接続） |
-| `style` | `PingoStyle` | — | インラインスタイル |
-| `width` / `height` | `number` | — | サイズ |
-| `semanticLabel` | `string` | `Button` は `children` を利用 | アクセシビリティ名 |
+| Prop               | 型           | デフォルト値                  | 説明                                               |
+| ------------------ | ------------ | ----------------------------- | -------------------------------------------------- |
+| `children`         | `PingoNode`  | —                             | コンテンツ（Button では `string \| number`、必須） |
+| `disabled`         | `boolean`    | `false`                       | 無効状態                                           |
+| `onPress`          | `() => void` | —                             | アクティベーションのコールバック                   |
+| `className`        | `string`     | —                             | クラス名（スタイルシートへ接続）                   |
+| `style`            | `PingoStyle` | —                             | インラインスタイル                                 |
+| `width` / `height` | `number`     | —                             | サイズ                                             |
+| `semanticLabel`    | `string`     | `Button` は `children` を利用 | アクセシビリティ名                                 |
 
 `Button` は追加で `color` と `fontSize` を受け付けます（内部テキストへ渡されます）。
 

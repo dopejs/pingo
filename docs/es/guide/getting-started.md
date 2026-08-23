@@ -69,13 +69,13 @@ root.render(<OrderRow index={1} />);
 
 El motor solo tiene cinco elementos integrados, que se corresponden directamente con los nodos de la escena; no existe cascada CSS ni selectores:
 
-| Elemento        | Uso                                                        |
-| --------------- | ---------------------------------------------------------- |
-| `container`     | Agrupación genérica, fondo, padding, transformaciones      |
-| `text`          | Ejecución de texto (shaping, salto de línea, geometría del caret desde Core) |
-| `scroll`        | Contenedor desplazable propiedad de Core                   |
-| `virtualList`   | Lista virtual con ventana planificada por Core             |
-| `editableText`  | Primitiva de texto editable                                |
+| Elemento       | Uso                                                                          |
+| -------------- | ---------------------------------------------------------------------------- |
+| `container`    | Agrupación genérica, fondo, padding, transformaciones                        |
+| `text`         | Ejecución de texto (shaping, salto de línea, geometría del caret desde Core) |
+| `scroll`       | Contenedor desplazable propiedad de Core                                     |
+| `virtualList`  | Lista virtual con ventana planificada por Core                               |
+| `editableText` | Primitiva de texto editable                                                  |
 
 `TextField` y `TextArea` son widgets compuestos sobre `editableText` (borde, estado de error),
 no introducen una nueva ruta de entrada.

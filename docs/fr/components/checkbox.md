@@ -45,14 +45,14 @@ devient `disabled`.
 
 ## Props
 
-| Prop | Type | Valeur par défaut | Description |
-| --- | --- | --- | --- |
-| `checked` | `boolean` | — | État coché (obligatoire, contrôlé) |
-| `onCheckedChange` | `(checked: boolean) => void` | — | Callback de bascule d'état |
-| `disabled` | `boolean` | `false` | État désactivé |
-| `label` | `string` | — | Étiquette texte à droite de la case |
-| `className` | `string` | — | Ajouté après les classes du composant |
-| `semanticLabel` | `string` | — | Nom d'accessibilité |
+| Prop              | Type                         | Valeur par défaut | Description                           |
+| ----------------- | ---------------------------- | ----------------- | ------------------------------------- |
+| `checked`         | `boolean`                    | —                 | État coché (obligatoire, contrôlé)    |
+| `onCheckedChange` | `(checked: boolean) => void` | —                 | Callback de bascule d'état            |
+| `disabled`        | `boolean`                    | `false`           | État désactivé                        |
+| `label`           | `string`                     | —                 | Étiquette texte à droite de la case   |
+| `className`       | `string`                     | —                 | Ajouté après les classes du composant |
+| `semanticLabel`   | `string`                     | —                 | Nom d'accessibilité                   |
 
 ## Accessibilité
 

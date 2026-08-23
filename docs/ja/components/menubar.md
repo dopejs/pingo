@@ -54,22 +54,22 @@ root.render(
 
 ### Menubar
 
-| Prop | 型 | デフォルト | 説明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 制御：現在開いているメニューの値 |
-| `onValueChange` | `(value: string \| undefined) => void` | — | 開いているメニューが変化したときのコールバック（閉じたときは `undefined`） |
-| `children` | `PingoNode` | — | 複数の `MenubarMenu`（必須） |
-| `className` | `string` | — | 追加するクラス名 |
-| `navigation` | `boolean` | `false` | ナビゲーションセマンティクスを使用（[NavigationMenu](/ja/components/navigation-menu) が内部で使用） |
+| Prop            | 型                                     | デフォルト | 説明                                                                                                |
+| --------------- | -------------------------------------- | ---------- | --------------------------------------------------------------------------------------------------- |
+| `value`         | `string`                               | —          | 制御：現在開いているメニューの値                                                                    |
+| `onValueChange` | `(value: string \| undefined) => void` | —          | 開いているメニューが変化したときのコールバック（閉じたときは `undefined`）                          |
+| `children`      | `PingoNode`                            | —          | 複数の `MenubarMenu`（必須）                                                                        |
+| `className`     | `string`                               | —          | 追加するクラス名                                                                                    |
+| `navigation`    | `boolean`                              | `false`    | ナビゲーションセマンティクスを使用（[NavigationMenu](/ja/components/navigation-menu) が内部で使用） |
 
 ### MenubarMenu
 
-| Prop | 型 | デフォルト | 説明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | メニュー識別子（必須） |
-| `label` | `string` | — | バー上に表示するラベル（必須） |
-| `children` | `PingoNode` | — | 開いたときのパネルコンテンツ（必須） |
-| `className` | `string` | — | 追加するクラス名 |
+| Prop        | 型          | デフォルト | 説明                                 |
+| ----------- | ----------- | ---------- | ------------------------------------ |
+| `value`     | `string`    | —          | メニュー識別子（必須）               |
+| `label`     | `string`    | —          | バー上に表示するラベル（必須）       |
+| `children`  | `PingoNode` | —          | 開いたときのパネルコンテンツ（必須） |
+| `className` | `string`    | —          | 追加するクラス名                     |
 
 ## アクセシビリティ
 

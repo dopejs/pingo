@@ -30,10 +30,10 @@ root.render(createElement(Divider, {}));
 
 ## Props
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `orientation` | `"horizontal" \| "vertical"` | `"horizontal"` | 分隔线方向 |
-| `className` | `string` | — | 追加在组件类名之后 |
+| Prop          | 类型                         | 默认值         | 说明               |
+| ------------- | ---------------------------- | -------------- | ------------------ |
+| `orientation` | `"horizontal" \| "vertical"` | `"horizontal"` | 分隔线方向         |
+| `className`   | `string`                     | —              | 追加在组件类名之后 |
 
 水平分隔线宽度为父容器的 100%、高度 1px；垂直分隔线高度为父容器的 100%、宽度 1px。
 

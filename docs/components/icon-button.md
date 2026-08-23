@@ -40,15 +40,15 @@ root.render(
 
 ## Props
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `icon` | `PingoNode` | — | 图标插槽，原样透传（必填） |
-| `semanticLabel` | `string` | — | 无障碍名称（必填） |
-| `variant` | `"default" \| "secondary" \| "outline" \| "ghost" \| "destructive"` | `"default"` | 视觉变体 |
-| `size` | `"default" \| "sm" \| "lg"` | `"default"` | 尺寸（`sm`/`lg` 暂无效，见上文） |
-| `disabled` | `boolean` | `false` | 禁用态 |
-| `onPress` | `() => void` | — | 指针/键盘激活回调 |
-| `className` | `string` | — | 追加在组件类名之后 |
+| Prop            | 类型                                                                | 默认值      | 说明                             |
+| --------------- | ------------------------------------------------------------------- | ----------- | -------------------------------- |
+| `icon`          | `PingoNode`                                                         | —           | 图标插槽，原样透传（必填）       |
+| `semanticLabel` | `string`                                                            | —           | 无障碍名称（必填）               |
+| `variant`       | `"default" \| "secondary" \| "outline" \| "ghost" \| "destructive"` | `"default"` | 视觉变体                         |
+| `size`          | `"default" \| "sm" \| "lg"`                                         | `"default"` | 尺寸（`sm`/`lg` 暂无效，见上文） |
+| `disabled`      | `boolean`                                                           | `false`     | 禁用态                           |
+| `onPress`       | `() => void`                                                        | —           | 指针/键盘激活回调                |
+| `className`     | `string`                                                            | —           | 追加在组件类名之后               |
 
 ## 无障碍
 

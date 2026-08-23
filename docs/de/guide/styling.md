@@ -48,7 +48,7 @@ Klassenselektoren mit oder ohne führenden Punkt, die Werte sind `PingoStyle`:
 
 ```ts
 const sheet = createStyleSheet({
-  card: { backgroundColor: "#ffffffff", borderRadius: 8, padding: 16 },
+  "card": { backgroundColor: "#ffffffff", borderRadius: 8, padding: 16 },
   "card:hover": { backgroundColor: "#f5f5f5ff" },
 });
 ```
@@ -158,7 +158,7 @@ const root = await createHostedCanvasRoot(canvas, {
 import { setTheme, useTheme } from "@dopejs/pingo-ui";
 
 setTheme("dark"); // alle abonnierenden Komponenten rendern automatisch neu
-useTheme();       // im Render einer Komponente lesen und abonnieren
+useTheme(); // im Render einer Komponente lesen und abonnieren
 ```
 
 Das Theme ist ein modulweites Signal: `useTheme()` im Render einer Komponente abonniert es

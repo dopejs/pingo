@@ -77,19 +77,19 @@ const remote = await loadSvg("/assets/logo.svg");
 
 ## Props ‏(Path)
 
-| Prop | טיפוס | ברירת מחדל | תיאור |
-| --- | --- | --- | --- |
-| `d` | `string` | — | נתוני SVG path (חובה; תחביר נתיב בלבד, לא מסמך) |
-| `viewBox` | `readonly [number, number, number, number]` | — | קופסת מרחב-היוצר, מותאמת לתוך קופסת הצומת |
-| `strokeWidth` | `number` | — | שונה מאפס: קו מתאר במקום מילוי |
-| `fillRule` | `"nonzero" \| "evenodd"` | `"nonzero"` | כלל מילוי |
-| `geometryTransform` | `readonly [number, number, number, number, number, number]` | מטריצת יחידה | טרנספורמציה הנאפית לתוך הגיאומטריה לפני הקידוד |
+| Prop                | טיפוס                                                       | ברירת מחדל   | תיאור                                           |
+| ------------------- | ----------------------------------------------------------- | ------------ | ----------------------------------------------- |
+| `d`                 | `string`                                                    | —            | נתוני SVG path (חובה; תחביר נתיב בלבד, לא מסמך) |
+| `viewBox`           | `readonly [number, number, number, number]`                 | —            | קופסת מרחב-היוצר, מותאמת לתוך קופסת הצומת       |
+| `strokeWidth`       | `number`                                                    | —            | שונה מאפס: קו מתאר במקום מילוי                  |
+| `fillRule`          | `"nonzero" \| "evenodd"`                                    | `"nonzero"`  | כלל מילוי                                       |
+| `geometryTransform` | `readonly [number, number, number, number, number, number]` | מטריצת יחידה | טרנספורמציה הנאפית לתוך הגיאומטריה לפני הקידוד  |
 
 ## Props ‏(Svg)
 
-| Prop | טיפוס | ברירת מחדל | תיאור |
-| --- | --- | --- | --- |
-| `source` | `PingoSvg` | — | מסמך שפוענח על ידי `createSvg` / `loadSvg` (חובה) |
+| Prop     | טיפוס      | ברירת מחדל | תיאור                                             |
+| -------- | ---------- | ---------- | ------------------------------------------------- |
+| `source` | `PingoSvg` | —          | מסמך שפוענח על ידי `createSvg` / `loadSvg` (חובה) |
 
 שניהם יורשים [CommonProps](/api) (`width`/`height`, אירועים, props סמנטיים ועוד).
 

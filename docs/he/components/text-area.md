@@ -36,19 +36,19 @@ root.render(
 
 ## Props
 
-| Prop | סוג | ברירת מחדל | תיאור |
-| --- | --- | --- | --- |
-| `value` | `string` | `""` | ערך התחלתי לשימוש לא מבוקר; מתעלמים ממנו כאשר מוגדר `controller` |
-| `onValueChange` | `(value: string) => void` | — | נקרא עם הערך העדכני לאחר החלת כל טרנזקציית עריכה |
-| `controller` | `TextEditingController` | — | פתח מילוט מתקדם: בקר מתמשך המוחזק בידי הקורא |
-| `onTransaction` | `(transaction: EditTransaction) => void` | — | קריאה חוזרת גולמית עבור כל טרנזקציית עריכה |
-| `onSubmit` | `() => void` | — | קריאה חוזרת לשליחה |
-| `disabled` | `boolean` | `false` | מצב מושבת |
-| `readOnly` | `boolean` | `false` | מצב קריאה בלבד |
-| `rows` | `number` | — | מספר שורות גלוי, קובע את הגובה המינימלי של המעטפת |
-| `className` | `string` | — | מצורף אחרי שם המחלקה של הרכיב |
-| `width` | `number` | — | רוחב קבוע (px) |
-| `semanticLabel` | `string` | — | שם הנגישות |
+| Prop            | סוג                                      | ברירת מחדל | תיאור                                                            |
+| --------------- | ---------------------------------------- | ---------- | ---------------------------------------------------------------- |
+| `value`         | `string`                                 | `""`       | ערך התחלתי לשימוש לא מבוקר; מתעלמים ממנו כאשר מוגדר `controller` |
+| `onValueChange` | `(value: string) => void`                | —          | נקרא עם הערך העדכני לאחר החלת כל טרנזקציית עריכה                 |
+| `controller`    | `TextEditingController`                  | —          | פתח מילוט מתקדם: בקר מתמשך המוחזק בידי הקורא                     |
+| `onTransaction` | `(transaction: EditTransaction) => void` | —          | קריאה חוזרת גולמית עבור כל טרנזקציית עריכה                       |
+| `onSubmit`      | `() => void`                             | —          | קריאה חוזרת לשליחה                                               |
+| `disabled`      | `boolean`                                | `false`    | מצב מושבת                                                        |
+| `readOnly`      | `boolean`                                | `false`    | מצב קריאה בלבד                                                   |
+| `rows`          | `number`                                 | —          | מספר שורות גלוי, קובע את הגובה המינימלי של המעטפת                |
+| `className`     | `string`                                 | —          | מצורף אחרי שם המחלקה של הרכיב                                    |
+| `width`         | `number`                                 | —          | רוחב קבוע (px)                                                   |
+| `semanticLabel` | `string`                                 | —          | שם הנגישות                                                       |
 
 ## נגישות
 

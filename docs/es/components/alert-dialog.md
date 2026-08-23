@@ -50,15 +50,15 @@ solicita el cierre mediante `onOpenChange(false)`; hacer clic en la máscara tam
 
 Hereda `DialogProps` (`open`, `onOpenChange`, `children`, `className`), y además:
 
-| Prop | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `title` | `string` | — | Título (obligatorio) |
-| `description` | `string` | — | Explicación complementaria |
-| `cancelLabel` | `string` | `"取消"` | Texto del botón cancelar |
-| `actionLabel` | `string` | `"确定"` | Texto del botón confirmar |
-| `onCancel` | `() => void` | — | Callback de cancelar (después se cierra) |
-| `onAction` | `() => void` | — | Callback de confirmar (después se cierra) |
-| `destructive` | `boolean` | `false` | El botón de confirmación usa el color de peligro |
+| Prop          | Tipo         | Valor predeterminado | Descripción                                      |
+| ------------- | ------------ | -------------------- | ------------------------------------------------ |
+| `title`       | `string`     | —                    | Título (obligatorio)                             |
+| `description` | `string`     | —                    | Explicación complementaria                       |
+| `cancelLabel` | `string`     | `"取消"`             | Texto del botón cancelar                         |
+| `actionLabel` | `string`     | `"确定"`             | Texto del botón confirmar                        |
+| `onCancel`    | `() => void` | —                    | Callback de cancelar (después se cierra)         |
+| `onAction`    | `() => void` | —                    | Callback de confirmar (después se cierra)        |
+| `destructive` | `boolean`    | `false`              | El botón de confirmación usa el color de peligro |
 
 ## Accesibilidad
 

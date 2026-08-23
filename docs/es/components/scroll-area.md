@@ -27,11 +27,11 @@ El componente ocupa el 100 % del ancho y alto del contenedor padre, por lo que n
 
 ## Props
 
-| Prop | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Contenido desplazable (obligatorio) |
-| `hideScrollbar` | `boolean` | `false` | Oculta la barra de desplazamiento dibujada (la capacidad de desplazamiento se mantiene) |
-| `className` | `string` | — | Se añade después del nombre de clase del componente |
+| Prop            | Tipo        | Valor predeterminado | Descripción                                                                             |
+| --------------- | ----------- | -------------------- | --------------------------------------------------------------------------------------- |
+| `children`      | `PingoNode` | —                    | Contenido desplazable (obligatorio)                                                     |
+| `hideScrollbar` | `boolean`   | `false`              | Oculta la barra de desplazamiento dibujada (la capacidad de desplazamiento se mantiene) |
+| `className`     | `string`    | —                    | Se añade después del nombre de clase del componente                                     |
 
 ## Accesibilidad
 

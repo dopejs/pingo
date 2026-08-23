@@ -42,16 +42,16 @@ root.render(
 
 ## Props
 
-| Prop | 型 | デフォルト | 説明 |
-| --- | --- | --- | --- |
-| `length` | `number` | `6` | マスの数 |
-| `value` | `string` | — | 制御された現在の値（スペース埋め） |
-| `defaultValue` | `string` | — | 非制御の初期値 |
-| `onValueChange` | `(value: string) => void` | — | 値変化時のコールバック。値はスペース埋めの固定長文字列 |
-| `onComplete` | `(value: string) => void` | — | すべて埋まったときのコールバック。値はスペースを除いた完全なコード |
-| `disabled` | `boolean` | `false` | すべてのマスを無効化 |
-| `semanticLabel` | `string` | — | グループのアクセシブル名 |
-| `className` | `string` | — | コンポーネントのクラス名に追加される |
+| Prop            | 型                        | デフォルト | 説明                                                               |
+| --------------- | ------------------------- | ---------- | ------------------------------------------------------------------ |
+| `length`        | `number`                  | `6`        | マスの数                                                           |
+| `value`         | `string`                  | —          | 制御された現在の値（スペース埋め）                                 |
+| `defaultValue`  | `string`                  | —          | 非制御の初期値                                                     |
+| `onValueChange` | `(value: string) => void` | —          | 値変化時のコールバック。値はスペース埋めの固定長文字列             |
+| `onComplete`    | `(value: string) => void` | —          | すべて埋まったときのコールバック。値はスペースを除いた完全なコード |
+| `disabled`      | `boolean`                 | `false`    | すべてのマスを無効化                                               |
+| `semanticLabel` | `string`                  | —          | グループのアクセシブル名                                           |
+| `className`     | `string`                  | —          | コンポーネントのクラス名に追加される                               |
 
 ## アクセシビリティ
 

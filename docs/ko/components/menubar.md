@@ -50,22 +50,22 @@ root.render(
 
 ### Menubar
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 제어: 현재 열린 메뉴의 값 |
-| `onValueChange` | `(value: string \| undefined) => void` | — | 열린 메뉴 변경 콜백(닫힐 때는 `undefined`) |
-| `children` | `PingoNode` | — | 여러 `MenubarMenu`(필수) |
-| `className` | `string` | — | 추가 클래스 이름 |
-| `navigation` | `boolean` | `false` | 탐색 시맨틱 사용([NavigationMenu](/components/navigation-menu) 내부에서 사용) |
+| Prop            | 타입                                   | 기본값  | 설명                                                                          |
+| --------------- | -------------------------------------- | ------- | ----------------------------------------------------------------------------- |
+| `value`         | `string`                               | —       | 제어: 현재 열린 메뉴의 값                                                     |
+| `onValueChange` | `(value: string \| undefined) => void` | —       | 열린 메뉴 변경 콜백(닫힐 때는 `undefined`)                                    |
+| `children`      | `PingoNode`                            | —       | 여러 `MenubarMenu`(필수)                                                      |
+| `className`     | `string`                               | —       | 추가 클래스 이름                                                              |
+| `navigation`    | `boolean`                              | `false` | 탐색 시맨틱 사용([NavigationMenu](/components/navigation-menu) 내부에서 사용) |
 
 ### MenubarMenu
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 메뉴 식별자(필수) |
-| `label` | `string` | — | 바에 표시되는 라벨(필수) |
-| `children` | `PingoNode` | — | 열렸을 때의 패널 콘텐츠(필수) |
-| `className` | `string` | — | 추가 클래스 이름 |
+| Prop        | 타입        | 기본값 | 설명                          |
+| ----------- | ----------- | ------ | ----------------------------- |
+| `value`     | `string`    | —      | 메뉴 식별자(필수)             |
+| `label`     | `string`    | —      | 바에 표시되는 라벨(필수)      |
+| `children`  | `PingoNode` | —      | 열렸을 때의 패널 콘텐츠(필수) |
+| `className` | `string`    | —      | 추가 클래스 이름              |
 
 ## 접근성
 

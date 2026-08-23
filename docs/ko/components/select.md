@@ -45,37 +45,37 @@ root.render(
 
 ### Select
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 선택 값으로, 트리거에 표시됩니다 |
-| `defaultOpen` | `boolean` | `false` | 처음부터 펼침 |
-| `onValueChange` | `(value: string) => void` | — | 선택 변경 콜백(선택 후 자동으로 닫힘) |
-| `onOpenChange` | `(open: boolean) => void` | — | 열림/닫힘 콜백 |
-| `children` | `PingoNode` | — | 트리거와 콘텐츠(필수) |
-| `className` | `string` | — | 컴포넌트 클래스 이름 뒤에 추가됩니다 |
+| Prop            | 타입                      | 기본값  | 설명                                  |
+| --------------- | ------------------------- | ------- | ------------------------------------- |
+| `value`         | `string`                  | —       | 선택 값으로, 트리거에 표시됩니다      |
+| `defaultOpen`   | `boolean`                 | `false` | 처음부터 펼침                         |
+| `onValueChange` | `(value: string) => void` | —       | 선택 변경 콜백(선택 후 자동으로 닫힘) |
+| `onOpenChange`  | `(open: boolean) => void` | —       | 열림/닫힘 콜백                        |
+| `children`      | `PingoNode`               | —       | 트리거와 콘텐츠(필수)                 |
+| `className`     | `string`                  | —       | 컴포넌트 클래스 이름 뒤에 추가됩니다  |
 
 ### SelectTrigger
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | 사용자 정의 트리거 콘텐츠. 없으면 선택 값 또는 플레이스홀더 텍스트를 렌더링합니다 |
-| `placeholder` | `string` | — | 선택되지 않았을 때 표시할 플레이스홀더 텍스트 |
-| `className` | `string` | — | 컴포넌트 클래스 이름 뒤에 추가됩니다 |
+| Prop          | 타입        | 기본값 | 설명                                                                              |
+| ------------- | ----------- | ------ | --------------------------------------------------------------------------------- |
+| `children`    | `PingoNode` | —      | 사용자 정의 트리거 콘텐츠. 없으면 선택 값 또는 플레이스홀더 텍스트를 렌더링합니다 |
+| `placeholder` | `string`    | —      | 선택되지 않았을 때 표시할 플레이스홀더 텍스트                                     |
+| `className`   | `string`    | —      | 컴포넌트 클래스 이름 뒤에 추가됩니다                                              |
 
 ### SelectContent
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | `SelectItem` 목록(필수) |
-| `className` | `string` | — | 컴포넌트 클래스 이름 뒤에 추가됩니다 |
+| Prop        | 타입        | 기본값 | 설명                                 |
+| ----------- | ----------- | ------ | ------------------------------------ |
+| `children`  | `PingoNode` | —      | `SelectItem` 목록(필수)              |
+| `className` | `string`    | —      | 컴포넌트 클래스 이름 뒤에 추가됩니다 |
 
 ### SelectItem
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 옵션 값(필수) |
-| `children` | `string` | — | 옵션 텍스트(필수) |
-| `className` | `string` | — | 컴포넌트 클래스 이름 뒤에 추가됩니다 |
+| Prop        | 타입     | 기본값 | 설명                                 |
+| ----------- | -------- | ------ | ------------------------------------ |
+| `value`     | `string` | —      | 옵션 값(필수)                        |
+| `children`  | `string` | —      | 옵션 텍스트(필수)                    |
+| `className` | `string` | —      | 컴포넌트 클래스 이름 뒤에 추가됩니다 |
 
 ## 접근성
 

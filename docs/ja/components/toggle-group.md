@@ -45,23 +45,23 @@ root.render(
 
 ### ToggleGroup
 
-| Prop | 型 | デフォルト値 | 説明 |
-| --- | --- | --- | --- |
-| `type` | `"single" \| "multiple"` | `"single"` | 単一選択では前の選択を解除。複数選択では項目ごとに追加 |
-| `value` | `readonly string[]` | — | 制御された選択値の集合 |
-| `defaultValue` | `readonly string[]` | `[]` | 非制御の初期選択集合 |
-| `onValueChange` | `(value: readonly string[]) => void` | — | 選択集合の変更時コールバック |
-| `children` | `PingoNode` | — | `ToggleGroupItem` のリスト（必須） |
-| `className` | `string` | — | コンポーネントのクラス名の後に追加 |
+| Prop            | 型                                   | デフォルト値 | 説明                                                   |
+| --------------- | ------------------------------------ | ------------ | ------------------------------------------------------ |
+| `type`          | `"single" \| "multiple"`             | `"single"`   | 単一選択では前の選択を解除。複数選択では項目ごとに追加 |
+| `value`         | `readonly string[]`                  | —            | 制御された選択値の集合                                 |
+| `defaultValue`  | `readonly string[]`                  | `[]`         | 非制御の初期選択集合                                   |
+| `onValueChange` | `(value: readonly string[]) => void` | —            | 選択集合の変更時コールバック                           |
+| `children`      | `PingoNode`                          | —            | `ToggleGroupItem` のリスト（必須）                     |
+| `className`     | `string`                             | —            | コンポーネントのクラス名の後に追加                     |
 
 ### ToggleGroupItem
 
-| Prop | 型 | デフォルト値 | 説明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 項目の値（必須） |
-| `children` | `string` | — | 項目のテキスト（必須） |
-| `disabled` | `boolean` | `false` | 単一項目を無効化 |
-| `className` | `string` | — | コンポーネントのクラス名の後に追加 |
+| Prop        | 型        | デフォルト値 | 説明                               |
+| ----------- | --------- | ------------ | ---------------------------------- |
+| `value`     | `string`  | —            | 項目の値（必須）                   |
+| `children`  | `string`  | —            | 項目のテキスト（必須）             |
+| `disabled`  | `boolean` | `false`      | 単一項目を無効化                   |
+| `className` | `string`  | —            | コンポーネントのクラス名の後に追加 |
 
 ## アクセシビリティ
 

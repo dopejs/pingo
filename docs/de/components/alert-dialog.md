@@ -50,15 +50,15 @@ auf Abbrechen oder Bestätigen löst zuerst den jeweiligen Callback aus und ford
 
 Erbt `DialogProps` (`open`, `onOpenChange`, `children`, `className`), zusätzlich:
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `title` | `string` | — | Titel (Pflicht) |
-| `description` | `string` | — | Ergänzende Beschreibung |
-| `cancelLabel` | `string` | `"取消"` | Text des Abbrechen-Buttons |
-| `actionLabel` | `string` | `"确定"` | Text des Bestätigen-Buttons |
-| `onCancel` | `() => void` | — | Abbrechen-Callback (danach wird geschlossen) |
-| `onAction` | `() => void` | — | Bestätigen-Callback (danach wird geschlossen) |
-| `destructive` | `boolean` | `false` | Bestätigen-Button in Gefahrenfarbe |
+| Prop          | Typ          | Standardwert | Beschreibung                                  |
+| ------------- | ------------ | ------------ | --------------------------------------------- |
+| `title`       | `string`     | —            | Titel (Pflicht)                               |
+| `description` | `string`     | —            | Ergänzende Beschreibung                       |
+| `cancelLabel` | `string`     | `"取消"`     | Text des Abbrechen-Buttons                    |
+| `actionLabel` | `string`     | `"确定"`     | Text des Bestätigen-Buttons                   |
+| `onCancel`    | `() => void` | —            | Abbrechen-Callback (danach wird geschlossen)  |
+| `onAction`    | `() => void` | —            | Bestätigen-Callback (danach wird geschlossen) |
+| `destructive` | `boolean`    | `false`      | Bestätigen-Button in Gefahrenfarbe            |
 
 ## Barrierefreiheit
 

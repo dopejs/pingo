@@ -30,10 +30,10 @@ root.render(createElement(Divider, {}));
 
 ## Props
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `orientation` | `"horizontal" \| "vertical"` | `"horizontal"` | 구분선 방향 |
-| `className` | `string` | — | 컴포넌트 클래스 이름 뒤에 추가됩니다 |
+| Prop          | 타입                         | 기본값         | 설명                                 |
+| ------------- | ---------------------------- | -------------- | ------------------------------------ |
+| `orientation` | `"horizontal" \| "vertical"` | `"horizontal"` | 구분선 방향                          |
+| `className`   | `string`                     | —              | 컴포넌트 클래스 이름 뒤에 추가됩니다 |
 
 수평 구분선의 너비는 부모 컨테이너의 100%, 높이는 1px입니다. 수직 구분선의 높이는 부모 컨테이너의 100%, 너비는 1px입니다.
 

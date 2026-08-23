@@ -35,14 +35,14 @@ root.render(
 
 ## Props
 
-| Prop | 型 | デフォルト値 | 説明 |
-| --- | --- | --- | --- |
-| `children` | `string` | — | ボタンテキスト（必須） |
-| `pressed` | `boolean` | — | 制御された押下状態 |
-| `defaultPressed` | `boolean` | `false` | 非制御時の初期押下状態 |
-| `onPressedChange` | `(pressed: boolean) => void` | — | 状態切り替え時のコールバック |
-| `disabled` | `boolean` | `false` | 無効状態 |
-| `className` | `string` | — | コンポーネントのクラス名の後に追加 |
+| Prop              | 型                           | デフォルト値 | 説明                               |
+| ----------------- | ---------------------------- | ------------ | ---------------------------------- |
+| `children`        | `string`                     | —            | ボタンテキスト（必須）             |
+| `pressed`         | `boolean`                    | —            | 制御された押下状態                 |
+| `defaultPressed`  | `boolean`                    | `false`      | 非制御時の初期押下状態             |
+| `onPressedChange` | `(pressed: boolean) => void` | —            | 状態切り替え時のコールバック       |
+| `disabled`        | `boolean`                    | `false`      | 無効状態                           |
+| `className`       | `string`                     | —            | コンポーネントのクラス名の後に追加 |
 
 ## アクセシビリティ
 

@@ -58,27 +58,27 @@ Wenn `rowCount` `0` ist, wird `emptyLabel` gerendert (Standard: „暂无数据�
 
 ### TableProps\<Row\>
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `columns` | `readonly TableColumn<Row>[]` | — | Spaltendefinition, die Kopfzeile und Zeilen steuert (erforderlich) |
-| `rowCount` | `number` | — | Gesamtzahl der Zeilen (erforderlich); bei `0` wird der leere Zustand gerendert |
-| `getRow` | `(index: number) => Row` | — | Liefert die Zeilendaten anhand der Zeilennummer; wird nur für das sichtbare Fenster aufgerufen (erforderlich) |
-| `estimatedRowHeight` | `number` | `44` | Geschätzte Zeilenhöhe für die virtuelle Scroll-Planung |
-| `onRowPress` | `(index: number) => void` | — | Callback bei Zeilenklick; sofern angegeben, werden Zeilen fokussierbar |
-| `emptyLabel` | `string` | `"暂无数据"` | Text für den leeren Zustand |
-| `renderHeaderCell` | `(column: TableColumn<Row>, index: number) => PingoNode` | — | Ersetzt die Standard-Kopfzelle einer Spalte |
-| `className` | `string` | — | Wird an den Komponenten-Klassennamen angehängt |
+| Prop                 | Typ                                                      | Standardwert | Beschreibung                                                                                                  |
+| -------------------- | -------------------------------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------- |
+| `columns`            | `readonly TableColumn<Row>[]`                            | —            | Spaltendefinition, die Kopfzeile und Zeilen steuert (erforderlich)                                            |
+| `rowCount`           | `number`                                                 | —            | Gesamtzahl der Zeilen (erforderlich); bei `0` wird der leere Zustand gerendert                                |
+| `getRow`             | `(index: number) => Row`                                 | —            | Liefert die Zeilendaten anhand der Zeilennummer; wird nur für das sichtbare Fenster aufgerufen (erforderlich) |
+| `estimatedRowHeight` | `number`                                                 | `44`         | Geschätzte Zeilenhöhe für die virtuelle Scroll-Planung                                                        |
+| `onRowPress`         | `(index: number) => void`                                | —            | Callback bei Zeilenklick; sofern angegeben, werden Zeilen fokussierbar                                        |
+| `emptyLabel`         | `string`                                                 | `"暂无数据"` | Text für den leeren Zustand                                                                                   |
+| `renderHeaderCell`   | `(column: TableColumn<Row>, index: number) => PingoNode` | —            | Ersetzt die Standard-Kopfzelle einer Spalte                                                                   |
+| `className`          | `string`                                                 | —            | Wird an den Komponenten-Klassennamen angehängt                                                                |
 
 ### TableColumn\<Row\>
 
-| Feld | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `key` | `string` | — | Spaltenkennung, als node key verwendet (erforderlich) |
-| `header` | `string` | — | Kopfzeilentext (erforderlich) |
-| `width` | `number` | — | Feste Breite (logische Pixel); wenn nicht angegeben, wird der verbleibende Platz nach `flex` verteilt |
-| `flex` | `number` | `1` | Verteilungsanteil am verbleibenden Platz, wenn `width` nicht gesetzt ist |
-| `align` | `"start" \| "center" \| "end"` | `"start"` | Horizontale Ausrichtung des Spalteninhalts; gilt für Kopfzeile und Zellen |
-| `cell` | `(row: Row, index: number) => PingoNode` | — | Builder-Funktion für den Zelleninhalt (erforderlich) |
+| Feld     | Typ                                      | Standardwert | Beschreibung                                                                                          |
+| -------- | ---------------------------------------- | ------------ | ----------------------------------------------------------------------------------------------------- |
+| `key`    | `string`                                 | —            | Spaltenkennung, als node key verwendet (erforderlich)                                                 |
+| `header` | `string`                                 | —            | Kopfzeilentext (erforderlich)                                                                         |
+| `width`  | `number`                                 | —            | Feste Breite (logische Pixel); wenn nicht angegeben, wird der verbleibende Platz nach `flex` verteilt |
+| `flex`   | `number`                                 | `1`          | Verteilungsanteil am verbleibenden Platz, wenn `width` nicht gesetzt ist                              |
+| `align`  | `"start" \| "center" \| "end"`           | `"start"`    | Horizontale Ausrichtung des Spalteninhalts; gilt für Kopfzeile und Zellen                             |
+| `cell`   | `(row: Row, index: number) => PingoNode` | —            | Builder-Funktion für den Zelleninhalt (erforderlich)                                                  |
 
 Bei virtuellen Tabellen lassen sich Spaltenbreiten nicht anhand des Inhalts messen: Nicht gerenderte Zeilen werden bei der Messung nicht berücksichtigt. Die Spaltenbreite kann daher nur aus der Spaltendefinition stammen – wodurch Kopfzeile und Zeilen von Natur aus ausgerichtet bleiben.
 

@@ -47,22 +47,22 @@ root.render(
 
 ## Props
 
-| Prop | 型 | デフォルト | 説明 |
-| --- | --- | --- | --- |
-| `value` | `string` | `""` | 非制御の使い方での初期値。`controller` 設定後は無視される |
-| `onValueChange` | `(value: string) => void` | — | 編集トランザクションが適用されるたびに最新の値で呼ばれる |
-| `controller` | `TextEditingController` | — | 高度なエスケープハッチ：呼び出し側が保持する永続コントローラー |
-| `onTransaction` | `(transaction: EditTransaction) => void` | — | 各編集トランザクションの生コールバック |
-| `onSubmit` | `() => void` | — | 送信（Enter）時のコールバック |
-| `disabled` | `boolean` | `false` | 無効状態 |
-| `readOnly` | `boolean` | `false` | 読み取り専用状態 |
-| `password` | `boolean` | `false` | マスク入力 |
-| `inputMode` | `"decimal" \| "email" \| "none" \| "numeric" \| "search" \| "tel" \| "text" \| "url"` | `"text"` | ソフトキーボードレイアウトのヒント |
-| `className` | `string` | — | コンポーネントのクラス名に追加される |
-| `width` | `number` | — | 固定幅（px） |
-| `semanticLabel` | `string` | — | アクセシブル名 |
-| `prefix` | `PingoNode` | — | 前置の装飾。アイコンや通貨記号など |
-| `suffix` | `PingoNode` | — | 後置の装飾。単位やクリアボタンなど |
+| Prop            | 型                                                                                    | デフォルト | 説明                                                           |
+| --------------- | ------------------------------------------------------------------------------------- | ---------- | -------------------------------------------------------------- |
+| `value`         | `string`                                                                              | `""`       | 非制御の使い方での初期値。`controller` 設定後は無視される      |
+| `onValueChange` | `(value: string) => void`                                                             | —          | 編集トランザクションが適用されるたびに最新の値で呼ばれる       |
+| `controller`    | `TextEditingController`                                                               | —          | 高度なエスケープハッチ：呼び出し側が保持する永続コントローラー |
+| `onTransaction` | `(transaction: EditTransaction) => void`                                              | —          | 各編集トランザクションの生コールバック                         |
+| `onSubmit`      | `() => void`                                                                          | —          | 送信（Enter）時のコールバック                                  |
+| `disabled`      | `boolean`                                                                             | `false`    | 無効状態                                                       |
+| `readOnly`      | `boolean`                                                                             | `false`    | 読み取り専用状態                                               |
+| `password`      | `boolean`                                                                             | `false`    | マスク入力                                                     |
+| `inputMode`     | `"decimal" \| "email" \| "none" \| "numeric" \| "search" \| "tel" \| "text" \| "url"` | `"text"`   | ソフトキーボードレイアウトのヒント                             |
+| `className`     | `string`                                                                              | —          | コンポーネントのクラス名に追加される                           |
+| `width`         | `number`                                                                              | —          | 固定幅（px）                                                   |
+| `semanticLabel` | `string`                                                                              | —          | アクセシブル名                                                 |
+| `prefix`        | `PingoNode`                                                                           | —          | 前置の装飾。アイコンや通貨記号など                             |
+| `suffix`        | `PingoNode`                                                                           | —          | 後置の装飾。単位やクリアボタンなど                             |
 
 ## アクセシビリティ
 

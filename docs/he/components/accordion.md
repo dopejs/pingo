@@ -41,22 +41,22 @@ root.render(
 
 ### Accordion
 
-| Prop | סוג | ברירת מחדל | תיאור |
-| --- | --- | --- | --- |
-| `openValue` | `string` | — | נשלט: ה־`value` של הפריט הפתוח כעת |
-| `defaultOpenValue` | `string` | — | לא נשלט: ה־`value` של הפריט הפתוח בהתחלה |
-| `onValueChange` | `(value: string \| undefined) => void` | — | קריאה חוזרת בעת שינוי הפריט הפתוח; `undefined` כאשר הכל סגור |
-| `children` | `PingoNode` | — | רשימת `AccordionItem` (חובה) |
-| `className` | `string` | — | מצורף אחרי שם מחלקת הרכיב |
+| Prop               | סוג                                    | ברירת מחדל | תיאור                                                        |
+| ------------------ | -------------------------------------- | ---------- | ------------------------------------------------------------ |
+| `openValue`        | `string`                               | —          | נשלט: ה־`value` של הפריט הפתוח כעת                           |
+| `defaultOpenValue` | `string`                               | —          | לא נשלט: ה־`value` של הפריט הפתוח בהתחלה                     |
+| `onValueChange`    | `(value: string \| undefined) => void` | —          | קריאה חוזרת בעת שינוי הפריט הפתוח; `undefined` כאשר הכל סגור |
+| `children`         | `PingoNode`                            | —          | רשימת `AccordionItem` (חובה)                                 |
+| `className`        | `string`                               | —          | מצורף אחרי שם מחלקת הרכיב                                    |
 
 ### AccordionItem
 
-| Prop | סוג | ברירת מחדל | תיאור |
-| --- | --- | --- | --- |
-| `value` | `string` | — | מזהה ייחודי של הפריט (חובה) |
-| `title` | `string` | — | כותרת הטריגר (חובה) |
-| `children` | `PingoNode` | — | התוכן המוצג לאחר הפתיחה (חובה) |
-| `className` | `string` | — | מצורף אחרי שם מחלקת הרכיב |
+| Prop        | סוג         | ברירת מחדל | תיאור                          |
+| ----------- | ----------- | ---------- | ------------------------------ |
+| `value`     | `string`    | —          | מזהה ייחודי של הפריט (חובה)    |
+| `title`     | `string`    | —          | כותרת הטריגר (חובה)            |
+| `children`  | `PingoNode` | —          | התוכן המוצג לאחר הפתיחה (חובה) |
+| `className` | `string`    | —          | מצורף אחרי שם מחלקת הרכיב      |
 
 ## נגישות
 

@@ -38,15 +38,15 @@ root.render(
 
 ## Props
 
-| Prop | סוג | ברירת מחדל | תיאור |
-| --- | --- | --- | --- |
-| `trigger` | `string` | — | טקסט הטריגר (חובה) |
-| `children` | `PingoNode` | — | התוכן המוצג לאחר הפתיחה (חובה) |
-| `open` | `boolean` | — | מבוקר: מצב הפתיחה הנוכחי |
-| `defaultOpen` | `boolean` | `false` | לא מבוקר: מצב הפתיחה ההתחלתי |
-| `onOpenChange` | `(open: boolean) => void` | — | קריאה חוזרת בעת שינוי מצב הפתיחה |
-| `disabled` | `boolean` | `false` | השבתת הטריגר |
-| `className` | `string` | — | נוסף לאחר שם מחלקת הרכיב |
+| Prop           | סוג                       | ברירת מחדל | תיאור                            |
+| -------------- | ------------------------- | ---------- | -------------------------------- |
+| `trigger`      | `string`                  | —          | טקסט הטריגר (חובה)               |
+| `children`     | `PingoNode`               | —          | התוכן המוצג לאחר הפתיחה (חובה)   |
+| `open`         | `boolean`                 | —          | מבוקר: מצב הפתיחה הנוכחי         |
+| `defaultOpen`  | `boolean`                 | `false`    | לא מבוקר: מצב הפתיחה ההתחלתי     |
+| `onOpenChange` | `(open: boolean) => void` | —          | קריאה חוזרת בעת שינוי מצב הפתיחה |
+| `disabled`     | `boolean`                 | `false`    | השבתת הטריגר                     |
+| `className`    | `string`                  | —          | נוסף לאחר שם מחלקת הרכיב         |
 
 ## נגישות
 

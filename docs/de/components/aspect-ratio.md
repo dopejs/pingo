@@ -31,11 +31,11 @@ etwa `16 / 9` für Breitbild.
 
 ## Props
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `ratio` | `number` | `1` | Seitenverhältnis (Breite ÷ Höhe) |
-| `children` | `PingoNode` | — | Der beschränkte Inhalt (Pflicht) |
-| `className` | `string` | — | Wird hinter die Komponentenklassen gehängt |
+| Prop        | Typ         | Standardwert | Beschreibung                               |
+| ----------- | ----------- | ------------ | ------------------------------------------ |
+| `ratio`     | `number`    | `1`          | Seitenverhältnis (Breite ÷ Höhe)           |
+| `children`  | `PingoNode` | —            | Der beschränkte Inhalt (Pflicht)           |
+| `className` | `string`    | —            | Wird hinter die Komponentenklassen gehängt |
 
 ## Barrierefreiheit
 

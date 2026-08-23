@@ -28,11 +28,11 @@ Tooltip est piloté par l’entrée et la sortie du pointeur (`pointerenter` / `
 
 ## Props
 
-| Prop | Type | Valeur par défaut | Description |
-| --- | --- | --- | --- |
-| `content` | `string` | — | Texte de la bulle (requis) |
-| `children` | `PingoNode` | — | Élément déclencheur (requis) |
-| `className` | `string` | — | Ajouté après le nom de classe du conteneur d’ancrage |
+| Prop        | Type        | Valeur par défaut | Description                                          |
+| ----------- | ----------- | ----------------- | ---------------------------------------------------- |
+| `content`   | `string`    | —                 | Texte de la bulle (requis)                           |
+| `children`  | `PingoNode` | —                 | Élément déclencheur (requis)                         |
+| `className` | `string`    | —                 | Ajouté après le nom de classe du conteneur d’ancrage |
 
 ## Accessibilité
 

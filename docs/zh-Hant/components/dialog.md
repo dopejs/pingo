@@ -54,26 +54,26 @@ Dialog 的浮層會填滿**它自己的父容器**（而不是視口），請把
 
 ### Dialog
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `open` | `boolean` | — | 是否開啟（必填，受控） |
-| `onOpenChange` | `(open: boolean) => void` | — | 請求關閉/開啟時回調 |
-| `children` | `PingoNode` | — | 面板內容（必填） |
-| `className` | `string` | — | 追加在浮層類名之後 |
+| Prop           | 型別                      | 預設值 | 說明                   |
+| -------------- | ------------------------- | ------ | ---------------------- |
+| `open`         | `boolean`                 | —      | 是否開啟（必填，受控） |
+| `onOpenChange` | `(open: boolean) => void` | —      | 請求關閉/開啟時回調    |
+| `children`     | `PingoNode`               | —      | 面板內容（必填）       |
+| `className`    | `string`                  | —      | 追加在浮層類名之後     |
 
 ### DialogHeader / DialogFooter
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | 區塊內容（必填） |
-| `className` | `string` | — | 追加類名 |
+| Prop        | 型別        | 預設值 | 說明             |
+| ----------- | ----------- | ------ | ---------------- |
+| `children`  | `PingoNode` | —      | 區塊內容（必填） |
+| `className` | `string`    | —      | 追加類名         |
 
 ### DialogTitle / DialogDescription
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `children` | `string` | — | 文字內容（必填） |
-| `className` | `string` | — | 追加類名 |
+| Prop        | 型別     | 預設值 | 說明             |
+| ----------- | -------- | ------ | ---------------- |
+| `children`  | `string` | —      | 文字內容（必填） |
+| `className` | `string` | —      | 追加類名         |
 
 ## 無障礙
 

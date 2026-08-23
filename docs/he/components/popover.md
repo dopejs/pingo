@@ -47,27 +47,27 @@ root.render(
 
 ### Popover
 
-| Prop | סוג | ברירת מחדל | תיאור |
-| --- | --- | --- | --- |
-| `open` | `boolean` | — | מצב פתיחה/סגירה מבוקר |
-| `defaultOpen` | `boolean` | `false` | מצב פתיחה/סגירה התחלתי לא מבוקר |
-| `onOpenChange` | `(open: boolean) => void` | — | קריאה חוזרת לשינוי פתיחה/סגירה |
-| `children` | `PingoNode` | — | Trigger ו־Content (חובה) |
-| `className` | `string` | — | נוסף לאחר שם מחלקת מיכל העוגן |
+| Prop           | סוג                       | ברירת מחדל | תיאור                           |
+| -------------- | ------------------------- | ---------- | ------------------------------- |
+| `open`         | `boolean`                 | —          | מצב פתיחה/סגירה מבוקר           |
+| `defaultOpen`  | `boolean`                 | `false`    | מצב פתיחה/סגירה התחלתי לא מבוקר |
+| `onOpenChange` | `(open: boolean) => void` | —          | קריאה חוזרת לשינוי פתיחה/סגירה  |
+| `children`     | `PingoNode`               | —          | Trigger ו־Content (חובה)        |
+| `className`    | `string`                  | —          | נוסף לאחר שם מחלקת מיכל העוגן   |
 
 ### PopoverTrigger
 
-| Prop | סוג | ברירת מחדל | תיאור |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | אלמנט הטריגר (חובה) |
-| `className` | `string` | — | שם מחלקה נוסף |
+| Prop        | סוג         | ברירת מחדל | תיאור               |
+| ----------- | ----------- | ---------- | ------------------- |
+| `children`  | `PingoNode` | —          | אלמנט הטריגר (חובה) |
+| `className` | `string`    | —          | שם מחלקה נוסף       |
 
 ### PopoverContent
 
-| Prop | סוג | ברירת מחדל | תיאור |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | תוכן הלוח (חובה) |
-| `className` | `string` | — | שם מחלקה נוסף |
+| Prop        | סוג         | ברירת מחדל | תיאור            |
+| ----------- | ----------- | ---------- | ---------------- |
+| `children`  | `PingoNode` | —          | תוכן הלוח (חובה) |
+| `className` | `string`    | —          | שם מחלקה נוסף    |
 
 ## נגישות
 

@@ -44,16 +44,16 @@ root.render(
 
 ## Props
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `title` | `string` | — | 제목 텍스트(필수) |
-| `description` | `string` | — | 보조 설명 텍스트 |
-| `leading` | `PingoNode` | — | 앞쪽 슬롯, 아바타나 아이콘을 배치합니다 |
-| `trailing` | `PingoNode` | — | 뒤쪽 슬롯, 배지·스위치·화살표를 배치합니다 |
-| `selected` | `boolean` | — | 선택 상태. 전달하면 `selected`/`unselected` 시맨틱 값을 노출합니다 |
-| `disabled` | `boolean` | `false` | 비활성 상태. 어떤 이벤트 핸들러도 등록하지 않습니다 |
-| `onPress` | `() => void` | — | 클릭 콜백. 전달하면 행이 상호작용 가능해집니다 |
-| `className` | `string` | — | 컴포넌트 클래스 이름 뒤에 추가합니다 |
+| Prop          | 타입         | 기본값  | 설명                                                               |
+| ------------- | ------------ | ------- | ------------------------------------------------------------------ |
+| `title`       | `string`     | —       | 제목 텍스트(필수)                                                  |
+| `description` | `string`     | —       | 보조 설명 텍스트                                                   |
+| `leading`     | `PingoNode`  | —       | 앞쪽 슬롯, 아바타나 아이콘을 배치합니다                            |
+| `trailing`    | `PingoNode`  | —       | 뒤쪽 슬롯, 배지·스위치·화살표를 배치합니다                         |
+| `selected`    | `boolean`    | —       | 선택 상태. 전달하면 `selected`/`unselected` 시맨틱 값을 노출합니다 |
+| `disabled`    | `boolean`    | `false` | 비활성 상태. 어떤 이벤트 핸들러도 등록하지 않습니다                |
+| `onPress`     | `() => void` | —       | 클릭 콜백. 전달하면 행이 상호작용 가능해집니다                     |
+| `className`   | `string`     | —       | 컴포넌트 클래스 이름 뒤에 추가합니다                               |
 
 ## 접근성
 

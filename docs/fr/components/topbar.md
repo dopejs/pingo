@@ -45,12 +45,12 @@ createElement(TopBar, {
 
 ## Props
 
-| Prop | Type | Défaut | Description |
-| --- | --- | --- | --- |
-| `title` | `string` | — | Texte du titre ; lorsqu'il est omis, rend une colonne extensible vide |
-| `leading` | `PingoNode` | — | Emplacement avant, pour le logo ou le bouton de retour |
-| `actions` | `PingoNode` | — | Emplacement arrière, poussé tout à droite par la colonne du titre |
-| `className` | `string` | — | Ajouté après le nom de classe du composant |
+| Prop        | Type        | Défaut | Description                                                           |
+| ----------- | ----------- | ------ | --------------------------------------------------------------------- |
+| `title`     | `string`    | —      | Texte du titre ; lorsqu'il est omis, rend une colonne extensible vide |
+| `leading`   | `PingoNode` | —      | Emplacement avant, pour le logo ou le bouton de retour                |
+| `actions`   | `PingoNode` | —      | Emplacement arrière, poussé tout à droite par la colonne du titre     |
+| `className` | `string`    | —      | Ajouté après le nom de classe du composant                            |
 
 ## Accessibilité
 

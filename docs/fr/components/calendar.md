@@ -48,25 +48,25 @@ au pointeur ni au clavier. Ici, les week-ends sont désactivés :
 
 ### CalendarProps
 
-| Prop | Type | Valeur par défaut | Description |
-| --- | --- | --- | --- |
-| `value` | `CalendarDate` | — | Date sélectionnée (contrôlé) |
-| `month` | `CalendarDate` | — | Mois affiché (contrôlé) ; géré par l'état interne si omis |
-| `defaultMonth` | `CalendarDate` | `value` ?? janvier 2026 | Mois initial en mode non contrôlé |
-| `onSelect` | `(date: CalendarDate) => void` | — | Callback de clic sur une date |
-| `onMonthChange` | `(month: CalendarDate) => void` | — | Callback de changement de mois (contrôlé comme non contrôlé) |
-| `weekdayLabels` | `readonly string[]` | `["日","一","二","三","四","五","六"]` | En-têtes de jours de semaine, à partir du dimanche |
-| `monthLabel` | `(month: CalendarDate) => string` | Format `"2026 年 8 月"` | Titre de mois personnalisé |
-| `isDisabled` | `(date: CalendarDate) => boolean` | — | Désactive certaines dates |
-| `className` | `string` | — | Ajouté après les classes du composant |
+| Prop            | Type                              | Valeur par défaut                      | Description                                                  |
+| --------------- | --------------------------------- | -------------------------------------- | ------------------------------------------------------------ |
+| `value`         | `CalendarDate`                    | —                                      | Date sélectionnée (contrôlé)                                 |
+| `month`         | `CalendarDate`                    | —                                      | Mois affiché (contrôlé) ; géré par l'état interne si omis    |
+| `defaultMonth`  | `CalendarDate`                    | `value` ?? janvier 2026                | Mois initial en mode non contrôlé                            |
+| `onSelect`      | `(date: CalendarDate) => void`    | —                                      | Callback de clic sur une date                                |
+| `onMonthChange` | `(month: CalendarDate) => void`   | —                                      | Callback de changement de mois (contrôlé comme non contrôlé) |
+| `weekdayLabels` | `readonly string[]`               | `["日","一","二","三","四","五","六"]` | En-têtes de jours de semaine, à partir du dimanche           |
+| `monthLabel`    | `(month: CalendarDate) => string` | Format `"2026 年 8 月"`                | Titre de mois personnalisé                                   |
+| `isDisabled`    | `(date: CalendarDate) => boolean` | —                                      | Désactive certaines dates                                    |
+| `className`     | `string`                          | —                                      | Ajouté après les classes du composant                        |
 
 ### CalendarDate
 
-| Champ | Type | Description |
-| --- | --- | --- |
-| `year` | `number` | Année |
-| `month` | `number` | Mois, 1–12 |
-| `day` | `number` | Jour, 1–31 |
+| Champ   | Type     | Description |
+| ------- | -------- | ----------- |
+| `year`  | `number` | Année       |
+| `month` | `number` | Mois, 1–12  |
+| `day`   | `number` | Jour, 1–31  |
 
 Le paquet exporte aussi des fonctions pures comme `daysInMonth`, `monthGrid`, `shiftMonth` et
 `sameDate`, pratiques pour une logique de dates personnalisée.

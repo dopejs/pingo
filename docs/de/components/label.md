@@ -38,11 +38,11 @@ Eine Verknüpfung von Elementen existiert in pingo noch nicht, daher beruht die 
 
 ## Props
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `children` | `string` | — | Beschriftungstext (erforderlich) |
-| `className` | `string` | — | Wird an den Komponenten-Klassennamen angehängt |
-| `semanticLabel` | `string` | — | Überschreibt den Barrierefreiheitsnamen; standardmäßig wird der Beschriftungstext verwendet |
+| Prop            | Typ      | Standardwert | Beschreibung                                                                                |
+| --------------- | -------- | ------------ | ------------------------------------------------------------------------------------------- |
+| `children`      | `string` | —            | Beschriftungstext (erforderlich)                                                            |
+| `className`     | `string` | —            | Wird an den Komponenten-Klassennamen angehängt                                              |
+| `semanticLabel` | `string` | —            | Überschreibt den Barrierefreiheitsnamen; standardmäßig wird der Beschriftungstext verwendet |
 
 ## Barrierefreiheit
 

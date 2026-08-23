@@ -41,22 +41,22 @@ root.render(
 
 ### RadioGroup
 
-| Prop | סוג | ברירת מחדל | תיאור |
-| --- | --- | --- | --- |
-| `value` | `string` | — | ערך נבחר במצב מבוקר |
-| `defaultValue` | `string` | — | ערך נבחר התחלתי במצב לא מבוקר |
-| `onValueChange` | `(value: string) => void` | — | קריאה חוזרת בעת שינוי הבחירה |
-| `disabled` | `boolean` | `false` | השבתת הקבוצה כולה |
-| `children` | `PingoNode` | — | רשימת `RadioGroupItem` (חובה) |
-| `className` | `string` | — | מצורף לאחר שם המחלקה של הרכיב |
+| Prop            | סוג                       | ברירת מחדל | תיאור                         |
+| --------------- | ------------------------- | ---------- | ----------------------------- |
+| `value`         | `string`                  | —          | ערך נבחר במצב מבוקר           |
+| `defaultValue`  | `string`                  | —          | ערך נבחר התחלתי במצב לא מבוקר |
+| `onValueChange` | `(value: string) => void` | —          | קריאה חוזרת בעת שינוי הבחירה  |
+| `disabled`      | `boolean`                 | `false`    | השבתת הקבוצה כולה             |
+| `children`      | `PingoNode`               | —          | רשימת `RadioGroupItem` (חובה) |
+| `className`     | `string`                  | —          | מצורף לאחר שם המחלקה של הרכיב |
 
 ### RadioGroupItem
 
-| Prop | סוג | ברירת מחדל | תיאור |
-| --- | --- | --- | --- |
-| `value` | `string` | — | ערך האפשרות (חובה) |
-| `label` | `string` | — | טקסט האפשרות |
-| `className` | `string` | — | מצורף לאחר שם המחלקה של הרכיב |
+| Prop        | סוג      | ברירת מחדל | תיאור                         |
+| ----------- | -------- | ---------- | ----------------------------- |
+| `value`     | `string` | —          | ערך האפשרות (חובה)            |
+| `label`     | `string` | —          | טקסט האפשרות                  |
+| `className` | `string` | —          | מצורף לאחר שם המחלקה של הרכיב |
 
 ## נגישות
 

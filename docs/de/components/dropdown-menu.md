@@ -46,37 +46,37 @@ Trigger und Content lesen den Zustand der Wurzelkomponente über den Kontext und
 
 ### DropdownMenu
 
-| Prop | Typ | Standard | Beschreibung |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Aktuell ausgewählter Wert (hebt den entsprechenden Eintrag hervor) |
-| `defaultOpen` | `boolean` | `false` | Anfänglicher Öffnungszustand |
-| `onValueChange` | `(value: string) => void` | — | Callback bei Auswahl eines Menüeintrags |
-| `onOpenChange` | `(open: boolean) => void` | — | Callback bei Änderung des Öffnungszustands |
-| `children` | `PingoNode` | — | Trigger und Content (erforderlich) |
-| `className` | `string` | — | Wird nach dem Klassennamen des Anker-Containers angehängt |
+| Prop            | Typ                       | Standard | Beschreibung                                                       |
+| --------------- | ------------------------- | -------- | ------------------------------------------------------------------ |
+| `value`         | `string`                  | —        | Aktuell ausgewählter Wert (hebt den entsprechenden Eintrag hervor) |
+| `defaultOpen`   | `boolean`                 | `false`  | Anfänglicher Öffnungszustand                                       |
+| `onValueChange` | `(value: string) => void` | —        | Callback bei Auswahl eines Menüeintrags                            |
+| `onOpenChange`  | `(open: boolean) => void` | —        | Callback bei Änderung des Öffnungszustands                         |
+| `children`      | `PingoNode`               | —        | Trigger und Content (erforderlich)                                 |
+| `className`     | `string`                  | —        | Wird nach dem Klassennamen des Anker-Containers angehängt          |
 
 ### DropdownMenuTrigger
 
-| Prop | Typ | Standard | Beschreibung |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Trigger-Element; falls nicht angegeben, wird der aktuelle Wert/Platzhaltertext gerendert |
-| `placeholder` | `string` | — | Platzhaltertext, wenn kein Wert ausgewählt ist |
-| `className` | `string` | — | Zusätzliche Klasse |
+| Prop          | Typ         | Standard | Beschreibung                                                                             |
+| ------------- | ----------- | -------- | ---------------------------------------------------------------------------------------- |
+| `children`    | `PingoNode` | —        | Trigger-Element; falls nicht angegeben, wird der aktuelle Wert/Platzhaltertext gerendert |
+| `placeholder` | `string`    | —        | Platzhaltertext, wenn kein Wert ausgewählt ist                                           |
+| `className`   | `string`    | —        | Zusätzliche Klasse                                                                       |
 
 ### DropdownMenuContent
 
-| Prop | Typ | Standard | Beschreibung |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Menüeinträge (erforderlich) |
-| `className` | `string` | — | Zusätzliche Klasse |
+| Prop        | Typ         | Standard | Beschreibung                |
+| ----------- | ----------- | -------- | --------------------------- |
+| `children`  | `PingoNode` | —        | Menüeinträge (erforderlich) |
+| `className` | `string`    | —        | Zusätzliche Klasse          |
 
 ### DropdownMenuItem
 
-| Prop | Typ | Standard | Beschreibung |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Wert des Menüeintrags (erforderlich) |
-| `children` | `string` | — | Anzeigetext (erforderlich) |
-| `className` | `string` | — | Zusätzliche Klasse |
+| Prop        | Typ      | Standard | Beschreibung                         |
+| ----------- | -------- | -------- | ------------------------------------ |
+| `value`     | `string` | —        | Wert des Menüeintrags (erforderlich) |
+| `children`  | `string` | —        | Anzeigetext (erforderlich)           |
+| `className` | `string` | —        | Zusätzliche Klasse                   |
 
 ## Barrierefreiheit
 

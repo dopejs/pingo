@@ -36,16 +36,16 @@ El valor interno es una cadena **de longitud fija, rellenada con espacios**: el 
 
 ## Props
 
-| Prop | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `length` | `number` | `6` | Número de casillas |
-| `value` | `string` | — | Valor controlado actual (rellenado con espacios) |
-| `defaultValue` | `string` | — | Valor inicial no controlado |
-| `onValueChange` | `(value: string) => void` | — | Callback de cambio de valor; el valor es una cadena de longitud fija rellenada con espacios |
-| `onComplete` | `(value: string) => void` | — | Callback cuando todas las casillas están completas; el valor es el código completo sin espacios |
-| `disabled` | `boolean` | `false` | Desactiva todas las casillas |
-| `semanticLabel` | `string` | — | Nombre accesible del grupo |
-| `className` | `string` | — | Se añade después de la clase del componente |
+| Prop            | Tipo                      | Valor predeterminado | Descripción                                                                                     |
+| --------------- | ------------------------- | -------------------- | ----------------------------------------------------------------------------------------------- |
+| `length`        | `number`                  | `6`                  | Número de casillas                                                                              |
+| `value`         | `string`                  | —                    | Valor controlado actual (rellenado con espacios)                                                |
+| `defaultValue`  | `string`                  | —                    | Valor inicial no controlado                                                                     |
+| `onValueChange` | `(value: string) => void` | —                    | Callback de cambio de valor; el valor es una cadena de longitud fija rellenada con espacios     |
+| `onComplete`    | `(value: string) => void` | —                    | Callback cuando todas las casillas están completas; el valor es el código completo sin espacios |
+| `disabled`      | `boolean`                 | `false`              | Desactiva todas las casillas                                                                    |
+| `semanticLabel` | `string`                  | —                    | Nombre accesible del grupo                                                                      |
+| `className`     | `string`                  | —                    | Se añade después de la clase del componente                                                     |
 
 ## Accesibilidad
 

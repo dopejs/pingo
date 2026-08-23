@@ -41,12 +41,12 @@ createElement(Avatar, { fallback: "李", size: 32 });
 
 ## Props
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `image` | `PingoImage` | — | Vordekodierte Bildressource; ohne sie erscheint das `fallback`-Kürzel |
-| `fallback` | `string` | — | Kürzeltext bei fehlendem Bild (Pflicht) |
-| `size` | `number` | Skin-Standard `40` | Kantenlänge des Quadrats (px) |
-| `className` | `string` | — | Wird hinter die Komponentenklassen gehängt |
+| Prop        | Typ          | Standardwert       | Beschreibung                                                          |
+| ----------- | ------------ | ------------------ | --------------------------------------------------------------------- |
+| `image`     | `PingoImage` | —                  | Vordekodierte Bildressource; ohne sie erscheint das `fallback`-Kürzel |
+| `fallback`  | `string`     | —                  | Kürzeltext bei fehlendem Bild (Pflicht)                               |
+| `size`      | `number`     | Skin-Standard `40` | Kantenlänge des Quadrats (px)                                         |
+| `className` | `string`     | —                  | Wird hinter die Komponentenklassen gehängt                            |
 
 ## Barrierefreiheit
 

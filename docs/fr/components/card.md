@@ -53,17 +53,17 @@ est transmis tel quel, sans aucun enrobage.
 
 `Card`, `CardHeader`, `CardContent` et `CardFooter` acceptent des props de conteneur :
 
-| Prop | Type | Valeur par défaut | Description |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Contenu de l'emplacement (obligatoire) |
-| `className` | `string` | — | Ajouté après les classes du composant |
+| Prop        | Type        | Valeur par défaut | Description                            |
+| ----------- | ----------- | ----------------- | -------------------------------------- |
+| `children`  | `PingoNode` | —                 | Contenu de l'emplacement (obligatoire) |
+| `className` | `string`    | —                 | Ajouté après les classes du composant  |
 
 `CardTitle` et `CardDescription` acceptent des props de texte :
 
-| Prop | Type | Valeur par défaut | Description |
-| --- | --- | --- | --- |
-| `children` | `string` | — | Contenu texte (obligatoire) |
-| `className` | `string` | — | Ajouté après les classes du composant |
+| Prop        | Type     | Valeur par défaut | Description                           |
+| ----------- | -------- | ----------------- | ------------------------------------- |
+| `children`  | `string` | —                 | Contenu texte (obligatoire)           |
+| `className` | `string` | —                 | Ajouté après les classes du composant |
 
 ## Accessibilité
 

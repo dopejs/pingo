@@ -134,10 +134,10 @@ El `StylePreprocessResult` devuelto incluye `cssText`, `styleSheet`, `diagnostic
 
 Cada diagnóstico lleva una marca de fase:
 
-| `stage`       | Origen                                                              |
-| ------------- | ------------------------------------------------------------------- |
-| `"scss"`      | Excepción de compilación de Sass (error de sintaxis, variable sin definir, etc.) |
-| `"less"`      | Rejection de la compilación de Less                                  |
+| `stage`       | Origen                                                                             |
+| ------------- | ---------------------------------------------------------------------------------- |
+| `"scss"`      | Excepción de compilación de Sass (error de sintaxis, variable sin definir, etc.)   |
+| `"less"`      | Rejection de la compilación de Less                                                |
 | `"pingo-css"` | Diagnóstico de `compileStyleSheet` cuando el producto excede el subconjunto de CSS |
 
 Ambos compiladores activan source maps, y las posiciones generadas de los diagnósticos de CSS de

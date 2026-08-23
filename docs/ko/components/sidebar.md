@@ -43,30 +43,30 @@ root.render(
 
 ### Sidebar
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 제어: 현재 선택된 항목의 `value` |
-| `defaultValue` | `string` | — | 비제어: 초기에 선택된 항목의 `value` |
-| `onValueChange` | `(value: string) => void` | — | 선택 변경 콜백 |
-| `children` | `PingoNode` | — | `SidebarSection` 목록(필수) |
-| `className` | `string` | — | 컴포넌트 클래스 이름 뒤에 추가 |
+| Prop            | 타입                      | 기본값 | 설명                                 |
+| --------------- | ------------------------- | ------ | ------------------------------------ |
+| `value`         | `string`                  | —      | 제어: 현재 선택된 항목의 `value`     |
+| `defaultValue`  | `string`                  | —      | 비제어: 초기에 선택된 항목의 `value` |
+| `onValueChange` | `(value: string) => void` | —      | 선택 변경 콜백                       |
+| `children`      | `PingoNode`               | —      | `SidebarSection` 목록(필수)          |
+| `className`     | `string`                  | —      | 컴포넌트 클래스 이름 뒤에 추가       |
 
 ### SidebarSection
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `title` | `string` | — | 그룹 제목. 생략하면 제목 행을 렌더링하지 않습니다. |
-| `children` | `PingoNode` | — | `SidebarItem` 목록(필수) |
-| `className` | `string` | — | 컴포넌트 클래스 이름 뒤에 추가 |
+| Prop        | 타입        | 기본값 | 설명                                               |
+| ----------- | ----------- | ------ | -------------------------------------------------- |
+| `title`     | `string`    | —      | 그룹 제목. 생략하면 제목 행을 렌더링하지 않습니다. |
+| `children`  | `PingoNode` | —      | `SidebarItem` 목록(필수)                           |
+| `className` | `string`    | —      | 컴포넌트 클래스 이름 뒤에 추가                     |
 
 ### SidebarItem
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 항목의 고유 식별자(필수) |
-| `label` | `string` | — | 항목 텍스트이며 접근성 이름으로도 사용됩니다(필수) |
-| `icon` | `PingoNode` | — | 앞쪽 슬롯으로 아이콘에 사용 |
-| `className` | `string` | — | 컴포넌트 클래스 이름 뒤에 추가 |
+| Prop        | 타입        | 기본값 | 설명                                               |
+| ----------- | ----------- | ------ | -------------------------------------------------- |
+| `value`     | `string`    | —      | 항목의 고유 식별자(필수)                           |
+| `label`     | `string`    | —      | 항목 텍스트이며 접근성 이름으로도 사용됩니다(필수) |
+| `icon`      | `PingoNode` | —      | 앞쪽 슬롯으로 아이콘에 사용                        |
+| `className` | `string`    | —      | 컴포넌트 클래스 이름 뒤에 추가                     |
 
 ## 접근성
 

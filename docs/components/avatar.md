@@ -37,12 +37,12 @@ createElement(Avatar, { fallback: "李", size: 32 });
 
 ## Props
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `image` | `PingoImage` | — | 预解码的图片资源；缺省时显示 `fallback` 缩写 |
-| `fallback` | `string` | — | 缩写文本，图片缺失时显示（必填） |
-| `size` | `number` | 皮肤默认 `40` | 正方形边长（px） |
-| `className` | `string` | — | 追加在组件类名之后 |
+| Prop        | 类型         | 默认值        | 说明                                         |
+| ----------- | ------------ | ------------- | -------------------------------------------- |
+| `image`     | `PingoImage` | —             | 预解码的图片资源；缺省时显示 `fallback` 缩写 |
+| `fallback`  | `string`     | —             | 缩写文本，图片缺失时显示（必填）             |
+| `size`      | `number`     | 皮肤默认 `40` | 正方形边长（px）                             |
+| `className` | `string`     | —             | 追加在组件类名之后                           |
 
 ## 无障碍
 

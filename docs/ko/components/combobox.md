@@ -43,18 +43,18 @@ root.render(
 
 ## Props
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `items` | `readonly { value: string; label: string }[]` | — | 옵션 목록(필수) |
-| `value` | `string` | — | 제어되는 선택 값 |
-| `defaultValue` | `string` | — | 비제어 초기 선택 값 |
-| `onValueChange` | `(value: string) => void` | — | 선택 변경 콜백(선택 후 자동으로 접힘) |
-| `open` | `boolean` | — | 제어되는 열림/닫힘 |
-| `defaultOpen` | `boolean` | `false` | 비제어 초기 열림/닫힘 |
-| `onOpenChange` | `(open: boolean) => void` | — | 열림/닫힘 콜백 |
-| `placeholder` | `string` | `"선택하세요"` | 미선택 시 트리거의 플레이스홀더 문구 |
-| `emptyLabel` | `string` | — | 필터 결과가 없을 때의 안내 문구 |
-| `className` | `string` | — | 컴포넌트 클래스명 뒤에 추가 |
+| Prop            | 타입                                          | 기본값         | 설명                                  |
+| --------------- | --------------------------------------------- | -------------- | ------------------------------------- |
+| `items`         | `readonly { value: string; label: string }[]` | —              | 옵션 목록(필수)                       |
+| `value`         | `string`                                      | —              | 제어되는 선택 값                      |
+| `defaultValue`  | `string`                                      | —              | 비제어 초기 선택 값                   |
+| `onValueChange` | `(value: string) => void`                     | —              | 선택 변경 콜백(선택 후 자동으로 접힘) |
+| `open`          | `boolean`                                     | —              | 제어되는 열림/닫힘                    |
+| `defaultOpen`   | `boolean`                                     | `false`        | 비제어 초기 열림/닫힘                 |
+| `onOpenChange`  | `(open: boolean) => void`                     | —              | 열림/닫힘 콜백                        |
+| `placeholder`   | `string`                                      | `"선택하세요"` | 미선택 시 트리거의 플레이스홀더 문구  |
+| `emptyLabel`    | `string`                                      | —              | 필터 결과가 없을 때의 안내 문구       |
+| `className`     | `string`                                      | —              | 컴포넌트 클래스명 뒤에 추가           |
 
 ## 접근성
 

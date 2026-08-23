@@ -47,25 +47,25 @@ function DateField(): PingoNode {
 
 ### CalendarProps
 
-| Prop | 型 | デフォルト | 説明 |
-| --- | --- | --- | --- |
-| `value` | `CalendarDate` | — | 選択中の日付（制御） |
-| `month` | `CalendarDate` | — | 表示する月（制御）。省略時は内部状態で管理 |
-| `defaultMonth` | `CalendarDate` | `value` ?? 2026 年 1 月 | 非制御モードでの初期表示月 |
-| `onSelect` | `(date: CalendarDate) => void` | — | 日付クリック時のコールバック |
-| `onMonthChange` | `(month: CalendarDate) => void` | — | 月めくり時のコールバック（制御・非制御の両方で発火） |
-| `weekdayLabels` | `readonly string[]` | `["日","月","火","水","木","金","土"]` | 曜日ヘッダー。日曜始まり |
-| `monthLabel` | `(month: CalendarDate) => string` | `"2026 年 8 月"` 形式 | 月タイトルのカスタマイズ |
-| `isDisabled` | `(date: CalendarDate) => boolean` | — | 特定の日付を無効化 |
-| `className` | `string` | — | コンポーネントのクラス名に追加される |
+| Prop            | 型                                | デフォルト                             | 説明                                                 |
+| --------------- | --------------------------------- | -------------------------------------- | ---------------------------------------------------- |
+| `value`         | `CalendarDate`                    | —                                      | 選択中の日付（制御）                                 |
+| `month`         | `CalendarDate`                    | —                                      | 表示する月（制御）。省略時は内部状態で管理           |
+| `defaultMonth`  | `CalendarDate`                    | `value` ?? 2026 年 1 月                | 非制御モードでの初期表示月                           |
+| `onSelect`      | `(date: CalendarDate) => void`    | —                                      | 日付クリック時のコールバック                         |
+| `onMonthChange` | `(month: CalendarDate) => void`   | —                                      | 月めくり時のコールバック（制御・非制御の両方で発火） |
+| `weekdayLabels` | `readonly string[]`               | `["日","月","火","水","木","金","土"]` | 曜日ヘッダー。日曜始まり                             |
+| `monthLabel`    | `(month: CalendarDate) => string` | `"2026 年 8 月"` 形式                  | 月タイトルのカスタマイズ                             |
+| `isDisabled`    | `(date: CalendarDate) => boolean` | —                                      | 特定の日付を無効化                                   |
+| `className`     | `string`                          | —                                      | コンポーネントのクラス名に追加される                 |
 
 ### CalendarDate
 
-| フィールド | 型 | 説明 |
-| --- | --- | --- |
-| `year` | `number` | 年 |
-| `month` | `number` | 月（1–12） |
-| `day` | `number` | 日（1–31） |
+| フィールド | 型       | 説明       |
+| ---------- | -------- | ---------- |
+| `year`     | `number` | 年         |
+| `month`    | `number` | 月（1–12） |
+| `day`      | `number` | 日（1–31） |
 
 パッケージは `daysInMonth`、`monthGrid`、`shiftMonth`、`sameDate` などの純粋関数もエクスポートしているので、
 独自の日付ロジックに利用できます。

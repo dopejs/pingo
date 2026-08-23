@@ -53,17 +53,17 @@ durchgereicht und nicht verpackt.
 
 `Card`, `CardHeader`, `CardContent`, `CardFooter` akzeptieren Container-Props:
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Slot-Inhalt (Pflicht) |
-| `className` | `string` | — | Wird hinter die Komponentenklassen gehängt |
+| Prop        | Typ         | Standardwert | Beschreibung                               |
+| ----------- | ----------- | ------------ | ------------------------------------------ |
+| `children`  | `PingoNode` | —            | Slot-Inhalt (Pflicht)                      |
+| `className` | `string`    | —            | Wird hinter die Komponentenklassen gehängt |
 
 `CardTitle`, `CardDescription` akzeptieren Text-Props:
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `children` | `string` | — | Textinhalt (Pflicht) |
-| `className` | `string` | — | Wird hinter die Komponentenklassen gehängt |
+| Prop        | Typ      | Standardwert | Beschreibung                               |
+| ----------- | -------- | ------------ | ------------------------------------------ |
+| `children`  | `string` | —            | Textinhalt (Pflicht)                       |
+| `className` | `string` | —            | Wird hinter die Komponentenklassen gehängt |
 
 ## Barrierefreiheit
 

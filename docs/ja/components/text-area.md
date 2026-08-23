@@ -36,19 +36,19 @@ root.render(
 
 ## Props
 
-| Prop | 型 | デフォルト値 | 説明 |
-| --- | --- | --- | --- |
-| `value` | `string` | `""` | 非制御用法の初期値。`controller` を設定した場合は無視されます |
-| `onValueChange` | `(value: string) => void` | — | 編集トランザクションが適用されるたびに最新値をコールバックします |
-| `controller` | `TextEditingController` | — | 高度なエスケープハッチ。呼び出し側が保持する永続的なコントローラー |
-| `onTransaction` | `(transaction: EditTransaction) => void` | — | 各編集トランザクションの生のコールバック |
-| `onSubmit` | `() => void` | — | 送信コールバック |
-| `disabled` | `boolean` | `false` | 無効状態 |
-| `readOnly` | `boolean` | `false` | 読み取り専用状態 |
-| `rows` | `number` | — | 表示行数。外枠の最小高さを決定します |
-| `className` | `string` | — | コンポーネントのクラス名の後に追加されます |
-| `width` | `number` | — | 固定幅（px） |
-| `semanticLabel` | `string` | — | アクセシビリティ名 |
+| Prop            | 型                                       | デフォルト値 | 説明                                                               |
+| --------------- | ---------------------------------------- | ------------ | ------------------------------------------------------------------ |
+| `value`         | `string`                                 | `""`         | 非制御用法の初期値。`controller` を設定した場合は無視されます      |
+| `onValueChange` | `(value: string) => void`                | —            | 編集トランザクションが適用されるたびに最新値をコールバックします   |
+| `controller`    | `TextEditingController`                  | —            | 高度なエスケープハッチ。呼び出し側が保持する永続的なコントローラー |
+| `onTransaction` | `(transaction: EditTransaction) => void` | —            | 各編集トランザクションの生のコールバック                           |
+| `onSubmit`      | `() => void`                             | —            | 送信コールバック                                                   |
+| `disabled`      | `boolean`                                | `false`      | 無効状態                                                           |
+| `readOnly`      | `boolean`                                | `false`      | 読み取り専用状態                                                   |
+| `rows`          | `number`                                 | —            | 表示行数。外枠の最小高さを決定します                               |
+| `className`     | `string`                                 | —            | コンポーネントのクラス名の後に追加されます                         |
+| `width`         | `number`                                 | —            | 固定幅（px）                                                       |
+| `semanticLabel` | `string`                                 | —            | アクセシビリティ名                                                 |
 
 ## アクセシビリティ
 

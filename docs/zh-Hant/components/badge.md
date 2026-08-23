@@ -44,12 +44,12 @@ createElement(ListRow, {
 
 ## Props
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `children` | `string` | — | 標籤文字（必填） |
-| `variant` | `"default" \| "secondary" \| "destructive" \| "outline"` | `"default"` | 視覺變體 |
-| `semanticLabel` | `string` | — | 無障礙名稱；省略時使用預設語義 |
-| `className` | `string` | — | 追加在元件類名之後 |
+| Prop            | 型別                                                     | 預設值      | 說明                           |
+| --------------- | -------------------------------------------------------- | ----------- | ------------------------------ |
+| `children`      | `string`                                                 | —           | 標籤文字（必填）               |
+| `variant`       | `"default" \| "secondary" \| "destructive" \| "outline"` | `"default"` | 視覺變體                       |
+| `semanticLabel` | `string`                                                 | —           | 無障礙名稱；省略時使用預設語義 |
+| `className`     | `string`                                                 | —           | 追加在元件類名之後             |
 
 ## 無障礙
 

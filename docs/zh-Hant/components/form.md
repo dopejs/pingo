@@ -43,21 +43,21 @@ root.render(
 
 ### Form
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | 表單內容（必填） |
-| `className` | `string` | — | 追加在元件類名之後 |
+| Prop        | 型別        | 預設值 | 說明               |
+| ----------- | ----------- | ------ | ------------------ |
+| `children`  | `PingoNode` | —      | 表單內容（必填）   |
+| `className` | `string`    | —      | 追加在元件類名之後 |
 
 ### FormField
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `label` | `string` | — | 欄位標籤（必填） |
-| `children` | `PingoNode` | — | 欄位控制項（必填） |
-| `error` | `string` | — | 錯誤資訊；存在即標記欄位無效並替換描述 |
-| `description` | `string` | — | 輔助描述文字 |
-| `required` | `boolean` | `false` | 必填標記，標籤後追加 `*` |
-| `className` | `string` | — | 追加在元件類名之後 |
+| Prop          | 型別        | 預設值  | 說明                                   |
+| ------------- | ----------- | ------- | -------------------------------------- |
+| `label`       | `string`    | —       | 欄位標籤（必填）                       |
+| `children`    | `PingoNode` | —       | 欄位控制項（必填）                     |
+| `error`       | `string`    | —       | 錯誤資訊；存在即標記欄位無效並替換描述 |
+| `description` | `string`    | —       | 輔助描述文字                           |
+| `required`    | `boolean`   | `false` | 必填標記，標籤後追加 `*`               |
+| `className`   | `string`    | —       | 追加在元件類名之後                     |
 
 ## 無障礙
 

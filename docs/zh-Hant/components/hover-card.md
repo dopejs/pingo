@@ -30,15 +30,15 @@ root.render(
 
 ## Props
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | 觸發元素（必填） |
-| `content` | `PingoNode` | — | 卡片內容（必填） |
-| `open` | `boolean` | — | 受控開合狀態 |
-| `onOpenChange` | `(open: boolean) => void` | — | 開合變化回調 |
-| `openDelayMs` | `number` | `300` | 開啟延遲（毫秒） |
-| `closeDelayMs` | `number` | `200` | 關閉延遲（毫秒） |
-| `className` | `string` | — | 追加在錨點容器類名之後 |
+| Prop           | 型別                      | 預設值 | 說明                   |
+| -------------- | ------------------------- | ------ | ---------------------- |
+| `children`     | `PingoNode`               | —      | 觸發元素（必填）       |
+| `content`      | `PingoNode`               | —      | 卡片內容（必填）       |
+| `open`         | `boolean`                 | —      | 受控開合狀態           |
+| `onOpenChange` | `(open: boolean) => void` | —      | 開合變化回調           |
+| `openDelayMs`  | `number`                  | `300`  | 開啟延遲（毫秒）       |
+| `closeDelayMs` | `number`                  | `200`  | 關閉延遲（毫秒）       |
+| `className`    | `string`                  | —      | 追加在錨點容器類名之後 |
 
 ## 無障礙
 

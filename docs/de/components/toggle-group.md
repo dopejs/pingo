@@ -45,23 +45,23 @@ root.render(
 
 ### ToggleGroup
 
-| Prop | Typ | Standard | Beschreibung |
-| --- | --- | --- | --- |
-| `type` | `"single" \| "multiple"` | `"single"` | Einfachauswahl entfernt die vorherige Auswahl; Mehrfachauswahl fügt Elemente einzeln hinzu |
-| `value` | `readonly string[]` | — | Kontrollierte Menge ausgewählter Werte |
-| `defaultValue` | `readonly string[]` | `[]` | Unkontrollierte anfängliche Auswahlmenge |
-| `onValueChange` | `(value: readonly string[]) => void` | — | Callback bei Änderung der Auswahlmenge |
-| `children` | `PingoNode` | — | Liste von `ToggleGroupItem` (erforderlich) |
-| `className` | `string` | — | Wird an den Klassennamen der Komponente angehängt |
+| Prop            | Typ                                  | Standard   | Beschreibung                                                                               |
+| --------------- | ------------------------------------ | ---------- | ------------------------------------------------------------------------------------------ |
+| `type`          | `"single" \| "multiple"`             | `"single"` | Einfachauswahl entfernt die vorherige Auswahl; Mehrfachauswahl fügt Elemente einzeln hinzu |
+| `value`         | `readonly string[]`                  | —          | Kontrollierte Menge ausgewählter Werte                                                     |
+| `defaultValue`  | `readonly string[]`                  | `[]`       | Unkontrollierte anfängliche Auswahlmenge                                                   |
+| `onValueChange` | `(value: readonly string[]) => void` | —          | Callback bei Änderung der Auswahlmenge                                                     |
+| `children`      | `PingoNode`                          | —          | Liste von `ToggleGroupItem` (erforderlich)                                                 |
+| `className`     | `string`                             | —          | Wird an den Klassennamen der Komponente angehängt                                          |
 
 ### ToggleGroupItem
 
-| Prop | Typ | Standard | Beschreibung |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Wert des Elements (erforderlich) |
-| `children` | `string` | — | Text des Elements (erforderlich) |
-| `disabled` | `boolean` | `false` | Deaktiviert das einzelne Element |
-| `className` | `string` | — | Wird an den Klassennamen der Komponente angehängt |
+| Prop        | Typ       | Standard | Beschreibung                                      |
+| ----------- | --------- | -------- | ------------------------------------------------- |
+| `value`     | `string`  | —        | Wert des Elements (erforderlich)                  |
+| `children`  | `string`  | —        | Text des Elements (erforderlich)                  |
+| `disabled`  | `boolean` | `false`  | Deaktiviert das einzelne Element                  |
+| `className` | `string`  | —        | Wird an den Klassennamen der Komponente angehängt |
 
 ## Barrierefreiheit
 

@@ -40,15 +40,15 @@ root.render(
 
 ## Props
 
-| Prop | 型 | デフォルト | 説明 |
-| --- | --- | --- | --- |
-| `trigger` | `string` | — | トリガーのテキスト（必須） |
-| `children` | `PingoNode` | — | 展開時に表示するコンテンツ（必須） |
-| `open` | `boolean` | — | 制御：現在の展開状態 |
-| `defaultOpen` | `boolean` | `false` | 非制御：初期の展開状態 |
-| `onOpenChange` | `(open: boolean) => void` | — | 展開状態が変化したときのコールバック |
-| `disabled` | `boolean` | `false` | トリガーを無効化 |
-| `className` | `string` | — | コンポーネントのクラス名に追加される |
+| Prop           | 型                        | デフォルト | 説明                                 |
+| -------------- | ------------------------- | ---------- | ------------------------------------ |
+| `trigger`      | `string`                  | —          | トリガーのテキスト（必須）           |
+| `children`     | `PingoNode`               | —          | 展開時に表示するコンテンツ（必須）   |
+| `open`         | `boolean`                 | —          | 制御：現在の展開状態                 |
+| `defaultOpen`  | `boolean`                 | `false`    | 非制御：初期の展開状態               |
+| `onOpenChange` | `(open: boolean) => void` | —          | 展開状態が変化したときのコールバック |
+| `disabled`     | `boolean`                 | `false`    | トリガーを無効化                     |
+| `className`    | `string`                  | —          | コンポーネントのクラス名に追加される |
 
 ## アクセシビリティ
 

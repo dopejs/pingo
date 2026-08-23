@@ -61,19 +61,19 @@ const remote = await loadSvg("/assets/logo.svg");
 
 ## Props (Path)
 
-| Prop | النوع | القيمة الافتراضية | الوصف |
-| --- | --- | --- | --- |
-| `d` | `string` | — | بيانات مسار SVG (مطلوبة، صياغة مسار فقط وليست مستندًا) |
-| `viewBox` | `readonly [number, number, number, number]` | — | صندوق فضاء المؤلف، يُقاس ليتسع داخل صندوق العقدة |
-| `strokeWidth` | `number` | — | يُحدَّد بدلًا من الملء عند تمرير قيمة غير صفرية |
-| `fillRule` | `"nonzero" \| "evenodd"` | `"nonzero"` | قاعدة الملء |
-| `geometryTransform` | `readonly [number, number, number, number, number, number]` | مصفوفة الوحدة | تحويل يُدمج في الهندسة قبل الترميز |
+| Prop                | النوع                                                       | القيمة الافتراضية | الوصف                                                  |
+| ------------------- | ----------------------------------------------------------- | ----------------- | ------------------------------------------------------ |
+| `d`                 | `string`                                                    | —                 | بيانات مسار SVG (مطلوبة، صياغة مسار فقط وليست مستندًا) |
+| `viewBox`           | `readonly [number, number, number, number]`                 | —                 | صندوق فضاء المؤلف، يُقاس ليتسع داخل صندوق العقدة       |
+| `strokeWidth`       | `number`                                                    | —                 | يُحدَّد بدلًا من الملء عند تمرير قيمة غير صفرية        |
+| `fillRule`          | `"nonzero" \| "evenodd"`                                    | `"nonzero"`       | قاعدة الملء                                            |
+| `geometryTransform` | `readonly [number, number, number, number, number, number]` | مصفوفة الوحدة     | تحويل يُدمج في الهندسة قبل الترميز                     |
 
 ## Props (Svg)
 
-| Prop | النوع | القيمة الافتراضية | الوصف |
-| --- | --- | --- | --- |
-| `source` | `PingoSvg` | — | المستند المحلل عبر `createSvg` / `loadSvg` (مطلوب) |
+| Prop     | النوع      | القيمة الافتراضية | الوصف                                              |
+| -------- | ---------- | ----------------- | -------------------------------------------------- |
+| `source` | `PingoSvg` | —                 | المستند المحلل عبر `createSvg` / `loadSvg` (مطلوب) |
 
 يرث كلاهما [CommonProps](/api) (`width`/`height` والأحداث وخصائص الدلالات وما إلى ذلك).
 

@@ -64,15 +64,15 @@ l'état transitoire de la session d'édition active.**
 
 Champs d'`EditTransaction` :
 
-| Champ | Type | Description |
-| --- | --- | --- |
-| `nodeId` | `number` | Nœud d'édition à l'origine de la transaction |
-| `baseRevision` | `bigint` | Revision sur laquelle la transaction se fonde |
-| `revision` | `bigint` | Nouvelle revision après la transaction |
-| `delta` | `{ range: { start, end }, text }` | Différence de texte ; décalages en UTF-16, alignés sur EditContext/InputEvent. Absent pour une transaction de pure sélection |
-| `selection` | `{ anchor, focus, anchorAffinity, focusAffinity }` | Sélection après la transaction |
-| `composition` | `{ start, end }` | Intervalle de composition IME en cours |
-| `kind` | `"edit" \| "composition" \| "external" \| "undo" \| "redo"` | Catégorie de transaction |
+| Champ          | Type                                                        | Description                                                                                                                  |
+| -------------- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `nodeId`       | `number`                                                    | Nœud d'édition à l'origine de la transaction                                                                                 |
+| `baseRevision` | `bigint`                                                    | Revision sur laquelle la transaction se fonde                                                                                |
+| `revision`     | `bigint`                                                    | Nouvelle revision après la transaction                                                                                       |
+| `delta`        | `{ range: { start, end }, text }`                           | Différence de texte ; décalages en UTF-16, alignés sur EditContext/InputEvent. Absent pour une transaction de pure sélection |
+| `selection`    | `{ anchor, focus, anchorAffinity, focusAffinity }`          | Sélection après la transaction                                                                                               |
+| `composition`  | `{ start, end }`                                            | Intervalle de composition IME en cours                                                                                       |
+| `kind`         | `"edit" \| "composition" \| "external" \| "undo" \| "redo"` | Catégorie de transaction                                                                                                     |
 
 ## Pont de saisie : EditContext et proxy de repli
 
@@ -104,17 +104,17 @@ ligne sans déclencher `onSubmit` ; les flèches haut/bas conservent la colonne 
 Les deux partagent `EditableTextProps` (`multiline` n'est pas exposé, il est fixé par le
 composant) :
 
-| Prop | Type | Valeur par défaut | Description |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Texte contrôlé |
-| `revision` | `number \| bigint` | — | Revision faisant autorité de la valeur contrôlée ; une valeur périmée n'écrase pas une saisie Core plus récente |
-| `controller` | `TextEditingController` | — | Controller local stable ; mutuellement exclusif avec `value`/`revision` |
-| `readOnly` | `boolean` | `false` | Lecture seule |
-| `password` | `boolean` | `false` | Mode mot de passe (voir plus bas) |
-| `maxGraphemes` | `number` | — | Limite de graphemes |
-| `inputMode` | `EditableInputMode` | `"text"` | Indice de clavier logiciel : `decimal` `email` `none` `numeric` `search` `tel` `text` `url` |
-| `onTransaction` | `(t: EditTransaction) => void` | — | Callback des transactions d'édition du Core |
-| `onSubmit` | `() => void` | — | Soumission par Entrée en monoligne ; en multiligne, Entrée reste dédiée au saut de ligne |
+| Prop            | Type                           | Valeur par défaut | Description                                                                                                     |
+| --------------- | ------------------------------ | ----------------- | --------------------------------------------------------------------------------------------------------------- |
+| `value`         | `string`                       | —                 | Texte contrôlé                                                                                                  |
+| `revision`      | `number \| bigint`             | —                 | Revision faisant autorité de la valeur contrôlée ; une valeur périmée n'écrase pas une saisie Core plus récente |
+| `controller`    | `TextEditingController`        | —                 | Controller local stable ; mutuellement exclusif avec `value`/`revision`                                         |
+| `readOnly`      | `boolean`                      | `false`           | Lecture seule                                                                                                   |
+| `password`      | `boolean`                      | `false`           | Mode mot de passe (voir plus bas)                                                                               |
+| `maxGraphemes`  | `number`                       | —                 | Limite de graphemes                                                                                             |
+| `inputMode`     | `EditableInputMode`            | `"text"`          | Indice de clavier logiciel : `decimal` `email` `none` `numeric` `search` `tel` `text` `url`                     |
+| `onTransaction` | `(t: EditTransaction) => void` | —                 | Callback des transactions d'édition du Core                                                                     |
+| `onSubmit`      | `() => void`                   | —                 | Soumission par Entrée en monoligne ; en multiligne, Entrée reste dédiée au saut de ligne                        |
 
 L'apparence du texte hérite de `TextProps` : `color`, `fontSize`, `fontWeight`, `lineHeight`,
 `fontFamily`, `font` ; dimensions, `padding`, `backgroundColor`, bordures (canal `style`), etc.

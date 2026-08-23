@@ -58,27 +58,27 @@ Cuando `rowCount` es `0`, se renderiza `emptyLabel` (por defecto «Sin datos») 
 
 ### TableProps\<Row\>
 
-| Prop | Tipo | Valor por defecto | Descripción |
-| --- | --- | --- | --- |
-| `columns` | `readonly TableColumn<Row>[]` | — | Definiciones de columna; controlan tanto el encabezado como las filas (obligatorio) |
-| `rowCount` | `number` | — | Número total de filas (obligatorio); cuando es `0` se renderiza el estado vacío |
-| `getRow` | `(index: number) => Row` | — | Obtiene los datos de la fila por número de fila; solo se invoca para la ventana visible (obligatorio) |
-| `estimatedRowHeight` | `number` | `44` | Altura estimada de fila, usada para planificar el desplazamiento virtual |
-| `onRowPress` | `(index: number) => void` | — | Callback al hacer clic en una fila; al proporcionarlo, las filas se vuelven enfocables |
-| `emptyLabel` | `string` | `"Sin datos"` | Texto del estado vacío |
-| `renderHeaderCell` | `(column: TableColumn<Row>, index: number) => PingoNode` | — | Reemplaza la celda de encabezado predeterminada de una columna |
-| `className` | `string` | — | Se agrega después del nombre de clase del componente |
+| Prop                 | Tipo                                                     | Valor por defecto | Descripción                                                                                           |
+| -------------------- | -------------------------------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------- |
+| `columns`            | `readonly TableColumn<Row>[]`                            | —                 | Definiciones de columna; controlan tanto el encabezado como las filas (obligatorio)                   |
+| `rowCount`           | `number`                                                 | —                 | Número total de filas (obligatorio); cuando es `0` se renderiza el estado vacío                       |
+| `getRow`             | `(index: number) => Row`                                 | —                 | Obtiene los datos de la fila por número de fila; solo se invoca para la ventana visible (obligatorio) |
+| `estimatedRowHeight` | `number`                                                 | `44`              | Altura estimada de fila, usada para planificar el desplazamiento virtual                              |
+| `onRowPress`         | `(index: number) => void`                                | —                 | Callback al hacer clic en una fila; al proporcionarlo, las filas se vuelven enfocables                |
+| `emptyLabel`         | `string`                                                 | `"Sin datos"`     | Texto del estado vacío                                                                                |
+| `renderHeaderCell`   | `(column: TableColumn<Row>, index: number) => PingoNode` | —                 | Reemplaza la celda de encabezado predeterminada de una columna                                        |
+| `className`          | `string`                                                 | —                 | Se agrega después del nombre de clase del componente                                                  |
 
 ### TableColumn\<Row\>
 
-| Campo | Tipo | Valor por defecto | Descripción |
-| --- | --- | --- | --- |
-| `key` | `string` | — | Identificador de la columna, usado como key del nodo (obligatorio) |
-| `header` | `string` | — | Texto del encabezado (obligatorio) |
-| `width` | `number` | — | Ancho fijo (en píxeles lógicos); si se omite, el ancho restante se asigna según `flex` |
-| `flex` | `number` | `1` | Proporción de asignación del ancho restante cuando no se define `width` |
-| `align` | `"start" \| "center" \| "end"` | `"start"` | Alineación horizontal del contenido de la columna; se comparte entre encabezado y celdas |
-| `cell` | `(row: Row, index: number) => PingoNode` | — | Función que construye el contenido de la celda (obligatorio) |
+| Campo    | Tipo                                     | Valor por defecto | Descripción                                                                              |
+| -------- | ---------------------------------------- | ----------------- | ---------------------------------------------------------------------------------------- |
+| `key`    | `string`                                 | —                 | Identificador de la columna, usado como key del nodo (obligatorio)                       |
+| `header` | `string`                                 | —                 | Texto del encabezado (obligatorio)                                                       |
+| `width`  | `number`                                 | —                 | Ancho fijo (en píxeles lógicos); si se omite, el ancho restante se asigna según `flex`   |
+| `flex`   | `number`                                 | `1`               | Proporción de asignación del ancho restante cuando no se define `width`                  |
+| `align`  | `"start" \| "center" \| "end"`           | `"start"`         | Alineación horizontal del contenido de la columna; se comparte entre encabezado y celdas |
+| `cell`   | `(row: Row, index: number) => PingoNode` | —                 | Función que construye el contenido de la celda (obligatorio)                             |
 
 La tabla virtual no puede medir el ancho de las columnas a partir del contenido: las filas no renderizadas no participan en la medición, por lo que el ancho de columna solo puede provenir de la definición de columnas. Esto también hace que el encabezado y las filas queden alineados de forma natural.
 

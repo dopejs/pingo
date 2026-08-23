@@ -44,16 +44,16 @@ Sans `onPress`, elle se comporte comme un élément purement informatif : le rô
 
 ## Props
 
-| Prop | Type | Valeur par défaut | Description |
-| --- | --- | --- | --- |
-| `title` | `string` | — | Texte du titre (obligatoire) |
-| `description` | `string` | — | Texte de description secondaire |
-| `leading` | `PingoNode` | — | Slot avant, pour un avatar ou une icône |
-| `trailing` | `PingoNode` | — | Slot arrière, pour un badge, un interrupteur ou une flèche |
-| `selected` | `boolean` | — | État sélectionné ; lorsqu'il est fourni, expose les valeurs sémantiques `selected`/`unselected` |
-| `disabled` | `boolean` | `false` | État désactivé, n'enregistre aucun gestionnaire d'événement |
-| `onPress` | `() => void` | — | Rappel de clic ; une fois fourni, la ligne devient interactive |
-| `className` | `string` | — | Ajouté après le nom de classe du composant |
+| Prop          | Type         | Valeur par défaut | Description                                                                                     |
+| ------------- | ------------ | ----------------- | ----------------------------------------------------------------------------------------------- |
+| `title`       | `string`     | —                 | Texte du titre (obligatoire)                                                                    |
+| `description` | `string`     | —                 | Texte de description secondaire                                                                 |
+| `leading`     | `PingoNode`  | —                 | Slot avant, pour un avatar ou une icône                                                         |
+| `trailing`    | `PingoNode`  | —                 | Slot arrière, pour un badge, un interrupteur ou une flèche                                      |
+| `selected`    | `boolean`    | —                 | État sélectionné ; lorsqu'il est fourni, expose les valeurs sémantiques `selected`/`unselected` |
+| `disabled`    | `boolean`    | `false`           | État désactivé, n'enregistre aucun gestionnaire d'événement                                     |
+| `onPress`     | `() => void` | —                 | Rappel de clic ; une fois fourni, la ligne devient interactive                                  |
+| `className`   | `string`     | —                 | Ajouté après le nom de classe du composant                                                      |
 
 ## Accessibilité
 

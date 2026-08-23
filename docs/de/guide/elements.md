@@ -58,16 +58,16 @@ Inhalt wird über `value` oder als String-`children` angegeben.
 
 ### Props (Text)
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Textinhalt (alternativ zu `children`) |
-| `children` | `string \| number` | — | Textinhalt |
-| `color` | `Color` | `#000000ff` | Textfarbe, vererbbar |
-| `fontSize` | `number` | — | Schriftgröße (logische Pixel) |
-| `lineHeight` | `number` | — | Zeilenhöhe (logische Pixel) |
-| `fontWeight` | `number` | — | Schriftgewicht |
-| `fontFamily` | `string` | — | CSS-Schriftfamilie |
-| `font` | `PingoFont` | — | Explizite unveränderliche Schrift; nicht unterstützte Eingaben fallen komplett zurück |
+| Prop         | Typ                | Standardwert | Beschreibung                                                                          |
+| ------------ | ------------------ | ------------ | ------------------------------------------------------------------------------------- |
+| `value`      | `string`           | —            | Textinhalt (alternativ zu `children`)                                                 |
+| `children`   | `string \| number` | —            | Textinhalt                                                                            |
+| `color`      | `Color`            | `#000000ff`  | Textfarbe, vererbbar                                                                  |
+| `fontSize`   | `number`           | —            | Schriftgröße (logische Pixel)                                                         |
+| `lineHeight` | `number`           | —            | Zeilenhöhe (logische Pixel)                                                           |
+| `fontWeight` | `number`           | —            | Schriftgewicht                                                                        |
+| `fontFamily` | `string`           | —            | CSS-Schriftfamilie                                                                    |
+| `font`       | `PingoFont`        | —            | Explizite unveränderliche Schrift; nicht unterstützte Eingaben fallen komplett zurück |
 
 `Text` erbt außerdem alle [CommonProps](/api) (Größe, Padding, Events, `semanticRole` /
 `semanticLabel` usw.).

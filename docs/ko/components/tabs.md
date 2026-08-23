@@ -45,36 +45,36 @@ root.render(
 
 ### Tabs
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 제어 방식: 현재 선택된 탭의 `value` |
-| `defaultValue` | `string` | — | 비제어 방식: 초기에 선택된 탭의 `value` |
-| `onValueChange` | `(value: string) => void` | — | 선택 변경 콜백 |
-| `children` | `PingoNode` | — | `TabsList`와 여러 `TabsContent` (필수) |
-| `className` | `string` | — | 컴포넌트 클래스명 뒤에 추가 |
+| Prop            | 타입                      | 기본값 | 설명                                    |
+| --------------- | ------------------------- | ------ | --------------------------------------- |
+| `value`         | `string`                  | —      | 제어 방식: 현재 선택된 탭의 `value`     |
+| `defaultValue`  | `string`                  | —      | 비제어 방식: 초기에 선택된 탭의 `value` |
+| `onValueChange` | `(value: string) => void` | —      | 선택 변경 콜백                          |
+| `children`      | `PingoNode`               | —      | `TabsList`와 여러 `TabsContent` (필수)  |
+| `className`     | `string`                  | —      | 컴포넌트 클래스명 뒤에 추가             |
 
 ### TabsList
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | `TabsTrigger` 목록 (필수) |
-| `className` | `string` | — | 컴포넌트 클래스명 뒤에 추가 |
+| Prop        | 타입        | 기본값 | 설명                        |
+| ----------- | ----------- | ------ | --------------------------- |
+| `children`  | `PingoNode` | —      | `TabsTrigger` 목록 (필수)   |
+| `className` | `string`    | —      | 컴포넌트 클래스명 뒤에 추가 |
 
 ### TabsTrigger
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 해당 `TabsContent`와 연결되는 식별자 (필수) |
-| `children` | `string` | — | 탭 텍스트 (필수) |
-| `className` | `string` | — | 컴포넌트 클래스명 뒤에 추가 |
+| Prop        | 타입     | 기본값 | 설명                                        |
+| ----------- | -------- | ------ | ------------------------------------------- |
+| `value`     | `string` | —      | 해당 `TabsContent`와 연결되는 식별자 (필수) |
+| `children`  | `string` | —      | 탭 텍스트 (필수)                            |
+| `className` | `string` | —      | 컴포넌트 클래스명 뒤에 추가                 |
 
 ### TabsContent
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 해당 `TabsTrigger`와 연결되는 식별자 (필수) |
-| `children` | `PingoNode` | — | 패널 콘텐츠 (필수) |
-| `className` | `string` | — | 컴포넌트 클래스명 뒤에 추가 |
+| Prop        | 타입        | 기본값 | 설명                                        |
+| ----------- | ----------- | ------ | ------------------------------------------- |
+| `value`     | `string`    | —      | 해당 `TabsTrigger`와 연결되는 식별자 (필수) |
+| `children`  | `PingoNode` | —      | 패널 콘텐츠 (필수)                          |
+| `className` | `string`    | —      | 컴포넌트 클래스명 뒤에 추가                 |
 
 ## 접근성
 

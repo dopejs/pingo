@@ -41,12 +41,12 @@ Les entrées réutilisent `MenubarMenu`. L’ouverture/fermeture est non contrô
 
 `NavigationMenu` accepte toutes les props de `MenubarProps` à l’exception de `navigation` :
 
-| Prop | Type | Valeur par défaut | Description |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Contrôlé : valeur du menu actuellement ouvert |
-| `onValueChange` | `(value: string \| undefined) => void` | — | Rappel lors du changement du menu ouvert (`undefined` à la fermeture) |
-| `children` | `PingoNode` | — | Plusieurs `MenubarMenu` (obligatoire) |
-| `className` | `string` | — | Classe supplémentaire |
+| Prop            | Type                                   | Valeur par défaut | Description                                                           |
+| --------------- | -------------------------------------- | ----------------- | --------------------------------------------------------------------- |
+| `value`         | `string`                               | —                 | Contrôlé : valeur du menu actuellement ouvert                         |
+| `onValueChange` | `(value: string \| undefined) => void` | —                 | Rappel lors du changement du menu ouvert (`undefined` à la fermeture) |
+| `children`      | `PingoNode`                            | —                 | Plusieurs `MenubarMenu` (obligatoire)                                 |
+| `className`     | `string`                               | —                 | Classe supplémentaire                                                 |
 
 Pour les props des entrées, voir [Menubar](/components/menubar#menubarmenu).
 

@@ -58,27 +58,27 @@ function FileTable(): PingoNode {
 
 ### TableProps\<Row\>
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `columns` | `readonly TableColumn<Row>[]` | — | 列定義，同時驅動表頭與行（必填） |
-| `rowCount` | `number` | — | 總行數（必填）；為 `0` 時渲染空狀態 |
-| `getRow` | `(index: number) => Row` | — | 按行號取行資料，僅會為可見視窗呼叫（必填） |
-| `estimatedRowHeight` | `number` | `44` | 估算行高，用於虛擬捲動規劃 |
-| `onRowPress` | `(index: number) => void` | — | 行點選回調；傳入後行可聚焦 |
-| `emptyLabel` | `string` | `"暂无数据"` | 空狀態文案 |
-| `renderHeaderCell` | `(column: TableColumn<Row>, index: number) => PingoNode` | — | 替換某一列的預設表頭單元格 |
-| `className` | `string` | — | 追加在元件類名之後 |
+| Prop                 | 型別                                                     | 預設值       | 說明                                       |
+| -------------------- | -------------------------------------------------------- | ------------ | ------------------------------------------ |
+| `columns`            | `readonly TableColumn<Row>[]`                            | —            | 列定義，同時驅動表頭與行（必填）           |
+| `rowCount`           | `number`                                                 | —            | 總行數（必填）；為 `0` 時渲染空狀態        |
+| `getRow`             | `(index: number) => Row`                                 | —            | 按行號取行資料，僅會為可見視窗呼叫（必填） |
+| `estimatedRowHeight` | `number`                                                 | `44`         | 估算行高，用於虛擬捲動規劃                 |
+| `onRowPress`         | `(index: number) => void`                                | —            | 行點選回調；傳入後行可聚焦                 |
+| `emptyLabel`         | `string`                                                 | `"暂无数据"` | 空狀態文案                                 |
+| `renderHeaderCell`   | `(column: TableColumn<Row>, index: number) => PingoNode` | —            | 替換某一列的預設表頭單元格                 |
+| `className`          | `string`                                                 | —            | 追加在元件類名之後                         |
 
 ### TableColumn\<Row\>
 
-| 欄位 | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `key` | `string` | — | 列標識，用作節點的 key（必填） |
-| `header` | `string` | — | 表頭文案（必填） |
-| `width` | `number` | — | 固定寬度（邏輯畫素）；省略時按 `flex` 分配剩餘寬度 |
-| `flex` | `number` | `1` | 未設 `width` 時對剩餘寬度的分配份額 |
-| `align` | `"start" \| "center" \| "end"` | `"start"` | 列內容水平對齊，表頭與單元格共用 |
-| `cell` | `(row: Row, index: number) => PingoNode` | — | 單元格內容建構函式（必填） |
+| 欄位     | 型別                                     | 預設值    | 說明                                               |
+| -------- | ---------------------------------------- | --------- | -------------------------------------------------- |
+| `key`    | `string`                                 | —         | 列標識，用作節點的 key（必填）                     |
+| `header` | `string`                                 | —         | 表頭文案（必填）                                   |
+| `width`  | `number`                                 | —         | 固定寬度（邏輯畫素）；省略時按 `flex` 分配剩餘寬度 |
+| `flex`   | `number`                                 | `1`       | 未設 `width` 時對剩餘寬度的分配份額                |
+| `align`  | `"start" \| "center" \| "end"`           | `"start"` | 列內容水平對齊，表頭與單元格共用                   |
+| `cell`   | `(row: Row, index: number) => PingoNode` | —         | 單元格內容建構函式（必填）                         |
 
 虛擬表格無法按內容測量列寬：未渲染的行不參與測量，因此列寬只能來自列定義——這也讓表頭與行天然對齊。
 

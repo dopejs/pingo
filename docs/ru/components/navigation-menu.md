@@ -41,12 +41,12 @@ root.render(
 
 `NavigationMenu` принимает все пропсы из `MenubarProps`, кроме `navigation`:
 
-| Prop | Тип | По умолчанию | Описание |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Контролируемый: значение текущего открытого меню |
-| `onValueChange` | `(value: string \| undefined) => void` | — | Колбэк смены открытого меню (при закрытии — `undefined`) |
-| `children` | `PingoNode` | — | Несколько `MenubarMenu` (обязательно) |
-| `className` | `string` | — | Дополнительный класс |
+| Prop            | Тип                                    | По умолчанию | Описание                                                 |
+| --------------- | -------------------------------------- | ------------ | -------------------------------------------------------- |
+| `value`         | `string`                               | —            | Контролируемый: значение текущего открытого меню         |
+| `onValueChange` | `(value: string \| undefined) => void` | —            | Колбэк смены открытого меню (при закрытии — `undefined`) |
+| `children`      | `PingoNode`                            | —            | Несколько `MenubarMenu` (обязательно)                    |
+| `className`     | `string`                               | —            | Дополнительный класс                                     |
 
 Пропсы пунктов см. в [Menubar](/components/menubar#menubarmenu).
 

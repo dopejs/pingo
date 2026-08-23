@@ -53,27 +53,27 @@ root.render(
 
 ### Popover
 
-| Prop | 型 | デフォルト | 説明 |
-| --- | --- | --- | --- |
-| `open` | `boolean` | — | 制御された開閉状態 |
-| `defaultOpen` | `boolean` | `false` | 非制御の初期開閉 |
-| `onOpenChange` | `(open: boolean) => void` | — | 開閉変化時のコールバック |
-| `children` | `PingoNode` | — | Trigger と Content（必須） |
-| `className` | `string` | — | アンカーコンテナのクラス名に追加される |
+| Prop           | 型                        | デフォルト | 説明                                   |
+| -------------- | ------------------------- | ---------- | -------------------------------------- |
+| `open`         | `boolean`                 | —          | 制御された開閉状態                     |
+| `defaultOpen`  | `boolean`                 | `false`    | 非制御の初期開閉                       |
+| `onOpenChange` | `(open: boolean) => void` | —          | 開閉変化時のコールバック               |
+| `children`     | `PingoNode`               | —          | Trigger と Content（必須）             |
+| `className`    | `string`                  | —          | アンカーコンテナのクラス名に追加される |
 
 ### PopoverTrigger
 
-| Prop | 型 | デフォルト | 説明 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | トリガー要素（必須） |
-| `className` | `string` | — | 追加するクラス名 |
+| Prop        | 型          | デフォルト | 説明                 |
+| ----------- | ----------- | ---------- | -------------------- |
+| `children`  | `PingoNode` | —          | トリガー要素（必須） |
+| `className` | `string`    | —          | 追加するクラス名     |
 
 ### PopoverContent
 
-| Prop | 型 | デフォルト | 説明 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | パネルのコンテンツ（必須） |
-| `className` | `string` | — | 追加するクラス名 |
+| Prop        | 型          | デフォルト | 説明                       |
+| ----------- | ----------- | ---------- | -------------------------- |
+| `children`  | `PingoNode` | —          | パネルのコンテンツ（必須） |
+| `className` | `string`    | —          | 追加するクラス名           |
 
 ## アクセシビリティ
 

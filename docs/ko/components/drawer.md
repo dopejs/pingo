@@ -38,8 +38,8 @@ root.render(
 
 `DialogProps`(`open`, `onOpenChange`, `children`, `className`)를 상속하며, 다음이 추가됩니다.
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
+| Prop   | 타입                | 기본값     | 설명                  |
+| ------ | ------------------- | ---------- | --------------------- |
 | `side` | `"top" \| "bottom"` | `"bottom"` | 슬라이드되는 가장자리 |
 
 ## 접근성

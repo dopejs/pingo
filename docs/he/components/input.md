@@ -42,22 +42,22 @@ root.render(
 
 ## Props
 
-| Prop | סוג | ברירת מחדל | תיאור |
-| --- | --- | --- | --- |
-| `value` | `string` | `""` | ערך התחלתי לשימוש לא מבוקר; נזנח לאחר הגדרת `controller` |
-| `onValueChange` | `(value: string) => void` | — | נקרא לאחר כל החלת טרנזקציית עריכה עם הערך העדכני |
-| `controller` | `TextEditingController` | — | פתח מילוט מתקדם: בקר עמיד המוחזק בידי הקורא |
-| `onTransaction` | `(transaction: EditTransaction) => void` | — | הקריאה החוזרת הגולמית עבור כל טרנזקציית עריכה |
-| `onSubmit` | `() => void` | — | קריאה חוזרת לשליחה (Enter) |
-| `disabled` | `boolean` | `false` | מצב מושבת |
-| `readOnly` | `boolean` | `false` | מצב קריאה בלבד |
-| `password` | `boolean` | `false` | קלט מוסווה |
-| `inputMode` | `"decimal" \| "email" \| "none" \| "numeric" \| "search" \| "tel" \| "text" \| "url"` | `"text"` | רמז לפריסת מקלדת רכה |
-| `className` | `string` | — | מצורף לאחר שם מחלקת הרכיב |
-| `width` | `number` | — | רוחב קבוע (px) |
-| `semanticLabel` | `string` | — | שם נגישות |
-| `prefix` | `PingoNode` | — | קישוט קדמי, כגון אייקון או סמל מטבע |
-| `suffix` | `PingoNode` | — | קישוט אחורי, כגון יחידת מידה או כפתור ניקוי |
+| Prop            | סוג                                                                                   | ברירת מחדל | תיאור                                                    |
+| --------------- | ------------------------------------------------------------------------------------- | ---------- | -------------------------------------------------------- |
+| `value`         | `string`                                                                              | `""`       | ערך התחלתי לשימוש לא מבוקר; נזנח לאחר הגדרת `controller` |
+| `onValueChange` | `(value: string) => void`                                                             | —          | נקרא לאחר כל החלת טרנזקציית עריכה עם הערך העדכני         |
+| `controller`    | `TextEditingController`                                                               | —          | פתח מילוט מתקדם: בקר עמיד המוחזק בידי הקורא              |
+| `onTransaction` | `(transaction: EditTransaction) => void`                                              | —          | הקריאה החוזרת הגולמית עבור כל טרנזקציית עריכה            |
+| `onSubmit`      | `() => void`                                                                          | —          | קריאה חוזרת לשליחה (Enter)                               |
+| `disabled`      | `boolean`                                                                             | `false`    | מצב מושבת                                                |
+| `readOnly`      | `boolean`                                                                             | `false`    | מצב קריאה בלבד                                           |
+| `password`      | `boolean`                                                                             | `false`    | קלט מוסווה                                               |
+| `inputMode`     | `"decimal" \| "email" \| "none" \| "numeric" \| "search" \| "tel" \| "text" \| "url"` | `"text"`   | רמז לפריסת מקלדת רכה                                     |
+| `className`     | `string`                                                                              | —          | מצורף לאחר שם מחלקת הרכיב                                |
+| `width`         | `number`                                                                              | —          | רוחב קבוע (px)                                           |
+| `semanticLabel` | `string`                                                                              | —          | שם נגישות                                                |
+| `prefix`        | `PingoNode`                                                                           | —          | קישוט קדמי, כגון אייקון או סמל מטבע                      |
+| `suffix`        | `PingoNode`                                                                           | —          | קישוט אחורי, כגון יחידת מידה או כפתור ניקוי              |
 
 ## נגישות
 

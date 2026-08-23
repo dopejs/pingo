@@ -39,15 +39,15 @@ s'applique.
 
 ## Props
 
-| Prop | Type | Valeur par défaut | Description |
-| --- | --- | --- | --- |
-| `children` | `string` | — | Texte du bouton (obligatoire) |
-| `variant` | `"default" \| "secondary" \| "outline" \| "ghost" \| "destructive"` | `"default"` | Variante visuelle |
-| `size` | `"default" \| "sm" \| "lg" \| "icon"` | `"default"` | Taille |
-| `disabled` | `boolean` | `false` | État désactivé |
-| `onPress` | `() => void` | — | Callback d'activation au pointeur/clavier |
-| `semanticLabel` | `string` | `children` | Nom d'accessibilité |
-| `className` | `string` | — | Ajouté après les classes du composant |
+| Prop            | Type                                                                | Valeur par défaut | Description                               |
+| --------------- | ------------------------------------------------------------------- | ----------------- | ----------------------------------------- |
+| `children`      | `string`                                                            | —                 | Texte du bouton (obligatoire)             |
+| `variant`       | `"default" \| "secondary" \| "outline" \| "ghost" \| "destructive"` | `"default"`       | Variante visuelle                         |
+| `size`          | `"default" \| "sm" \| "lg" \| "icon"`                               | `"default"`       | Taille                                    |
+| `disabled`      | `boolean`                                                           | `false`           | État désactivé                            |
+| `onPress`       | `() => void`                                                        | —                 | Callback d'activation au pointeur/clavier |
+| `semanticLabel` | `string`                                                            | `children`        | Nom d'accessibilité                       |
+| `className`     | `string`                                                            | —                 | Ajouté après les classes du composant     |
 
 ## Accessibilité
 

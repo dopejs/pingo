@@ -45,36 +45,36 @@ root.render(
 
 ### Tabs
 
-| Prop | Type | Défaut | Description |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Contrôlé : la `value` de l'onglet actuellement sélectionné |
-| `defaultValue` | `string` | — | Non contrôlé : la `value` de l'onglet initialement sélectionné |
-| `onValueChange` | `(value: string) => void` | — | Rappel lors du changement de sélection |
-| `children` | `PingoNode` | — | `TabsList` et plusieurs `TabsContent` (obligatoire) |
-| `className` | `string` | — | Ajouté après le nom de classe du composant |
+| Prop            | Type                      | Défaut | Description                                                    |
+| --------------- | ------------------------- | ------ | -------------------------------------------------------------- |
+| `value`         | `string`                  | —      | Contrôlé : la `value` de l'onglet actuellement sélectionné     |
+| `defaultValue`  | `string`                  | —      | Non contrôlé : la `value` de l'onglet initialement sélectionné |
+| `onValueChange` | `(value: string) => void` | —      | Rappel lors du changement de sélection                         |
+| `children`      | `PingoNode`               | —      | `TabsList` et plusieurs `TabsContent` (obligatoire)            |
+| `className`     | `string`                  | —      | Ajouté après le nom de classe du composant                     |
 
 ### TabsList
 
-| Prop | Type | Défaut | Description |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Liste de `TabsTrigger` (obligatoire) |
-| `className` | `string` | — | Ajouté après le nom de classe du composant |
+| Prop        | Type        | Défaut | Description                                |
+| ----------- | ----------- | ------ | ------------------------------------------ |
+| `children`  | `PingoNode` | —      | Liste de `TabsTrigger` (obligatoire)       |
+| `className` | `string`    | —      | Ajouté après le nom de classe du composant |
 
 ### TabsTrigger
 
-| Prop | Type | Défaut | Description |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Identifiant associé au `TabsContent` correspondant (obligatoire) |
-| `children` | `string` | — | Texte de l'onglet (obligatoire) |
-| `className` | `string` | — | Ajouté après le nom de classe du composant |
+| Prop        | Type     | Défaut | Description                                                      |
+| ----------- | -------- | ------ | ---------------------------------------------------------------- |
+| `value`     | `string` | —      | Identifiant associé au `TabsContent` correspondant (obligatoire) |
+| `children`  | `string` | —      | Texte de l'onglet (obligatoire)                                  |
+| `className` | `string` | —      | Ajouté après le nom de classe du composant                       |
 
 ### TabsContent
 
-| Prop | Type | Défaut | Description |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Identifiant associé au `TabsTrigger` correspondant (obligatoire) |
-| `children` | `PingoNode` | — | Contenu du panneau (obligatoire) |
-| `className` | `string` | — | Ajouté après le nom de classe du composant |
+| Prop        | Type        | Défaut | Description                                                      |
+| ----------- | ----------- | ------ | ---------------------------------------------------------------- |
+| `value`     | `string`    | —      | Identifiant associé au `TabsTrigger` correspondant (obligatoire) |
+| `children`  | `PingoNode` | —      | Contenu du panneau (obligatoire)                                 |
+| `className` | `string`    | —      | Ajouté après le nom de classe du composant                       |
 
 ## Accessibilité
 

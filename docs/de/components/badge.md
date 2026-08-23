@@ -48,12 +48,12 @@ createElement(ListRow, {
 
 ## Props
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `children` | `string` | — | Labeltext (Pflicht) |
-| `variant` | `"default" \| "secondary" \| "destructive" \| "outline"` | `"default"` | Visuelle Variante |
-| `semanticLabel` | `string` | — | Barrierefreiheitsname; ohne Angabe gilt die Standardsemantik |
-| `className` | `string` | — | Wird hinter die Komponentenklassen gehängt |
+| Prop            | Typ                                                      | Standardwert | Beschreibung                                                 |
+| --------------- | -------------------------------------------------------- | ------------ | ------------------------------------------------------------ |
+| `children`      | `string`                                                 | —            | Labeltext (Pflicht)                                          |
+| `variant`       | `"default" \| "secondary" \| "destructive" \| "outline"` | `"default"`  | Visuelle Variante                                            |
+| `semanticLabel` | `string`                                                 | —            | Barrierefreiheitsname; ohne Angabe gilt die Standardsemantik |
+| `className`     | `string`                                                 | —            | Wird hinter die Komponentenklassen gehängt                   |
 
 ## Barrierefreiheit
 

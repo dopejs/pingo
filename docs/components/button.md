@@ -37,15 +37,15 @@ root.render(
 
 ## Props
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `children` | `string` | — | 按钮文本（必填） |
-| `variant` | `"default" \| "secondary" \| "outline" \| "ghost" \| "destructive"` | `"default"` | 视觉变体 |
-| `size` | `"default" \| "sm" \| "lg" \| "icon"` | `"default"` | 尺寸 |
-| `disabled` | `boolean` | `false` | 禁用态 |
-| `onPress` | `() => void` | — | 指针/键盘激活回调 |
-| `semanticLabel` | `string` | `children` | 无障碍名称 |
-| `className` | `string` | — | 追加在组件类名之后 |
+| Prop            | 类型                                                                | 默认值      | 说明               |
+| --------------- | ------------------------------------------------------------------- | ----------- | ------------------ |
+| `children`      | `string`                                                            | —           | 按钮文本（必填）   |
+| `variant`       | `"default" \| "secondary" \| "outline" \| "ghost" \| "destructive"` | `"default"` | 视觉变体           |
+| `size`          | `"default" \| "sm" \| "lg" \| "icon"`                               | `"default"` | 尺寸               |
+| `disabled`      | `boolean`                                                           | `false`     | 禁用态             |
+| `onPress`       | `() => void`                                                        | —           | 指针/键盘激活回调  |
+| `semanticLabel` | `string`                                                            | `children`  | 无障碍名称         |
+| `className`     | `string`                                                            | —           | 追加在组件类名之后 |
 
 ## 无障碍
 

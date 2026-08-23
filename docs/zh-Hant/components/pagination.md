@@ -41,15 +41,15 @@ function PagedList(): PingoNode {
 
 ## Props
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `page` | `number` | — | 當前頁，從 1 開始（必填）；越界會被收斂到 `[1, pageCount]` |
-| `pageCount` | `number` | — | 總頁數（必填）；小於 1 時不渲染任何頁碼 |
-| `onPageChange` | `(page: number) => void` | — | 翻頁回調；點選當前頁或越界目標不會觸發 |
-| `siblingCount` | `number` | `1` | 當前頁兩側各展示的頁碼數 |
-| `previousLabel` | `string` | — | 型別中預留的上一頁文案；當前版本渲染為圖示，該欄位尚未參與渲染 |
-| `nextLabel` | `string` | — | 型別中預留的下一頁文案；當前版本渲染為圖示，該欄位尚未參與渲染 |
-| `className` | `string` | — | 追加在元件類名之後 |
+| Prop            | 型別                     | 預設值 | 說明                                                           |
+| --------------- | ------------------------ | ------ | -------------------------------------------------------------- |
+| `page`          | `number`                 | —      | 當前頁，從 1 開始（必填）；越界會被收斂到 `[1, pageCount]`     |
+| `pageCount`     | `number`                 | —      | 總頁數（必填）；小於 1 時不渲染任何頁碼                        |
+| `onPageChange`  | `(page: number) => void` | —      | 翻頁回調；點選當前頁或越界目標不會觸發                         |
+| `siblingCount`  | `number`                 | `1`    | 當前頁兩側各展示的頁碼數                                       |
+| `previousLabel` | `string`                 | —      | 型別中預留的上一頁文案；當前版本渲染為圖示，該欄位尚未參與渲染 |
+| `nextLabel`     | `string`                 | —      | 型別中預留的下一頁文案；當前版本渲染為圖示，該欄位尚未參與渲染 |
+| `className`     | `string`                 | —      | 追加在元件類名之後                                             |
 
 ## 無障礙
 

@@ -41,22 +41,22 @@ Pasar `disabled` en `RadioGroup` deshabilita todo el grupo y el valor semántico
 
 ### RadioGroup
 
-| Prop | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Valor seleccionado controlado |
-| `defaultValue` | `string` | — | Valor seleccionado inicial no controlado |
-| `onValueChange` | `(value: string) => void` | — | Callback al cambiar la selección |
-| `disabled` | `boolean` | `false` | Deshabilita todo el grupo |
-| `children` | `PingoNode` | — | Lista de `RadioGroupItem` (obligatorio) |
-| `className` | `string` | — | Se añade después del nombre de clase del componente |
+| Prop            | Tipo                      | Valor predeterminado | Descripción                                         |
+| --------------- | ------------------------- | -------------------- | --------------------------------------------------- |
+| `value`         | `string`                  | —                    | Valor seleccionado controlado                       |
+| `defaultValue`  | `string`                  | —                    | Valor seleccionado inicial no controlado            |
+| `onValueChange` | `(value: string) => void` | —                    | Callback al cambiar la selección                    |
+| `disabled`      | `boolean`                 | `false`              | Deshabilita todo el grupo                           |
+| `children`      | `PingoNode`               | —                    | Lista de `RadioGroupItem` (obligatorio)             |
+| `className`     | `string`                  | —                    | Se añade después del nombre de clase del componente |
 
 ### RadioGroupItem
 
-| Prop | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Valor de la opción (obligatorio) |
-| `label` | `string` | — | Texto de la opción |
-| `className` | `string` | — | Se añade después del nombre de clase del componente |
+| Prop        | Tipo     | Valor predeterminado | Descripción                                         |
+| ----------- | -------- | -------------------- | --------------------------------------------------- |
+| `value`     | `string` | —                    | Valor de la opción (obligatorio)                    |
+| `label`     | `string` | —                    | Texto de la opción                                  |
+| `className` | `string` | —                    | Se añade después del nombre de clase del componente |
 
 ## Accesibilidad
 

@@ -43,30 +43,30 @@ root.render(
 
 ### Sidebar
 
-| Prop | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Controlado: `value` del elemento seleccionado actualmente |
-| `defaultValue` | `string` | — | No controlado: `value` del elemento seleccionado inicialmente |
-| `onValueChange` | `(value: string) => void` | — | Callback al cambiar la selección |
-| `children` | `PingoNode` | — | Lista de `SidebarSection` (obligatorio) |
-| `className` | `string` | — | Se agrega después del nombre de clase del componente |
+| Prop            | Tipo                      | Valor predeterminado | Descripción                                                   |
+| --------------- | ------------------------- | -------------------- | ------------------------------------------------------------- |
+| `value`         | `string`                  | —                    | Controlado: `value` del elemento seleccionado actualmente     |
+| `defaultValue`  | `string`                  | —                    | No controlado: `value` del elemento seleccionado inicialmente |
+| `onValueChange` | `(value: string) => void` | —                    | Callback al cambiar la selección                              |
+| `children`      | `PingoNode`               | —                    | Lista de `SidebarSection` (obligatorio)                       |
+| `className`     | `string`                  | —                    | Se agrega después del nombre de clase del componente          |
 
 ### SidebarSection
 
-| Prop | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `title` | `string` | — | Título del grupo; si se omite, no se renderiza la fila de título |
-| `children` | `PingoNode` | — | Lista de `SidebarItem` (obligatorio) |
-| `className` | `string` | — | Se agrega después del nombre de clase del componente |
+| Prop        | Tipo        | Valor predeterminado | Descripción                                                      |
+| ----------- | ----------- | -------------------- | ---------------------------------------------------------------- |
+| `title`     | `string`    | —                    | Título del grupo; si se omite, no se renderiza la fila de título |
+| `children`  | `PingoNode` | —                    | Lista de `SidebarItem` (obligatorio)                             |
+| `className` | `string`    | —                    | Se agrega después del nombre de clase del componente             |
 
 ### SidebarItem
 
-| Prop | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Identificador único del elemento (obligatorio) |
-| `label` | `string` | — | Texto del elemento, usado también como nombre accesible (obligatorio) |
-| `icon` | `PingoNode` | — | Ranura delantera para el icono |
-| `className` | `string` | — | Se agrega después del nombre de clase del componente |
+| Prop        | Tipo        | Valor predeterminado | Descripción                                                           |
+| ----------- | ----------- | -------------------- | --------------------------------------------------------------------- |
+| `value`     | `string`    | —                    | Identificador único del elemento (obligatorio)                        |
+| `label`     | `string`    | —                    | Texto del elemento, usado también como nombre accesible (obligatorio) |
+| `icon`      | `PingoNode` | —                    | Ranura delantera para el icono                                        |
+| `className` | `string`    | —                    | Se agrega después del nombre de clase del componente                  |
 
 ## Accesibilidad
 

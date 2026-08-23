@@ -42,22 +42,22 @@ Al pasar tu propio `controller` entras en modo controlado: `value` se ignora com
 
 ## Props
 
-| Prop | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `value` | `string` | `""` | Valor inicial para el uso no controlado; se ignora al establecer `controller` |
-| `onValueChange` | `(value: string) => void` | — | Devuelve el valor más reciente tras aplicar cada transacción de edición |
-| `controller` | `TextEditingController` | — | Válvula de escape avanzada: controlador persistente en manos del llamador |
-| `onTransaction` | `(transaction: EditTransaction) => void` | — | Callback crudo de cada transacción de edición |
-| `onSubmit` | `() => void` | — | Callback de envío (tecla Enter) |
-| `disabled` | `boolean` | `false` | Estado deshabilitado |
-| `readOnly` | `boolean` | `false` | Estado de solo lectura |
-| `password` | `boolean` | `false` | Entrada enmascarada |
-| `inputMode` | `"decimal" \| "email" \| "none" \| "numeric" \| "search" \| "tel" \| "text" \| "url"` | `"text"` | Sugerencia de distribución del teclado virtual |
-| `className` | `string` | — | Se añade después del nombre de clase del componente |
-| `width` | `number` | — | Ancho fijo (px) |
-| `semanticLabel` | `string` | — | Nombre accesible |
-| `prefix` | `PingoNode` | — | Decoración inicial, como un icono o símbolo de moneda |
-| `suffix` | `PingoNode` | — | Decoración final, como una unidad o botón de borrado |
+| Prop            | Tipo                                                                                  | Valor predeterminado | Descripción                                                                   |
+| --------------- | ------------------------------------------------------------------------------------- | -------------------- | ----------------------------------------------------------------------------- |
+| `value`         | `string`                                                                              | `""`                 | Valor inicial para el uso no controlado; se ignora al establecer `controller` |
+| `onValueChange` | `(value: string) => void`                                                             | —                    | Devuelve el valor más reciente tras aplicar cada transacción de edición       |
+| `controller`    | `TextEditingController`                                                               | —                    | Válvula de escape avanzada: controlador persistente en manos del llamador     |
+| `onTransaction` | `(transaction: EditTransaction) => void`                                              | —                    | Callback crudo de cada transacción de edición                                 |
+| `onSubmit`      | `() => void`                                                                          | —                    | Callback de envío (tecla Enter)                                               |
+| `disabled`      | `boolean`                                                                             | `false`              | Estado deshabilitado                                                          |
+| `readOnly`      | `boolean`                                                                             | `false`              | Estado de solo lectura                                                        |
+| `password`      | `boolean`                                                                             | `false`              | Entrada enmascarada                                                           |
+| `inputMode`     | `"decimal" \| "email" \| "none" \| "numeric" \| "search" \| "tel" \| "text" \| "url"` | `"text"`             | Sugerencia de distribución del teclado virtual                                |
+| `className`     | `string`                                                                              | —                    | Se añade después del nombre de clase del componente                           |
+| `width`         | `number`                                                                              | —                    | Ancho fijo (px)                                                               |
+| `semanticLabel` | `string`                                                                              | —                    | Nombre accesible                                                              |
+| `prefix`        | `PingoNode`                                                                           | —                    | Decoración inicial, como un icono o símbolo de moneda                         |
+| `suffix`        | `PingoNode`                                                                           | —                    | Decoración final, como una unidad o botón de borrado                          |
 
 ## Accesibilidad
 

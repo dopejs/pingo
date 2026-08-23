@@ -45,7 +45,7 @@ diagnostics を返します。スタイルシートは型安全なオブジェ�
 
 ```ts
 const sheet = createStyleSheet({
-  card: { backgroundColor: "#ffffffff", borderRadius: 8, padding: 16 },
+  "card": { backgroundColor: "#ffffffff", borderRadius: 8, padding: 16 },
   "card:hover": { backgroundColor: "#f5f5f5ff" },
 });
 ```
@@ -136,7 +136,7 @@ const root = await createHostedCanvasRoot(canvas, {
 import { setTheme, useTheme } from "@dopejs/pingo-ui";
 
 setTheme("dark"); // すべての購読コンポーネントが自動で再描画される
-useTheme();       // コンポーネントの render 内で読み取り・購読する
+useTheme(); // コンポーネントの render 内で読み取り・購読する
 ```
 
 テーマはモジュールレベルの signal です。コンポーネントの render 内で `useTheme()` が自動購読し、`setTheme` がすべての

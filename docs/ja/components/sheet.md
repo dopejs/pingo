@@ -38,9 +38,9 @@ root.render(
 
 `DialogProps`（`open`、`onOpenChange`、`children`、`className`）を継承し、さらに以下があります。
 
-| Prop | 型 | デフォルト値 | 説明 |
-| --- | --- | --- | --- |
-| `side` | `"left" \| "right" \| "top" \| "bottom"` | `"right"` | スライドインする端 |
+| Prop   | 型                                       | デフォルト値 | 説明               |
+| ------ | ---------------------------------------- | ------------ | ------------------ |
+| `side` | `"left" \| "right" \| "top" \| "bottom"` | `"right"`    | スライドインする端 |
 
 ## アクセシビリティ
 

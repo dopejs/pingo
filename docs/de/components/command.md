@@ -32,20 +32,20 @@ Die Filterung erfolgt über eine Teilstringsuche in Labels ohne Beachtung der Gr
 
 ## Props
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `items` | `readonly CommandItem[]` | — | Befehlseinträge (erforderlich) |
-| `onSelect` | `(value: string) => void` | — | Callback bei Auswahl eines Eintrags (Klick oder Eingabetaste) |
-| `onDismiss` | `() => void` | — | Callback für `Escape` |
-| `placeholder` | `string` | `"搜索"` | Barrierefreier Name des Suchfelds |
-| `emptyLabel` | `string` | `"无结果"` | Hinweistext, wenn die Filterung keine Treffer ergibt |
-| `className` | `string` | — | Zusätzliche Klassenbezeichnung |
+| Prop          | Typ                       | Standardwert | Beschreibung                                                  |
+| ------------- | ------------------------- | ------------ | ------------------------------------------------------------- |
+| `items`       | `readonly CommandItem[]`  | —            | Befehlseinträge (erforderlich)                                |
+| `onSelect`    | `(value: string) => void` | —            | Callback bei Auswahl eines Eintrags (Klick oder Eingabetaste) |
+| `onDismiss`   | `() => void`              | —            | Callback für `Escape`                                         |
+| `placeholder` | `string`                  | `"搜索"`     | Barrierefreier Name des Suchfelds                             |
+| `emptyLabel`  | `string`                  | `"无结果"`   | Hinweistext, wenn die Filterung keine Treffer ergibt          |
+| `className`   | `string`                  | —            | Zusätzliche Klassenbezeichnung                                |
 
 ### CommandItem
 
-| Feld | Typ | Beschreibung |
-| --- | --- | --- |
-| `value` | `string` | Eintragswert (erforderlich) |
+| Feld    | Typ      | Beschreibung                             |
+| ------- | -------- | ---------------------------------------- |
+| `value` | `string` | Eintragswert (erforderlich)              |
 | `label` | `string` | Anzeige- und Abgleichtext (erforderlich) |
 
 ## Barrierefreiheit

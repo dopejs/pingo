@@ -41,12 +41,12 @@ root.render(
 
 `NavigationMenu`는 `MenubarProps`에서 `navigation`을 제외한 모든 props를 받습니다.
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 제어: 현재 열려 있는 메뉴의 값 |
-| `onValueChange` | `(value: string \| undefined) => void` | — | 열린 메뉴 변경 콜백 (닫힐 때는 `undefined`) |
-| `children` | `PingoNode` | — | 여러 `MenubarMenu` (필수) |
-| `className` | `string` | — | 추가 클래스 이름 |
+| Prop            | 타입                                   | 기본값 | 설명                                        |
+| --------------- | -------------------------------------- | ------ | ------------------------------------------- |
+| `value`         | `string`                               | —      | 제어: 현재 열려 있는 메뉴의 값              |
+| `onValueChange` | `(value: string \| undefined) => void` | —      | 열린 메뉴 변경 콜백 (닫힐 때는 `undefined`) |
+| `children`      | `PingoNode`                            | —      | 여러 `MenubarMenu` (필수)                   |
+| `className`     | `string`                               | —      | 추가 클래스 이름                            |
 
 항목 props는 [Menubar](/components/menubar#menubarmenu)를 참조하세요.
 

@@ -38,8 +38,8 @@ Die Overlay-Schicht füllt ihren eigenen Elterncontainer aus; mounte sie daher n
 
 Erbt `DialogProps` (`open`, `onOpenChange`, `children`, `className`), zusätzlich:
 
-| Prop | Typ | Standard | Beschreibung |
-| --- | --- | --- | --- |
+| Prop   | Typ                 | Standard   | Beschreibung                           |
+| ------ | ------------------- | ---------- | -------------------------------------- |
 | `side` | `"top" \| "bottom"` | `"bottom"` | Kante, von der das Panel hereingleitet |
 
 ## Barrierefreiheit

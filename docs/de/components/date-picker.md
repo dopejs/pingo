@@ -38,21 +38,21 @@ Der Trigger zeigt das ausgewählte Datum standardmäßig als `YYYY-MM-DD` an; mi
 
 ## Props
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `value` | `CalendarDate` | — | Ausgewähltes Datum |
-| `month` | `CalendarDate` | — | Kontrollierter Anzeigemonat |
-| `defaultMonth` | `CalendarDate` | `value ?? 2026-01-01` | Nicht kontrollierter Anfangsmonat |
-| `onSelect` | `(date: CalendarDate) => void` | — | Callback bei Datumsauswahl (anschließend automatisches Zuklappen) |
-| `onMonthChange` | `(month: CalendarDate) => void` | — | Callback beim Blättern |
-| `weekdayLabels` | `readonly string[]` | `["日","一","二","三","四","五","六"]` | Wochentags-Kopfzeile |
-| `monthLabel` | `(month: CalendarDate) => string` | — | Benutzerdefinierter Monatstitel |
-| `isDisabled` | `(date: CalendarDate) => boolean` | — | Bestimmte Daten deaktivieren |
-| `open` | `boolean` | — | Kontrolliertes Öffnen/Schließen |
-| `onOpenChange` | `(open: boolean) => void` | — | Callback beim Öffnen/Schließen |
-| `placeholder` | `string` | `"选择日期"` | Platzhaltertext, wenn nichts ausgewählt ist |
-| `format` | `(date: CalendarDate) => string` | `formatDate`（`YYYY-MM-DD`） | Datums-Rendering im Trigger |
-| `className` | `string` | — | Wird nach dem Komponenten-Klassennamen angehängt |
+| Prop            | Typ                               | Standardwert                           | Beschreibung                                                      |
+| --------------- | --------------------------------- | -------------------------------------- | ----------------------------------------------------------------- |
+| `value`         | `CalendarDate`                    | —                                      | Ausgewähltes Datum                                                |
+| `month`         | `CalendarDate`                    | —                                      | Kontrollierter Anzeigemonat                                       |
+| `defaultMonth`  | `CalendarDate`                    | `value ?? 2026-01-01`                  | Nicht kontrollierter Anfangsmonat                                 |
+| `onSelect`      | `(date: CalendarDate) => void`    | —                                      | Callback bei Datumsauswahl (anschließend automatisches Zuklappen) |
+| `onMonthChange` | `(month: CalendarDate) => void`   | —                                      | Callback beim Blättern                                            |
+| `weekdayLabels` | `readonly string[]`               | `["日","一","二","三","四","五","六"]` | Wochentags-Kopfzeile                                              |
+| `monthLabel`    | `(month: CalendarDate) => string` | —                                      | Benutzerdefinierter Monatstitel                                   |
+| `isDisabled`    | `(date: CalendarDate) => boolean` | —                                      | Bestimmte Daten deaktivieren                                      |
+| `open`          | `boolean`                         | —                                      | Kontrolliertes Öffnen/Schließen                                   |
+| `onOpenChange`  | `(open: boolean) => void`         | —                                      | Callback beim Öffnen/Schließen                                    |
+| `placeholder`   | `string`                          | `"选择日期"`                           | Platzhaltertext, wenn nichts ausgewählt ist                       |
+| `format`        | `(date: CalendarDate) => string`  | `formatDate`（`YYYY-MM-DD`）           | Datums-Rendering im Trigger                                       |
+| `className`     | `string`                          | —                                      | Wird nach dem Komponenten-Klassennamen angehängt                  |
 
 ## Barrierefreiheit
 

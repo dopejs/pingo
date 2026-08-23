@@ -45,22 +45,22 @@ root.render(
 
 ### Accordion
 
-| Prop | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `openValue` | `string` | — | Controlado: `value` del elemento actualmente expandido |
-| `defaultOpenValue` | `string` | — | No controlado: `value` del elemento expandido inicialmente |
-| `onValueChange` | `(value: string \| undefined) => void` | — | Callback de cambio del elemento expandido; `undefined` cuando todo está colapsado |
-| `children` | `PingoNode` | — | Lista de `AccordionItem` (obligatorio) |
-| `className` | `string` | — | Se añade tras las clases del propio componente |
+| Prop               | Tipo                                   | Valor predeterminado | Descripción                                                                       |
+| ------------------ | -------------------------------------- | -------------------- | --------------------------------------------------------------------------------- |
+| `openValue`        | `string`                               | —                    | Controlado: `value` del elemento actualmente expandido                            |
+| `defaultOpenValue` | `string`                               | —                    | No controlado: `value` del elemento expandido inicialmente                        |
+| `onValueChange`    | `(value: string \| undefined) => void` | —                    | Callback de cambio del elemento expandido; `undefined` cuando todo está colapsado |
+| `children`         | `PingoNode`                            | —                    | Lista de `AccordionItem` (obligatorio)                                            |
+| `className`        | `string`                               | —                    | Se añade tras las clases del propio componente                                    |
 
 ### AccordionItem
 
-| Prop | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Identificador único del elemento (obligatorio) |
-| `title` | `string` | — | Título del disparador (obligatorio) |
-| `children` | `PingoNode` | — | Contenido mostrado al expandir (obligatorio) |
-| `className` | `string` | — | Se añade tras las clases del propio componente |
+| Prop        | Tipo        | Valor predeterminado | Descripción                                    |
+| ----------- | ----------- | -------------------- | ---------------------------------------------- |
+| `value`     | `string`    | —                    | Identificador único del elemento (obligatorio) |
+| `title`     | `string`    | —                    | Título del disparador (obligatorio)            |
+| `children`  | `PingoNode` | —                    | Contenido mostrado al expandir (obligatorio)   |
+| `className` | `string`    | —                    | Se añade tras las clases del propio componente |
 
 ## Accesibilidad
 

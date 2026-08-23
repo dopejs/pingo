@@ -49,16 +49,16 @@ root.render(
 
 ### Props（Text）
 
-| Prop | 型 | デフォルト値 | 説明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | テキスト内容（`children` との排他指定） |
-| `children` | `string \| number` | — | テキスト内容 |
-| `color` | `Color` | `#000000ff` | テキスト色。継承可能 |
-| `fontSize` | `number` | — | フォントサイズ（論理ピクセル） |
-| `lineHeight` | `number` | — | 行高（論理ピクセル） |
-| `fontWeight` | `number` | — | フォントウェイト |
-| `fontFamily` | `string` | — | CSSフォントファミリー |
-| `font` | `PingoFont` | — | 明示的な不変フォント。非対応の入力は全体がフォールバックされる |
+| Prop         | 型                 | デフォルト値 | 説明                                                           |
+| ------------ | ------------------ | ------------ | -------------------------------------------------------------- |
+| `value`      | `string`           | —            | テキスト内容（`children` との排他指定）                        |
+| `children`   | `string \| number` | —            | テキスト内容                                                   |
+| `color`      | `Color`            | `#000000ff`  | テキスト色。継承可能                                           |
+| `fontSize`   | `number`           | —            | フォントサイズ（論理ピクセル）                                 |
+| `lineHeight` | `number`           | —            | 行高（論理ピクセル）                                           |
+| `fontWeight` | `number`           | —            | フォントウェイト                                               |
+| `fontFamily` | `string`           | —            | CSSフォントファミリー                                          |
+| `font`       | `PingoFont`        | —            | 明示的な不変フォント。非対応の入力は全体がフォールバックされる |
 
 `Text` はすべての [CommonProps](/api)（サイズ、padding、イベント、`semanticRole` /
 `semanticLabel` など）も継承する。

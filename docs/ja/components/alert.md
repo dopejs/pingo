@@ -42,12 +42,12 @@ createElement(Alert, {
 
 ## Props
 
-| Prop | 型 | デフォルト | 説明 |
-| --- | --- | --- | --- |
-| `title` | `string` | — | タイトル（必須） |
-| `children` | `string` | — | 説明の本文（必須） |
-| `variant` | `"default" \| "destructive"` | `"default"` | 見た目のバリアント |
-| `className` | `string` | — | コンポーネントのクラス名に追加される |
+| Prop        | 型                           | デフォルト  | 説明                                 |
+| ----------- | ---------------------------- | ----------- | ------------------------------------ |
+| `title`     | `string`                     | —           | タイトル（必須）                     |
+| `children`  | `string`                     | —           | 説明の本文（必須）                   |
+| `variant`   | `"default" \| "destructive"` | `"default"` | 見た目のバリアント                   |
+| `className` | `string`                     | —           | コンポーネントのクラス名に追加される |
 
 ## アクセシビリティ
 

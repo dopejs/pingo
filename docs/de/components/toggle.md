@@ -35,14 +35,14 @@ Mit `disabled` reagiert der Knopf weder auf Zeiger noch Tastatur und lässt sich
 
 ## Props
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `children` | `string` | — | Buttontext (erforderlich) |
-| `pressed` | `boolean` | — | Kontrollierter Zustand „gedrückt“ |
-| `defaultPressed` | `boolean` | `false` | Anfangszustand „gedrückt“ im unkontrollierten Modus |
-| `onPressedChange` | `(pressed: boolean) => void` | — | Callback bei Zustandswechsel |
-| `disabled` | `boolean` | `false` | Deaktivierter Zustand |
-| `className` | `string` | — | Wird an den Komponenten-Klassennamen angehängt |
+| Prop              | 类型                         | 默认值  | 说明                                                |
+| ----------------- | ---------------------------- | ------- | --------------------------------------------------- |
+| `children`        | `string`                     | —       | Buttontext (erforderlich)                           |
+| `pressed`         | `boolean`                    | —       | Kontrollierter Zustand „gedrückt“                   |
+| `defaultPressed`  | `boolean`                    | `false` | Anfangszustand „gedrückt“ im unkontrollierten Modus |
+| `onPressedChange` | `(pressed: boolean) => void` | —       | Callback bei Zustandswechsel                        |
+| `disabled`        | `boolean`                    | `false` | Deaktivierter Zustand                               |
+| `className`       | `string`                     | —       | Wird an den Komponenten-Klassennamen angehängt      |
 
 ## Barrierefreiheit
 

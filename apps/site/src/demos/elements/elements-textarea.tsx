@@ -1,10 +1,18 @@
-import { createElement, Text, UnstyledTextArea, View, type EditTransaction, type PingoNode } from "@dopejs/pingo";
+import {
+  createElement,
+  Text,
+  UnstyledTextArea,
+  View,
+  type EditTransaction,
+  type PingoNode,
+} from "@dopejs/pingo";
 import { useTheme } from "@dopejs/pingo-ui";
 
 import type { PreviewDemo } from "../../preview/contract";
 import { stage } from "../../preview/layout";
 
-let notes = "多行编辑：\nEnter 换行，上下方向键跨行移动时保持期望列（desired-x）。\n撤销重做、剪贴板与 IME composition 都由 Core 实现。";
+let notes =
+  "多行编辑：\nEnter 换行，上下方向键跨行移动时保持期望列（desired-x）。\n撤销重做、剪贴板与 IME composition 都由 Core 实现。";
 let notesRevision = 1n;
 
 function applyDelta(value: string, transaction: EditTransaction): string {

@@ -43,18 +43,18 @@ Sowohl `value` / `onValueChange` als auch `open` / `onOpenChange` können kontro
 
 ## Props
 
-| Prop | Typ | Standard | Beschreibung |
-| --- | --- | --- | --- |
-| `items` | `readonly { value: string; label: string }[]` | — | Optionsliste (erforderlich) |
-| `value` | `string` | — | Kontrollierter ausgewählter Wert |
-| `defaultValue` | `string` | — | Unkontrollierter anfänglich ausgewählter Wert |
-| `onValueChange` | `(value: string) => void` | — | Callback bei Auswahländerung (klappt nach Auswahl automatisch zu) |
-| `open` | `boolean` | — | Kontrolliertes Öffnen/Schließen |
-| `defaultOpen` | `boolean` | `false` | Unkontrollierter anfänglicher Öffnungszustand |
-| `onOpenChange` | `(open: boolean) => void` | — | Callback bei Öffnen/Schließen |
-| `placeholder` | `string` | `"Bitte wählen"` | Platzhaltertext auf dem Trigger, wenn nichts ausgewählt ist |
-| `emptyLabel` | `string` | — | Hinweis bei leerem Filterergebnis |
-| `className` | `string` | — | Wird an den Komponenten-Klassennamen angehängt |
+| Prop            | Typ                                           | Standard         | Beschreibung                                                      |
+| --------------- | --------------------------------------------- | ---------------- | ----------------------------------------------------------------- |
+| `items`         | `readonly { value: string; label: string }[]` | —                | Optionsliste (erforderlich)                                       |
+| `value`         | `string`                                      | —                | Kontrollierter ausgewählter Wert                                  |
+| `defaultValue`  | `string`                                      | —                | Unkontrollierter anfänglich ausgewählter Wert                     |
+| `onValueChange` | `(value: string) => void`                     | —                | Callback bei Auswahländerung (klappt nach Auswahl automatisch zu) |
+| `open`          | `boolean`                                     | —                | Kontrolliertes Öffnen/Schließen                                   |
+| `defaultOpen`   | `boolean`                                     | `false`          | Unkontrollierter anfänglicher Öffnungszustand                     |
+| `onOpenChange`  | `(open: boolean) => void`                     | —                | Callback bei Öffnen/Schließen                                     |
+| `placeholder`   | `string`                                      | `"Bitte wählen"` | Platzhaltertext auf dem Trigger, wenn nichts ausgewählt ist       |
+| `emptyLabel`    | `string`                                      | —                | Hinweis bei leerem Filterergebnis                                 |
+| `className`     | `string`                                      | —                | Wird an den Komponenten-Klassennamen angehängt                    |
 
 ## Barrierefreiheit
 

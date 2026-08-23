@@ -60,19 +60,19 @@ const remote = await loadSvg("/assets/logo.svg");
 
 ## Props（Path）
 
-| Prop | 型 | 既定値 | 説明 |
-| --- | --- | --- | --- |
-| `d` | `string` | — | SVG path データ（必須。パス構文のみで、ドキュメントではない） |
-| `viewBox` | `readonly [number, number, number, number]` | — | オーサー空間のボックス。ノードボックスへスケーリングされる |
-| `strokeWidth` | `number` | — | 非ゼロの場合、塗りつぶしではなくストロークする |
-| `fillRule` | `"nonzero" \| "evenodd"` | `"nonzero"` | 塗りつぶし規則 |
-| `geometryTransform` | `readonly [number, number, number, number, number, number]` | 単位行列 | エンコード前にジオメトリへ焼き込まれる変換 |
+| Prop                | 型                                                          | 既定値      | 説明                                                          |
+| ------------------- | ----------------------------------------------------------- | ----------- | ------------------------------------------------------------- |
+| `d`                 | `string`                                                    | —           | SVG path データ（必須。パス構文のみで、ドキュメントではない） |
+| `viewBox`           | `readonly [number, number, number, number]`                 | —           | オーサー空間のボックス。ノードボックスへスケーリングされる    |
+| `strokeWidth`       | `number`                                                    | —           | 非ゼロの場合、塗りつぶしではなくストロークする                |
+| `fillRule`          | `"nonzero" \| "evenodd"`                                    | `"nonzero"` | 塗りつぶし規則                                                |
+| `geometryTransform` | `readonly [number, number, number, number, number, number]` | 単位行列    | エンコード前にジオメトリへ焼き込まれる変換                    |
 
 ## Props（Svg）
 
-| Prop | 型 | 既定値 | 説明 |
-| --- | --- | --- | --- |
-| `source` | `PingoSvg` | — | `createSvg` / `loadSvg` が解析したドキュメント（必須） |
+| Prop     | 型         | 既定値 | 説明                                                   |
+| -------- | ---------- | ------ | ------------------------------------------------------ |
+| `source` | `PingoSvg` | —      | `createSvg` / `loadSvg` が解析したドキュメント（必須） |
 
 両者は [CommonProps](/api)（`width`/`height`、イベント、セマンティック props など）を継承します。
 

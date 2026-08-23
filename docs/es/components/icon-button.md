@@ -40,15 +40,15 @@ root.render(
 
 ## Props
 
-| Prop | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `icon` | `PingoNode` | — | Slot de icono, se pasa tal cual (obligatorio) |
-| `semanticLabel` | `string` | — | Nombre accesible (obligatorio) |
-| `variant` | `"default" \| "secondary" \| "outline" \| "ghost" \| "destructive"` | `"default"` | Variante visual |
-| `size` | `"default" \| "sm" \| "lg"` | `"default"` | Tamaño (`sm`/`lg` no tienen efecto por ahora; ver arriba) |
-| `disabled` | `boolean` | `false` | Estado deshabilitado |
-| `onPress` | `() => void` | — | Callback de activación por puntero/teclado |
-| `className` | `string` | — | Se añade después del nombre de clase del componente |
+| Prop            | Tipo                                                                | Valor predeterminado | Descripción                                               |
+| --------------- | ------------------------------------------------------------------- | -------------------- | --------------------------------------------------------- |
+| `icon`          | `PingoNode`                                                         | —                    | Slot de icono, se pasa tal cual (obligatorio)             |
+| `semanticLabel` | `string`                                                            | —                    | Nombre accesible (obligatorio)                            |
+| `variant`       | `"default" \| "secondary" \| "outline" \| "ghost" \| "destructive"` | `"default"`          | Variante visual                                           |
+| `size`          | `"default" \| "sm" \| "lg"`                                         | `"default"`          | Tamaño (`sm`/`lg` no tienen efecto por ahora; ver arriba) |
+| `disabled`      | `boolean`                                                           | `false`              | Estado deshabilitado                                      |
+| `onPress`       | `() => void`                                                        | —                    | Callback de activación por puntero/teclado                |
+| `className`     | `string`                                                            | —                    | Se añade después del nombre de clase del componente       |
 
 ## Accesibilidad
 

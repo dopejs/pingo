@@ -85,19 +85,19 @@ path equivalentes.
 
 ## Props (Path)
 
-| Prop | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `d` | `string` | — | Datos de path SVG (obligatorio; sólo sintaxis de ruta, no un documento) |
-| `viewBox` | `readonly [number, number, number, number]` | — | Caja del espacio de autor, escalada a la caja del nodo |
-| `strokeWidth` | `number` | — | Distinto de cero: trazar en lugar de rellenar |
-| `fillRule` | `"nonzero" \| "evenodd"` | `"nonzero"` | Regla de relleno |
-| `geometryTransform` | `readonly [number, number, number, number, number, number]` | matriz identidad | Transformación horneada en la geometría antes de la codificación |
+| Prop                | Tipo                                                        | Valor predeterminado | Descripción                                                             |
+| ------------------- | ----------------------------------------------------------- | -------------------- | ----------------------------------------------------------------------- |
+| `d`                 | `string`                                                    | —                    | Datos de path SVG (obligatorio; sólo sintaxis de ruta, no un documento) |
+| `viewBox`           | `readonly [number, number, number, number]`                 | —                    | Caja del espacio de autor, escalada a la caja del nodo                  |
+| `strokeWidth`       | `number`                                                    | —                    | Distinto de cero: trazar en lugar de rellenar                           |
+| `fillRule`          | `"nonzero" \| "evenodd"`                                    | `"nonzero"`          | Regla de relleno                                                        |
+| `geometryTransform` | `readonly [number, number, number, number, number, number]` | matriz identidad     | Transformación horneada en la geometría antes de la codificación        |
 
 ## Props (Svg)
 
-| Prop | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `source` | `PingoSvg` | — | Documento parseado con `createSvg` / `loadSvg` (obligatorio) |
+| Prop     | Tipo       | Valor predeterminado | Descripción                                                  |
+| -------- | ---------- | -------------------- | ------------------------------------------------------------ |
+| `source` | `PingoSvg` | —                    | Documento parseado con `createSvg` / `loadSvg` (obligatorio) |
 
 Ambos heredan las [CommonProps](/api) (`width`/`height`, eventos, props semánticas, etc.).
 

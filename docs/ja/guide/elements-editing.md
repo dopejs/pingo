@@ -57,15 +57,15 @@ createElement(Input, {
 
 `EditTransaction` のフィールド：
 
-| フィールド | 型 | 説明 |
-| --- | --- | --- |
-| `nodeId` | `number` | トランザクションを生成した編集ノード |
-| `baseRevision` | `bigint` | トランザクションの基になる revision |
-| `revision` | `bigint` | トランザクション後の新しい revision |
-| `delta` | `{ range: { start, end }, text }` | テキスト差分。オフセットは UTF-16 で、EditContext/InputEvent に合わせています。純粋な選択トランザクションにはこのフィールドはありません |
-| `selection` | `{ anchor, focus, anchorAffinity, focusAffinity }` | トランザクション後の選択範囲 |
-| `composition` | `{ start, end }` | 進行中の IME 組み合わせ区間 |
-| `kind` | `"edit" \| "composition" \| "external" \| "undo" \| "redo"` | トランザクションの種別 |
+| フィールド     | 型                                                          | 説明                                                                                                                                    |
+| -------------- | ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `nodeId`       | `number`                                                    | トランザクションを生成した編集ノード                                                                                                    |
+| `baseRevision` | `bigint`                                                    | トランザクションの基になる revision                                                                                                     |
+| `revision`     | `bigint`                                                    | トランザクション後の新しい revision                                                                                                     |
+| `delta`        | `{ range: { start, end }, text }`                           | テキスト差分。オフセットは UTF-16 で、EditContext/InputEvent に合わせています。純粋な選択トランザクションにはこのフィールドはありません |
+| `selection`    | `{ anchor, focus, anchorAffinity, focusAffinity }`          | トランザクション後の選択範囲                                                                                                            |
+| `composition`  | `{ start, end }`                                            | 進行中の IME 組み合わせ区間                                                                                                             |
+| `kind`         | `"edit" \| "composition" \| "external" \| "undo" \| "redo"` | トランザクションの種別                                                                                                                  |
 
 ## 入力ブリッジ：EditContext とフォールバックプロキシ
 
@@ -92,17 +92,17 @@ DOM は存在しません。両方の経路は同じ編集動作契約テスト�
 
 両者は `EditableTextProps` を共有します（`multiline` は公開されず、コンポーネントが固定します）。
 
-| Prop | 型 | デフォルト値 | 説明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 制御されたテキスト |
-| `revision` | `number \| bigint` | — | 制御された値の信頼できる revision。古い値が新しい Core 入力を上書きすることはありません |
-| `controller` | `TextEditingController` | — | 安定したローカル controller。`value`/`revision` と相互排他 |
-| `readOnly` | `boolean` | `false` | 読み取り専用 |
-| `password` | `boolean` | `false` | パスワードモード（下記参照） |
-| `maxGraphemes` | `number` | — | grapheme の上限 |
-| `inputMode` | `EditableInputMode` | `"text"` | ソフトキーボードのヒント：`decimal` `email` `none` `numeric` `search` `tel` `text` `url` |
-| `onTransaction` | `(t: EditTransaction) => void` | — | Core 編集トランザクションのコールバック |
-| `onSubmit` | `() => void` | — | 単一行での Enter 送信。複数行の Enter は改行のために予約されています |
+| Prop            | 型                             | デフォルト値 | 説明                                                                                     |
+| --------------- | ------------------------------ | ------------ | ---------------------------------------------------------------------------------------- |
+| `value`         | `string`                       | —            | 制御されたテキスト                                                                       |
+| `revision`      | `number \| bigint`             | —            | 制御された値の信頼できる revision。古い値が新しい Core 入力を上書きすることはありません  |
+| `controller`    | `TextEditingController`        | —            | 安定したローカル controller。`value`/`revision` と相互排他                               |
+| `readOnly`      | `boolean`                      | `false`      | 読み取り専用                                                                             |
+| `password`      | `boolean`                      | `false`      | パスワードモード（下記参照）                                                             |
+| `maxGraphemes`  | `number`                       | —            | grapheme の上限                                                                          |
+| `inputMode`     | `EditableInputMode`            | `"text"`     | ソフトキーボードのヒント：`decimal` `email` `none` `numeric` `search` `tel` `text` `url` |
+| `onTransaction` | `(t: EditTransaction) => void` | —            | Core 編集トランザクションのコールバック                                                  |
+| `onSubmit`      | `() => void`                   | —            | 単一行での Enter 送信。複数行の Enter は改行のために予約されています                     |
 
 テキストの外観は `TextProps` を継承します：`color`、`fontSize`、`fontWeight`、`lineHeight`、`fontFamily`、
 `font`。サイズ、`padding`、`backgroundColor`、境界線（`style` チャネル）などは

@@ -35,14 +35,14 @@ root.render(
 
 ## Props
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `children` | `string` | — | 按鈕文字（必填） |
-| `pressed` | `boolean` | — | 受控按下狀態 |
-| `defaultPressed` | `boolean` | `false` | 非受控初始按下狀態 |
-| `onPressedChange` | `(pressed: boolean) => void` | — | 狀態切換回調 |
-| `disabled` | `boolean` | `false` | 禁用態 |
-| `className` | `string` | — | 追加在元件類名之後 |
+| Prop              | 型別                         | 預設值  | 說明               |
+| ----------------- | ---------------------------- | ------- | ------------------ |
+| `children`        | `string`                     | —       | 按鈕文字（必填）   |
+| `pressed`         | `boolean`                    | —       | 受控按下狀態       |
+| `defaultPressed`  | `boolean`                    | `false` | 非受控初始按下狀態 |
+| `onPressedChange` | `(pressed: boolean) => void` | —       | 狀態切換回調       |
+| `disabled`        | `boolean`                    | `false` | 禁用態             |
+| `className`       | `string`                     | —       | 追加在元件類名之後 |
 
 ## 無障礙
 

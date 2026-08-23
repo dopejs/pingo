@@ -50,22 +50,22 @@ root.render(
 
 ### Menubar
 
-| Prop | סוג | ברירת מחדל | תיאור |
-| --- | --- | --- | --- |
-| `value` | `string` | — | מנוהל: הערך של התפריט הפתוח כעת |
-| `onValueChange` | `(value: string \| undefined) => void` | — | קריאה חוזרת בעת שינוי התפריט הפתוח (`undefined` בעת סגירה) |
-| `children` | `PingoNode` | — | מספר רכיבי `MenubarMenu` (חובה) |
-| `className` | `string` | — | שם מחלקה נוסף |
-| `navigation` | `boolean` | `false` | שימוש בסמנטיקת ניווט (בשימוש פנימי על ידי [NavigationMenu](/components/navigation-menu)) |
+| Prop            | סוג                                    | ברירת מחדל | תיאור                                                                                    |
+| --------------- | -------------------------------------- | ---------- | ---------------------------------------------------------------------------------------- |
+| `value`         | `string`                               | —          | מנוהל: הערך של התפריט הפתוח כעת                                                          |
+| `onValueChange` | `(value: string \| undefined) => void` | —          | קריאה חוזרת בעת שינוי התפריט הפתוח (`undefined` בעת סגירה)                               |
+| `children`      | `PingoNode`                            | —          | מספר רכיבי `MenubarMenu` (חובה)                                                          |
+| `className`     | `string`                               | —          | שם מחלקה נוסף                                                                            |
+| `navigation`    | `boolean`                              | `false`    | שימוש בסמנטיקת ניווט (בשימוש פנימי על ידי [NavigationMenu](/components/navigation-menu)) |
 
 ### MenubarMenu
 
-| Prop | סוג | ברירת מחדל | תיאור |
-| --- | --- | --- | --- |
-| `value` | `string` | — | מזהה התפריט (חובה) |
-| `label` | `string` | — | התווית המוצגת בשורה (חובה) |
-| `children` | `PingoNode` | — | תוכן החלונית בעת הפתיחה (חובה) |
-| `className` | `string` | — | שם מחלקה נוסף |
+| Prop        | סוג         | ברירת מחדל | תיאור                          |
+| ----------- | ----------- | ---------- | ------------------------------ |
+| `value`     | `string`    | —          | מזהה התפריט (חובה)             |
+| `label`     | `string`    | —          | התווית המוצגת בשורה (חובה)     |
+| `children`  | `PingoNode` | —          | תוכן החלונית בעת הפתיחה (חובה) |
+| `className` | `string`    | —          | שם מחלקה נוסף                  |
 
 ## נגישות
 

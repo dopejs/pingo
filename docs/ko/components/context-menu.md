@@ -33,21 +33,21 @@ root.render(
 
 ## Props
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | 트리거 영역 콘텐츠(필수) |
-| `items` | `readonly ContextMenuEntry[]` | — | 메뉴 항목(필수) |
-| `onSelect` | `(value: string) => void` | — | 메뉴 항목 선택 콜백 |
-| `onOpenChange` | `(open: boolean) => void` | — | 열림/닫힘 변경 콜백 |
-| `className` | `string` | — | 추가 클래스 이름 |
+| Prop           | 타입                          | 기본값 | 설명                     |
+| -------------- | ----------------------------- | ------ | ------------------------ |
+| `children`     | `PingoNode`                   | —      | 트리거 영역 콘텐츠(필수) |
+| `items`        | `readonly ContextMenuEntry[]` | —      | 메뉴 항목(필수)          |
+| `onSelect`     | `(value: string) => void`     | —      | 메뉴 항목 선택 콜백      |
+| `onOpenChange` | `(open: boolean) => void`     | —      | 열림/닫힘 변경 콜백      |
+| `className`    | `string`                      | —      | 추가 클래스 이름         |
 
 ### ContextMenuEntry
 
-| 필드 | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 메뉴 항목 값(필수) |
-| `label` | `string` | — | 표시 텍스트(필수) |
-| `disabled` | `boolean` | `false` | 비활성화 상태 |
+| 필드       | 타입      | 기본값  | 설명               |
+| ---------- | --------- | ------- | ------------------ |
+| `value`    | `string`  | —       | 메뉴 항목 값(필수) |
+| `label`    | `string`  | —       | 표시 텍스트(필수)  |
+| `disabled` | `boolean` | `false` | 비활성화 상태      |
 
 ## 접근성
 

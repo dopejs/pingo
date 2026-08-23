@@ -44,14 +44,14 @@ root.render(createElement(NotificationSetting));
 
 ## Props
 
-| Prop | 型 | デフォルト | 説明 |
-| --- | --- | --- | --- |
-| `checked` | `boolean` | — | チェック状態（必須、制御） |
-| `onCheckedChange` | `(checked: boolean) => void` | — | 状態切り替え時のコールバック |
-| `disabled` | `boolean` | `false` | 無効状態 |
-| `label` | `string` | — | チェックボックス右側のテキストラベル |
-| `className` | `string` | — | コンポーネントのクラス名に追加される |
-| `semanticLabel` | `string` | — | アクセシブル名 |
+| Prop              | 型                           | デフォルト | 説明                                 |
+| ----------------- | ---------------------------- | ---------- | ------------------------------------ |
+| `checked`         | `boolean`                    | —          | チェック状態（必須、制御）           |
+| `onCheckedChange` | `(checked: boolean) => void` | —          | 状態切り替え時のコールバック         |
+| `disabled`        | `boolean`                    | `false`    | 無効状態                             |
+| `label`           | `string`                     | —          | チェックボックス右側のテキストラベル |
+| `className`       | `string`                     | —          | コンポーネントのクラス名に追加される |
+| `semanticLabel`   | `string`                     | —          | アクセシブル名                       |
 
 ## アクセシビリティ
 

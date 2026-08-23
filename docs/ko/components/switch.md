@@ -39,13 +39,13 @@ root.render(createElement(AirplaneMode));
 
 ## Props
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `checked` | `boolean` | — | 스위치 상태(필수, 제어형) |
-| `onCheckedChange` | `(checked: boolean) => void` | — | 상태 전환 콜백 |
-| `disabled` | `boolean` | `false` | 비활성 상태 |
-| `className` | `string` | — | 컴포넌트 클래스 이름 뒤에 추가 |
-| `semanticLabel` | `string` | — | 접근성 이름 |
+| Prop              | 타입                         | 기본값  | 설명                           |
+| ----------------- | ---------------------------- | ------- | ------------------------------ |
+| `checked`         | `boolean`                    | —       | 스위치 상태(필수, 제어형)      |
+| `onCheckedChange` | `(checked: boolean) => void` | —       | 상태 전환 콜백                 |
+| `disabled`        | `boolean`                    | `false` | 비활성 상태                    |
+| `className`       | `string`                     | —       | 컴포넌트 클래스 이름 뒤에 추가 |
+| `semanticLabel`   | `string`                     | —       | 접근성 이름                    |
 
 ## 접근성
 

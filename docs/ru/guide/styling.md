@@ -45,7 +45,7 @@ diagnostics. Таблицу стилей также можно записать 
 
 ```ts
 const sheet = createStyleSheet({
-  card: { backgroundColor: "#ffffffff", borderRadius: 8, padding: 16 },
+  "card": { backgroundColor: "#ffffffff", borderRadius: 8, padding: 16 },
   "card:hover": { backgroundColor: "#f5f5f5ff" },
 });
 ```
@@ -135,7 +135,7 @@ const root = await createHostedCanvasRoot(canvas, {
 import { setTheme, useTheme } from "@dopejs/pingo-ui";
 
 setTheme("dark"); // Все подписанные компоненты автоматически перерисовываются
-useTheme();       // Читает и подписывается внутри render компонента
+useTheme(); // Читает и подписывается внутри render компонента
 ```
 
 Тема — это signal уровня модуля: в render компонента `useTheme()` автоматически подписывается, а `setTheme` запускает

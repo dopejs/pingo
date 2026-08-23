@@ -39,15 +39,15 @@ Stil.
 
 ## Props
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `children` | `string` | — | Buttontext (Pflicht) |
-| `variant` | `"default" \| "secondary" \| "outline" \| "ghost" \| "destructive"` | `"default"` | Visuelle Variante |
-| `size` | `"default" \| "sm" \| "lg" \| "icon"` | `"default"` | Größe |
-| `disabled` | `boolean` | `false` | Deaktivierter Zustand |
-| `onPress` | `() => void` | — | Aktivierungs-Callback für Zeiger/Tastatur |
-| `semanticLabel` | `string` | `children` | Barrierefreiheitsname |
-| `className` | `string` | — | Wird hinter die Komponentenklassen gehängt |
+| Prop            | Typ                                                                 | Standardwert | Beschreibung                               |
+| --------------- | ------------------------------------------------------------------- | ------------ | ------------------------------------------ |
+| `children`      | `string`                                                            | —            | Buttontext (Pflicht)                       |
+| `variant`       | `"default" \| "secondary" \| "outline" \| "ghost" \| "destructive"` | `"default"`  | Visuelle Variante                          |
+| `size`          | `"default" \| "sm" \| "lg" \| "icon"`                               | `"default"`  | Größe                                      |
+| `disabled`      | `boolean`                                                           | `false`      | Deaktivierter Zustand                      |
+| `onPress`       | `() => void`                                                        | —            | Aktivierungs-Callback für Zeiger/Tastatur  |
+| `semanticLabel` | `string`                                                            | `children`   | Barrierefreiheitsname                      |
+| `className`     | `string`                                                            | —            | Wird hinter die Komponentenklassen gehängt |
 
 ## Barrierefreiheit
 

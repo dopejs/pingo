@@ -45,14 +45,14 @@ createElement(StatCard, { label: "在线设备", value: "1,024" });
 
 ## Props
 
-| Prop | Tipo | Valor por defecto | Descripción |
-| --- | --- | --- | --- |
-| `label` | `string` | — | Nombre de la métrica (obligatorio) |
-| `value` | `string` | — | Valor de la métrica; el formateo corre a cargo de quien invoca el componente (obligatorio) |
-| `delta` | `string` | — | Variación interperiódica, p. ej. `+12.5%` |
-| `trend` | `"up" \| "down" \| "flat"` | `"flat"` | Dirección del color del delta; no afecta a otras partes |
-| `description` | `string` | — | Texto explicativo inferior, como el período de comparación |
-| `className` | `string` | — | Se añade después del nombre de clase del componente |
+| Prop          | Tipo                       | Valor por defecto | Descripción                                                                                |
+| ------------- | -------------------------- | ----------------- | ------------------------------------------------------------------------------------------ |
+| `label`       | `string`                   | —                 | Nombre de la métrica (obligatorio)                                                         |
+| `value`       | `string`                   | —                 | Valor de la métrica; el formateo corre a cargo de quien invoca el componente (obligatorio) |
+| `delta`       | `string`                   | —                 | Variación interperiódica, p. ej. `+12.5%`                                                  |
+| `trend`       | `"up" \| "down" \| "flat"` | `"flat"`          | Dirección del color del delta; no afecta a otras partes                                    |
+| `description` | `string`                   | —                 | Texto explicativo inferior, como el período de comparación                                 |
+| `className`   | `string`                   | —                 | Se añade después del nombre de clase del componente                                        |
 
 ## Accesibilidad
 

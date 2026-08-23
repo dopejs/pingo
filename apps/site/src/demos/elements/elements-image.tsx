@@ -74,10 +74,7 @@ function Scene(props: { readonly width: number; readonly height: number }): Ping
             createElement(Image, { source: GRADIENT, width: 48, height: 48 }),
             "缩放进 48×48 的节点盒",
           ),
-          item(
-            createElement(Image, { source: GRADIENT, width: 128, height: 64 }),
-            "拉伸到 128×64",
-          ),
+          item(createElement(Image, { source: GRADIENT, width: 128, height: 64 }), "拉伸到 128×64"),
         ],
         24,
       ),

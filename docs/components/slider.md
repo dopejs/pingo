@@ -42,17 +42,17 @@ root.render(
 
 ## Props
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `value` | `number` | — | 受控当前值 |
-| `defaultValue` | `number` | `min` | 非受控初始值 |
-| `onValueChange` | `(value: number) => void` | — | 值变化回调 |
-| `min` | `number` | `0` | 最小值 |
-| `max` | `number` | `100` | 最大值 |
-| `step` | `number` | `1` | 键盘步进 |
-| `disabled` | `boolean` | `false` | 禁用态 |
-| `semanticLabel` | `string` | — | 无障碍名称 |
-| `className` | `string` | — | 追加在组件类名之后 |
+| Prop            | 类型                      | 默认值  | 说明               |
+| --------------- | ------------------------- | ------- | ------------------ |
+| `value`         | `number`                  | —       | 受控当前值         |
+| `defaultValue`  | `number`                  | `min`   | 非受控初始值       |
+| `onValueChange` | `(value: number) => void` | —       | 值变化回调         |
+| `min`           | `number`                  | `0`     | 最小值             |
+| `max`           | `number`                  | `100`   | 最大值             |
+| `step`          | `number`                  | `1`     | 键盘步进           |
+| `disabled`      | `boolean`                 | `false` | 禁用态             |
+| `semanticLabel` | `string`                  | —       | 无障碍名称         |
+| `className`     | `string`                  | —       | 追加在组件类名之后 |
 
 ## 无障碍
 

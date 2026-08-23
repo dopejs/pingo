@@ -52,8 +52,18 @@ describe("DisplayList", () => {
     );
     expect(list.commands).toEqual([
       { type: "fillColorPath", pathId: 1, rgba: 0x1122_33ff },
-      { type: "strokePath", pathId: 2, paintId: 3, stroke: { width: 2, cap: 1, join: 2, miterLimit: 10 } },
-      { type: "strokeColorPath", pathId: 4, rgba: 0x4455_66ff, stroke: { width: 3, cap: 0, join: 1, miterLimit: 4 } },
+      {
+        type: "strokePath",
+        pathId: 2,
+        paintId: 3,
+        stroke: { width: 2, cap: 1, join: 2, miterLimit: 10 },
+      },
+      {
+        type: "strokeColorPath",
+        pathId: 4,
+        rgba: 0x4455_66ff,
+        stroke: { width: 3, cap: 0, join: 1, miterLimit: 4 },
+      },
     ]);
   });
 });
@@ -95,7 +105,12 @@ function instruction(
 function writeStrokeTail(
   view: DataView,
   offset: number,
-  tail: { readonly width: number; readonly cap: number; readonly join: number; readonly miterLimit: number },
+  tail: {
+    readonly width: number;
+    readonly cap: number;
+    readonly join: number;
+    readonly miterLimit: number;
+  },
 ): void {
   view.setFloat32(offset, tail.width, true);
   view.setUint8(offset + 4, tail.cap);

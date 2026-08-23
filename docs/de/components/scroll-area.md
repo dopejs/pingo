@@ -27,11 +27,11 @@ Die Komponente selbst hat eine Breite und Höhe von 100 % des Elterncontainers u
 
 ## Props
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Scrollinhalt (erforderlich) |
-| `hideScrollbar` | `boolean` | `false` | Blendet den gezeichneten Scrollbalken aus (Scrollfunktion bleibt unverändert) |
-| `className` | `string` | — | Wird nach dem Klassennamen der Komponente angehängt |
+| Prop            | Typ         | Standardwert | Beschreibung                                                                  |
+| --------------- | ----------- | ------------ | ----------------------------------------------------------------------------- |
+| `children`      | `PingoNode` | —            | Scrollinhalt (erforderlich)                                                   |
+| `hideScrollbar` | `boolean`   | `false`      | Blendet den gezeichneten Scrollbalken aus (Scrollfunktion bleibt unverändert) |
+| `className`     | `string`    | —            | Wird nach dem Klassennamen der Komponente angehängt                           |
 
 ## Barrierefreiheit
 

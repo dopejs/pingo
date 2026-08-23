@@ -42,12 +42,12 @@ createElement(Alert, {
 
 ## Props
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `title` | `string` | — | 제목(필수) |
-| `children` | `string` | — | 설명 본문(필수) |
-| `variant` | `"default" \| "destructive"` | `"default"` | 시각적 변형 |
-| `className` | `string` | — | 컴포넌트 클래스 이름 뒤에 추가 |
+| Prop        | 타입                         | 기본값      | 설명                           |
+| ----------- | ---------------------------- | ----------- | ------------------------------ |
+| `title`     | `string`                     | —           | 제목(필수)                     |
+| `children`  | `string`                     | —           | 설명 본문(필수)                |
+| `variant`   | `"default" \| "destructive"` | `"default"` | 시각적 변형                    |
+| `className` | `string`                     | —           | 컴포넌트 클래스 이름 뒤에 추가 |
 
 ## 접근성
 

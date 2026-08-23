@@ -47,27 +47,27 @@ Die `children` von `PopoverContent` akzeptieren beliebige `PingoNode`-Elemente, 
 
 ### Popover
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `open` | `boolean` | — | Kontrollierter Öffnungs-/Schließzustand |
-| `defaultOpen` | `boolean` | `false` | Unkontrollierter Anfangszustand |
-| `onOpenChange` | `(open: boolean) => void` | — | Callback bei Änderung des Öffnungszustands |
-| `children` | `PingoNode` | — | Trigger und Content (erforderlich) |
-| `className` | `string` | — | Wird an den Klassennamen des Anker-Containers angehängt |
+| Prop           | Typ                       | Standardwert | Beschreibung                                            |
+| -------------- | ------------------------- | ------------ | ------------------------------------------------------- |
+| `open`         | `boolean`                 | —            | Kontrollierter Öffnungs-/Schließzustand                 |
+| `defaultOpen`  | `boolean`                 | `false`      | Unkontrollierter Anfangszustand                         |
+| `onOpenChange` | `(open: boolean) => void` | —            | Callback bei Änderung des Öffnungszustands              |
+| `children`     | `PingoNode`               | —            | Trigger und Content (erforderlich)                      |
+| `className`    | `string`                  | —            | Wird an den Klassennamen des Anker-Containers angehängt |
 
 ### PopoverTrigger
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Trigger-Element (erforderlich) |
-| `className` | `string` | — | Zusätzlicher Klassenname |
+| Prop        | Typ         | Standardwert | Beschreibung                   |
+| ----------- | ----------- | ------------ | ------------------------------ |
+| `children`  | `PingoNode` | —            | Trigger-Element (erforderlich) |
+| `className` | `string`    | —            | Zusätzlicher Klassenname       |
 
 ### PopoverContent
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Panel-Inhalt (erforderlich) |
-| `className` | `string` | — | Zusätzlicher Klassenname |
+| Prop        | Typ         | Standardwert | Beschreibung                |
+| ----------- | ----------- | ------------ | --------------------------- |
+| `children`  | `PingoNode` | —            | Panel-Inhalt (erforderlich) |
+| `className` | `string`    | —            | Zusätzlicher Klassenname    |
 
 ## Barrierefreiheit
 

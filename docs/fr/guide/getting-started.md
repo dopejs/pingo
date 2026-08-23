@@ -69,13 +69,13 @@ root.render(<OrderRow index={1} />);
 
 Le moteur ne possède que cinq éléments intégrés, qui correspondent directement aux nœuds de la Scene, sans cascade CSS ni sélecteurs :
 
-| Élément        | Usage                                                                 |
-| -------------- | --------------------------------------------------------------------- |
-| `container`    | Groupement générique, arrière-plan, padding, transformations          |
+| Élément        | Usage                                                                             |
+| -------------- | --------------------------------------------------------------------------------- |
+| `container`    | Groupement générique, arrière-plan, padding, transformations                      |
 | `text`         | Exécution de texte (shaping, retour à la ligne, géométrie du caret issue du Core) |
-| `scroll`       | Conteneur défilable appartenant au Core                               |
-| `virtualList`  | Liste virtuelle à fenêtrage planifié par le Core                      |
-| `editableText` | Primitive de texte éditable                                           |
+| `scroll`       | Conteneur défilable appartenant au Core                                           |
+| `virtualList`  | Liste virtuelle à fenêtrage planifié par le Core                                  |
+| `editableText` | Primitive de texte éditable                                                       |
 
 `TextField` et `TextArea` sont des widgets composés au-dessus de `editableText` (bordure, état d'erreur),
 ils n'introduisent pas de nouveau chemin d'entrée.

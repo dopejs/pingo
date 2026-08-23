@@ -37,15 +37,15 @@ root.render(
 
 ## Props
 
-| Prop | النوع | القيمة الافتراضية | الوصف |
-| --- | --- | --- | --- |
-| `children` | `string` | — | نص الزر (مطلوب) |
-| `variant` | `"default" \| "secondary" \| "outline" \| "ghost" \| "destructive"` | `"default"` | الشكل البصري |
-| `size` | `"default" \| "sm" \| "lg" \| "icon"` | `"default"` | الحجم |
-| `disabled` | `boolean` | `false` | حالة التعطيل |
-| `onPress` | `() => void` | — | رد النداء عند التفعيل بالمؤشر/لوحة المفاتيح |
-| `semanticLabel` | `string` | `children` | الاسم المُتاح لإمكانية الوصول |
-| `className` | `string` | — | يُضاف بعد اسم فئة المكوّن |
+| Prop            | النوع                                                               | القيمة الافتراضية | الوصف                                       |
+| --------------- | ------------------------------------------------------------------- | ----------------- | ------------------------------------------- |
+| `children`      | `string`                                                            | —                 | نص الزر (مطلوب)                             |
+| `variant`       | `"default" \| "secondary" \| "outline" \| "ghost" \| "destructive"` | `"default"`       | الشكل البصري                                |
+| `size`          | `"default" \| "sm" \| "lg" \| "icon"`                               | `"default"`       | الحجم                                       |
+| `disabled`      | `boolean`                                                           | `false`           | حالة التعطيل                                |
+| `onPress`       | `() => void`                                                        | —                 | رد النداء عند التفعيل بالمؤشر/لوحة المفاتيح |
+| `semanticLabel` | `string`                                                            | `children`        | الاسم المُتاح لإمكانية الوصول               |
+| `className`     | `string`                                                            | —                 | يُضاف بعد اسم فئة المكوّن                   |
 
 ## إمكانية الوصول
 

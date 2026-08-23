@@ -38,18 +38,18 @@ Passez `direction: "column"` pour basculer vers une division haut-bas ; la poign
 
 ## Props
 
-| Prop | Type | Valeur par défaut | Description |
-| --- | --- | --- | --- |
-| `first` | `PingoNode` | — | Contenu du premier panneau (obligatoire) |
-| `second` | `PingoNode` | — | Contenu du second panneau (obligatoire) |
-| `split` | `number` | — | Contrôlé : proportion du premier panneau, `[0, 1]` |
-| `defaultSplit` | `number` | `0.5` | Non contrôlé : proportion initiale |
-| `onSplitChange` | `(split: number) => void` | — | Rappel lors du changement de proportion |
-| `direction` | `"row" \| "column"` | `"row"` | Direction de la division |
-| `minSplit` | `number` | `0.1` | Proportion minimale (borne inférieure de limitation) |
-| `maxSplit` | `number` | `0.9` | Proportion maximale (borne supérieure de limitation) |
-| `disabled` | `boolean` | `false` | Désactive l'interaction avec la poignée |
-| `className` | `string` | — | Ajouté après le nom de classe du composant |
+| Prop            | Type                      | Valeur par défaut | Description                                          |
+| --------------- | ------------------------- | ----------------- | ---------------------------------------------------- |
+| `first`         | `PingoNode`               | —                 | Contenu du premier panneau (obligatoire)             |
+| `second`        | `PingoNode`               | —                 | Contenu du second panneau (obligatoire)              |
+| `split`         | `number`                  | —                 | Contrôlé : proportion du premier panneau, `[0, 1]`   |
+| `defaultSplit`  | `number`                  | `0.5`             | Non contrôlé : proportion initiale                   |
+| `onSplitChange` | `(split: number) => void` | —                 | Rappel lors du changement de proportion              |
+| `direction`     | `"row" \| "column"`       | `"row"`           | Direction de la division                             |
+| `minSplit`      | `number`                  | `0.1`             | Proportion minimale (borne inférieure de limitation) |
+| `maxSplit`      | `number`                  | `0.9`             | Proportion maximale (borne supérieure de limitation) |
+| `disabled`      | `boolean`                 | `false`           | Désactive l'interaction avec la poignée              |
+| `className`     | `string`                  | —                 | Ajouté après le nom de classe du composant           |
 
 ## Accessibilité
 

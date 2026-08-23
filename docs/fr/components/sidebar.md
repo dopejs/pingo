@@ -43,30 +43,30 @@ root.render(
 
 ### Sidebar
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Contrôlé : `value` de l’entrée actuellement sélectionnée |
-| `defaultValue` | `string` | — | Non contrôlé : `value` de l’entrée sélectionnée initialement |
-| `onValueChange` | `(value: string) => void` | — | Rappel lors du changement de sélection |
-| `children` | `PingoNode` | — | Liste de `SidebarSection` (obligatoire) |
-| `className` | `string` | — | Ajouté après le nom de classe du composant |
+| Prop            | 类型                      | 默认值 | 说明                                                         |
+| --------------- | ------------------------- | ------ | ------------------------------------------------------------ |
+| `value`         | `string`                  | —      | Contrôlé : `value` de l’entrée actuellement sélectionnée     |
+| `defaultValue`  | `string`                  | —      | Non contrôlé : `value` de l’entrée sélectionnée initialement |
+| `onValueChange` | `(value: string) => void` | —      | Rappel lors du changement de sélection                       |
+| `children`      | `PingoNode`               | —      | Liste de `SidebarSection` (obligatoire)                      |
+| `className`     | `string`                  | —      | Ajouté après le nom de classe du composant                   |
 
 ### SidebarSection
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `title` | `string` | — | Titre du groupe ; s’il est omis, la ligne de titre n’est pas rendue |
-| `children` | `PingoNode` | — | Liste de `SidebarItem` (obligatoire) |
-| `className` | `string` | — | Ajouté après le nom de classe du composant |
+| Prop        | 类型        | 默认值 | 说明                                                                |
+| ----------- | ----------- | ------ | ------------------------------------------------------------------- |
+| `title`     | `string`    | —      | Titre du groupe ; s’il est omis, la ligne de titre n’est pas rendue |
+| `children`  | `PingoNode` | —      | Liste de `SidebarItem` (obligatoire)                                |
+| `className` | `string`    | —      | Ajouté après le nom de classe du composant                          |
 
 ### SidebarItem
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Identifiant unique de l’entrée (obligatoire) |
-| `label` | `string` | — | Texte de l’entrée, également utilisé comme nom accessible (obligatoire) |
-| `icon` | `PingoNode` | — | Emplacement avant, pour une icône |
-| `className` | `string` | — | Ajouté après le nom de classe du composant |
+| Prop        | 类型        | 默认值 | 说明                                                                    |
+| ----------- | ----------- | ------ | ----------------------------------------------------------------------- |
+| `value`     | `string`    | —      | Identifiant unique de l’entrée (obligatoire)                            |
+| `label`     | `string`    | —      | Texte de l’entrée, également utilisé comme nom accessible (obligatoire) |
+| `icon`      | `PingoNode` | —      | Emplacement avant, pour une icône                                       |
+| `className` | `string`    | —      | Ajouté après le nom de classe du composant                              |
 
 ## Accessibilité
 

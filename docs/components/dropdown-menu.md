@@ -46,37 +46,37 @@ Trigger 与 Content 通过 context 读取根组件状态，必须作为同一个
 
 ### DropdownMenu
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 当前选中值（高亮对应项） |
-| `defaultOpen` | `boolean` | `false` | 初始开合 |
-| `onValueChange` | `(value: string) => void` | — | 选择菜单项回调 |
-| `onOpenChange` | `(open: boolean) => void` | — | 开合变化回调 |
-| `children` | `PingoNode` | — | Trigger 与 Content（必填） |
-| `className` | `string` | — | 追加在锚点容器类名之后 |
+| Prop            | 类型                      | 默认值  | 说明                       |
+| --------------- | ------------------------- | ------- | -------------------------- |
+| `value`         | `string`                  | —       | 当前选中值（高亮对应项）   |
+| `defaultOpen`   | `boolean`                 | `false` | 初始开合                   |
+| `onValueChange` | `(value: string) => void` | —       | 选择菜单项回调             |
+| `onOpenChange`  | `(open: boolean) => void` | —       | 开合变化回调               |
+| `children`      | `PingoNode`               | —       | Trigger 与 Content（必填） |
+| `className`     | `string`                  | —       | 追加在锚点容器类名之后     |
 
 ### DropdownMenuTrigger
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | 触发元素；缺省时渲染当前值/占位文本 |
-| `placeholder` | `string` | — | 无选中值时的占位文本 |
-| `className` | `string` | — | 追加类名 |
+| Prop          | 类型        | 默认值 | 说明                                |
+| ------------- | ----------- | ------ | ----------------------------------- |
+| `children`    | `PingoNode` | —      | 触发元素；缺省时渲染当前值/占位文本 |
+| `placeholder` | `string`    | —      | 无选中值时的占位文本                |
+| `className`   | `string`    | —      | 追加类名                            |
 
 ### DropdownMenuContent
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | 菜单项（必填） |
-| `className` | `string` | — | 追加类名 |
+| Prop        | 类型        | 默认值 | 说明           |
+| ----------- | ----------- | ------ | -------------- |
+| `children`  | `PingoNode` | —      | 菜单项（必填） |
+| `className` | `string`    | —      | 追加类名       |
 
 ### DropdownMenuItem
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 菜单项值（必填） |
-| `children` | `string` | — | 显示文案（必填） |
-| `className` | `string` | — | 追加类名 |
+| Prop        | 类型     | 默认值 | 说明             |
+| ----------- | -------- | ------ | ---------------- |
+| `value`     | `string` | —      | 菜单项值（必填） |
+| `children`  | `string` | —      | 显示文案（必填） |
+| `className` | `string` | —      | 追加类名         |
 
 ## 无障碍
 

@@ -37,15 +37,15 @@ root.render(
 
 ## Пропсы
 
-| Prop | Тип | По умолчанию | Описание |
-| --- | --- | --- | --- |
-| `children` | `string` | — | Текст кнопки (обязателен) |
-| `variant` | `"default" \| "secondary" \| "outline" \| "ghost" \| "destructive"` | `"default"` | Визуальный вариант |
-| `size` | `"default" \| "sm" \| "lg" \| "icon"` | `"default"` | Размер |
-| `disabled` | `boolean` | `false` | Отключённое состояние |
-| `onPress` | `() => void` | — | Колбэк активации указателем/клавиатурой |
-| `semanticLabel` | `string` | `children` | Доступное имя |
-| `className` | `string` | — | Добавляется после имени класса компонента |
+| Prop            | Тип                                                                 | По умолчанию | Описание                                  |
+| --------------- | ------------------------------------------------------------------- | ------------ | ----------------------------------------- |
+| `children`      | `string`                                                            | —            | Текст кнопки (обязателен)                 |
+| `variant`       | `"default" \| "secondary" \| "outline" \| "ghost" \| "destructive"` | `"default"`  | Визуальный вариант                        |
+| `size`          | `"default" \| "sm" \| "lg" \| "icon"`                               | `"default"`  | Размер                                    |
+| `disabled`      | `boolean`                                                           | `false`      | Отключённое состояние                     |
+| `onPress`       | `() => void`                                                        | —            | Колбэк активации указателем/клавиатурой   |
+| `semanticLabel` | `string`                                                            | `children`   | Доступное имя                             |
+| `className`     | `string`                                                            | —            | Добавляется после имени класса компонента |
 
 ## Доступность
 

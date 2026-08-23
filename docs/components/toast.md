@@ -59,20 +59,20 @@ function scene() {
 
 ### Toast
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `open` | `boolean` | — | 是否显示；`false` 时渲染为 `null`（必填） |
-| `title` | `string` | — | 标题（必填） |
-| `description` | `string` | — | 描述正文，省略时不渲染描述行 |
-| `variant` | `"default" \| "destructive"` | `"default"` | 视觉变体 |
-| `className` | `string` | — | 追加在组件类名之后 |
+| Prop          | 类型                         | 默认值      | 说明                                      |
+| ------------- | ---------------------------- | ----------- | ----------------------------------------- |
+| `open`        | `boolean`                    | —           | 是否显示；`false` 时渲染为 `null`（必填） |
+| `title`       | `string`                     | —           | 标题（必填）                              |
+| `description` | `string`                     | —           | 描述正文，省略时不渲染描述行              |
+| `variant`     | `"default" \| "destructive"` | `"default"` | 视觉变体                                  |
+| `className`   | `string`                     | —           | 追加在组件类名之后                        |
 
 ### ToastViewport
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | 视口内的 toast 列表，多条按 8px 间距纵向堆叠（必填） |
-| `className` | `string` | — | 追加在组件类名之后 |
+| Prop        | 类型        | 默认值 | 说明                                                 |
+| ----------- | ----------- | ------ | ---------------------------------------------------- |
+| `children`  | `PingoNode` | —      | 视口内的 toast 列表，多条按 8px 间距纵向堆叠（必填） |
+| `className` | `string`    | —      | 追加在组件类名之后                                   |
 
 ## 无障碍
 

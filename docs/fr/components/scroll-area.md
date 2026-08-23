@@ -27,11 +27,11 @@ Le composant occupe 100 % de la largeur et de la hauteur du parent et nécessite
 
 ## Props
 
-| Prop | Type | Valeur par défaut | Description |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Contenu à faire défiler (obligatoire) |
-| `hideScrollbar` | `boolean` | `false` | Masque la barre de défilement dessinée (le défilement reste possible) |
-| `className` | `string` | — | Ajouté après le nom de classe du composant |
+| Prop            | Type        | Valeur par défaut | Description                                                           |
+| --------------- | ----------- | ----------------- | --------------------------------------------------------------------- |
+| `children`      | `PingoNode` | —                 | Contenu à faire défiler (obligatoire)                                 |
+| `hideScrollbar` | `boolean`   | `false`           | Masque la barre de défilement dessinée (le défilement reste possible) |
+| `className`     | `string`    | —                 | Ajouté après le nom de classe du composant                            |
 
 ## Accessibilité
 

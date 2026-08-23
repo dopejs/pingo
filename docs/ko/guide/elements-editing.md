@@ -59,15 +59,15 @@ createElement(Input, {
 
 `EditTransaction`의 필드:
 
-| 필드 | 타입 | 설명 |
-| --- | --- | --- |
-| `nodeId` | `number` | 트랜잭션을 만든 편집 노드 |
-| `baseRevision` | `bigint` | 트랜잭션이 기반한 revision |
-| `revision` | `bigint` | 트랜잭션 후의 새 revision |
-| `delta` | `{ range: { start, end }, text }` | 텍스트 차이. 오프셋은 UTF-16이며 EditContext/InputEvent에 맞춥니다. 순수 선택 영역 트랜잭션에는 없습니다 |
-| `selection` | `{ anchor, focus, anchorAffinity, focusAffinity }` | 트랜잭션 후의 선택 영역 |
-| `composition` | `{ start, end }` | 진행 중인 IME 조합 구간 |
-| `kind` | `"edit" \| "composition" \| "external" \| "undo" \| "redo"` | 트랜잭션 종류 |
+| 필드           | 타입                                                        | 설명                                                                                                     |
+| -------------- | ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `nodeId`       | `number`                                                    | 트랜잭션을 만든 편집 노드                                                                                |
+| `baseRevision` | `bigint`                                                    | 트랜잭션이 기반한 revision                                                                               |
+| `revision`     | `bigint`                                                    | 트랜잭션 후의 새 revision                                                                                |
+| `delta`        | `{ range: { start, end }, text }`                           | 텍스트 차이. 오프셋은 UTF-16이며 EditContext/InputEvent에 맞춥니다. 순수 선택 영역 트랜잭션에는 없습니다 |
+| `selection`    | `{ anchor, focus, anchorAffinity, focusAffinity }`          | 트랜잭션 후의 선택 영역                                                                                  |
+| `composition`  | `{ start, end }`                                            | 진행 중인 IME 조합 구간                                                                                  |
+| `kind`         | `"edit" \| "composition" \| "external" \| "undo" \| "redo"` | 트랜잭션 종류                                                                                            |
 
 ## 입력 브리지: EditContext와 폴백 프록시
 
@@ -94,17 +94,17 @@ createElement(Input, {
 
 둘은 `EditableTextProps`를 공유합니다(`multiline`은 외부에 공개되지 않고 컴포넌트가 고정).
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 제어 텍스트 |
-| `revision` | `number \| bigint` | — | 제어 값의 권위 있는 revision. 오래된 값은 더 새로운 Core 입력을 덮어쓰지 않습니다 |
-| `controller` | `TextEditingController` | — | 안정적인 로컬 controller. `value`/`revision`과 상호 배타적 |
-| `readOnly` | `boolean` | `false` | 읽기 전용 |
-| `password` | `boolean` | `false` | 비밀번호 모드(아래 참조) |
-| `maxGraphemes` | `number` | — | 자소 상한 |
-| `inputMode` | `EditableInputMode` | `"text"` | 소프트 키보드 힌트: `decimal` `email` `none` `numeric` `search` `tel` `text` `url` |
-| `onTransaction` | `(t: EditTransaction) => void` | — | Core 편집 트랜잭션 콜백 |
-| `onSubmit` | `() => void` | — | 한 줄 Enter 제출. 여러 줄의 Enter는 줄바꿈에 양보합니다 |
+| Prop            | 타입                           | 기본값   | 설명                                                                               |
+| --------------- | ------------------------------ | -------- | ---------------------------------------------------------------------------------- |
+| `value`         | `string`                       | —        | 제어 텍스트                                                                        |
+| `revision`      | `number \| bigint`             | —        | 제어 값의 권위 있는 revision. 오래된 값은 더 새로운 Core 입력을 덮어쓰지 않습니다  |
+| `controller`    | `TextEditingController`        | —        | 안정적인 로컬 controller. `value`/`revision`과 상호 배타적                         |
+| `readOnly`      | `boolean`                      | `false`  | 읽기 전용                                                                          |
+| `password`      | `boolean`                      | `false`  | 비밀번호 모드(아래 참조)                                                           |
+| `maxGraphemes`  | `number`                       | —        | 자소 상한                                                                          |
+| `inputMode`     | `EditableInputMode`            | `"text"` | 소프트 키보드 힌트: `decimal` `email` `none` `numeric` `search` `tel` `text` `url` |
+| `onTransaction` | `(t: EditTransaction) => void` | —        | Core 편집 트랜잭션 콜백                                                            |
+| `onSubmit`      | `() => void`                   | —        | 한 줄 Enter 제출. 여러 줄의 Enter는 줄바꿈에 양보합니다                            |
 
 텍스트 외관은 `TextProps`에서 상속합니다: `color`, `fontSize`, `fontWeight`, `lineHeight`, `fontFamily`,
 `font`. 크기, `padding`, `backgroundColor`, 테두리(`style` 채널) 등은 [CommonProps](/api)에서 옵니다.

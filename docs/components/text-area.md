@@ -36,19 +36,19 @@ root.render(
 
 ## Props
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `value` | `string` | `""` | 非受控用法的初始值；设置 `controller` 后被忽略 |
-| `onValueChange` | `(value: string) => void` | — | 每次编辑事务应用后回调最新值 |
-| `controller` | `TextEditingController` | — | 高级逃生舱：调用方持有的持久控制器 |
-| `onTransaction` | `(transaction: EditTransaction) => void` | — | 每次编辑事务的原始回调 |
-| `onSubmit` | `() => void` | — | 提交回调 |
-| `disabled` | `boolean` | `false` | 禁用态：不接受焦点，也不显示光标 |
-| `readOnly` | `boolean` | `false` | 只读态 |
-| `rows` | `number` | — | 可见行数，决定外壳最小高度 |
-| `className` | `string` | — | 追加在组件类名之后 |
-| `width` | `number` | — | 固定宽度（px） |
-| `semanticLabel` | `string` | — | 无障碍名称 |
+| Prop            | 类型                                     | 默认值  | 说明                                           |
+| --------------- | ---------------------------------------- | ------- | ---------------------------------------------- |
+| `value`         | `string`                                 | `""`    | 非受控用法的初始值；设置 `controller` 后被忽略 |
+| `onValueChange` | `(value: string) => void`                | —       | 每次编辑事务应用后回调最新值                   |
+| `controller`    | `TextEditingController`                  | —       | 高级逃生舱：调用方持有的持久控制器             |
+| `onTransaction` | `(transaction: EditTransaction) => void` | —       | 每次编辑事务的原始回调                         |
+| `onSubmit`      | `() => void`                             | —       | 提交回调                                       |
+| `disabled`      | `boolean`                                | `false` | 禁用态：不接受焦点，也不显示光标               |
+| `readOnly`      | `boolean`                                | `false` | 只读态                                         |
+| `rows`          | `number`                                 | —       | 可见行数，决定外壳最小高度                     |
+| `className`     | `string`                                 | —       | 追加在组件类名之后                             |
+| `width`         | `number`                                 | —       | 固定宽度（px）                                 |
+| `semanticLabel` | `string`                                 | —       | 无障碍名称                                     |
 
 ## 无障碍
 

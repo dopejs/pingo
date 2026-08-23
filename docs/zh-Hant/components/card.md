@@ -50,17 +50,17 @@ root.render(
 
 `Card`、`CardHeader`、`CardContent`、`CardFooter` 接受容器型 props：
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | 槽位內容（必填） |
-| `className` | `string` | — | 追加在元件類名之後 |
+| Prop        | 型別        | 預設值 | 說明               |
+| ----------- | ----------- | ------ | ------------------ |
+| `children`  | `PingoNode` | —      | 槽位內容（必填）   |
+| `className` | `string`    | —      | 追加在元件類名之後 |
 
 `CardTitle`、`CardDescription` 接受文字型 props：
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `children` | `string` | — | 文字內容（必填） |
-| `className` | `string` | — | 追加在元件類名之後 |
+| Prop        | 型別     | 預設值 | 說明               |
+| ----------- | -------- | ------ | ------------------ |
+| `children`  | `string` | —      | 文字內容（必填）   |
+| `className` | `string` | —      | 追加在元件類名之後 |
 
 ## 無障礙
 

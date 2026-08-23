@@ -50,22 +50,22 @@ Passez `value` pour fixer le menu ouvert, utile pour le guidage initial ou la sy
 
 ### Menubar
 
-| Prop | Type | Défaut | Description |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Contrôlé : valeur du menu actuellement ouvert |
-| `onValueChange` | `(value: string \| undefined) => void` | — | Rappel de changement du menu ouvert (`undefined` à la fermeture) |
-| `children` | `PingoNode` | — | Plusieurs `MenubarMenu` (requis) |
-| `className` | `string` | — | Nom de classe supplémentaire |
-| `navigation` | `boolean` | `false` | Utilise la sémantique de navigation (utilisé en interne par [NavigationMenu](/components/navigation-menu)) |
+| Prop            | Type                                   | Défaut  | Description                                                                                                |
+| --------------- | -------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------- |
+| `value`         | `string`                               | —       | Contrôlé : valeur du menu actuellement ouvert                                                              |
+| `onValueChange` | `(value: string \| undefined) => void` | —       | Rappel de changement du menu ouvert (`undefined` à la fermeture)                                           |
+| `children`      | `PingoNode`                            | —       | Plusieurs `MenubarMenu` (requis)                                                                           |
+| `className`     | `string`                               | —       | Nom de classe supplémentaire                                                                               |
+| `navigation`    | `boolean`                              | `false` | Utilise la sémantique de navigation (utilisé en interne par [NavigationMenu](/components/navigation-menu)) |
 
 ### MenubarMenu
 
-| Prop | Type | Défaut | Description |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Identifiant du menu (requis) |
-| `label` | `string` | — | Libellé affiché dans la barre (requis) |
-| `children` | `PingoNode` | — | Contenu du panneau à l'ouverture (requis) |
-| `className` | `string` | — | Nom de classe supplémentaire |
+| Prop        | Type        | Défaut | Description                               |
+| ----------- | ----------- | ------ | ----------------------------------------- |
+| `value`     | `string`    | —      | Identifiant du menu (requis)              |
+| `label`     | `string`    | —      | Libellé affiché dans la barre (requis)    |
+| `children`  | `PingoNode` | —      | Contenu du panneau à l'ouverture (requis) |
+| `className` | `string`    | —      | Nom de classe supplémentaire              |
 
 ## Accessibilité
 

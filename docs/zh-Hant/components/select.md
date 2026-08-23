@@ -45,37 +45,37 @@ root.render(
 
 ### Select
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 選中值，顯示在觸發器上 |
-| `defaultOpen` | `boolean` | `false` | 初始展開 |
-| `onValueChange` | `(value: string) => void` | — | 選中變化回調（選中後自動收起） |
-| `onOpenChange` | `(open: boolean) => void` | — | 開合回調 |
-| `children` | `PingoNode` | — | 觸發器與內容（必填） |
-| `className` | `string` | — | 追加在元件類名之後 |
+| Prop            | 型別                      | 預設值  | 說明                           |
+| --------------- | ------------------------- | ------- | ------------------------------ |
+| `value`         | `string`                  | —       | 選中值，顯示在觸發器上         |
+| `defaultOpen`   | `boolean`                 | `false` | 初始展開                       |
+| `onValueChange` | `(value: string) => void` | —       | 選中變化回調（選中後自動收起） |
+| `onOpenChange`  | `(open: boolean) => void` | —       | 開合回調                       |
+| `children`      | `PingoNode`               | —       | 觸發器與內容（必填）           |
+| `className`     | `string`                  | —       | 追加在元件類名之後             |
 
 ### SelectTrigger
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | 自訂觸發器內容；預設渲染選中值或佔位文字 |
-| `placeholder` | `string` | — | 未選中時的佔位文字 |
-| `className` | `string` | — | 追加在元件類名之後 |
+| Prop          | 型別        | 預設值 | 說明                                     |
+| ------------- | ----------- | ------ | ---------------------------------------- |
+| `children`    | `PingoNode` | —      | 自訂觸發器內容；預設渲染選中值或佔位文字 |
+| `placeholder` | `string`    | —      | 未選中時的佔位文字                       |
+| `className`   | `string`    | —      | 追加在元件類名之後                       |
 
 ### SelectContent
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | `SelectItem` 列表（必填） |
-| `className` | `string` | — | 追加在元件類名之後 |
+| Prop        | 型別        | 預設值 | 說明                      |
+| ----------- | ----------- | ------ | ------------------------- |
+| `children`  | `PingoNode` | —      | `SelectItem` 列表（必填） |
+| `className` | `string`    | —      | 追加在元件類名之後        |
 
 ### SelectItem
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 選項值（必填） |
-| `children` | `string` | — | 選項文字（必填） |
-| `className` | `string` | — | 追加在元件類名之後 |
+| Prop        | 型別     | 預設值 | 說明               |
+| ----------- | -------- | ------ | ------------------ |
+| `value`     | `string` | —      | 選項值（必填）     |
+| `children`  | `string` | —      | 選項文字（必填）   |
+| `className` | `string` | —      | 追加在元件類名之後 |
 
 ## 無障礙
 

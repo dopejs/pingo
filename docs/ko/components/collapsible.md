@@ -38,15 +38,15 @@ root.render(
 
 ## Props
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `trigger` | `string` | — | 트리거 텍스트(필수) |
-| `children` | `PingoNode` | — | 확장 시 표시되는 콘텐츠(필수) |
-| `open` | `boolean` | — | 제어: 현재 확장 상태 |
-| `defaultOpen` | `boolean` | `false` | 비제어: 초기 확장 상태 |
-| `onOpenChange` | `(open: boolean) => void` | — | 확장 상태 변경 콜백 |
-| `disabled` | `boolean` | `false` | 트리거 비활성화 |
-| `className` | `string` | — | 컴포넌트 클래스 이름 뒤에 추가 |
+| Prop           | 타입                      | 기본값  | 설명                           |
+| -------------- | ------------------------- | ------- | ------------------------------ |
+| `trigger`      | `string`                  | —       | 트리거 텍스트(필수)            |
+| `children`     | `PingoNode`               | —       | 확장 시 표시되는 콘텐츠(필수)  |
+| `open`         | `boolean`                 | —       | 제어: 현재 확장 상태           |
+| `defaultOpen`  | `boolean`                 | `false` | 비제어: 초기 확장 상태         |
+| `onOpenChange` | `(open: boolean) => void` | —       | 확장 상태 변경 콜백            |
+| `disabled`     | `boolean`                 | `false` | 트리거 비활성화                |
+| `className`    | `string`                  | —       | 컴포넌트 클래스 이름 뒤에 추가 |
 
 ## 접근성
 

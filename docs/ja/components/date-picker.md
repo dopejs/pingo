@@ -43,21 +43,21 @@ root.render(
 
 ## Props
 
-| Prop | 型 | デフォルト | 説明 |
-| --- | --- | --- | --- |
-| `value` | `CalendarDate` | — | 選択中の日付 |
-| `month` | `CalendarDate` | — | 制御された表示月 |
-| `defaultMonth` | `CalendarDate` | `value ?? 2026-01-01` | 非制御の初期表示月 |
-| `onSelect` | `(date: CalendarDate) => void` | — | 日付選択時のコールバック（その後自動で閉じる） |
-| `onMonthChange` | `(month: CalendarDate) => void` | — | 月めくり時のコールバック |
-| `weekdayLabels` | `readonly string[]` | `["日","月","火","水","木","金","土"]` | 曜日ヘッダー |
-| `monthLabel` | `(month: CalendarDate) => string` | — | 月タイトルのカスタマイズ |
-| `isDisabled` | `(date: CalendarDate) => boolean` | — | 特定の日付を無効化 |
-| `open` | `boolean` | — | 制御された開閉 |
-| `onOpenChange` | `(open: boolean) => void` | — | 開閉時のコールバック |
-| `placeholder` | `string` | `"日付を選択"` | 未選択時のプレースホルダーテキスト |
-| `format` | `(date: CalendarDate) => string` | `formatDate`（`YYYY-MM-DD`） | トリガー上の日付レンダリング |
-| `className` | `string` | — | コンポーネントのクラス名に追加される |
+| Prop            | 型                                | デフォルト                             | 説明                                           |
+| --------------- | --------------------------------- | -------------------------------------- | ---------------------------------------------- |
+| `value`         | `CalendarDate`                    | —                                      | 選択中の日付                                   |
+| `month`         | `CalendarDate`                    | —                                      | 制御された表示月                               |
+| `defaultMonth`  | `CalendarDate`                    | `value ?? 2026-01-01`                  | 非制御の初期表示月                             |
+| `onSelect`      | `(date: CalendarDate) => void`    | —                                      | 日付選択時のコールバック（その後自動で閉じる） |
+| `onMonthChange` | `(month: CalendarDate) => void`   | —                                      | 月めくり時のコールバック                       |
+| `weekdayLabels` | `readonly string[]`               | `["日","月","火","水","木","金","土"]` | 曜日ヘッダー                                   |
+| `monthLabel`    | `(month: CalendarDate) => string` | —                                      | 月タイトルのカスタマイズ                       |
+| `isDisabled`    | `(date: CalendarDate) => boolean` | —                                      | 特定の日付を無効化                             |
+| `open`          | `boolean`                         | —                                      | 制御された開閉                                 |
+| `onOpenChange`  | `(open: boolean) => void`         | —                                      | 開閉時のコールバック                           |
+| `placeholder`   | `string`                          | `"日付を選択"`                         | 未選択時のプレースホルダーテキスト             |
+| `format`        | `(date: CalendarDate) => string`  | `formatDate`（`YYYY-MM-DD`）           | トリガー上の日付レンダリング                   |
+| `className`     | `string`                          | —                                      | コンポーネントのクラス名に追加される           |
 
 ## アクセシビリティ
 

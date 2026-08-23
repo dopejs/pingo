@@ -37,15 +37,15 @@ Al pasar `disabled`, el botón deja de responder al puntero y al teclado, y se a
 
 ## Props
 
-| Prop | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `children` | `string` | — | Texto del botón (obligatorio) |
-| `variant` | `"default" \| "secondary" \| "outline" \| "ghost" \| "destructive"` | `"default"` | Variante visual |
-| `size` | `"default" \| "sm" \| "lg" \| "icon"` | `"default"` | Tamaño |
-| `disabled` | `boolean` | `false` | Estado deshabilitado |
-| `onPress` | `() => void` | — | Callback de activación por puntero/teclado |
-| `semanticLabel` | `string` | `children` | Nombre accesible |
-| `className` | `string` | — | Se añade después del nombre de clase del componente |
+| Prop            | Tipo                                                                | Valor predeterminado | Descripción                                         |
+| --------------- | ------------------------------------------------------------------- | -------------------- | --------------------------------------------------- |
+| `children`      | `string`                                                            | —                    | Texto del botón (obligatorio)                       |
+| `variant`       | `"default" \| "secondary" \| "outline" \| "ghost" \| "destructive"` | `"default"`          | Variante visual                                     |
+| `size`          | `"default" \| "sm" \| "lg" \| "icon"`                               | `"default"`          | Tamaño                                              |
+| `disabled`      | `boolean`                                                           | `false`              | Estado deshabilitado                                |
+| `onPress`       | `() => void`                                                        | —                    | Callback de activación por puntero/teclado          |
+| `semanticLabel` | `string`                                                            | `children`           | Nombre accesible                                    |
+| `className`     | `string`                                                            | —                    | Se añade después del nombre de clase del componente |
 
 ## Accesibilidad
 

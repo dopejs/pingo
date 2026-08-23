@@ -40,11 +40,11 @@ createElement(Progress, { value: 3, max: 10 }); // 30%
 
 ## Props
 
-| Prop | Typ | Standard | Beschreibung |
-| --- | --- | --- | --- |
-| `value` | `number` | — | Aktueller Fortschritt (erforderlich); Werte außerhalb des Bereichs werden begrenzt |
-| `max` | `number` | `100` | Maximalwert, mindestens als 1 behandelt |
-| `className` | `string` | — | Wird nach den Komponenten-Klassennamen angehängt |
+| Prop        | Typ      | Standard | Beschreibung                                                                       |
+| ----------- | -------- | -------- | ---------------------------------------------------------------------------------- |
+| `value`     | `number` | —        | Aktueller Fortschritt (erforderlich); Werte außerhalb des Bereichs werden begrenzt |
+| `max`       | `number` | `100`    | Maximalwert, mindestens als 1 behandelt                                            |
+| `className` | `string` | —        | Wird nach den Komponenten-Klassennamen angehängt                                   |
 
 ## Barrierefreiheit
 

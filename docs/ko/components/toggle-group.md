@@ -45,23 +45,23 @@ root.render(
 
 ### ToggleGroup
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `type` | `"single" \| "multiple"` | `"single"` | 단일 선택은 이전 선택을 지우고, 다중 선택은 항목별로 추가합니다 |
-| `value` | `readonly string[]` | — | 제어되는 선택 값 모음 |
-| `defaultValue` | `readonly string[]` | `[]` | 비제어 초기 선택 모음 |
-| `onValueChange` | `(value: readonly string[]) => void` | — | 선택 모음 변경 콜백 |
-| `children` | `PingoNode` | — | `ToggleGroupItem` 목록 (필수) |
-| `className` | `string` | — | 컴포넌트 클래스 이름 뒤에 추가합니다 |
+| Prop            | 类型                                 | 默认值     | 说明                                                            |
+| --------------- | ------------------------------------ | ---------- | --------------------------------------------------------------- |
+| `type`          | `"single" \| "multiple"`             | `"single"` | 단일 선택은 이전 선택을 지우고, 다중 선택은 항목별로 추가합니다 |
+| `value`         | `readonly string[]`                  | —          | 제어되는 선택 값 모음                                           |
+| `defaultValue`  | `readonly string[]`                  | `[]`       | 비제어 초기 선택 모음                                           |
+| `onValueChange` | `(value: readonly string[]) => void` | —          | 선택 모음 변경 콜백                                             |
+| `children`      | `PingoNode`                          | —          | `ToggleGroupItem` 목록 (필수)                                   |
+| `className`     | `string`                             | —          | 컴포넌트 클래스 이름 뒤에 추가합니다                            |
 
 ### ToggleGroupItem
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 항목 값 (필수) |
-| `children` | `string` | — | 항목 텍스트 (필수) |
-| `disabled` | `boolean` | `false` | 개별 항목을 비활성화합니다 |
-| `className` | `string` | — | 컴포넌트 클래스 이름 뒤에 추가합니다 |
+| Prop        | 类型      | 默认值  | 说明                                 |
+| ----------- | --------- | ------- | ------------------------------------ |
+| `value`     | `string`  | —       | 항목 값 (필수)                       |
+| `children`  | `string`  | —       | 항목 텍스트 (필수)                   |
+| `disabled`  | `boolean` | `false` | 개별 항목을 비활성화합니다           |
+| `className` | `string`  | —       | 컴포넌트 클래스 이름 뒤에 추가합니다 |
 
 ## 접근성
 

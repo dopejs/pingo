@@ -47,27 +47,27 @@ root.render(
 
 ### Popover
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `open` | `boolean` | — | 제어 방식의 열림/닫힘 상태 |
-| `defaultOpen` | `boolean` | `false` | 비제어 방식의 초기 열림/닫힘 상태 |
-| `onOpenChange` | `(open: boolean) => void` | — | 열림/닫힘 변경 콜백 |
-| `children` | `PingoNode` | — | Trigger와 Content (필수) |
-| `className` | `string` | — | 앵커 컨테이너 클래스 이름 뒤에 추가 |
+| Prop           | 타입                      | 기본값  | 설명                                |
+| -------------- | ------------------------- | ------- | ----------------------------------- |
+| `open`         | `boolean`                 | —       | 제어 방식의 열림/닫힘 상태          |
+| `defaultOpen`  | `boolean`                 | `false` | 비제어 방식의 초기 열림/닫힘 상태   |
+| `onOpenChange` | `(open: boolean) => void` | —       | 열림/닫힘 변경 콜백                 |
+| `children`     | `PingoNode`               | —       | Trigger와 Content (필수)            |
+| `className`    | `string`                  | —       | 앵커 컨테이너 클래스 이름 뒤에 추가 |
 
 ### PopoverTrigger
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | 트리거 요소 (필수) |
-| `className` | `string` | — | 추가 클래스 이름 |
+| Prop        | 타입        | 기본값 | 설명               |
+| ----------- | ----------- | ------ | ------------------ |
+| `children`  | `PingoNode` | —      | 트리거 요소 (필수) |
+| `className` | `string`    | —      | 추가 클래스 이름   |
 
 ### PopoverContent
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | 패널 내용 (필수) |
-| `className` | `string` | — | 추가 클래스 이름 |
+| Prop        | 타입        | 기본값 | 설명             |
+| ----------- | ----------- | ------ | ---------------- |
+| `children`  | `PingoNode` | —      | 패널 내용 (필수) |
+| `className` | `string`    | —      | 추가 클래스 이름 |
 
 ## 접근성
 

@@ -46,37 +46,37 @@ Le déclencheur et le contenu lisent l’état du composant racine via le contex
 
 ### DropdownMenu
 
-| Prop | Type | Défaut | Description |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Valeur actuellement sélectionnée (met en surbrillance l’élément correspondant) |
-| `defaultOpen` | `boolean` | `false` | État d’ouverture initial |
-| `onValueChange` | `(value: string) => void` | — | Rappel lors de la sélection d’un élément du menu |
-| `onOpenChange` | `(open: boolean) => void` | — | Rappel lors du changement d’état d’ouverture |
-| `children` | `PingoNode` | — | Déclencheur et contenu (obligatoire) |
-| `className` | `string` | — | Ajouté après le nom de classe du conteneur d’ancrage |
+| Prop            | Type                      | Défaut  | Description                                                                    |
+| --------------- | ------------------------- | ------- | ------------------------------------------------------------------------------ |
+| `value`         | `string`                  | —       | Valeur actuellement sélectionnée (met en surbrillance l’élément correspondant) |
+| `defaultOpen`   | `boolean`                 | `false` | État d’ouverture initial                                                       |
+| `onValueChange` | `(value: string) => void` | —       | Rappel lors de la sélection d’un élément du menu                               |
+| `onOpenChange`  | `(open: boolean) => void` | —       | Rappel lors du changement d’état d’ouverture                                   |
+| `children`      | `PingoNode`               | —       | Déclencheur et contenu (obligatoire)                                           |
+| `className`     | `string`                  | —       | Ajouté après le nom de classe du conteneur d’ancrage                           |
 
 ### DropdownMenuTrigger
 
-| Prop | Type | Défaut | Description |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Élément déclencheur ; s’il est absent, rend la valeur actuelle ou le texte de remplacement |
-| `placeholder` | `string` | — | Texte de remplacement en l’absence de valeur sélectionnée |
-| `className` | `string` | — | Nom de classe supplémentaire |
+| Prop          | Type        | Défaut | Description                                                                                |
+| ------------- | ----------- | ------ | ------------------------------------------------------------------------------------------ |
+| `children`    | `PingoNode` | —      | Élément déclencheur ; s’il est absent, rend la valeur actuelle ou le texte de remplacement |
+| `placeholder` | `string`    | —      | Texte de remplacement en l’absence de valeur sélectionnée                                  |
+| `className`   | `string`    | —      | Nom de classe supplémentaire                                                               |
 
 ### DropdownMenuContent
 
-| Prop | Type | Défaut | Description |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Éléments du menu (obligatoire) |
-| `className` | `string` | — | Nom de classe supplémentaire |
+| Prop        | Type        | Défaut | Description                    |
+| ----------- | ----------- | ------ | ------------------------------ |
+| `children`  | `PingoNode` | —      | Éléments du menu (obligatoire) |
+| `className` | `string`    | —      | Nom de classe supplémentaire   |
 
 ### DropdownMenuItem
 
-| Prop | Type | Défaut | Description |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Valeur de l’élément de menu (obligatoire) |
-| `children` | `string` | — | Texte affiché (obligatoire) |
-| `className` | `string` | — | Nom de classe supplémentaire |
+| Prop        | Type     | Défaut | Description                               |
+| ----------- | -------- | ------ | ----------------------------------------- |
+| `value`     | `string` | —      | Valeur de l’élément de menu (obligatoire) |
+| `children`  | `string` | —      | Texte affiché (obligatoire)               |
+| `className` | `string` | —      | Nom de classe supplémentaire              |
 
 ## Accessibilité
 

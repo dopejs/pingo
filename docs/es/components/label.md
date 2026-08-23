@@ -38,11 +38,11 @@ La asociación de controles aún no existe en pingo, por lo que la relación ent
 
 ## Props
 
-| Prop | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `children` | `string` | — | Texto de la etiqueta (obligatorio) |
-| `className` | `string` | — | Se añade después del nombre de clase del componente |
-| `semanticLabel` | `string` | — | Anula el nombre de accesibilidad; por defecto se usa el texto de la etiqueta |
+| Prop            | Tipo     | Valor predeterminado | Descripción                                                                  |
+| --------------- | -------- | -------------------- | ---------------------------------------------------------------------------- |
+| `children`      | `string` | —                    | Texto de la etiqueta (obligatorio)                                           |
+| `className`     | `string` | —                    | Se añade después del nombre de clase del componente                          |
+| `semanticLabel` | `string` | —                    | Anula el nombre de accesibilidad; por defecto se usa el texto de la etiqueta |
 
 ## Accesibilidad
 

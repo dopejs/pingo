@@ -43,18 +43,18 @@ root.render(
 
 ## Props
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `items` | `readonly { value: string; label: string }[]` | — | 選項列表（必填） |
-| `value` | `string` | — | 受控選中值 |
-| `defaultValue` | `string` | — | 非受控初始選中值 |
-| `onValueChange` | `(value: string) => void` | — | 選中變化回調（選中後自動收起） |
-| `open` | `boolean` | — | 受控開合 |
-| `defaultOpen` | `boolean` | `false` | 非受控初始開合 |
-| `onOpenChange` | `(open: boolean) => void` | — | 開合回調 |
-| `placeholder` | `string` | `"请选择"` | 未選中時觸發器上的佔位文字 |
-| `emptyLabel` | `string` | — | 過濾無結果時的提示 |
-| `className` | `string` | — | 追加在元件類名之後 |
+| Prop            | 型別                                          | 預設值     | 說明                           |
+| --------------- | --------------------------------------------- | ---------- | ------------------------------ |
+| `items`         | `readonly { value: string; label: string }[]` | —          | 選項列表（必填）               |
+| `value`         | `string`                                      | —          | 受控選中值                     |
+| `defaultValue`  | `string`                                      | —          | 非受控初始選中值               |
+| `onValueChange` | `(value: string) => void`                     | —          | 選中變化回調（選中後自動收起） |
+| `open`          | `boolean`                                     | —          | 受控開合                       |
+| `defaultOpen`   | `boolean`                                     | `false`    | 非受控初始開合                 |
+| `onOpenChange`  | `(open: boolean) => void`                     | —          | 開合回調                       |
+| `placeholder`   | `string`                                      | `"请选择"` | 未選中時觸發器上的佔位文字     |
+| `emptyLabel`    | `string`                                      | —          | 過濾無結果時的提示             |
+| `className`     | `string`                                      | —          | 追加在元件類名之後             |
 
 ## 無障礙
 

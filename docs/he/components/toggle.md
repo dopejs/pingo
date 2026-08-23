@@ -35,14 +35,14 @@ root.render(
 
 ## Props
 
-| Prop | סוג | ברירת מחדל | תיאור |
-| --- | --- | --- | --- |
-| `children` | `string` | — | טקסט הכפתור (חובה) |
-| `pressed` | `boolean` | — | מצב לחיצה נשלט |
-| `defaultPressed` | `boolean` | `false` | מצב לחיצה התחלתי בלתי נשלט |
-| `onPressedChange` | `(pressed: boolean) => void` | — | קריאה חוזרת בעת החלפת מצב |
-| `disabled` | `boolean` | `false` | מצב מושבת |
-| `className` | `string` | — | נוסף לאחר שם מחלקת הרכיב |
+| Prop              | סוג                          | ברירת מחדל | תיאור                      |
+| ----------------- | ---------------------------- | ---------- | -------------------------- |
+| `children`        | `string`                     | —          | טקסט הכפתור (חובה)         |
+| `pressed`         | `boolean`                    | —          | מצב לחיצה נשלט             |
+| `defaultPressed`  | `boolean`                    | `false`    | מצב לחיצה התחלתי בלתי נשלט |
+| `onPressedChange` | `(pressed: boolean) => void` | —          | קריאה חוזרת בעת החלפת מצב  |
+| `disabled`        | `boolean`                    | `false`    | מצב מושבת                  |
+| `className`       | `string`                     | —          | נוסף לאחר שם מחלקת הרכיב   |
 
 ## נגישות
 

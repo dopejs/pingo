@@ -45,14 +45,14 @@ createElement(StatCard, { label: "在线设备", value: "1,024" });
 
 ## Props
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `label` | `string` | — | 指標名稱（必填） |
-| `value` | `string` | — | 指標數值，格式化由呼叫方負責（必填） |
-| `delta` | `string` | — | 環比變化，如 `+12.5%` |
-| `trend` | `"up" \| "down" \| "flat"` | `"flat"` | delta 的著色方向，不影響其他部分 |
-| `description` | `string` | — | 底部說明文字，如比較週期 |
-| `className` | `string` | — | 追加在元件類名之後 |
+| Prop          | 型別                       | 預設值   | 說明                                 |
+| ------------- | -------------------------- | -------- | ------------------------------------ |
+| `label`       | `string`                   | —        | 指標名稱（必填）                     |
+| `value`       | `string`                   | —        | 指標數值，格式化由呼叫方負責（必填） |
+| `delta`       | `string`                   | —        | 環比變化，如 `+12.5%`                |
+| `trend`       | `"up" \| "down" \| "flat"` | `"flat"` | delta 的著色方向，不影響其他部分     |
+| `description` | `string`                   | —        | 底部說明文字，如比較週期             |
+| `className`   | `string`                   | —        | 追加在元件類名之後                   |
 
 ## 無障礙
 

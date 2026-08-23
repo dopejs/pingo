@@ -45,23 +45,23 @@ root.render(
 
 ### ToggleGroup
 
-| Prop | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `type` | `"single" \| "multiple"` | `"single"` | La selección única elimina la selección anterior; la múltiple acumula elemento por elemento |
-| `value` | `readonly string[]` | — | Conjunto de valores seleccionados controlado |
-| `defaultValue` | `readonly string[]` | `[]` | Conjunto seleccionado inicial no controlado |
-| `onValueChange` | `(value: readonly string[]) => void` | — | Devolución de llamada al cambiar el conjunto seleccionado |
-| `children` | `PingoNode` | — | Lista de `ToggleGroupItem` (obligatorio) |
-| `className` | `string` | — | Se añade después del nombre de clase del componente |
+| Prop            | Tipo                                 | Valor predeterminado | Descripción                                                                                 |
+| --------------- | ------------------------------------ | -------------------- | ------------------------------------------------------------------------------------------- |
+| `type`          | `"single" \| "multiple"`             | `"single"`           | La selección única elimina la selección anterior; la múltiple acumula elemento por elemento |
+| `value`         | `readonly string[]`                  | —                    | Conjunto de valores seleccionados controlado                                                |
+| `defaultValue`  | `readonly string[]`                  | `[]`                 | Conjunto seleccionado inicial no controlado                                                 |
+| `onValueChange` | `(value: readonly string[]) => void` | —                    | Devolución de llamada al cambiar el conjunto seleccionado                                   |
+| `children`      | `PingoNode`                          | —                    | Lista de `ToggleGroupItem` (obligatorio)                                                    |
+| `className`     | `string`                             | —                    | Se añade después del nombre de clase del componente                                         |
 
 ### ToggleGroupItem
 
-| Prop | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Valor del elemento (obligatorio) |
-| `children` | `string` | — | Texto del elemento (obligatorio) |
-| `disabled` | `boolean` | `false` | Desactiva un elemento individual |
-| `className` | `string` | — | Se añade después del nombre de clase del componente |
+| Prop        | Tipo      | Valor predeterminado | Descripción                                         |
+| ----------- | --------- | -------------------- | --------------------------------------------------- |
+| `value`     | `string`  | —                    | Valor del elemento (obligatorio)                    |
+| `children`  | `string`  | —                    | Texto del elemento (obligatorio)                    |
+| `disabled`  | `boolean` | `false`              | Desactiva un elemento individual                    |
+| `className` | `string`  | —                    | Se añade después del nombre de clase del componente |
 
 ## Accesibilidad
 

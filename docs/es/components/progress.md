@@ -40,11 +40,11 @@ createElement(Progress, { value: 3, max: 10 }); // 30%
 
 ## Props
 
-| Prop | Tipo | Valor por defecto | Descripción |
-| --- | --- | --- | --- |
-| `value` | `number` | — | Progreso actual (obligatorio), los valores fuera de rango se restringen |
-| `max` | `number` | `100` | Valor máximo, se trata como mínimo 1 |
-| `className` | `string` | — | Se añade después del nombre de clase del componente |
+| Prop        | Tipo     | Valor por defecto | Descripción                                                             |
+| ----------- | -------- | ----------------- | ----------------------------------------------------------------------- |
+| `value`     | `number` | —                 | Progreso actual (obligatorio), los valores fuera de rango se restringen |
+| `max`       | `number` | `100`             | Valor máximo, se trata como mínimo 1                                    |
+| `className` | `string` | —                 | Se añade después del nombre de clase del componente                     |
 
 ## Accesibilidad
 

@@ -47,27 +47,27 @@ El `children` de `PopoverContent` acepta cualquier `PingoNode`, por lo que puede
 
 ### Popover
 
-| Prop | Tipo | Valor por defecto | Descripción |
-| --- | --- | --- | --- |
-| `open` | `boolean` | — | Estado controlado de apertura y cierre |
-| `defaultOpen` | `boolean` | `false` | Apertura inicial no controlada |
-| `onOpenChange` | `(open: boolean) => void` | — | Callback al cambiar la apertura |
-| `children` | `PingoNode` | — | Trigger y Content (obligatorio) |
-| `className` | `string` | — | Se añade después del nombre de clase del contenedor ancla |
+| Prop           | Tipo                      | Valor por defecto | Descripción                                               |
+| -------------- | ------------------------- | ----------------- | --------------------------------------------------------- |
+| `open`         | `boolean`                 | —                 | Estado controlado de apertura y cierre                    |
+| `defaultOpen`  | `boolean`                 | `false`           | Apertura inicial no controlada                            |
+| `onOpenChange` | `(open: boolean) => void` | —                 | Callback al cambiar la apertura                           |
+| `children`     | `PingoNode`               | —                 | Trigger y Content (obligatorio)                           |
+| `className`    | `string`                  | —                 | Se añade después del nombre de clase del contenedor ancla |
 
 ### PopoverTrigger
 
-| Prop | Tipo | Valor por defecto | Descripción |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Elemento disparador (obligatorio) |
-| `className` | `string` | — | Clase adicional |
+| Prop        | Tipo        | Valor por defecto | Descripción                       |
+| ----------- | ----------- | ----------------- | --------------------------------- |
+| `children`  | `PingoNode` | —                 | Elemento disparador (obligatorio) |
+| `className` | `string`    | —                 | Clase adicional                   |
 
 ### PopoverContent
 
-| Prop | Tipo | Valor por defecto | Descripción |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Contenido del panel (obligatorio) |
-| `className` | `string` | — | Clase adicional |
+| Prop        | Tipo        | Valor por defecto | Descripción                       |
+| ----------- | ----------- | ----------------- | --------------------------------- |
+| `children`  | `PingoNode` | —                 | Contenido del panel (obligatorio) |
+| `className` | `string`    | —                 | Clase adicional                   |
 
 ## Accesibilidad
 

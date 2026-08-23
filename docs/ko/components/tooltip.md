@@ -28,11 +28,11 @@ Tooltip은 포인터 진입과 이탈(`pointerenter` / `pointerleave`)에 의해
 
 ## Props
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `content` | `string` | — | 말풍선 텍스트(필수) |
-| `children` | `PingoNode` | — | 트리거 요소(필수) |
-| `className` | `string` | — | 앵커 컨테이너 클래스 이름 뒤에 추가 |
+| Prop        | 타입        | 기본값 | 설명                                |
+| ----------- | ----------- | ------ | ----------------------------------- |
+| `content`   | `string`    | —      | 말풍선 텍스트(필수)                 |
+| `children`  | `PingoNode` | —      | 트리거 요소(필수)                   |
+| `className` | `string`    | —      | 앵커 컨테이너 클래스 이름 뒤에 추가 |
 
 ## 접근성
 

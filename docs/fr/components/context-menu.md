@@ -33,21 +33,21 @@ Le menu est positionné à l'endroit où le pointeur est enfoncé, et non dans l
 
 ## Props
 
-| Prop | Type | Valeur par défaut | Description |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Contenu de la zone de déclenchement (obligatoire) |
-| `items` | `readonly ContextMenuEntry[]` | — | Éléments du menu (obligatoire) |
-| `onSelect` | `(value: string) => void` | — | Rappel lors de la sélection d'un élément du menu |
-| `onOpenChange` | `(open: boolean) => void` | — | Rappel lors du changement d'état d'ouverture |
-| `className` | `string` | — | Nom de classe supplémentaire |
+| Prop           | Type                          | Valeur par défaut | Description                                       |
+| -------------- | ----------------------------- | ----------------- | ------------------------------------------------- |
+| `children`     | `PingoNode`                   | —                 | Contenu de la zone de déclenchement (obligatoire) |
+| `items`        | `readonly ContextMenuEntry[]` | —                 | Éléments du menu (obligatoire)                    |
+| `onSelect`     | `(value: string) => void`     | —                 | Rappel lors de la sélection d'un élément du menu  |
+| `onOpenChange` | `(open: boolean) => void`     | —                 | Rappel lors du changement d'état d'ouverture      |
+| `className`    | `string`                      | —                 | Nom de classe supplémentaire                      |
 
 ### ContextMenuEntry
 
-| Champ | Type | Valeur par défaut | Description |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Valeur de l'élément du menu (obligatoire) |
-| `label` | `string` | — | Texte affiché (obligatoire) |
-| `disabled` | `boolean` | `false` | État désactivé |
+| Champ      | Type      | Valeur par défaut | Description                               |
+| ---------- | --------- | ----------------- | ----------------------------------------- |
+| `value`    | `string`  | —                 | Valeur de l'élément du menu (obligatoire) |
+| `label`    | `string`  | —                 | Texte affiché (obligatoire)               |
+| `disabled` | `boolean` | `false`           | État désactivé                            |
 
 ## Accessibilité
 

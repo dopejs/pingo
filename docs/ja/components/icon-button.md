@@ -44,15 +44,15 @@ root.render(
 
 ## Props
 
-| Prop | 型 | デフォルト | 説明 |
-| --- | --- | --- | --- |
-| `icon` | `PingoNode` | — | アイコンスロット。そのまま渡される（必須） |
-| `semanticLabel` | `string` | — | アクセシブル名（必須） |
-| `variant` | `"default" \| "secondary" \| "outline" \| "ghost" \| "destructive"` | `"default"` | 見た目のバリアント |
-| `size` | `"default" \| "sm" \| "lg"` | `"default"` | サイズ（`sm`/`lg` は現時点で無効。上記参照） |
-| `disabled` | `boolean` | `false` | 無効状態 |
-| `onPress` | `() => void` | — | ポインタ/キーボードによるアクティブ化のコールバック |
-| `className` | `string` | — | コンポーネントのクラス名に追加される |
+| Prop            | 型                                                                  | デフォルト  | 説明                                                |
+| --------------- | ------------------------------------------------------------------- | ----------- | --------------------------------------------------- |
+| `icon`          | `PingoNode`                                                         | —           | アイコンスロット。そのまま渡される（必須）          |
+| `semanticLabel` | `string`                                                            | —           | アクセシブル名（必須）                              |
+| `variant`       | `"default" \| "secondary" \| "outline" \| "ghost" \| "destructive"` | `"default"` | 見た目のバリアント                                  |
+| `size`          | `"default" \| "sm" \| "lg"`                                         | `"default"` | サイズ（`sm`/`lg` は現時点で無効。上記参照）        |
+| `disabled`      | `boolean`                                                           | `false`     | 無効状態                                            |
+| `onPress`       | `() => void`                                                        | —           | ポインタ/キーボードによるアクティブ化のコールバック |
+| `className`     | `string`                                                            | —           | コンポーネントのクラス名に追加される                |
 
 ## アクセシビリティ
 

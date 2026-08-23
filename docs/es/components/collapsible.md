@@ -38,15 +38,15 @@ Al pasar `disabled`, el disparador deja de responder al puntero y al teclado, y 
 
 ## Props
 
-| Prop | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `trigger` | `string` | — | Texto del disparador (obligatorio) |
-| `children` | `PingoNode` | — | Contenido que se muestra tras expandirse (obligatorio) |
-| `open` | `boolean` | — | Controlado: estado actual de expansión |
-| `defaultOpen` | `boolean` | `false` | No controlado: estado inicial de expansión |
-| `onOpenChange` | `(open: boolean) => void` | — | Devolución de llamada cuando cambia el estado de expansión |
-| `disabled` | `boolean` | `false` | Deshabilita el disparador |
-| `className` | `string` | — | Se añade después de los nombres de clase del componente |
+| Prop           | Tipo                      | Valor predeterminado | Descripción                                                |
+| -------------- | ------------------------- | -------------------- | ---------------------------------------------------------- |
+| `trigger`      | `string`                  | —                    | Texto del disparador (obligatorio)                         |
+| `children`     | `PingoNode`               | —                    | Contenido que se muestra tras expandirse (obligatorio)     |
+| `open`         | `boolean`                 | —                    | Controlado: estado actual de expansión                     |
+| `defaultOpen`  | `boolean`                 | `false`              | No controlado: estado inicial de expansión                 |
+| `onOpenChange` | `(open: boolean) => void` | —                    | Devolución de llamada cuando cambia el estado de expansión |
+| `disabled`     | `boolean`                 | `false`              | Deshabilita el disparador                                  |
+| `className`    | `string`                  | —                    | Se añade después de los nombres de clase del componente    |
 
 ## Accesibilidad
 

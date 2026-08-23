@@ -39,14 +39,14 @@ root.render(createElement(NotificationSetting));
 
 ## Props
 
-| Prop | טיפוס | ברירת מחדל | תיאור |
-| --- | --- | --- | --- |
-| `checked` | `boolean` | — | מצב סימון (חובה, נשלט) |
-| `onCheckedChange` | `(checked: boolean) => void` | — | קריאה חוזרת לשינוי מצב |
-| `disabled` | `boolean` | `false` | מצב מושבת |
-| `label` | `string` | — | תווית טקסט מימין לתיבה |
-| `className` | `string` | — | מצורף לאחר שם המחלקה של הרכיב |
-| `semanticLabel` | `string` | — | שם נגישות |
+| Prop              | טיפוס                        | ברירת מחדל | תיאור                         |
+| ----------------- | ---------------------------- | ---------- | ----------------------------- |
+| `checked`         | `boolean`                    | —          | מצב סימון (חובה, נשלט)        |
+| `onCheckedChange` | `(checked: boolean) => void` | —          | קריאה חוזרת לשינוי מצב        |
+| `disabled`        | `boolean`                    | `false`    | מצב מושבת                     |
+| `label`           | `string`                     | —          | תווית טקסט מימין לתיבה        |
+| `className`       | `string`                     | —          | מצורף לאחר שם המחלקה של הרכיב |
+| `semanticLabel`   | `string`                     | —          | שם נגישות                     |
 
 ## נגישות
 

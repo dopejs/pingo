@@ -49,15 +49,15 @@ Dialog と同様に、オーバーレイは自身の親コンテナいっぱい�
 
 `DialogProps`（`open`、`onOpenChange`、`children`、`className`）を継承し、さらに以下があります。
 
-| Prop | 型 | デフォルト | 説明 |
-| --- | --- | --- | --- |
-| `title` | `string` | — | タイトル（必須） |
-| `description` | `string` | — | 補足説明 |
-| `cancelLabel` | `string` | `"キャンセル"` | キャンセルボタンのラベル |
-| `actionLabel` | `string` | `"OK"` | 確認ボタンのラベル |
-| `onCancel` | `() => void` | — | キャンセル時のコールバック（その後クローズ） |
-| `onAction` | `() => void` | — | 確認時のコールバック（その後クローズ） |
-| `destructive` | `boolean` | `false` | 確認ボタンに危険色を使う |
+| Prop          | 型           | デフォルト     | 説明                                         |
+| ------------- | ------------ | -------------- | -------------------------------------------- |
+| `title`       | `string`     | —              | タイトル（必須）                             |
+| `description` | `string`     | —              | 補足説明                                     |
+| `cancelLabel` | `string`     | `"キャンセル"` | キャンセルボタンのラベル                     |
+| `actionLabel` | `string`     | `"OK"`         | 確認ボタンのラベル                           |
+| `onCancel`    | `() => void` | —              | キャンセル時のコールバック（その後クローズ） |
+| `onAction`    | `() => void` | —              | 確認時のコールバック（その後クローズ）       |
+| `destructive` | `boolean`    | `false`        | 確認ボタンに危険色を使う                     |
 
 ## アクセシビリティ
 

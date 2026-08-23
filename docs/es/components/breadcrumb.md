@@ -45,18 +45,18 @@ el conjunto de iconos, el separador es un glifo de texto):
 
 ### BreadcrumbProps
 
-| Prop | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `items` | `readonly BreadcrumbItem[]` | — | Elementos de las migas; el último se considera la página actual (obligatorio) |
-| `separator` | `string` | `"/"` | Separador entre elementos |
-| `className` | `string` | — | Se añade tras las clases del propio componente |
+| Prop        | Tipo                        | Valor predeterminado | Descripción                                                                   |
+| ----------- | --------------------------- | -------------------- | ----------------------------------------------------------------------------- |
+| `items`     | `readonly BreadcrumbItem[]` | —                    | Elementos de las migas; el último se considera la página actual (obligatorio) |
+| `separator` | `string`                    | `"/"`                | Separador entre elementos                                                     |
+| `className` | `string`                    | —                    | Se añade tras las clases del propio componente                                |
 
 ### BreadcrumbItem
 
-| Campo | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `label` | `string` | — | Texto del elemento (obligatorio) |
-| `onNavigate` | `() => void` | — | Callback de clic; si no se proporciona, el elemento no lleva ningún comportamiento de activación (el último ya se considera la página actual y no lo necesita) |
+| Campo        | Tipo         | Valor predeterminado | Descripción                                                                                                                                                    |
+| ------------ | ------------ | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `label`      | `string`     | —                    | Texto del elemento (obligatorio)                                                                                                                               |
+| `onNavigate` | `() => void` | —                    | Callback de clic; si no se proporciona, el elemento no lleva ningún comportamiento de activación (el último ya se considera la página actual y no lo necesita) |
 
 ## Accesibilidad
 

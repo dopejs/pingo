@@ -31,11 +31,11 @@ por ejemplo `16 / 9` indica pantalla panorámica.
 
 ## Props
 
-| Prop | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `ratio` | `number` | `1` | Relación de aspecto (ancho ÷ alto) |
-| `children` | `PingoNode` | — | Contenido restringido (obligatorio) |
-| `className` | `string` | — | Se añade tras las clases del propio componente |
+| Prop        | Tipo        | Valor predeterminado | Descripción                                    |
+| ----------- | ----------- | -------------------- | ---------------------------------------------- |
+| `ratio`     | `number`    | `1`                  | Relación de aspecto (ancho ÷ alto)             |
+| `children`  | `PingoNode` | —                    | Contenido restringido (obligatorio)            |
+| `className` | `string`    | —                    | Se añade tras las clases del propio componente |
 
 ## Accesibilidad
 

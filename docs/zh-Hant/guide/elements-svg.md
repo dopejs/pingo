@@ -74,19 +74,19 @@ const remote = await loadSvg("/assets/logo.svg");
 
 ## Props（Path）
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `d` | `string` | — | SVG path 資料（必填，僅路徑語法，不是文件） |
-| `viewBox` | `readonly [number, number, number, number]` | — | 作者空間盒子，縮放進節點盒 |
-| `strokeWidth` | `number` | — | 非零時描邊而不填充 |
-| `fillRule` | `"nonzero" \| "evenodd"` | `"nonzero"` | 填充規則 |
-| `geometryTransform` | `readonly [number, number, number, number, number, number]` | 單位矩陣 | 編碼前烘焙進幾何的變換 |
+| Prop                | 型別                                                        | 預設值      | 說明                                        |
+| ------------------- | ----------------------------------------------------------- | ----------- | ------------------------------------------- |
+| `d`                 | `string`                                                    | —           | SVG path 資料（必填，僅路徑語法，不是文件） |
+| `viewBox`           | `readonly [number, number, number, number]`                 | —           | 作者空間盒子，縮放進節點盒                  |
+| `strokeWidth`       | `number`                                                    | —           | 非零時描邊而不填充                          |
+| `fillRule`          | `"nonzero" \| "evenodd"`                                    | `"nonzero"` | 填充規則                                    |
+| `geometryTransform` | `readonly [number, number, number, number, number, number]` | 單位矩陣    | 編碼前烘焙進幾何的變換                      |
 
 ## Props（Svg）
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `source` | `PingoSvg` | — | `createSvg` / `loadSvg` 解析出的文件（必填） |
+| Prop     | 型別       | 預設值 | 說明                                         |
+| -------- | ---------- | ------ | -------------------------------------------- |
+| `source` | `PingoSvg` | —      | `createSvg` / `loadSvg` 解析出的文件（必填） |
 
 兩者都繼承 [CommonProps](/api)（`width`/`height`、事件、語義 props 等）。
 

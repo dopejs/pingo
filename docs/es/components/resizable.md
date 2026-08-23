@@ -38,18 +38,18 @@ Pase `direction: "column"` para cambiar a una división superior/inferior; el co
 
 ## Props
 
-| Prop | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `first` | `PingoNode` | — | Contenido del primer panel (obligatorio) |
-| `second` | `PingoNode` | — | Contenido del segundo panel (obligatorio) |
-| `split` | `number` | — | Controlado: proporción del primer panel, en el rango `[0, 1]` |
-| `defaultSplit` | `number` | `0.5` | No controlado: proporción inicial |
-| `onSplitChange` | `(split: number) => void` | — | Devolución de llamada al cambiar la proporción |
-| `direction` | `"row" \| "column"` | `"row"` | Dirección de la división |
-| `minSplit` | `number` | `0.1` | Proporción mínima (límite inferior de recorte) |
-| `maxSplit` | `number` | `0.9` | Proporción máxima (límite superior de recorte) |
-| `disabled` | `boolean` | `false` | Deshabilita la interacción con el control |
-| `className` | `string` | — | Se añade después del nombre de clase del componente |
+| Prop            | Tipo                      | Valor predeterminado | Descripción                                                   |
+| --------------- | ------------------------- | -------------------- | ------------------------------------------------------------- |
+| `first`         | `PingoNode`               | —                    | Contenido del primer panel (obligatorio)                      |
+| `second`        | `PingoNode`               | —                    | Contenido del segundo panel (obligatorio)                     |
+| `split`         | `number`                  | —                    | Controlado: proporción del primer panel, en el rango `[0, 1]` |
+| `defaultSplit`  | `number`                  | `0.5`                | No controlado: proporción inicial                             |
+| `onSplitChange` | `(split: number) => void` | —                    | Devolución de llamada al cambiar la proporción                |
+| `direction`     | `"row" \| "column"`       | `"row"`              | Dirección de la división                                      |
+| `minSplit`      | `number`                  | `0.1`                | Proporción mínima (límite inferior de recorte)                |
+| `maxSplit`      | `number`                  | `0.9`                | Proporción máxima (límite superior de recorte)                |
+| `disabled`      | `boolean`                 | `false`              | Deshabilita la interacción con el control                     |
+| `className`     | `string`                  | —                    | Se añade después del nombre de clase del componente           |
 
 ## Accesibilidad
 

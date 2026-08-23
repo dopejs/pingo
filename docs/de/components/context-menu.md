@@ -33,21 +33,21 @@ Das Menü wird an der Position des Zeigerdrucks positioniert und nicht an der Ec
 
 ## Props
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Inhalt des Auslösebereichs (erforderlich) |
-| `items` | `readonly ContextMenuEntry[]` | — | Menüeinträge (erforderlich) |
-| `onSelect` | `(value: string) => void` | — | Callback bei Auswahl eines Menüeintrags |
-| `onOpenChange` | `(open: boolean) => void` | — | Callback bei Änderung des Öffnungszustands |
-| `className` | `string` | — | Zusätzliche Klassen |
+| Prop           | Typ                           | Standardwert | Beschreibung                               |
+| -------------- | ----------------------------- | ------------ | ------------------------------------------ |
+| `children`     | `PingoNode`                   | —            | Inhalt des Auslösebereichs (erforderlich)  |
+| `items`        | `readonly ContextMenuEntry[]` | —            | Menüeinträge (erforderlich)                |
+| `onSelect`     | `(value: string) => void`     | —            | Callback bei Auswahl eines Menüeintrags    |
+| `onOpenChange` | `(open: boolean) => void`     | —            | Callback bei Änderung des Öffnungszustands |
+| `className`    | `string`                      | —            | Zusätzliche Klassen                        |
 
 ### ContextMenuEntry
 
-| Feld | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Wert des Menüeintrags (erforderlich) |
-| `label` | `string` | — | Anzeigetext (erforderlich) |
-| `disabled` | `boolean` | `false` | Deaktivierter Zustand |
+| Feld       | Typ       | Standardwert | Beschreibung                         |
+| ---------- | --------- | ------------ | ------------------------------------ |
+| `value`    | `string`  | —            | Wert des Menüeintrags (erforderlich) |
+| `label`    | `string`  | —            | Anzeigetext (erforderlich)           |
+| `disabled` | `boolean` | `false`      | Deaktivierter Zustand                |
 
 ## Barrierefreiheit
 

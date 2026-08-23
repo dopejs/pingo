@@ -39,13 +39,13 @@ Wenn `disabled` übergeben wird, reagiert der Schalter nicht mehr auf Zeiger und
 
 ## Props
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `checked` | `boolean` | — | Schalterzustand (erforderlich, kontrolliert) |
-| `onCheckedChange` | `(checked: boolean) => void` | — | Callback bei Zustandswechsel |
-| `disabled` | `boolean` | `false` | Deaktivierter Zustand |
-| `className` | `string` | — | Wird nach dem Komponenten-Klassennamen angehängt |
-| `semanticLabel` | `string` | — | Barrierefreiheitsname |
+| Prop              | Typ                          | Standardwert | Beschreibung                                     |
+| ----------------- | ---------------------------- | ------------ | ------------------------------------------------ |
+| `checked`         | `boolean`                    | —            | Schalterzustand (erforderlich, kontrolliert)     |
+| `onCheckedChange` | `(checked: boolean) => void` | —            | Callback bei Zustandswechsel                     |
+| `disabled`        | `boolean`                    | `false`      | Deaktivierter Zustand                            |
+| `className`       | `string`                     | —            | Wird nach dem Komponenten-Klassennamen angehängt |
+| `semanticLabel`   | `string`                     | —            | Barrierefreiheitsname                            |
 
 ## Barrierefreiheit
 

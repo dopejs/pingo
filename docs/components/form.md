@@ -43,21 +43,21 @@ root.render(
 
 ### Form
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | 表单内容（必填） |
-| `className` | `string` | — | 追加在组件类名之后 |
+| Prop        | 类型        | 默认值 | 说明               |
+| ----------- | ----------- | ------ | ------------------ |
+| `children`  | `PingoNode` | —      | 表单内容（必填）   |
+| `className` | `string`    | —      | 追加在组件类名之后 |
 
 ### FormField
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `label` | `string` | — | 字段标签（必填） |
-| `children` | `PingoNode` | — | 字段控件（必填） |
-| `error` | `string` | — | 错误信息；存在即标记字段无效并替换描述 |
-| `description` | `string` | — | 辅助描述文本 |
-| `required` | `boolean` | `false` | 必填标记，标签后追加 `*` |
-| `className` | `string` | — | 追加在组件类名之后 |
+| Prop          | 类型        | 默认值  | 说明                                   |
+| ------------- | ----------- | ------- | -------------------------------------- |
+| `label`       | `string`    | —       | 字段标签（必填）                       |
+| `children`    | `PingoNode` | —       | 字段控件（必填）                       |
+| `error`       | `string`    | —       | 错误信息；存在即标记字段无效并替换描述 |
+| `description` | `string`    | —       | 辅助描述文本                           |
+| `required`    | `boolean`   | `false` | 必填标记，标签后追加 `*`               |
+| `className`   | `string`    | —       | 追加在组件类名之后                     |
 
 ## 无障碍
 

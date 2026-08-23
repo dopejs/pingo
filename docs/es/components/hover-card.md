@@ -30,15 +30,15 @@ Una vez abierta, la tarjeta no se cierra al pasar el cursor sobre ella misma, po
 
 ## Props
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Elemento disparador (obligatorio) |
-| `content` | `PingoNode` | — | Contenido de la tarjeta (obligatorio) |
-| `open` | `boolean` | — | Estado controlado de apertura y cierre |
-| `onOpenChange` | `(open: boolean) => void` | — | Callback ante cambios de apertura y cierre |
-| `openDelayMs` | `number` | `300` | Retraso de apertura (milisegundos) |
-| `closeDelayMs` | `number` | `200` | Retraso de cierre (milisegundos) |
-| `className` | `string` | — | Se añade después del nombre de clase del contenedor del ancla |
+| Prop           | 类型                      | 默认值 | 说明                                                          |
+| -------------- | ------------------------- | ------ | ------------------------------------------------------------- |
+| `children`     | `PingoNode`               | —      | Elemento disparador (obligatorio)                             |
+| `content`      | `PingoNode`               | —      | Contenido de la tarjeta (obligatorio)                         |
+| `open`         | `boolean`                 | —      | Estado controlado de apertura y cierre                        |
+| `onOpenChange` | `(open: boolean) => void` | —      | Callback ante cambios de apertura y cierre                    |
+| `openDelayMs`  | `number`                  | `300`  | Retraso de apertura (milisegundos)                            |
+| `closeDelayMs` | `number`                  | `200`  | Retraso de cierre (milisegundos)                              |
+| `className`    | `string`                  | —      | Se añade después del nombre de clase del contenedor del ancla |
 
 ## Accesibilidad
 

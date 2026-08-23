@@ -41,25 +41,25 @@ function DateField(): PingoNode {
 
 ### CalendarProps
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `value` | `CalendarDate` | — | 選中的日期（受控） |
-| `month` | `CalendarDate` | — | 顯示的月份（受控）；省略時由內部狀態管理 |
-| `defaultMonth` | `CalendarDate` | `value` ?? 2026 年 1 月 | 非受控模式下的初始月份 |
-| `onSelect` | `(date: CalendarDate) => void` | — | 點選日期回調 |
-| `onMonthChange` | `(month: CalendarDate) => void` | — | 翻月回調（受控與非受控都會觸發） |
-| `weekdayLabels` | `readonly string[]` | `["日","一","二","三","四","五","六"]` | 星期表頭，從週日開始 |
-| `monthLabel` | `(month: CalendarDate) => string` | `"2026 年 8 月"` 格式 | 自訂月份標題 |
-| `isDisabled` | `(date: CalendarDate) => boolean` | — | 禁用某些日期 |
-| `className` | `string` | — | 追加在元件類名之後 |
+| Prop            | 型別                              | 預設值                                 | 說明                                     |
+| --------------- | --------------------------------- | -------------------------------------- | ---------------------------------------- |
+| `value`         | `CalendarDate`                    | —                                      | 選中的日期（受控）                       |
+| `month`         | `CalendarDate`                    | —                                      | 顯示的月份（受控）；省略時由內部狀態管理 |
+| `defaultMonth`  | `CalendarDate`                    | `value` ?? 2026 年 1 月                | 非受控模式下的初始月份                   |
+| `onSelect`      | `(date: CalendarDate) => void`    | —                                      | 點選日期回調                             |
+| `onMonthChange` | `(month: CalendarDate) => void`   | —                                      | 翻月回調（受控與非受控都會觸發）         |
+| `weekdayLabels` | `readonly string[]`               | `["日","一","二","三","四","五","六"]` | 星期表頭，從週日開始                     |
+| `monthLabel`    | `(month: CalendarDate) => string` | `"2026 年 8 月"` 格式                  | 自訂月份標題                             |
+| `isDisabled`    | `(date: CalendarDate) => boolean` | —                                      | 禁用某些日期                             |
+| `className`     | `string`                          | —                                      | 追加在元件類名之後                       |
 
 ### CalendarDate
 
-| 欄位 | 型別 | 說明 |
-| --- | --- | --- |
-| `year` | `number` | 年份 |
+| 欄位    | 型別     | 說明       |
+| ------- | -------- | ---------- |
+| `year`  | `number` | 年份       |
 | `month` | `number` | 月份，1–12 |
-| `day` | `number` | 日，1–31 |
+| `day`   | `number` | 日，1–31   |
 
 套件內同時匯出 `daysInMonth`、`monthGrid`、`shiftMonth`、`sameDate` 等純函式，便於自訂日期邏輯。
 

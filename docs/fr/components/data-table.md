@@ -53,33 +53,33 @@ Cliquer sur une colonne déjà triée suit le cycle croissant → décroissant �
 
 Hérite de tous les champs de `TableProps<Row>` (`columns` est remplacé par une version triable) :
 
-| Prop | Type | Valeur par défaut | Description |
-| --- | --- | --- | --- |
-| `columns` | `readonly DataTableColumn<Row>[]` | — | Définition des colonnes (obligatoire), avec un champ `sortable` en plus par rapport à `TableColumn` |
-| `sort` | `SortState` | — | État de tri actuel ; omis signifie non trié |
-| `onSortChange` | `(sort: SortState \| undefined) => void` | — | Rappel de changement de tri ; `undefined` signifie que le tri est annulé. Si ce rappel n’est pas fourni, les en-têtes ne sont pas cliquables |
-| `rowCount` | `number` | — | Nombre total de lignes (obligatoire) |
-| `getRow` | `(index: number) => Row` | — | Renvoie les données d’une ligne à partir de son numéro (obligatoire) |
-| `estimatedRowHeight` | `number` | `44` | Hauteur de ligne estimée |
-| `onRowPress` | `(index: number) => void` | — | Rappel de clic sur une ligne |
-| `emptyLabel` | `string` | `"Aucune donnée"` | Texte de l’état vide |
-| `renderHeaderCell` | `(column, index) => PingoNode` | — | Existe dans les types, mais le composant l’utilise en interne pour implémenter les en-têtes triables ; toute valeur fournie sera écrasée |
-| `className` | `string` | — | Ajouté après le nom de classe du composant |
+| Prop                 | Type                                     | Valeur par défaut | Description                                                                                                                                  |
+| -------------------- | ---------------------------------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `columns`            | `readonly DataTableColumn<Row>[]`        | —                 | Définition des colonnes (obligatoire), avec un champ `sortable` en plus par rapport à `TableColumn`                                          |
+| `sort`               | `SortState`                              | —                 | État de tri actuel ; omis signifie non trié                                                                                                  |
+| `onSortChange`       | `(sort: SortState \| undefined) => void` | —                 | Rappel de changement de tri ; `undefined` signifie que le tri est annulé. Si ce rappel n’est pas fourni, les en-têtes ne sont pas cliquables |
+| `rowCount`           | `number`                                 | —                 | Nombre total de lignes (obligatoire)                                                                                                         |
+| `getRow`             | `(index: number) => Row`                 | —                 | Renvoie les données d’une ligne à partir de son numéro (obligatoire)                                                                         |
+| `estimatedRowHeight` | `number`                                 | `44`              | Hauteur de ligne estimée                                                                                                                     |
+| `onRowPress`         | `(index: number) => void`                | —                 | Rappel de clic sur une ligne                                                                                                                 |
+| `emptyLabel`         | `string`                                 | `"Aucune donnée"` | Texte de l’état vide                                                                                                                         |
+| `renderHeaderCell`   | `(column, index) => PingoNode`           | —                 | Existe dans les types, mais le composant l’utilise en interne pour implémenter les en-têtes triables ; toute valeur fournie sera écrasée     |
+| `className`          | `string`                                 | —                 | Ajouté après le nom de classe du composant                                                                                                   |
 
 ### DataTableColumn\<Row\>
 
 Extension de `TableColumn<Row>`, avec en plus :
 
-| Champ | Type | Valeur par défaut | Description |
-| --- | --- | --- | --- |
-| `sortable` | `boolean` | `false` | Indique si l’en-tête est cliquable pour trier |
+| Champ      | Type      | Valeur par défaut | Description                                   |
+| ---------- | --------- | ----------------- | --------------------------------------------- |
+| `sortable` | `boolean` | `false`           | Indique si l’en-tête est cliquable pour trier |
 
 ### SortState
 
-| Champ | Type | Description |
-| --- | --- | --- |
-| `key` | `string` | La `key` de la colonne triée |
-| `direction` | `"ascending" \| "descending"` | Direction du tri |
+| Champ       | Type                          | Description                  |
+| ----------- | ----------------------------- | ---------------------------- |
+| `key`       | `string`                      | La `key` de la colonne triée |
+| `direction` | `"ascending" \| "descending"` | Direction du tri             |
 
 L’en-tête de la colonne actuellement triée porte un indicateur `▲` / `▼`.
 

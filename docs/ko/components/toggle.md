@@ -35,14 +35,14 @@ root.render(
 
 ## Props
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `children` | `string` | — | 버튼 텍스트(필수) |
-| `pressed` | `boolean` | — | 제어되는 눌림 상태 |
-| `defaultPressed` | `boolean` | `false` | 비제어 초기 눌림 상태 |
-| `onPressedChange` | `(pressed: boolean) => void` | — | 상태 전환 콜백 |
-| `disabled` | `boolean` | `false` | 비활성화 상태 |
-| `className` | `string` | — | 컴포넌트 클래스 이름 뒤에 추가 |
+| Prop              | 타입                         | 기본값  | 설명                           |
+| ----------------- | ---------------------------- | ------- | ------------------------------ |
+| `children`        | `string`                     | —       | 버튼 텍스트(필수)              |
+| `pressed`         | `boolean`                    | —       | 제어되는 눌림 상태             |
+| `defaultPressed`  | `boolean`                    | `false` | 비제어 초기 눌림 상태          |
+| `onPressedChange` | `(pressed: boolean) => void` | —       | 상태 전환 콜백                 |
+| `disabled`        | `boolean`                    | `false` | 비활성화 상태                  |
+| `className`       | `string`                     | —       | 컴포넌트 클래스 이름 뒤에 추가 |
 
 ## 접근성
 

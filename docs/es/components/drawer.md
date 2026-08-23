@@ -38,8 +38,8 @@ La capa superpuesta llena su propio contenedor padre; móntela cerca del nodo ra
 
 Hereda `DialogProps` (`open`, `onOpenChange`, `children`, `className`), además de:
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
+| Prop   | 类型                | 默认值     | 说明                          |
+| ------ | ------------------- | ---------- | ----------------------------- |
 | `side` | `"top" \| "bottom"` | `"bottom"` | Borde desde el que se desliza |
 
 ## Accesibilidad

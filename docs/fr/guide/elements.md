@@ -58,16 +58,16 @@ participation du Shell. Le contenu est fourni par `value` ou par des `children` 
 
 ### Props (Text)
 
-| Prop | Type | Valeur par défaut | Description |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Contenu texte (au choix avec `children`) |
-| `children` | `string \| number` | — | Contenu texte |
-| `color` | `Color` | `#000000ff` | Couleur du texte, héritable |
-| `fontSize` | `number` | — | Taille de police (pixels logiques) |
-| `lineHeight` | `number` | — | Hauteur de ligne (pixels logiques) |
-| `fontWeight` | `number` | — | Graisse |
-| `fontFamily` | `string` | — | Famille de polices CSS |
-| `font` | `PingoFont` | — | Police explicite immuable ; une entrée non prise en charge fait tout basculer sur le repli |
+| Prop         | Type               | Valeur par défaut | Description                                                                                |
+| ------------ | ------------------ | ----------------- | ------------------------------------------------------------------------------------------ |
+| `value`      | `string`           | —                 | Contenu texte (au choix avec `children`)                                                   |
+| `children`   | `string \| number` | —                 | Contenu texte                                                                              |
+| `color`      | `Color`            | `#000000ff`       | Couleur du texte, héritable                                                                |
+| `fontSize`   | `number`           | —                 | Taille de police (pixels logiques)                                                         |
+| `lineHeight` | `number`           | —                 | Hauteur de ligne (pixels logiques)                                                         |
+| `fontWeight` | `number`           | —                 | Graisse                                                                                    |
+| `fontFamily` | `string`           | —                 | Famille de polices CSS                                                                     |
+| `font`       | `PingoFont`        | —                 | Police explicite immuable ; une entrée non prise en charge fait tout basculer sur le repli |
 
 `Text` hérite aussi de toutes les [CommonProps](/api) (dimensions, padding, événements,
 `semanticRole` / `semanticLabel`, etc.).

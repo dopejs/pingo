@@ -42,22 +42,22 @@ Wenn Sie einen eigenen `controller` übergeben, wechselt die Komponente in den k
 
 ## Props
 
-| Prop | Typ | Standard | Beschreibung |
-| --- | --- | --- | --- |
-| `value` | `string` | `""` | Anfangswert bei unkontrollierter Verwendung; wird ignoriert, sobald `controller` gesetzt ist |
-| `onValueChange` | `(value: string) => void` | — | Wird nach jeder angewendeten Bearbeitungstransaktion mit dem neuesten Wert aufgerufen |
-| `controller` | `TextEditingController` | — | Erweiterte Ausweichmöglichkeit: ein vom Aufrufer gehaltener, persistenter Controller |
-| `onTransaction` | `(transaction: EditTransaction) => void` | — | Roher Rückruf für jede Bearbeitungstransaktion |
-| `onSubmit` | `() => void` | — | Rückruf beim Absenden (Eingabetaste) |
-| `disabled` | `boolean` | `false` | Deaktivierter Zustand |
-| `readOnly` | `boolean` | `false` | Schreibgeschützter Zustand |
-| `password` | `boolean` | `false` | Maskierte Eingabe |
-| `inputMode` | `"decimal" \| "email" \| "none" \| "numeric" \| "search" \| "tel" \| "text" \| "url"` | `"text"` | Hinweis für das Tastaturlayout auf dem Bildschirm |
-| `className` | `string` | — | Wird an den Komponentenklassennamen angehängt |
-| `width` | `number` | — | Feste Breite (px) |
-| `semanticLabel` | `string` | — | Barrierefreier Name |
-| `prefix` | `PingoNode` | — | Vorangestellte Dekoration, z. B. Symbol oder Währungssymbol |
-| `suffix` | `PingoNode` | — | Nachgestellte Dekoration, z. B. Einheit oder Lösch-Schaltfläche |
+| Prop            | Typ                                                                                   | Standard | Beschreibung                                                                                 |
+| --------------- | ------------------------------------------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------- |
+| `value`         | `string`                                                                              | `""`     | Anfangswert bei unkontrollierter Verwendung; wird ignoriert, sobald `controller` gesetzt ist |
+| `onValueChange` | `(value: string) => void`                                                             | —        | Wird nach jeder angewendeten Bearbeitungstransaktion mit dem neuesten Wert aufgerufen        |
+| `controller`    | `TextEditingController`                                                               | —        | Erweiterte Ausweichmöglichkeit: ein vom Aufrufer gehaltener, persistenter Controller         |
+| `onTransaction` | `(transaction: EditTransaction) => void`                                              | —        | Roher Rückruf für jede Bearbeitungstransaktion                                               |
+| `onSubmit`      | `() => void`                                                                          | —        | Rückruf beim Absenden (Eingabetaste)                                                         |
+| `disabled`      | `boolean`                                                                             | `false`  | Deaktivierter Zustand                                                                        |
+| `readOnly`      | `boolean`                                                                             | `false`  | Schreibgeschützter Zustand                                                                   |
+| `password`      | `boolean`                                                                             | `false`  | Maskierte Eingabe                                                                            |
+| `inputMode`     | `"decimal" \| "email" \| "none" \| "numeric" \| "search" \| "tel" \| "text" \| "url"` | `"text"` | Hinweis für das Tastaturlayout auf dem Bildschirm                                            |
+| `className`     | `string`                                                                              | —        | Wird an den Komponentenklassennamen angehängt                                                |
+| `width`         | `number`                                                                              | —        | Feste Breite (px)                                                                            |
+| `semanticLabel` | `string`                                                                              | —        | Barrierefreier Name                                                                          |
+| `prefix`        | `PingoNode`                                                                           | —        | Vorangestellte Dekoration, z. B. Symbol oder Währungssymbol                                  |
+| `suffix`        | `PingoNode`                                                                           | —        | Nachgestellte Dekoration, z. B. Einheit oder Lösch-Schaltfläche                              |
 
 ## Barrierefreiheit
 

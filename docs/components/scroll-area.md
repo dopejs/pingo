@@ -27,11 +27,11 @@ root.render(
 
 ## Props
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | 滚动内容（必填） |
-| `hideScrollbar` | `boolean` | `false` | 隐藏绘制的滚动条（滚动能力不变） |
-| `className` | `string` | — | 追加在组件类名之后 |
+| Prop            | 类型        | 默认值  | 说明                             |
+| --------------- | ----------- | ------- | -------------------------------- |
+| `children`      | `PingoNode` | —       | 滚动内容（必填）                 |
+| `hideScrollbar` | `boolean`   | `false` | 隐藏绘制的滚动条（滚动能力不变） |
+| `className`     | `string`    | —       | 追加在组件类名之后               |
 
 ## 无障碍
 

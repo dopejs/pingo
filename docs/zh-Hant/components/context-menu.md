@@ -33,21 +33,21 @@ root.render(
 
 ## Props
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | 觸發區域內容（必填） |
-| `items` | `readonly ContextMenuEntry[]` | — | 選單項（必填） |
-| `onSelect` | `(value: string) => void` | — | 選擇選單項回調 |
-| `onOpenChange` | `(open: boolean) => void` | — | 開合變化回調 |
-| `className` | `string` | — | 追加類名 |
+| Prop           | 型別                          | 預設值 | 說明                 |
+| -------------- | ----------------------------- | ------ | -------------------- |
+| `children`     | `PingoNode`                   | —      | 觸發區域內容（必填） |
+| `items`        | `readonly ContextMenuEntry[]` | —      | 選單項（必填）       |
+| `onSelect`     | `(value: string) => void`     | —      | 選擇選單項回調       |
+| `onOpenChange` | `(open: boolean) => void`     | —      | 開合變化回調         |
+| `className`    | `string`                      | —      | 追加類名             |
 
 ### ContextMenuEntry
 
-| 欄位 | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 選單項值（必填） |
-| `label` | `string` | — | 顯示文案（必填） |
-| `disabled` | `boolean` | `false` | 禁用態 |
+| 欄位       | 型別      | 預設值  | 說明             |
+| ---------- | --------- | ------- | ---------------- |
+| `value`    | `string`  | —       | 選單項值（必填） |
+| `label`    | `string`  | —       | 顯示文案（必填） |
+| `disabled` | `boolean` | `false` | 禁用態           |
 
 ## 無障礙
 

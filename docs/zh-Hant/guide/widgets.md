@@ -15,12 +15,12 @@ description: "@dopejs/pingo-widgets 提供 TextField、TextArea、Pressable、Bu
 
 ## 匯出與命名
 
-| 匯出 | 說明 |
-| --- | --- |
+| 匯出        | 說明                                                        |
+| ----------- | ----------------------------------------------------------- |
 | `TextField` | 單行輸入：邊框 + 錯誤態裝飾，內部只組合 `editableText` 原語 |
-| `TextArea` | 多行變體；Enter 換行，submit 留給宿主表單 |
-| `Pressable` | 可聚焦的觸發表面：View + 焦點 + 原生 click/tap |
-| `Button` | `Pressable` + `Text` 的文字按鈕便捷組合 |
+| `TextArea`  | 多行變體；Enter 換行，submit 留給宿主表單                   |
+| `Pressable` | 可聚焦的觸發表面：View + 焦點 + 原生 click/tap              |
+| `Button`    | `Pressable` + `Text` 的文字按鈕便捷組合                     |
 
 命名注意：`@dopejs/pingo` 裡的 `TextArea` 指這個帶裝飾的 widget；多行**原語**以
 `UnstyledTextArea` 匯出（`TextAreaProps` 同理有別名 `UnstyledTextAreaProps`）。
@@ -46,27 +46,27 @@ createElement(TextField, {
 
 ### Props（TextField）
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `value` | `string` | `""` | 受控文字 |
-| `revision` | `number \| bigint` | `0n` | 受控值的權威 revision |
-| `controller` | `TextEditingController` | — | 本地 controller；與 `value`/`revision` 互斥 |
-| `readOnly` | `boolean` | — | 唯讀 |
-| `password` | `boolean` | — | 密碼模式（明文不進 DisplayList 與無障礙值） |
-| `maxGraphemes` | `number` | — | grapheme 上限 |
-| `inputMode` | `EditableInputMode` | — | 軟鍵盤版面提示 |
-| `width` | `number` | `240` | 含邊框的整體寬度 |
-| `height` | `number` | `lineHeight × rows + 16` | 含邊框的整體高度 |
-| `fontSize` | `number` | `14` | 字號 |
-| `lineHeight` | `number` | `round(fontSize × 1.5)` | 行高 |
-| `color` | `Color` | `#1f2329ff` | 文字顏色 |
-| `backgroundColor` | `Color` | `#ffffffff` | 欄位底色 |
-| `borderColor` | `Color` | `#c0c4ccff` | 邊框顏色 |
-| `errorColor` | `Color` | `#d03050ff` | 錯誤態邊框與說明顏色 |
-| `error` | `string` | — | 非空即錯誤態：錯誤色邊框 + 下方錯誤說明 |
-| `onTransaction` | `(t: EditTransaction) => void` | — | Core 編輯事務回調 |
-| `onSubmit` | `() => void` | — | 單行 Enter 提交 |
-| `semanticLabel` | `string` | — | 無障礙名稱（角色恆為 `textbox`） |
+| Prop              | 型別                           | 預設值                   | 說明                                        |
+| ----------------- | ------------------------------ | ------------------------ | ------------------------------------------- |
+| `value`           | `string`                       | `""`                     | 受控文字                                    |
+| `revision`        | `number \| bigint`             | `0n`                     | 受控值的權威 revision                       |
+| `controller`      | `TextEditingController`        | —                        | 本地 controller；與 `value`/`revision` 互斥 |
+| `readOnly`        | `boolean`                      | —                        | 唯讀                                        |
+| `password`        | `boolean`                      | —                        | 密碼模式（明文不進 DisplayList 與無障礙值） |
+| `maxGraphemes`    | `number`                       | —                        | grapheme 上限                               |
+| `inputMode`       | `EditableInputMode`            | —                        | 軟鍵盤版面提示                              |
+| `width`           | `number`                       | `240`                    | 含邊框的整體寬度                            |
+| `height`          | `number`                       | `lineHeight × rows + 16` | 含邊框的整體高度                            |
+| `fontSize`        | `number`                       | `14`                     | 字號                                        |
+| `lineHeight`      | `number`                       | `round(fontSize × 1.5)`  | 行高                                        |
+| `color`           | `Color`                        | `#1f2329ff`              | 文字顏色                                    |
+| `backgroundColor` | `Color`                        | `#ffffffff`              | 欄位底色                                    |
+| `borderColor`     | `Color`                        | `#c0c4ccff`              | 邊框顏色                                    |
+| `errorColor`      | `Color`                        | `#d03050ff`              | 錯誤態邊框與說明顏色                        |
+| `error`           | `string`                       | —                        | 非空即錯誤態：錯誤色邊框 + 下方錯誤說明     |
+| `onTransaction`   | `(t: EditTransaction) => void` | —                        | Core 編輯事務回調                           |
+| `onSubmit`        | `() => void`                   | —                        | 單行 Enter 提交                             |
+| `semanticLabel`   | `string`                       | —                        | 無障礙名稱（角色恆為 `textbox`）            |
 
 `TextArea` 在此基礎上多一個 `rows`（預設 `3`），用於計算預設高度。
 
@@ -76,15 +76,15 @@ createElement(TextField, {
 把原生 click/tap 對映成 `onPress` 的 `View`。樣式完全由 `style` 與 `children` 決定，
 `disabled` 時降透明度並摘除事件。
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | 內容（Button 為 `string \| number`，必填） |
-| `disabled` | `boolean` | `false` | 禁用態 |
-| `onPress` | `() => void` | — | 觸發回調 |
-| `className` | `string` | — | 類名（接樣式表） |
-| `style` | `PingoStyle` | — | 內聯樣式 |
-| `width` / `height` | `number` | — | 尺寸 |
-| `semanticLabel` | `string` | `Button` 取 `children` | 無障礙名稱 |
+| Prop               | 型別         | 預設值                 | 說明                                       |
+| ------------------ | ------------ | ---------------------- | ------------------------------------------ |
+| `children`         | `PingoNode`  | —                      | 內容（Button 為 `string \| number`，必填） |
+| `disabled`         | `boolean`    | `false`                | 禁用態                                     |
+| `onPress`          | `() => void` | —                      | 觸發回調                                   |
+| `className`        | `string`     | —                      | 類名（接樣式表）                           |
+| `style`            | `PingoStyle` | —                      | 內聯樣式                                   |
+| `width` / `height` | `number`     | —                      | 尺寸                                       |
+| `semanticLabel`    | `string`     | `Button` 取 `children` | 無障礙名稱                                 |
 
 `Button` 額外接受 `color` 與 `fontSize`（傳給內部文字）。
 

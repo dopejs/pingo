@@ -24,7 +24,9 @@ root.render(
     openDelayMs: 300,
     closeDelayMs: 200,
     children: createElement("text", { value: "@pingo" }),
-    content: createElement("text", { value: "Canvas レンダリングエンジンと UI コンポーネントライブラリ。" }),
+    content: createElement("text", {
+      value: "Canvas レンダリングエンジンと UI コンポーネントライブラリ。",
+    }),
   }),
 );
 ```
@@ -35,15 +37,15 @@ root.render(
 
 ## Props
 
-| Prop | 型 | デフォルト | 説明 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | トリガー要素（必須） |
-| `content` | `PingoNode` | — | カードのコンテンツ（必須） |
-| `open` | `boolean` | — | 制御された開閉状態 |
-| `onOpenChange` | `(open: boolean) => void` | — | 開閉変化時のコールバック |
-| `openDelayMs` | `number` | `300` | オープンの遅延（ミリ秒） |
-| `closeDelayMs` | `number` | `200` | クローズの遅延（ミリ秒） |
-| `className` | `string` | — | アンカーコンテナのクラス名に追加される |
+| Prop           | 型                        | デフォルト | 説明                                   |
+| -------------- | ------------------------- | ---------- | -------------------------------------- |
+| `children`     | `PingoNode`               | —          | トリガー要素（必須）                   |
+| `content`      | `PingoNode`               | —          | カードのコンテンツ（必須）             |
+| `open`         | `boolean`                 | —          | 制御された開閉状態                     |
+| `onOpenChange` | `(open: boolean) => void` | —          | 開閉変化時のコールバック               |
+| `openDelayMs`  | `number`                  | `300`      | オープンの遅延（ミリ秒）               |
+| `closeDelayMs` | `number`                  | `200`      | クローズの遅延（ミリ秒）               |
+| `className`    | `string`                  | —          | アンカーコンテナのクラス名に追加される |
 
 ## アクセシビリティ
 

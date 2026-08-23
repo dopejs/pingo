@@ -32,20 +32,20 @@ root.render(
 
 ## Props
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `items` | `readonly CommandItem[]` | — | 命令条目（必填） |
-| `onSelect` | `(value: string) => void` | — | 选择条目回调（点击或回车） |
-| `onDismiss` | `() => void` | — | `Escape` 回调 |
-| `placeholder` | `string` | `"搜索"` | 搜索框的无障碍名称 |
-| `emptyLabel` | `string` | `"无结果"` | 过滤为空时的提示文案 |
-| `className` | `string` | — | 追加类名 |
+| Prop          | 类型                      | 默认值     | 说明                       |
+| ------------- | ------------------------- | ---------- | -------------------------- |
+| `items`       | `readonly CommandItem[]`  | —          | 命令条目（必填）           |
+| `onSelect`    | `(value: string) => void` | —          | 选择条目回调（点击或回车） |
+| `onDismiss`   | `() => void`              | —          | `Escape` 回调              |
+| `placeholder` | `string`                  | `"搜索"`   | 搜索框的无障碍名称         |
+| `emptyLabel`  | `string`                  | `"无结果"` | 过滤为空时的提示文案       |
+| `className`   | `string`                  | —          | 追加类名                   |
 
 ### CommandItem
 
-| 字段 | 类型 | 说明 |
-| --- | --- | --- |
-| `value` | `string` | 条目值（必填） |
+| 字段    | 类型     | 说明                   |
+| ------- | -------- | ---------------------- |
+| `value` | `string` | 条目值（必填）         |
 | `label` | `string` | 显示与匹配文案（必填） |
 
 ## 无障碍

@@ -28,11 +28,11 @@ Tooltip wird durch das Betreten und Verlassen mit dem Zeiger gesteuert (`pointer
 
 ## Props
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `content` | `string` | — | Text im Bubble (erforderlich) |
-| `children` | `PingoNode` | — | Auslösendes Element (erforderlich) |
-| `className` | `string` | — | Wird nach dem Klassennamen des Anker-Containers angehängt |
+| Prop        | Typ         | Standardwert | Beschreibung                                              |
+| ----------- | ----------- | ------------ | --------------------------------------------------------- |
+| `content`   | `string`    | —            | Text im Bubble (erforderlich)                             |
+| `children`  | `PingoNode` | —            | Auslösendes Element (erforderlich)                        |
+| `className` | `string`    | —            | Wird nach dem Klassennamen des Anker-Containers angehängt |
 
 ## Barrierefreiheit
 

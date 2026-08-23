@@ -38,8 +38,8 @@ root.render(
 
 繼承 `DialogProps`（`open`、`onOpenChange`、`children`、`className`），另有：
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
+| Prop   | 型別                | 預設值     | 說明     |
+| ------ | ------------------- | ---------- | -------- |
 | `side` | `"top" \| "bottom"` | `"bottom"` | 滑入邊緣 |
 
 ## 無障礙

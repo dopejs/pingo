@@ -38,15 +38,15 @@ root.render(
 
 ## Props
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `trigger` | `string` | — | 触发器文本（必填） |
-| `children` | `PingoNode` | — | 展开后显示的内容（必填） |
-| `open` | `boolean` | — | 受控：当前展开状态 |
-| `defaultOpen` | `boolean` | `false` | 非受控：初始展开状态 |
-| `onOpenChange` | `(open: boolean) => void` | — | 展开状态变化回调 |
-| `disabled` | `boolean` | `false` | 禁用触发器 |
-| `className` | `string` | — | 追加在组件类名之后 |
+| Prop           | 类型                      | 默认值  | 说明                     |
+| -------------- | ------------------------- | ------- | ------------------------ |
+| `trigger`      | `string`                  | —       | 触发器文本（必填）       |
+| `children`     | `PingoNode`               | —       | 展开后显示的内容（必填） |
+| `open`         | `boolean`                 | —       | 受控：当前展开状态       |
+| `defaultOpen`  | `boolean`                 | `false` | 非受控：初始展开状态     |
+| `onOpenChange` | `(open: boolean) => void` | —       | 展开状态变化回调         |
+| `disabled`     | `boolean`                 | `false` | 禁用触发器               |
+| `className`    | `string`                  | —       | 追加在组件类名之后       |
 
 ## 无障碍
 

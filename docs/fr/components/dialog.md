@@ -31,7 +31,9 @@ root.render(
       createElement(DialogHeader, {
         children: [
           createElement(DialogTitle, { children: "Modifier le profil" }),
-          createElement(DialogDescription, { children: "Les modifications sont synchronisées immédiatement." }),
+          createElement(DialogDescription, {
+            children: "Les modifications sont synchronisées immédiatement.",
+          }),
         ],
       }),
       createElement(DialogFooter, {
@@ -54,26 +56,26 @@ La surcouche de Dialog remplit **son propre conteneur parent** (et non la fenêt
 
 ### Dialog
 
-| Prop | Type | Défaut | Description |
-| --- | --- | --- | --- |
-| `open` | `boolean` | — | Indique si la boîte est ouverte (obligatoire, contrôlée) |
-| `onOpenChange` | `(open: boolean) => void` | — | Rappel lors d'une demande de fermeture/ouverture |
-| `children` | `PingoNode` | — | Contenu du panneau (obligatoire) |
-| `className` | `string` | — | Ajouté après le nom de classe de la surcouche |
+| Prop           | Type                      | Défaut | Description                                              |
+| -------------- | ------------------------- | ------ | -------------------------------------------------------- |
+| `open`         | `boolean`                 | —      | Indique si la boîte est ouverte (obligatoire, contrôlée) |
+| `onOpenChange` | `(open: boolean) => void` | —      | Rappel lors d'une demande de fermeture/ouverture         |
+| `children`     | `PingoNode`               | —      | Contenu du panneau (obligatoire)                         |
+| `className`    | `string`                  | —      | Ajouté après le nom de classe de la surcouche            |
 
 ### DialogHeader / DialogFooter
 
-| Prop | Type | Défaut | Description |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Contenu du bloc (obligatoire) |
-| `className` | `string` | — | Nom de classe supplémentaire |
+| Prop        | Type        | Défaut | Description                   |
+| ----------- | ----------- | ------ | ----------------------------- |
+| `children`  | `PingoNode` | —      | Contenu du bloc (obligatoire) |
+| `className` | `string`    | —      | Nom de classe supplémentaire  |
 
 ### DialogTitle / DialogDescription
 
-| Prop | Type | Défaut | Description |
-| --- | --- | --- | --- |
-| `children` | `string` | — | Contenu textuel (obligatoire) |
-| `className` | `string` | — | Nom de classe supplémentaire |
+| Prop        | Type     | Défaut | Description                   |
+| ----------- | -------- | ------ | ----------------------------- |
+| `children`  | `string` | —      | Contenu textuel (obligatoire) |
+| `className` | `string` | —      | Nom de classe supplémentaire  |
 
 ## Accessibilité
 

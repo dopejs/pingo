@@ -38,11 +38,11 @@ L’association de contrôles n’existe pas encore dans pingo, aussi la liaison
 
 ## Props
 
-| Prop | Type | Valeur par défaut | Description |
-| --- | --- | --- | --- |
-| `children` | `string` | — | Texte du libellé (obligatoire) |
-| `className` | `string` | — | Ajouté après le nom de classe du composant |
-| `semanticLabel` | `string` | — | Remplace le nom d’accessibilité ; utilise par défaut le texte du libellé |
+| Prop            | Type     | Valeur par défaut | Description                                                              |
+| --------------- | -------- | ----------------- | ------------------------------------------------------------------------ |
+| `children`      | `string` | —                 | Texte du libellé (obligatoire)                                           |
+| `className`     | `string` | —                 | Ajouté après le nom de classe du composant                               |
+| `semanticLabel` | `string` | —                 | Remplace le nom d’accessibilité ; utilise par défaut le texte du libellé |
 
 ## Accessibilité
 

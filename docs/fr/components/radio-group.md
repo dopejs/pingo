@@ -41,22 +41,22 @@ Passer `disabled` à `RadioGroup` désactive tout le groupe, et la valeur séman
 
 ### RadioGroup
 
-| Prop | Type | Valeur par défaut | Description |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Valeur sélectionnée contrôlée |
-| `defaultValue` | `string` | — | Valeur sélectionnée initiale non contrôlée |
-| `onValueChange` | `(value: string) => void` | — | Rappel lors du changement de sélection |
-| `disabled` | `boolean` | `false` | Désactive tout le groupe |
-| `children` | `PingoNode` | — | Liste de `RadioGroupItem` (requis) |
-| `className` | `string` | — | Ajouté après le nom de classe du composant |
+| Prop            | Type                      | Valeur par défaut | Description                                |
+| --------------- | ------------------------- | ----------------- | ------------------------------------------ |
+| `value`         | `string`                  | —                 | Valeur sélectionnée contrôlée              |
+| `defaultValue`  | `string`                  | —                 | Valeur sélectionnée initiale non contrôlée |
+| `onValueChange` | `(value: string) => void` | —                 | Rappel lors du changement de sélection     |
+| `disabled`      | `boolean`                 | `false`           | Désactive tout le groupe                   |
+| `children`      | `PingoNode`               | —                 | Liste de `RadioGroupItem` (requis)         |
+| `className`     | `string`                  | —                 | Ajouté après le nom de classe du composant |
 
 ### RadioGroupItem
 
-| Prop | Type | Valeur par défaut | Description |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Valeur de l'option (requis) |
-| `label` | `string` | — | Texte de l'option |
-| `className` | `string` | — | Ajouté après le nom de classe du composant |
+| Prop        | Type     | Valeur par défaut | Description                                |
+| ----------- | -------- | ----------------- | ------------------------------------------ |
+| `value`     | `string` | —                 | Valeur de l'option (requis)                |
+| `label`     | `string` | —                 | Texte de l'option                          |
+| `className` | `string` | —                 | Ajouté après le nom de classe du composant |
 
 ## Accessibilité
 

@@ -43,21 +43,21 @@ Cuando `error` está presente, el campo se marca como inválido y **reemplaza** 
 
 ### Form
 
-| Prop | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Contenido del formulario (obligatorio) |
-| `className` | `string` | — | Se añade después del nombre de clase del componente |
+| Prop        | Tipo        | Valor predeterminado | Descripción                                         |
+| ----------- | ----------- | -------------------- | --------------------------------------------------- |
+| `children`  | `PingoNode` | —                    | Contenido del formulario (obligatorio)              |
+| `className` | `string`    | —                    | Se añade después del nombre de clase del componente |
 
 ### FormField
 
-| Prop | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `label` | `string` | — | Etiqueta del campo (obligatorio) |
-| `children` | `PingoNode` | — | Control del campo (obligatorio) |
-| `error` | `string` | — | Mensaje de error; si está presente, marca el campo como inválido y reemplaza la descripción |
-| `description` | `string` | — | Texto descriptivo de apoyo |
-| `required` | `boolean` | `false` | Marca de obligatorio; añade `*` después de la etiqueta |
-| `className` | `string` | — | Se añade después del nombre de clase del componente |
+| Prop          | Tipo        | Valor predeterminado | Descripción                                                                                 |
+| ------------- | ----------- | -------------------- | ------------------------------------------------------------------------------------------- |
+| `label`       | `string`    | —                    | Etiqueta del campo (obligatorio)                                                            |
+| `children`    | `PingoNode` | —                    | Control del campo (obligatorio)                                                             |
+| `error`       | `string`    | —                    | Mensaje de error; si está presente, marca el campo como inválido y reemplaza la descripción |
+| `description` | `string`    | —                    | Texto descriptivo de apoyo                                                                  |
+| `required`    | `boolean`   | `false`              | Marca de obligatorio; añade `*` después de la etiqueta                                      |
+| `className`   | `string`    | —                    | Se añade después del nombre de clase del componente                                         |
 
 ## Accesibilidad
 

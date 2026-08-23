@@ -36,19 +36,19 @@ Al pasar `disabled`, el campo deja de recibir entrada y se aplican los estilos d
 
 ## Props
 
-| Prop | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `value` | `string` | `""` | Valor inicial para uso no controlado; se ignora cuando se establece `controller` |
-| `onValueChange` | `(value: string) => void` | — | Se llama con el valor más reciente después de aplicar cada transacción de edición |
-| `controller` | `TextEditingController` | — | Vía de escape avanzada: controlador persistente que conserva quien llama |
-| `onTransaction` | `(transaction: EditTransaction) => void` | — | Devolución de llamada sin procesar para cada transacción de edición |
-| `onSubmit` | `() => void` | — | Devolución de llamada de envío |
-| `disabled` | `boolean` | `false` | Estado deshabilitado |
-| `readOnly` | `boolean` | `false` | Estado de solo lectura |
-| `rows` | `number` | — | Número de líneas visibles; determina la altura mínima del contenedor |
-| `className` | `string` | — | Se añade después del nombre de clase del componente |
-| `width` | `number` | — | Ancho fijo (px) |
-| `semanticLabel` | `string` | — | Nombre de accesibilidad |
+| Prop            | Tipo                                     | Valor predeterminado | Descripción                                                                       |
+| --------------- | ---------------------------------------- | -------------------- | --------------------------------------------------------------------------------- |
+| `value`         | `string`                                 | `""`                 | Valor inicial para uso no controlado; se ignora cuando se establece `controller`  |
+| `onValueChange` | `(value: string) => void`                | —                    | Se llama con el valor más reciente después de aplicar cada transacción de edición |
+| `controller`    | `TextEditingController`                  | —                    | Vía de escape avanzada: controlador persistente que conserva quien llama          |
+| `onTransaction` | `(transaction: EditTransaction) => void` | —                    | Devolución de llamada sin procesar para cada transacción de edición               |
+| `onSubmit`      | `() => void`                             | —                    | Devolución de llamada de envío                                                    |
+| `disabled`      | `boolean`                                | `false`              | Estado deshabilitado                                                              |
+| `readOnly`      | `boolean`                                | `false`              | Estado de solo lectura                                                            |
+| `rows`          | `number`                                 | —                    | Número de líneas visibles; determina la altura mínima del contenedor              |
+| `className`     | `string`                                 | —                    | Se añade después del nombre de clase del componente                               |
+| `width`         | `number`                                 | —                    | Ancho fijo (px)                                                                   |
+| `semanticLabel` | `string`                                 | —                    | Nombre de accesibilidad                                                           |
 
 ## Accesibilidad
 

@@ -30,15 +30,15 @@ root.render(
 
 ## Props
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | 트리거 요소(필수) |
-| `content` | `PingoNode` | — | 카드 콘텐츠(필수) |
-| `open` | `boolean` | — | 제어되는 열림/닫힘 상태 |
-| `onOpenChange` | `(open: boolean) => void` | — | 열림/닫힘 변경 콜백 |
-| `openDelayMs` | `number` | `300` | 열기 지연(밀리초) |
-| `closeDelayMs` | `number` | `200` | 닫기 지연(밀리초) |
-| `className` | `string` | — | 앵커 컨테이너 클래스명 뒤에 추가 |
+| Prop           | 타입                      | 기본값 | 설명                             |
+| -------------- | ------------------------- | ------ | -------------------------------- |
+| `children`     | `PingoNode`               | —      | 트리거 요소(필수)                |
+| `content`      | `PingoNode`               | —      | 카드 콘텐츠(필수)                |
+| `open`         | `boolean`                 | —      | 제어되는 열림/닫힘 상태          |
+| `onOpenChange` | `(open: boolean) => void` | —      | 열림/닫힘 변경 콜백              |
+| `openDelayMs`  | `number`                  | `300`  | 열기 지연(밀리초)                |
+| `closeDelayMs` | `number`                  | `200`  | 닫기 지연(밀리초)                |
+| `className`    | `string`                  | —      | 앵커 컨테이너 클래스명 뒤에 추가 |
 
 ## 접근성
 

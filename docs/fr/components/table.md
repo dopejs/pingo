@@ -58,27 +58,27 @@ Lorsque `rowCount` vaut `0`, `emptyLabel` est rendu (par défaut « 暂无数据
 
 ### TableProps\<Row\>
 
-| Prop | Type | Valeur par défaut | Description |
-| --- | --- | --- | --- |
-| `columns` | `readonly TableColumn<Row>[]` | — | Définition des colonnes, pilote à la fois l’en-tête et les lignes (obligatoire) |
-| `rowCount` | `number` | — | Nombre total de lignes (obligatoire) ; rend l’état vide lorsque la valeur est `0` |
-| `getRow` | `(index: number) => Row` | — | Récupère la donnée d’une ligne par son numéro, appelé uniquement pour la fenêtre visible (obligatoire) |
-| `estimatedRowHeight` | `number` | `44` | Hauteur de ligne estimée, utilisée pour la planification du défilement virtuel |
-| `onRowPress` | `(index: number) => void` | — | Rappel de clic sur une ligne ; lorsqu’il est fourni, les lignes deviennent focalisables |
-| `emptyLabel` | `string` | `"暂无数据"` | Texte de l’état vide |
-| `renderHeaderCell` | `(column: TableColumn<Row>, index: number) => PingoNode` | — | Remplace la cellule d’en-tête par défaut d’une colonne donnée |
-| `className` | `string` | — | Ajouté après le nom de classe du composant |
+| Prop                 | Type                                                     | Valeur par défaut | Description                                                                                            |
+| -------------------- | -------------------------------------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------ |
+| `columns`            | `readonly TableColumn<Row>[]`                            | —                 | Définition des colonnes, pilote à la fois l’en-tête et les lignes (obligatoire)                        |
+| `rowCount`           | `number`                                                 | —                 | Nombre total de lignes (obligatoire) ; rend l’état vide lorsque la valeur est `0`                      |
+| `getRow`             | `(index: number) => Row`                                 | —                 | Récupère la donnée d’une ligne par son numéro, appelé uniquement pour la fenêtre visible (obligatoire) |
+| `estimatedRowHeight` | `number`                                                 | `44`              | Hauteur de ligne estimée, utilisée pour la planification du défilement virtuel                         |
+| `onRowPress`         | `(index: number) => void`                                | —                 | Rappel de clic sur une ligne ; lorsqu’il est fourni, les lignes deviennent focalisables                |
+| `emptyLabel`         | `string`                                                 | `"暂无数据"`      | Texte de l’état vide                                                                                   |
+| `renderHeaderCell`   | `(column: TableColumn<Row>, index: number) => PingoNode` | —                 | Remplace la cellule d’en-tête par défaut d’une colonne donnée                                          |
+| `className`          | `string`                                                 | —                 | Ajouté après le nom de classe du composant                                                             |
 
 ### TableColumn\<Row\>
 
-| Champ | Type | Valeur par défaut | Description |
-| --- | --- | --- | --- |
-| `key` | `string` | — | Identifiant de la colonne, utilisé comme clé du nœud (obligatoire) |
-| `header` | `string` | — | Texte d’en-tête (obligatoire) |
-| `width` | `number` | — | Largeur fixe (en pixels logiques) ; lorsqu’elle est omise, la largeur restante est répartie selon `flex` |
-| `flex` | `number` | `1` | Part de la largeur restante lorsque `width` n’est pas défini |
-| `align` | `"start" \| "center" \| "end"` | `"start"` | Alignement horizontal du contenu de la colonne, partagé par l’en-tête et les cellules |
-| `cell` | `(row: Row, index: number) => PingoNode` | — | Fonction de construction du contenu de la cellule (obligatoire) |
+| Champ    | Type                                     | Valeur par défaut | Description                                                                                              |
+| -------- | ---------------------------------------- | ----------------- | -------------------------------------------------------------------------------------------------------- |
+| `key`    | `string`                                 | —                 | Identifiant de la colonne, utilisé comme clé du nœud (obligatoire)                                       |
+| `header` | `string`                                 | —                 | Texte d’en-tête (obligatoire)                                                                            |
+| `width`  | `number`                                 | —                 | Largeur fixe (en pixels logiques) ; lorsqu’elle est omise, la largeur restante est répartie selon `flex` |
+| `flex`   | `number`                                 | `1`               | Part de la largeur restante lorsque `width` n’est pas défini                                             |
+| `align`  | `"start" \| "center" \| "end"`           | `"start"`         | Alignement horizontal du contenu de la colonne, partagé par l’en-tête et les cellules                    |
+| `cell`   | `(row: Row, index: number) => PingoNode` | —                 | Fonction de construction du contenu de la cellule (obligatoire)                                          |
 
 Une table virtuelle ne peut pas mesurer la largeur des colonnes d’après leur contenu : les lignes non rendues ne participent pas à la mesure. La largeur des colonnes ne peut donc provenir que de la définition des colonnes — ce qui garantit aussi un alignement naturel entre l’en-tête et les lignes.
 

@@ -43,30 +43,30 @@ root.render(
 
 ### Sidebar
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 受控：當前選中條目的 `value` |
-| `defaultValue` | `string` | — | 非受控：初始選中條目的 `value` |
-| `onValueChange` | `(value: string) => void` | — | 選中變化回調 |
-| `children` | `PingoNode` | — | `SidebarSection` 列表（必填） |
-| `className` | `string` | — | 追加在元件類名之後 |
+| Prop            | 型別                      | 預設值 | 說明                           |
+| --------------- | ------------------------- | ------ | ------------------------------ |
+| `value`         | `string`                  | —      | 受控：當前選中條目的 `value`   |
+| `defaultValue`  | `string`                  | —      | 非受控：初始選中條目的 `value` |
+| `onValueChange` | `(value: string) => void` | —      | 選中變化回調                   |
+| `children`      | `PingoNode`               | —      | `SidebarSection` 列表（必填）  |
+| `className`     | `string`                  | —      | 追加在元件類名之後             |
 
 ### SidebarSection
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `title` | `string` | — | 分組標題；省略時不渲染標題行 |
-| `children` | `PingoNode` | — | `SidebarItem` 列表（必填） |
-| `className` | `string` | — | 追加在元件類名之後 |
+| Prop        | 型別        | 預設值 | 說明                         |
+| ----------- | ----------- | ------ | ---------------------------- |
+| `title`     | `string`    | —      | 分組標題；省略時不渲染標題行 |
+| `children`  | `PingoNode` | —      | `SidebarItem` 列表（必填）   |
+| `className` | `string`    | —      | 追加在元件類名之後           |
 
 ### SidebarItem
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 條目的唯一標識（必填） |
-| `label` | `string` | — | 條目文字，同時用作無障礙名稱（必填） |
-| `icon` | `PingoNode` | — | 前置插槽，用於圖示 |
-| `className` | `string` | — | 追加在元件類名之後 |
+| Prop        | 型別        | 預設值 | 說明                                 |
+| ----------- | ----------- | ------ | ------------------------------------ |
+| `value`     | `string`    | —      | 條目的唯一標識（必填）               |
+| `label`     | `string`    | —      | 條目文字，同時用作無障礙名稱（必填） |
+| `icon`      | `PingoNode` | —      | 前置插槽，用於圖示                   |
+| `className` | `string`    | —      | 追加在元件類名之後                   |
 
 ## 無障礙
 

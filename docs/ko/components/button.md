@@ -37,15 +37,15 @@ root.render(
 
 ## Props
 
-| Prop | 유형 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `children` | `string` | — | 버튼 텍스트(필수) |
-| `variant` | `"default" \| "secondary" \| "outline" \| "ghost" \| "destructive"` | `"default"` | 시각적 변형 |
-| `size` | `"default" \| "sm" \| "lg" \| "icon"` | `"default"` | 크기 |
-| `disabled` | `boolean` | `false` | 비활성화 상태 |
-| `onPress` | `() => void` | — | 포인터/키보드 활성화 콜백 |
-| `semanticLabel` | `string` | `children` | 접근성 이름 |
-| `className` | `string` | — | 컴포넌트 클래스 이름 뒤에 추가 |
+| Prop            | 유형                                                                | 기본값      | 설명                           |
+| --------------- | ------------------------------------------------------------------- | ----------- | ------------------------------ |
+| `children`      | `string`                                                            | —           | 버튼 텍스트(필수)              |
+| `variant`       | `"default" \| "secondary" \| "outline" \| "ghost" \| "destructive"` | `"default"` | 시각적 변형                    |
+| `size`          | `"default" \| "sm" \| "lg" \| "icon"`                               | `"default"` | 크기                           |
+| `disabled`      | `boolean`                                                           | `false`     | 비활성화 상태                  |
+| `onPress`       | `() => void`                                                        | —           | 포인터/키보드 활성화 콜백      |
+| `semanticLabel` | `string`                                                            | `children`  | 접근성 이름                    |
+| `className`     | `string`                                                            | —           | 컴포넌트 클래스 이름 뒤에 추가 |
 
 ## 접근성
 

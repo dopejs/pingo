@@ -41,12 +41,12 @@ root.render(
 
 يقبل `NavigationMenu` جميع props الخاصة بـ `MenubarProps` باستثناء `navigation`:
 
-| Prop | النوع | القيمة الافتراضية | الوصف |
-| --- | --- | --- | --- |
-| `value` | `string` | — | مضبوط: قيمة القائمة المفتوحة حالياً |
-| `onValueChange` | `(value: string \| undefined) => void` | — | استدعاء تغيير القائمة المفتوحة (`undefined` عند الإغلاق) |
-| `children` | `PingoNode` | — | عدة `MenubarMenu` (مطلوب) |
-| `className` | `string` | — | اسم فئة إضافي |
+| Prop            | النوع                                  | القيمة الافتراضية | الوصف                                                    |
+| --------------- | -------------------------------------- | ----------------- | -------------------------------------------------------- |
+| `value`         | `string`                               | —                 | مضبوط: قيمة القائمة المفتوحة حالياً                      |
+| `onValueChange` | `(value: string \| undefined) => void` | —                 | استدعاء تغيير القائمة المفتوحة (`undefined` عند الإغلاق) |
+| `children`      | `PingoNode`                            | —                 | عدة `MenubarMenu` (مطلوب)                                |
+| `className`     | `string`                               | —                 | اسم فئة إضافي                                            |
 
 انظر props العناصر في [Menubar](/components/menubar#menubarmenu).
 

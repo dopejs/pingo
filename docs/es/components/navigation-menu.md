@@ -41,12 +41,12 @@ Los elementos reutilizan `MenubarMenu`. La apertura y cierre no son controlados 
 
 `NavigationMenu` acepta todas las props de `MenubarProps` excepto `navigation`:
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Controlado: valor del menú abierto actualmente |
-| `onValueChange` | `(value: string \| undefined) => void` | — | Callback al cambiar el menú abierto (`undefined` al cerrar) |
-| `children` | `PingoNode` | — | Varios `MenubarMenu` (obligatorio) |
-| `className` | `string` | — | Clase adicional |
+| Prop            | 类型                                   | 默认值 | 说明                                                        |
+| --------------- | -------------------------------------- | ------ | ----------------------------------------------------------- |
+| `value`         | `string`                               | —      | Controlado: valor del menú abierto actualmente              |
+| `onValueChange` | `(value: string \| undefined) => void` | —      | Callback al cambiar el menú abierto (`undefined` al cerrar) |
+| `children`      | `PingoNode`                            | —      | Varios `MenubarMenu` (obligatorio)                          |
+| `className`     | `string`                               | —      | Clase adicional                                             |
 
 Para las props de los elementos, consulta [Menubar](/components/menubar#menubarmenu).
 

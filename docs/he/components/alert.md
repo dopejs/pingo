@@ -40,12 +40,12 @@ createElement(Alert, {
 
 ## Props
 
-| Prop | סוג | ברירת מחדל | תיאור |
-| --- | --- | --- | --- |
-| `title` | `string` | — | כותרת (חובה) |
-| `children` | `string` | — | תוכן התיאור (חובה) |
-| `variant` | `"default" \| "destructive"` | `"default"` | וריאנט חזותי |
-| `className` | `string` | — | מצורף לאחר שם מחלקת הרכיב |
+| Prop        | סוג                          | ברירת מחדל  | תיאור                     |
+| ----------- | ---------------------------- | ----------- | ------------------------- |
+| `title`     | `string`                     | —           | כותרת (חובה)              |
+| `children`  | `string`                     | —           | תוכן התיאור (חובה)        |
+| `variant`   | `"default" \| "destructive"` | `"default"` | וריאנט חזותי              |
+| `className` | `string`                     | —           | מצורף לאחר שם מחלקת הרכיב |
 
 ## נגישות
 

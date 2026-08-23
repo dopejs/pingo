@@ -57,15 +57,15 @@ createElement(Input, {
 
 `EditTransaction` 的欄位：
 
-| 欄位 | 型別 | 說明 |
-| --- | --- | --- |
-| `nodeId` | `number` | 產生事務的編輯節點 |
-| `baseRevision` | `bigint` | 事務基於的 revision |
-| `revision` | `bigint` | 事務後的新 revision |
-| `delta` | `{ range: { start, end }, text }` | 文字差異；偏移為 UTF-16，對齊 EditContext/InputEvent。純選區事務無此欄位 |
-| `selection` | `{ anchor, focus, anchorAffinity, focusAffinity }` | 事務後的選區 |
-| `composition` | `{ start, end }` | 進行中的 IME 組合區間 |
-| `kind` | `"edit" \| "composition" \| "external" \| "undo" \| "redo"` | 事務類別 |
+| 欄位           | 型別                                                        | 說明                                                                     |
+| -------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `nodeId`       | `number`                                                    | 產生事務的編輯節點                                                       |
+| `baseRevision` | `bigint`                                                    | 事務基於的 revision                                                      |
+| `revision`     | `bigint`                                                    | 事務後的新 revision                                                      |
+| `delta`        | `{ range: { start, end }, text }`                           | 文字差異；偏移為 UTF-16，對齊 EditContext/InputEvent。純選區事務無此欄位 |
+| `selection`    | `{ anchor, focus, anchorAffinity, focusAffinity }`          | 事務後的選區                                                             |
+| `composition`  | `{ start, end }`                                            | 進行中的 IME 組合區間                                                    |
+| `kind`         | `"edit" \| "composition" \| "external" \| "undo" \| "redo"` | 事務類別                                                                 |
 
 ## 輸入橋：EditContext 與降級代理
 
@@ -92,17 +92,17 @@ DOM。兩條路徑過同一套編輯行為契約測試。
 
 二者共享 `EditableTextProps`（`multiline` 不對外，由元件固定）：
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 受控文字 |
-| `revision` | `number \| bigint` | — | 受控值的權威 revision；過期值不會覆蓋更新的 Core 輸入 |
-| `controller` | `TextEditingController` | — | 穩定的本地 controller；與 `value`/`revision` 互斥 |
-| `readOnly` | `boolean` | `false` | 唯讀 |
-| `password` | `boolean` | `false` | 密碼模式（見下） |
-| `maxGraphemes` | `number` | — | grapheme 上限 |
-| `inputMode` | `EditableInputMode` | `"text"` | 軟鍵盤提示：`decimal` `email` `none` `numeric` `search` `tel` `text` `url` |
-| `onTransaction` | `(t: EditTransaction) => void` | — | Core 編輯事務回調 |
-| `onSubmit` | `() => void` | — | 單行 Enter 提交；多行的 Enter 留給換行 |
+| Prop            | 型別                           | 預設值   | 說明                                                                       |
+| --------------- | ------------------------------ | -------- | -------------------------------------------------------------------------- |
+| `value`         | `string`                       | —        | 受控文字                                                                   |
+| `revision`      | `number \| bigint`             | —        | 受控值的權威 revision；過期值不會覆蓋更新的 Core 輸入                      |
+| `controller`    | `TextEditingController`        | —        | 穩定的本地 controller；與 `value`/`revision` 互斥                          |
+| `readOnly`      | `boolean`                      | `false`  | 唯讀                                                                       |
+| `password`      | `boolean`                      | `false`  | 密碼模式（見下）                                                           |
+| `maxGraphemes`  | `number`                       | —        | grapheme 上限                                                              |
+| `inputMode`     | `EditableInputMode`            | `"text"` | 軟鍵盤提示：`decimal` `email` `none` `numeric` `search` `tel` `text` `url` |
+| `onTransaction` | `(t: EditTransaction) => void` | —        | Core 編輯事務回調                                                          |
+| `onSubmit`      | `() => void`                   | —        | 單行 Enter 提交；多行的 Enter 留給換行                                     |
 
 文字外觀繼承 `TextProps`：`color`、`fontSize`、`fontWeight`、`lineHeight`、`fontFamily`、
 `font`；尺寸、`padding`、`backgroundColor`、邊框（`style` 通道）等來自

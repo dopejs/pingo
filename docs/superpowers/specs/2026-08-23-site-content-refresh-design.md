@@ -7,14 +7,14 @@
 
 ## 已确认的决策
 
-| 决策点 | 结论 |
-| --- | --- |
-| 组件预览渲染方式 | Pingo Canvas 渲染（dogfooding），复用 Playground 的 hosted canvas 路径 |
-| 预览嵌入架构 | 页面内嵌懒加载 Canvas（IntersectionObserver + 动态 import 单例） |
-| 内容组织 | shadcn 模型：markdown 页面 + 独立 demo tsx 文件 + `:::preview <name>` 引用 |
-| 组件文档覆盖 | 全量 ~45 个组件一次完成 |
-| i18n | 10 语言全量同步（en 为源语言，遵循现有 locale 后缀约定） |
-| dopejs-page | 仅更新 11 个语言文件中 pingo 的 tagline/summary，不动 projects.ts 结构 |
+| 决策点           | 结论                                                                       |
+| ---------------- | -------------------------------------------------------------------------- |
+| 组件预览渲染方式 | Pingo Canvas 渲染（dogfooding），复用 Playground 的 hosted canvas 路径     |
+| 预览嵌入架构     | 页面内嵌懒加载 Canvas（IntersectionObserver + 动态 import 单例）           |
+| 内容组织         | shadcn 模型：markdown 页面 + 独立 demo tsx 文件 + `:::preview <name>` 引用 |
+| 组件文档覆盖     | 全量 ~45 个组件一次完成                                                    |
+| i18n             | 10 语言全量同步（en 为源语言，遵循现有 locale 后缀约定）                   |
+| dopejs-page      | 仅更新 11 个语言文件中 pingo 的 tagline/summary，不动 projects.ts 结构     |
 
 ## A. CSS 文档（用户向，新增）
 

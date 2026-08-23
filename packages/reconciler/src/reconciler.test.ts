@@ -568,7 +568,6 @@ describe("reconciler", () => {
     ).toThrow(/unknown container prop bogus/u);
   });
 
-
   it("applies revisioned edit deltas to the Shell mirror without stale prop overwrite", () => {
     const sink = new RecordingSink();
     const onTransaction = vi.fn();

@@ -70,13 +70,13 @@ root.render(<OrderRow index={1} />);
 
 Die Engine besitzt nur fünf eingebaute Elemente, die direkt den Scene-Knoten entsprechen. Es gibt weder CSS-Kaskadierung noch Selektoren:
 
-| Element           | Zweck                                                    |
-| ----------------- | -------------------------------------------------------- |
-| `container`       | Allgemeine Gruppierung, Hintergrund, Innenabstand, Transformation |
-| `text`            | Textlauf (Shaping, Umbruch, Caret-Geometrie aus Core)    |
-| `scroll`          | Scrollbarer Container im Besitz von Core                 |
-| `virtualList`     | Virtuelle Liste mit von Core geplanter Fensterung        |
-| `editableText`    | Editierbare Textprimitive                                |
+| Element        | Zweck                                                             |
+| -------------- | ----------------------------------------------------------------- |
+| `container`    | Allgemeine Gruppierung, Hintergrund, Innenabstand, Transformation |
+| `text`         | Textlauf (Shaping, Umbruch, Caret-Geometrie aus Core)             |
+| `scroll`       | Scrollbarer Container im Besitz von Core                          |
+| `virtualList`  | Virtuelle Liste mit von Core geplanter Fensterung                 |
+| `editableText` | Editierbare Textprimitive                                         |
 
 `TextField` und `TextArea` sind Widgets, die auf `editableText` aufbauen (Rahmen, Fehlerzustand).
 Sie führen keinen neuen Eingabepfad ein.

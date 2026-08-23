@@ -47,27 +47,27 @@ root.render(
 
 ### Popover
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `open` | `boolean` | — | 受控开合状态 |
-| `defaultOpen` | `boolean` | `false` | 非受控初始开合 |
-| `onOpenChange` | `(open: boolean) => void` | — | 开合变化回调 |
-| `children` | `PingoNode` | — | Trigger 与 Content（必填） |
-| `className` | `string` | — | 追加在锚点容器类名之后 |
+| Prop           | 类型                      | 默认值  | 说明                       |
+| -------------- | ------------------------- | ------- | -------------------------- |
+| `open`         | `boolean`                 | —       | 受控开合状态               |
+| `defaultOpen`  | `boolean`                 | `false` | 非受控初始开合             |
+| `onOpenChange` | `(open: boolean) => void` | —       | 开合变化回调               |
+| `children`     | `PingoNode`               | —       | Trigger 与 Content（必填） |
+| `className`    | `string`                  | —       | 追加在锚点容器类名之后     |
 
 ### PopoverTrigger
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | 触发元素（必填） |
-| `className` | `string` | — | 追加类名 |
+| Prop        | 类型        | 默认值 | 说明             |
+| ----------- | ----------- | ------ | ---------------- |
+| `children`  | `PingoNode` | —      | 触发元素（必填） |
+| `className` | `string`    | —      | 追加类名         |
 
 ### PopoverContent
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | 面板内容（必填） |
-| `className` | `string` | — | 追加类名 |
+| Prop        | 类型        | 默认值 | 说明             |
+| ----------- | ----------- | ------ | ---------------- |
+| `children`  | `PingoNode` | —      | 面板内容（必填） |
+| `className` | `string`    | —      | 追加类名         |
 
 ## 无障碍
 

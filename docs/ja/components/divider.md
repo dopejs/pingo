@@ -32,10 +32,10 @@ root.render(createElement(Divider, {}));
 
 ## Props
 
-| Prop | 型 | デフォルト | 説明 |
-| --- | --- | --- | --- |
-| `orientation` | `"horizontal" \| "vertical"` | `"horizontal"` | 区切り線の向き |
-| `className` | `string` | — | コンポーネントのクラス名に追加される |
+| Prop          | 型                           | デフォルト     | 説明                                 |
+| ------------- | ---------------------------- | -------------- | ------------------------------------ |
+| `orientation` | `"horizontal" \| "vertical"` | `"horizontal"` | 区切り線の向き                       |
+| `className`   | `string`                     | —              | コンポーネントのクラス名に追加される |
 
 水平の区切り線は幅が親コンテナの 100%、高さ 1px です。垂直の区切り線は高さが親コンテナの 100%、
 幅 1px です。

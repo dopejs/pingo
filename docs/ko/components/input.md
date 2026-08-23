@@ -42,22 +42,22 @@ root.render(
 
 ## Props
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `value` | `string` | `""` | 비제어 사용 시 초기값. `controller`를 설정하면 무시됩니다 |
-| `onValueChange` | `(value: string) => void` | — | 편집 트랜잭션이 적용될 때마다 최신 값을 콜백합니다 |
-| `controller` | `TextEditingController` | — | 고급 탈출구: 호출자가 소유한 영속 컨트롤러 |
-| `onTransaction` | `(transaction: EditTransaction) => void` | — | 각 편집 트랜잭션의 원시 콜백 |
-| `onSubmit` | `() => void` | — | 제출(Enter) 콜백 |
-| `disabled` | `boolean` | `false` | 비활성 상태 |
-| `readOnly` | `boolean` | `false` | 읽기 전용 상태 |
-| `password` | `boolean` | `false` | 마스킹 입력 |
-| `inputMode` | `"decimal" \| "email" \| "none" \| "numeric" \| "search" \| "tel" \| "text" \| "url"` | `"text"` | 소프트 키보드 레이아웃 힌트 |
-| `className` | `string` | — | 컴포넌트 클래스 이름 뒤에 추가됩니다 |
-| `width` | `number` | — | 고정 너비(px) |
-| `semanticLabel` | `string` | — | 접근성 이름 |
-| `prefix` | `PingoNode` | — | 아이콘이나 통화 기호 같은 전치 장식 |
-| `suffix` | `PingoNode` | — | 단위나 지우기 버튼 같은 후치 장식 |
+| Prop            | 类型                                                                                  | 默认值   | 说明                                                      |
+| --------------- | ------------------------------------------------------------------------------------- | -------- | --------------------------------------------------------- |
+| `value`         | `string`                                                                              | `""`     | 비제어 사용 시 초기값. `controller`를 설정하면 무시됩니다 |
+| `onValueChange` | `(value: string) => void`                                                             | —        | 편집 트랜잭션이 적용될 때마다 최신 값을 콜백합니다        |
+| `controller`    | `TextEditingController`                                                               | —        | 고급 탈출구: 호출자가 소유한 영속 컨트롤러                |
+| `onTransaction` | `(transaction: EditTransaction) => void`                                              | —        | 각 편집 트랜잭션의 원시 콜백                              |
+| `onSubmit`      | `() => void`                                                                          | —        | 제출(Enter) 콜백                                          |
+| `disabled`      | `boolean`                                                                             | `false`  | 비활성 상태                                               |
+| `readOnly`      | `boolean`                                                                             | `false`  | 읽기 전용 상태                                            |
+| `password`      | `boolean`                                                                             | `false`  | 마스킹 입력                                               |
+| `inputMode`     | `"decimal" \| "email" \| "none" \| "numeric" \| "search" \| "tel" \| "text" \| "url"` | `"text"` | 소프트 키보드 레이아웃 힌트                               |
+| `className`     | `string`                                                                              | —        | 컴포넌트 클래스 이름 뒤에 추가됩니다                      |
+| `width`         | `number`                                                                              | —        | 고정 너비(px)                                             |
+| `semanticLabel` | `string`                                                                              | —        | 접근성 이름                                               |
+| `prefix`        | `PingoNode`                                                                           | —        | 아이콘이나 통화 기호 같은 전치 장식                       |
+| `suffix`        | `PingoNode`                                                                           | —        | 단위나 지우기 버튼 같은 후치 장식                         |
 
 ## 접근성
 

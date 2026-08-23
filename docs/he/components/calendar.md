@@ -41,25 +41,25 @@ function DateField(): PingoNode {
 
 ### CalendarProps
 
-| Prop | סוג | ברירת מחדל | תיאור |
-| --- | --- | --- | --- |
-| `value` | `CalendarDate` | — | התאריך הנבחר (מבוקר) |
-| `month` | `CalendarDate` | — | החודש המוצג (מבוקר); כאשר מושמט, מנוהל על ידי מצב פנימי |
-| `defaultMonth` | `CalendarDate` | `value` ?? ינואר 2026 | החודש ההתחלתי במצב לא מבוקר |
-| `onSelect` | `(date: CalendarDate) => void` | — | קריאה חוזרת בלחיצה על תאריך |
-| `onMonthChange` | `(month: CalendarDate) => void` | — | קריאה חוזרת במעבר חודש (מופעלת גם במצב מבוקר וגם במצב לא מבוקר) |
-| `weekdayLabels` | `readonly string[]` | `["א","ב","ג","ד","ה","ו","ש"]` | כותרות ימי השבוע, מתחילות מיום ראשון |
-| `monthLabel` | `(month: CalendarDate) => string` | פורמט `"אוגוסט 2026"` | כותרת חודש מותאמת אישית |
-| `isDisabled` | `(date: CalendarDate) => boolean` | — | השבתת תאריכים מסוימים |
-| `className` | `string` | — | מצורף לאחר שם מחלקת הרכיב |
+| Prop            | סוג                               | ברירת מחדל                      | תיאור                                                           |
+| --------------- | --------------------------------- | ------------------------------- | --------------------------------------------------------------- |
+| `value`         | `CalendarDate`                    | —                               | התאריך הנבחר (מבוקר)                                            |
+| `month`         | `CalendarDate`                    | —                               | החודש המוצג (מבוקר); כאשר מושמט, מנוהל על ידי מצב פנימי         |
+| `defaultMonth`  | `CalendarDate`                    | `value` ?? ינואר 2026           | החודש ההתחלתי במצב לא מבוקר                                     |
+| `onSelect`      | `(date: CalendarDate) => void`    | —                               | קריאה חוזרת בלחיצה על תאריך                                     |
+| `onMonthChange` | `(month: CalendarDate) => void`   | —                               | קריאה חוזרת במעבר חודש (מופעלת גם במצב מבוקר וגם במצב לא מבוקר) |
+| `weekdayLabels` | `readonly string[]`               | `["א","ב","ג","ד","ה","ו","ש"]` | כותרות ימי השבוע, מתחילות מיום ראשון                            |
+| `monthLabel`    | `(month: CalendarDate) => string` | פורמט `"אוגוסט 2026"`           | כותרת חודש מותאמת אישית                                         |
+| `isDisabled`    | `(date: CalendarDate) => boolean` | —                               | השבתת תאריכים מסוימים                                           |
+| `className`     | `string`                          | —                               | מצורף לאחר שם מחלקת הרכיב                                       |
 
 ### CalendarDate
 
-| שדה | סוג | תיאור |
-| --- | --- | --- |
-| `year` | `number` | שנה |
+| שדה     | סוג      | תיאור      |
+| ------- | -------- | ---------- |
+| `year`  | `number` | שנה        |
 | `month` | `number` | חודש, 1–12 |
-| `day` | `number` | יום, 1–31 |
+| `day`   | `number` | יום, 1–31  |
 
 החבילה מייצאת גם פונקציות טהורות כגון `daysInMonth`, `monthGrid`, `shiftMonth` ו־`sameDate`, לנוחות במימוש לוגיקת תאריכים מותאמת אישית.
 

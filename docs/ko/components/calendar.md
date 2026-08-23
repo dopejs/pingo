@@ -41,25 +41,25 @@ function DateField(): PingoNode {
 
 ### CalendarProps
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `value` | `CalendarDate` | — | 선택된 날짜(제어형) |
-| `month` | `CalendarDate` | — | 표시할 월(제어형). 생략하면 내부 상태로 관리합니다 |
-| `defaultMonth` | `CalendarDate` | `value` ?? 2026년 1월 | 비제어 모드의 초기 월 |
-| `onSelect` | `(date: CalendarDate) => void` | — | 날짜 클릭 콜백 |
-| `onMonthChange` | `(month: CalendarDate) => void` | — | 월 전환 콜백(제어형과 비제어형 모두 발생) |
-| `weekdayLabels` | `readonly string[]` | `["일","월","화","수","목","금","토"]` | 일요일부터 시작하는 요일 헤더 |
-| `monthLabel` | `(month: CalendarDate) => string` | `"2026년 8월"` 형식 | 사용자 지정 월 제목 |
-| `isDisabled` | `(date: CalendarDate) => boolean` | — | 특정 날짜 비활성화 |
-| `className` | `string` | — | 컴포넌트 클래스 이름 뒤에 추가 |
+| Prop            | 타입                              | 기본값                                 | 설명                                               |
+| --------------- | --------------------------------- | -------------------------------------- | -------------------------------------------------- |
+| `value`         | `CalendarDate`                    | —                                      | 선택된 날짜(제어형)                                |
+| `month`         | `CalendarDate`                    | —                                      | 표시할 월(제어형). 생략하면 내부 상태로 관리합니다 |
+| `defaultMonth`  | `CalendarDate`                    | `value` ?? 2026년 1월                  | 비제어 모드의 초기 월                              |
+| `onSelect`      | `(date: CalendarDate) => void`    | —                                      | 날짜 클릭 콜백                                     |
+| `onMonthChange` | `(month: CalendarDate) => void`   | —                                      | 월 전환 콜백(제어형과 비제어형 모두 발생)          |
+| `weekdayLabels` | `readonly string[]`               | `["일","월","화","수","목","금","토"]` | 일요일부터 시작하는 요일 헤더                      |
+| `monthLabel`    | `(month: CalendarDate) => string` | `"2026년 8월"` 형식                    | 사용자 지정 월 제목                                |
+| `isDisabled`    | `(date: CalendarDate) => boolean` | —                                      | 특정 날짜 비활성화                                 |
+| `className`     | `string`                          | —                                      | 컴포넌트 클래스 이름 뒤에 추가                     |
 
 ### CalendarDate
 
-| 필드 | 타입 | 설명 |
-| --- | --- | --- |
-| `year` | `number` | 연도 |
+| 필드    | 타입     | 설명     |
+| ------- | -------- | -------- |
+| `year`  | `number` | 연도     |
 | `month` | `number` | 월, 1–12 |
-| `day` | `number` | 일, 1–31 |
+| `day`   | `number` | 일, 1–31 |
 
 패키지에는 `daysInMonth`, `monthGrid`, `shiftMonth`, `sameDate` 등 순수 함수도 함께 내보내므로 사용자 지정 날짜 로직에 활용할 수 있습니다.
 

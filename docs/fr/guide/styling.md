@@ -48,7 +48,7 @@ sans point initial, les valeurs des `PingoStyle` :
 
 ```ts
 const sheet = createStyleSheet({
-  card: { backgroundColor: "#ffffffff", borderRadius: 8, padding: 16 },
+  "card": { backgroundColor: "#ffffffff", borderRadius: 8, padding: 16 },
   "card:hover": { backgroundColor: "#f5f5f5ff" },
 });
 ```
@@ -157,7 +157,7 @@ const root = await createHostedCanvasRoot(canvas, {
 import { setTheme, useTheme } from "@dopejs/pingo-ui";
 
 setTheme("dark"); // tous les composants abonnés se re-rendent automatiquement
-useTheme();       // lecture et abonnement dans le render d'un composant
+useTheme(); // lecture et abonnement dans le render d'un composant
 ```
 
 Le thème est un signal au niveau du module : `useTheme()` dans le render d'un composant crée

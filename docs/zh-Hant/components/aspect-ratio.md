@@ -28,11 +28,11 @@ root.render(
 
 ## Props
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `ratio` | `number` | `1` | 寬高比（寬 ÷ 高） |
-| `children` | `PingoNode` | — | 受約束的內容（必填） |
-| `className` | `string` | — | 追加在元件類名之後 |
+| Prop        | 型別        | 預設值 | 說明                 |
+| ----------- | ----------- | ------ | -------------------- |
+| `ratio`     | `number`    | `1`    | 寬高比（寬 ÷ 高）    |
+| `children`  | `PingoNode` | —      | 受約束的內容（必填） |
+| `className` | `string`    | —      | 追加在元件類名之後   |
 
 ## 無障礙
 

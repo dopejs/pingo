@@ -57,15 +57,15 @@ createElement(Input, {
 
 `EditTransaction` 的字段：
 
-| 字段 | 类型 | 说明 |
-| --- | --- | --- |
-| `nodeId` | `number` | 产生事务的编辑节点 |
-| `baseRevision` | `bigint` | 事务基于的 revision |
-| `revision` | `bigint` | 事务后的新 revision |
-| `delta` | `{ range: { start, end }, text }` | 文本差异；偏移为 UTF-16，对齐 EditContext/InputEvent。纯选区事务无此字段 |
-| `selection` | `{ anchor, focus, anchorAffinity, focusAffinity }` | 事务后的选区 |
-| `composition` | `{ start, end }` | 进行中的 IME 组合区间 |
-| `kind` | `"edit" \| "composition" \| "external" \| "undo" \| "redo"` | 事务类别 |
+| 字段           | 类型                                                        | 说明                                                                     |
+| -------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `nodeId`       | `number`                                                    | 产生事务的编辑节点                                                       |
+| `baseRevision` | `bigint`                                                    | 事务基于的 revision                                                      |
+| `revision`     | `bigint`                                                    | 事务后的新 revision                                                      |
+| `delta`        | `{ range: { start, end }, text }`                           | 文本差异；偏移为 UTF-16，对齐 EditContext/InputEvent。纯选区事务无此字段 |
+| `selection`    | `{ anchor, focus, anchorAffinity, focusAffinity }`          | 事务后的选区                                                             |
+| `composition`  | `{ start, end }`                                            | 进行中的 IME 组合区间                                                    |
+| `kind`         | `"edit" \| "composition" \| "external" \| "undo" \| "redo"` | 事务类别                                                                 |
 
 ## 输入桥：EditContext 与降级代理
 
@@ -92,18 +92,18 @@ DOM。两条路径过同一套编辑行为契约测试。
 
 二者共享 `EditableTextProps`（`multiline` 不对外，由组件固定）：
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 受控文本 |
-| `revision` | `number \| bigint` | — | 受控值的权威 revision；过期值不会覆盖更新的 Core 输入 |
-| `controller` | `TextEditingController` | — | 稳定的本地 controller；与 `value`/`revision` 互斥 |
-| `readOnly` | `boolean` | `false` | 只读：仍可聚焦、有光标，可选中复制 |
-| `disabled` | `boolean` | `false` | 禁用：不开启编辑会话，因此不接受焦点、不显示光标、不接入输入法 |
-| `password` | `boolean` | `false` | 密码模式（见下） |
-| `maxGraphemes` | `number` | — | grapheme 上限 |
-| `inputMode` | `EditableInputMode` | `"text"` | 软键盘提示：`decimal` `email` `none` `numeric` `search` `tel` `text` `url` |
-| `onTransaction` | `(t: EditTransaction) => void` | — | Core 编辑事务回调 |
-| `onSubmit` | `() => void` | — | 单行 Enter 提交；多行的 Enter 留给换行 |
+| Prop            | 类型                           | 默认值   | 说明                                                                       |
+| --------------- | ------------------------------ | -------- | -------------------------------------------------------------------------- |
+| `value`         | `string`                       | —        | 受控文本                                                                   |
+| `revision`      | `number \| bigint`             | —        | 受控值的权威 revision；过期值不会覆盖更新的 Core 输入                      |
+| `controller`    | `TextEditingController`        | —        | 稳定的本地 controller；与 `value`/`revision` 互斥                          |
+| `readOnly`      | `boolean`                      | `false`  | 只读：仍可聚焦、有光标，可选中复制                                         |
+| `disabled`      | `boolean`                      | `false`  | 禁用：不开启编辑会话，因此不接受焦点、不显示光标、不接入输入法             |
+| `password`      | `boolean`                      | `false`  | 密码模式（见下）                                                           |
+| `maxGraphemes`  | `number`                       | —        | grapheme 上限                                                              |
+| `inputMode`     | `EditableInputMode`            | `"text"` | 软键盘提示：`decimal` `email` `none` `numeric` `search` `tel` `text` `url` |
+| `onTransaction` | `(t: EditTransaction) => void` | —        | Core 编辑事务回调                                                          |
+| `onSubmit`      | `() => void`                   | —        | 单行 Enter 提交；多行的 Enter 留给换行                                     |
 
 文本外观继承 `TextProps`：`color`、`fontSize`、`fontWeight`、`lineHeight`、`fontFamily`、
 `font`；尺寸、`padding`、`backgroundColor`、边框（`style` 通道）等来自

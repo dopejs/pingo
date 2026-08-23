@@ -38,8 +38,8 @@ La couche remplit son propre conteneur parent, montez-la donc près de la racine
 
 Hérite de `DialogProps` (`open`, `onOpenChange`, `children`, `className`), avec en plus :
 
-| Prop | Type | Défaut | Description |
-| --- | --- | --- | --- |
+| Prop   | Type                | Défaut     | Description        |
+| ------ | ------------------- | ---------- | ------------------ |
 | `side` | `"top" \| "bottom"` | `"bottom"` | Bord de glissement |
 
 ## Accessibilité

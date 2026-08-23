@@ -44,15 +44,15 @@ root.render(
 
 繼承 `DialogProps`（`open`、`onOpenChange`、`children`、`className`），另有：
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `title` | `string` | — | 標題（必填） |
-| `description` | `string` | — | 補充說明 |
-| `cancelLabel` | `string` | `"取消"` | 取消按鈕文案 |
-| `actionLabel` | `string` | `"确定"` | 確認按鈕文案 |
-| `onCancel` | `() => void` | — | 取消回調（隨後關閉） |
-| `onAction` | `() => void` | — | 確認回調（隨後關閉） |
-| `destructive` | `boolean` | `false` | 確認按鈕使用危險色 |
+| Prop          | 型別         | 預設值   | 說明                 |
+| ------------- | ------------ | -------- | -------------------- |
+| `title`       | `string`     | —        | 標題（必填）         |
+| `description` | `string`     | —        | 補充說明             |
+| `cancelLabel` | `string`     | `"取消"` | 取消按鈕文案         |
+| `actionLabel` | `string`     | `"确定"` | 確認按鈕文案         |
+| `onCancel`    | `() => void` | —        | 取消回調（隨後關閉） |
+| `onAction`    | `() => void` | —        | 確認回調（隨後關閉） |
+| `destructive` | `boolean`    | `false`  | 確認按鈕使用危險色   |
 
 ## 無障礙
 

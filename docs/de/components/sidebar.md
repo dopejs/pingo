@@ -43,30 +43,30 @@ root.render(
 
 ### Sidebar
 
-| Prop | Typ | Standard | Beschreibung |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Kontrolliert: `value` des aktuell ausgewählten Eintrags |
-| `defaultValue` | `string` | — | Unkontrolliert: `value` des anfänglich ausgewählten Eintrags |
-| `onValueChange` | `(value: string) => void` | — | Callback bei Auswahländerung |
-| `children` | `PingoNode` | — | Liste von `SidebarSection` (erforderlich) |
-| `className` | `string` | — | Wird an den Komponenten-Klassennamen angehängt |
+| Prop            | Typ                       | Standard | Beschreibung                                                 |
+| --------------- | ------------------------- | -------- | ------------------------------------------------------------ |
+| `value`         | `string`                  | —        | Kontrolliert: `value` des aktuell ausgewählten Eintrags      |
+| `defaultValue`  | `string`                  | —        | Unkontrolliert: `value` des anfänglich ausgewählten Eintrags |
+| `onValueChange` | `(value: string) => void` | —        | Callback bei Auswahländerung                                 |
+| `children`      | `PingoNode`               | —        | Liste von `SidebarSection` (erforderlich)                    |
+| `className`     | `string`                  | —        | Wird an den Komponenten-Klassennamen angehängt               |
 
 ### SidebarSection
 
-| Prop | Typ | Standard | Beschreibung |
-| --- | --- | --- | --- |
-| `title` | `string` | — | Gruppentitel; wird die Titelzeile nicht gerendert, wenn weggelassen |
-| `children` | `PingoNode` | — | Liste von `SidebarItem` (erforderlich) |
-| `className` | `string` | — | Wird an den Komponenten-Klassennamen angehängt |
+| Prop        | Typ         | Standard | Beschreibung                                                        |
+| ----------- | ----------- | -------- | ------------------------------------------------------------------- |
+| `title`     | `string`    | —        | Gruppentitel; wird die Titelzeile nicht gerendert, wenn weggelassen |
+| `children`  | `PingoNode` | —        | Liste von `SidebarItem` (erforderlich)                              |
+| `className` | `string`    | —        | Wird an den Komponenten-Klassennamen angehängt                      |
 
 ### SidebarItem
 
-| Prop | Typ | Standard | Beschreibung |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Eindeutige Kennung des Eintrags (erforderlich) |
-| `label` | `string` | — | Eintragstext, wird zugleich als Barrierefreiheitsname verwendet (erforderlich) |
-| `icon` | `PingoNode` | — | Vorangestellter Slot für ein Symbol |
-| `className` | `string` | — | Wird an den Komponenten-Klassennamen angehängt |
+| Prop        | Typ         | Standard | Beschreibung                                                                   |
+| ----------- | ----------- | -------- | ------------------------------------------------------------------------------ |
+| `value`     | `string`    | —        | Eindeutige Kennung des Eintrags (erforderlich)                                 |
+| `label`     | `string`    | —        | Eintragstext, wird zugleich als Barrierefreiheitsname verwendet (erforderlich) |
+| `icon`      | `PingoNode` | —        | Vorangestellter Slot für ein Symbol                                            |
+| `className` | `string`    | —        | Wird an den Komponenten-Klassennamen angehängt                                 |
 
 ## Barrierefreiheit
 

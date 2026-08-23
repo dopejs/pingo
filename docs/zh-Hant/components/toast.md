@@ -59,20 +59,20 @@ function scene() {
 
 ### Toast
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `open` | `boolean` | — | 是否顯示；`false` 時渲染為 `null`（必填） |
-| `title` | `string` | — | 標題（必填） |
-| `description` | `string` | — | 描述正文，省略時不渲染描述行 |
-| `variant` | `"default" \| "destructive"` | `"default"` | 視覺變體 |
-| `className` | `string` | — | 追加在元件類名之後 |
+| Prop          | 型別                         | 預設值      | 說明                                      |
+| ------------- | ---------------------------- | ----------- | ----------------------------------------- |
+| `open`        | `boolean`                    | —           | 是否顯示；`false` 時渲染為 `null`（必填） |
+| `title`       | `string`                     | —           | 標題（必填）                              |
+| `description` | `string`                     | —           | 描述正文，省略時不渲染描述行              |
+| `variant`     | `"default" \| "destructive"` | `"default"` | 視覺變體                                  |
+| `className`   | `string`                     | —           | 追加在元件類名之後                        |
 
 ### ToastViewport
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | 視口內的 toast 列表，多條按 8px 間距縱向堆疊（必填） |
-| `className` | `string` | — | 追加在元件類名之後 |
+| Prop        | 型別        | 預設值 | 說明                                                 |
+| ----------- | ----------- | ------ | ---------------------------------------------------- |
+| `children`  | `PingoNode` | —      | 視口內的 toast 列表，多條按 8px 間距縱向堆疊（必填） |
+| `className` | `string`    | —      | 追加在元件類名之後                                   |
 
 ## 無障礙
 

@@ -36,19 +36,19 @@ Lorsque `disabled` est passé, le champ ne reçoit plus de saisie et applique un
 
 ## Props
 
-| Prop | Type | Valeur par défaut | Description |
-| --- | --- | --- | --- |
-| `value` | `string` | `""` | Valeur initiale pour l’utilisation non contrôlée ; ignorée lorsque `controller` est défini |
-| `onValueChange` | `(value: string) => void` | — | Rappelle la dernière valeur après l’application de chaque transaction d’édition |
-| `controller` | `TextEditingController` | — | Échappatoire avancée : contrôleur persistant détenu par l’appelant |
-| `onTransaction` | `(transaction: EditTransaction) => void` | — | Rappel brut pour chaque transaction d’édition |
-| `onSubmit` | `() => void` | — | Rappel de soumission |
-| `disabled` | `boolean` | `false` | État désactivé |
-| `readOnly` | `boolean` | `false` | État en lecture seule |
-| `rows` | `number` | — | Nombre de lignes visibles, détermine la hauteur minimale de l’enveloppe |
-| `className` | `string` | — | Ajouté après le nom de classe du composant |
-| `width` | `number` | — | Largeur fixe (px) |
-| `semanticLabel` | `string` | — | Nom accessible |
+| Prop            | Type                                     | Valeur par défaut | Description                                                                                |
+| --------------- | ---------------------------------------- | ----------------- | ------------------------------------------------------------------------------------------ |
+| `value`         | `string`                                 | `""`              | Valeur initiale pour l’utilisation non contrôlée ; ignorée lorsque `controller` est défini |
+| `onValueChange` | `(value: string) => void`                | —                 | Rappelle la dernière valeur après l’application de chaque transaction d’édition            |
+| `controller`    | `TextEditingController`                  | —                 | Échappatoire avancée : contrôleur persistant détenu par l’appelant                         |
+| `onTransaction` | `(transaction: EditTransaction) => void` | —                 | Rappel brut pour chaque transaction d’édition                                              |
+| `onSubmit`      | `() => void`                             | —                 | Rappel de soumission                                                                       |
+| `disabled`      | `boolean`                                | `false`           | État désactivé                                                                             |
+| `readOnly`      | `boolean`                                | `false`           | État en lecture seule                                                                      |
+| `rows`          | `number`                                 | —                 | Nombre de lignes visibles, détermine la hauteur minimale de l’enveloppe                    |
+| `className`     | `string`                                 | —                 | Ajouté après le nom de classe du composant                                                 |
+| `width`         | `number`                                 | —                 | Largeur fixe (px)                                                                          |
+| `semanticLabel` | `string`                                 | —                 | Nom accessible                                                                             |
 
 ## Accessibilité
 

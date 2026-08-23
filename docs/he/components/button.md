@@ -37,15 +37,15 @@ root.render(
 
 ## Props
 
-| Prop | טיפוס | ברירת מחדל | תיאור |
-| --- | --- | --- | --- |
-| `children` | `string` | — | טקסט הכפתור (חובה) |
-| `variant` | `"default" \| "secondary" \| "outline" \| "ghost" \| "destructive"` | `"default"` | וריאציה חזותית |
-| `size` | `"default" \| "sm" \| "lg" \| "icon"` | `"default"` | גודל |
-| `disabled` | `boolean` | `false` | מצב מושבת |
-| `onPress` | `() => void` | — | קריאה חוזרת להפעלה באמצעות מצביע/מקלדת |
-| `semanticLabel` | `string` | `children` | שם לנגישות |
-| `className` | `string` | — | מתווסף לאחר שם מחלקת הרכיב |
+| Prop            | טיפוס                                                               | ברירת מחדל  | תיאור                                  |
+| --------------- | ------------------------------------------------------------------- | ----------- | -------------------------------------- |
+| `children`      | `string`                                                            | —           | טקסט הכפתור (חובה)                     |
+| `variant`       | `"default" \| "secondary" \| "outline" \| "ghost" \| "destructive"` | `"default"` | וריאציה חזותית                         |
+| `size`          | `"default" \| "sm" \| "lg" \| "icon"`                               | `"default"` | גודל                                   |
+| `disabled`      | `boolean`                                                           | `false`     | מצב מושבת                              |
+| `onPress`       | `() => void`                                                        | —           | קריאה חוזרת להפעלה באמצעות מצביע/מקלדת |
+| `semanticLabel` | `string`                                                            | `children`  | שם לנגישות                             |
+| `className`     | `string`                                                            | —           | מתווסף לאחר שם מחלקת הרכיב             |
 
 ## נגישות
 

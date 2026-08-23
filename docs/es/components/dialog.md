@@ -54,26 +54,26 @@ La capa flotante del diálogo llena **su propio contenedor padre** (no la ventan
 
 ### Dialog
 
-| Prop | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `open` | `boolean` | — | Si está abierto (obligatorio, controlado) |
-| `onOpenChange` | `(open: boolean) => void` | — | Callback al solicitar cerrar o abrir |
-| `children` | `PingoNode` | — | Contenido del panel (obligatorio) |
-| `className` | `string` | — | Se añade después del nombre de clase de la capa flotante |
+| Prop           | Tipo                      | Valor predeterminado | Descripción                                              |
+| -------------- | ------------------------- | -------------------- | -------------------------------------------------------- |
+| `open`         | `boolean`                 | —                    | Si está abierto (obligatorio, controlado)                |
+| `onOpenChange` | `(open: boolean) => void` | —                    | Callback al solicitar cerrar o abrir                     |
+| `children`     | `PingoNode`               | —                    | Contenido del panel (obligatorio)                        |
+| `className`    | `string`                  | —                    | Se añade después del nombre de clase de la capa flotante |
 
 ### DialogHeader / DialogFooter
 
-| Prop | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Contenido del bloque (obligatorio) |
-| `className` | `string` | — | Nombre de clase adicional |
+| Prop        | Tipo        | Valor predeterminado | Descripción                        |
+| ----------- | ----------- | -------------------- | ---------------------------------- |
+| `children`  | `PingoNode` | —                    | Contenido del bloque (obligatorio) |
+| `className` | `string`    | —                    | Nombre de clase adicional          |
 
 ### DialogTitle / DialogDescription
 
-| Prop | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `children` | `string` | — | Contenido de texto (obligatorio) |
-| `className` | `string` | — | Nombre de clase adicional |
+| Prop        | Tipo     | Valor predeterminado | Descripción                      |
+| ----------- | -------- | -------------------- | -------------------------------- |
+| `children`  | `string` | —                    | Contenido de texto (obligatorio) |
+| `className` | `string` | —                    | Nombre de clase adicional        |
 
 ## Accesibilidad
 

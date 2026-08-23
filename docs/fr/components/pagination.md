@@ -41,15 +41,15 @@ La règle de repli de la séquence de numéros est implémentée par la fonction
 
 ## Props
 
-| Prop | Type | Défaut | Description |
-| --- | --- | --- | --- |
-| `page` | `number` | — | Page active, à partir de 1 (obligatoire) ; une valeur hors limites est ramenée dans `[1, pageCount]` |
-| `pageCount` | `number` | — | Nombre total de pages (obligatoire) ; aucun numéro n’est rendu si inférieur à 1 |
-| `onPageChange` | `(page: number) => void` | — | Rappel de changement de page ; ne se déclenche pas en cliquant sur la page active ou sur une cible hors limites |
-| `siblingCount` | `number` | `1` | Nombre de pages affichées de chaque côté de la page active |
-| `previousLabel` | `string` | — | Libellé de la page précédente réservé dans le type ; la version actuelle rend une icône, ce champ ne participe pas encore au rendu |
-| `nextLabel` | `string` | — | Libellé de la page suivante réservé dans le type ; la version actuelle rend une icône, ce champ ne participe pas encore au rendu |
-| `className` | `string` | — | Ajouté après le nom de classe du composant |
+| Prop            | Type                     | Défaut | Description                                                                                                                        |
+| --------------- | ------------------------ | ------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `page`          | `number`                 | —      | Page active, à partir de 1 (obligatoire) ; une valeur hors limites est ramenée dans `[1, pageCount]`                               |
+| `pageCount`     | `number`                 | —      | Nombre total de pages (obligatoire) ; aucun numéro n’est rendu si inférieur à 1                                                    |
+| `onPageChange`  | `(page: number) => void` | —      | Rappel de changement de page ; ne se déclenche pas en cliquant sur la page active ou sur une cible hors limites                    |
+| `siblingCount`  | `number`                 | `1`    | Nombre de pages affichées de chaque côté de la page active                                                                         |
+| `previousLabel` | `string`                 | —      | Libellé de la page précédente réservé dans le type ; la version actuelle rend une icône, ce champ ne participe pas encore au rendu |
+| `nextLabel`     | `string`                 | —      | Libellé de la page suivante réservé dans le type ; la version actuelle rend une icône, ce champ ne participe pas encore au rendu   |
+| `className`     | `string`                 | —      | Ajouté après le nom de classe du composant                                                                                         |
 
 ## Accessibilité
 

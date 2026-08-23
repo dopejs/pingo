@@ -45,37 +45,37 @@ Alle Teile arbeiten über einen Context zusammen und müssen mit `createElement`
 
 ### Select
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Ausgewählter Wert, der im Trigger angezeigt wird |
-| `defaultOpen` | `boolean` | `false` | Initial geöffnet |
-| `onValueChange` | `(value: string) => void` | — | Callback bei Auswahländerung (schließt nach der Auswahl automatisch) |
-| `onOpenChange` | `(open: boolean) => void` | — | Callback beim Öffnen und Schließen |
-| `children` | `PingoNode` | — | Trigger und Inhalt (erforderlich) |
-| `className` | `string` | — | Wird an den Komponenten-Klassennamen angehängt |
+| Prop            | Typ                       | Standardwert | Beschreibung                                                         |
+| --------------- | ------------------------- | ------------ | -------------------------------------------------------------------- |
+| `value`         | `string`                  | —            | Ausgewählter Wert, der im Trigger angezeigt wird                     |
+| `defaultOpen`   | `boolean`                 | `false`      | Initial geöffnet                                                     |
+| `onValueChange` | `(value: string) => void` | —            | Callback bei Auswahländerung (schließt nach der Auswahl automatisch) |
+| `onOpenChange`  | `(open: boolean) => void` | —            | Callback beim Öffnen und Schließen                                   |
+| `children`      | `PingoNode`               | —            | Trigger und Inhalt (erforderlich)                                    |
+| `className`     | `string`                  | —            | Wird an den Komponenten-Klassennamen angehängt                       |
 
 ### SelectTrigger
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Benutzerdefinierter Inhalt des Triggers; standardmäßig wird der ausgewählte Wert oder der Platzhaltertext gerendert |
-| `placeholder` | `string` | — | Platzhaltertext, wenn nichts ausgewählt ist |
-| `className` | `string` | — | Wird an den Komponenten-Klassennamen angehängt |
+| Prop          | Typ         | Standardwert | Beschreibung                                                                                                        |
+| ------------- | ----------- | ------------ | ------------------------------------------------------------------------------------------------------------------- |
+| `children`    | `PingoNode` | —            | Benutzerdefinierter Inhalt des Triggers; standardmäßig wird der ausgewählte Wert oder der Platzhaltertext gerendert |
+| `placeholder` | `string`    | —            | Platzhaltertext, wenn nichts ausgewählt ist                                                                         |
+| `className`   | `string`    | —            | Wird an den Komponenten-Klassennamen angehängt                                                                      |
 
 ### SelectContent
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Liste der `SelectItem` (erforderlich) |
-| `className` | `string` | — | Wird an den Komponenten-Klassennamen angehängt |
+| Prop        | Typ         | Standardwert | Beschreibung                                   |
+| ----------- | ----------- | ------------ | ---------------------------------------------- |
+| `children`  | `PingoNode` | —            | Liste der `SelectItem` (erforderlich)          |
+| `className` | `string`    | —            | Wird an den Komponenten-Klassennamen angehängt |
 
 ### SelectItem
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Wert der Option (erforderlich) |
-| `children` | `string` | — | Text der Option (erforderlich) |
-| `className` | `string` | — | Wird an den Komponenten-Klassennamen angehängt |
+| Prop        | Typ      | Standardwert | Beschreibung                                   |
+| ----------- | -------- | ------------ | ---------------------------------------------- |
+| `value`     | `string` | —            | Wert der Option (erforderlich)                 |
+| `children`  | `string` | —            | Text der Option (erforderlich)                 |
+| `className` | `string` | —            | Wird an den Komponenten-Klassennamen angehängt |
 
 ## Barrierefreiheit
 

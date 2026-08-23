@@ -42,17 +42,17 @@ Avec `disabled`, le curseur ne répond plus ni au glisser-déposer ni au clavier
 
 ## Props
 
-| Prop | Type | Valeur par défaut | Description |
-| --- | --- | --- | --- |
-| `value` | `number` | — | Valeur actuelle contrôlée |
-| `defaultValue` | `number` | `min` | Valeur initiale non contrôlée |
-| `onValueChange` | `(value: number) => void` | — | Rappel lors d’un changement de valeur |
-| `min` | `number` | `0` | Valeur minimale |
-| `max` | `number` | `100` | Valeur maximale |
-| `step` | `number` | `1` | Incrément au clavier |
-| `disabled` | `boolean` | `false` | État désactivé |
-| `semanticLabel` | `string` | — | Nom d’accessibilité |
-| `className` | `string` | — | Ajouté après le nom de classe du composant |
+| Prop            | Type                      | Valeur par défaut | Description                                |
+| --------------- | ------------------------- | ----------------- | ------------------------------------------ |
+| `value`         | `number`                  | —                 | Valeur actuelle contrôlée                  |
+| `defaultValue`  | `number`                  | `min`             | Valeur initiale non contrôlée              |
+| `onValueChange` | `(value: number) => void` | —                 | Rappel lors d’un changement de valeur      |
+| `min`           | `number`                  | `0`               | Valeur minimale                            |
+| `max`           | `number`                  | `100`             | Valeur maximale                            |
+| `step`          | `number`                  | `1`               | Incrément au clavier                       |
+| `disabled`      | `boolean`                 | `false`           | État désactivé                             |
+| `semanticLabel` | `string`                  | —                 | Nom d’accessibilité                        |
+| `className`     | `string`                  | —                 | Ajouté après le nom de classe du composant |
 
 ## Accessibilité
 

@@ -33,21 +33,21 @@ root.render(
 
 ## Props
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | 触发区域内容（必填） |
-| `items` | `readonly ContextMenuEntry[]` | — | 菜单项（必填） |
-| `onSelect` | `(value: string) => void` | — | 选择菜单项回调 |
-| `onOpenChange` | `(open: boolean) => void` | — | 开合变化回调 |
-| `className` | `string` | — | 追加类名 |
+| Prop           | 类型                          | 默认值 | 说明                 |
+| -------------- | ----------------------------- | ------ | -------------------- |
+| `children`     | `PingoNode`                   | —      | 触发区域内容（必填） |
+| `items`        | `readonly ContextMenuEntry[]` | —      | 菜单项（必填）       |
+| `onSelect`     | `(value: string) => void`     | —      | 选择菜单项回调       |
+| `onOpenChange` | `(open: boolean) => void`     | —      | 开合变化回调         |
+| `className`    | `string`                      | —      | 追加类名             |
 
 ### ContextMenuEntry
 
-| 字段 | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 菜单项值（必填） |
-| `label` | `string` | — | 显示文案（必填） |
-| `disabled` | `boolean` | `false` | 禁用态 |
+| 字段       | 类型      | 默认值  | 说明             |
+| ---------- | --------- | ------- | ---------------- |
+| `value`    | `string`  | —       | 菜单项值（必填） |
+| `label`    | `string`  | —       | 显示文案（必填） |
+| `disabled` | `boolean` | `false` | 禁用态           |
 
 ## 无障碍
 

@@ -38,21 +38,21 @@ root.render(
 
 ## Props
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `value` | `CalendarDate` | — | 선택된 날짜 |
-| `month` | `CalendarDate` | — | 제어되는 표시 월 |
-| `defaultMonth` | `CalendarDate` | `value ?? 2026-01-01` | 비제어 초기 월 |
-| `onSelect` | `(date: CalendarDate) => void` | — | 날짜 선택 콜백(이후 자동으로 닫힘) |
-| `onMonthChange` | `(month: CalendarDate) => void` | — | 페이지 전환 콜백 |
-| `weekdayLabels` | `readonly string[]` | `["일","월","화","수","목","금","토"]` | 요일 헤더 |
-| `monthLabel` | `(month: CalendarDate) => string` | — | 사용자 정의 월 제목 |
-| `isDisabled` | `(date: CalendarDate) => boolean` | — | 특정 날짜 비활성화 |
-| `open` | `boolean` | — | 제어되는 열림/닫힘 |
-| `onOpenChange` | `(open: boolean) => void` | — | 열림/닫힘 콜백 |
-| `placeholder` | `string` | `"날짜 선택"` | 선택되지 않았을 때의 플레이스홀더 텍스트 |
-| `format` | `(date: CalendarDate) => string` | `formatDate`(`YYYY-MM-DD`) | 트리거의 날짜 렌더링 |
-| `className` | `string` | — | 컴포넌트 클래스 이름 뒤에 추가 |
+| Prop            | 타입                              | 기본값                                 | 설명                                     |
+| --------------- | --------------------------------- | -------------------------------------- | ---------------------------------------- |
+| `value`         | `CalendarDate`                    | —                                      | 선택된 날짜                              |
+| `month`         | `CalendarDate`                    | —                                      | 제어되는 표시 월                         |
+| `defaultMonth`  | `CalendarDate`                    | `value ?? 2026-01-01`                  | 비제어 초기 월                           |
+| `onSelect`      | `(date: CalendarDate) => void`    | —                                      | 날짜 선택 콜백(이후 자동으로 닫힘)       |
+| `onMonthChange` | `(month: CalendarDate) => void`   | —                                      | 페이지 전환 콜백                         |
+| `weekdayLabels` | `readonly string[]`               | `["일","월","화","수","목","금","토"]` | 요일 헤더                                |
+| `monthLabel`    | `(month: CalendarDate) => string` | —                                      | 사용자 정의 월 제목                      |
+| `isDisabled`    | `(date: CalendarDate) => boolean` | —                                      | 특정 날짜 비활성화                       |
+| `open`          | `boolean`                         | —                                      | 제어되는 열림/닫힘                       |
+| `onOpenChange`  | `(open: boolean) => void`         | —                                      | 열림/닫힘 콜백                           |
+| `placeholder`   | `string`                          | `"날짜 선택"`                          | 선택되지 않았을 때의 플레이스홀더 텍스트 |
+| `format`        | `(date: CalendarDate) => string`  | `formatDate`(`YYYY-MM-DD`)             | 트리거의 날짜 렌더링                     |
+| `className`     | `string`                          | —                                      | 컴포넌트 클래스 이름 뒤에 추가           |
 
 ## 접근성
 

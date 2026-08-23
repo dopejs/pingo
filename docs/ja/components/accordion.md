@@ -25,12 +25,16 @@ root.render(
       createElement(AccordionItem, {
         value: "intro",
         title: "pingo-ui とは？",
-        children: createElement("text", { value: "pingo canvas 上にレンダリングされるコンポーネントライブラリ。" }),
+        children: createElement("text", {
+          value: "pingo canvas 上にレンダリングされるコンポーネントライブラリ。",
+        }),
       }),
       createElement(AccordionItem, {
         value: "theme",
         title: "ダークテーマに対応していますか？",
-        children: createElement("text", { value: "対応しています。テーマに合わせて自動で切り替わります。" }),
+        children: createElement("text", {
+          value: "対応しています。テーマに合わせて自動で切り替わります。",
+        }),
       }),
     ],
   }),
@@ -44,22 +48,22 @@ root.render(
 
 ### Accordion
 
-| Prop | 型 | デフォルト | 説明 |
-| --- | --- | --- | --- |
-| `openValue` | `string` | — | 制御：現在展開している項目の `value` |
-| `defaultOpenValue` | `string` | — | 非制御：初期に展開する項目の `value` |
-| `onValueChange` | `(value: string \| undefined) => void` | — | 展開項目が変化したときのコールバック。すべて折りたたまれた場合は `undefined` |
-| `children` | `PingoNode` | — | `AccordionItem` のリスト（必須） |
-| `className` | `string` | — | コンポーネントのクラス名に追加される |
+| Prop               | 型                                     | デフォルト | 説明                                                                         |
+| ------------------ | -------------------------------------- | ---------- | ---------------------------------------------------------------------------- |
+| `openValue`        | `string`                               | —          | 制御：現在展開している項目の `value`                                         |
+| `defaultOpenValue` | `string`                               | —          | 非制御：初期に展開する項目の `value`                                         |
+| `onValueChange`    | `(value: string \| undefined) => void` | —          | 展開項目が変化したときのコールバック。すべて折りたたまれた場合は `undefined` |
+| `children`         | `PingoNode`                            | —          | `AccordionItem` のリスト（必須）                                             |
+| `className`        | `string`                               | —          | コンポーネントのクラス名に追加される                                         |
 
 ### AccordionItem
 
-| Prop | 型 | デフォルト | 説明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 項目の一意な識別子（必須） |
-| `title` | `string` | — | トリガーのタイトル（必須） |
-| `children` | `PingoNode` | — | 展開時に表示するコンテンツ（必須） |
-| `className` | `string` | — | コンポーネントのクラス名に追加される |
+| Prop        | 型          | デフォルト | 説明                                 |
+| ----------- | ----------- | ---------- | ------------------------------------ |
+| `value`     | `string`    | —          | 項目の一意な識別子（必須）           |
+| `title`     | `string`    | —          | トリガーのタイトル（必須）           |
+| `children`  | `PingoNode` | —          | 展開時に表示するコンテンツ（必須）   |
+| `className` | `string`    | —          | コンポーネントのクラス名に追加される |
 
 ## アクセシビリティ
 

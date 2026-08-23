@@ -45,12 +45,12 @@ createElement(TopBar, {
 
 ## Props
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `title` | `string` | — | 标题文本；省略时渲染空伸缩列 |
-| `leading` | `PingoNode` | — | 前部插槽，放 logo 或返回按钮 |
-| `actions` | `PingoNode` | — | 尾部插槽，被标题列推到最右端 |
-| `className` | `string` | — | 追加在组件类名之后 |
+| Prop        | 类型        | 默认值 | 说明                         |
+| ----------- | ----------- | ------ | ---------------------------- |
+| `title`     | `string`    | —      | 标题文本；省略时渲染空伸缩列 |
+| `leading`   | `PingoNode` | —      | 前部插槽，放 logo 或返回按钮 |
+| `actions`   | `PingoNode` | —      | 尾部插槽，被标题列推到最右端 |
+| `className` | `string`    | —      | 追加在组件类名之后           |
 
 ## 无障碍
 

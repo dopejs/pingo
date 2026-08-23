@@ -41,22 +41,22 @@ root.render(
 
 ### RadioGroup
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 受控選中值 |
-| `defaultValue` | `string` | — | 非受控初始選中值 |
-| `onValueChange` | `(value: string) => void` | — | 選中變化回調 |
-| `disabled` | `boolean` | `false` | 禁用整組 |
-| `children` | `PingoNode` | — | `RadioGroupItem` 列表（必填） |
-| `className` | `string` | — | 追加在元件類名之後 |
+| Prop            | 型別                      | 預設值  | 說明                          |
+| --------------- | ------------------------- | ------- | ----------------------------- |
+| `value`         | `string`                  | —       | 受控選中值                    |
+| `defaultValue`  | `string`                  | —       | 非受控初始選中值              |
+| `onValueChange` | `(value: string) => void` | —       | 選中變化回調                  |
+| `disabled`      | `boolean`                 | `false` | 禁用整組                      |
+| `children`      | `PingoNode`               | —       | `RadioGroupItem` 列表（必填） |
+| `className`     | `string`                  | —       | 追加在元件類名之後            |
 
 ### RadioGroupItem
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 選項值（必填） |
-| `label` | `string` | — | 選項文字 |
-| `className` | `string` | — | 追加在元件類名之後 |
+| Prop        | 型別     | 預設值 | 說明               |
+| ----------- | -------- | ------ | ------------------ |
+| `value`     | `string` | —      | 選項值（必填）     |
+| `label`     | `string` | —      | 選項文字           |
+| `className` | `string` | —      | 追加在元件類名之後 |
 
 ## 無障礙
 

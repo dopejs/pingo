@@ -77,19 +77,19 @@ const remote = await loadSvg("/assets/logo.svg");
 
 ## Props(Path)
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `d` | `string` | — | SVG path 데이터(필수, 경로 문법만, 문서 아님) |
-| `viewBox` | `readonly [number, number, number, number]` | — | 작성자 공간 박스, 노드 박스에 맞게 스케일 |
-| `strokeWidth` | `number` | — | 0이 아니면 채우지 않고 스트로크 |
-| `fillRule` | `"nonzero" \| "evenodd"` | `"nonzero"` | 채우기 규칙 |
-| `geometryTransform` | `readonly [number, number, number, number, number, number]` | 단위 행렬 | 인코딩 전에 기하에 구워 넣는 변환 |
+| Prop                | 타입                                                        | 기본값      | 설명                                          |
+| ------------------- | ----------------------------------------------------------- | ----------- | --------------------------------------------- |
+| `d`                 | `string`                                                    | —           | SVG path 데이터(필수, 경로 문법만, 문서 아님) |
+| `viewBox`           | `readonly [number, number, number, number]`                 | —           | 작성자 공간 박스, 노드 박스에 맞게 스케일     |
+| `strokeWidth`       | `number`                                                    | —           | 0이 아니면 채우지 않고 스트로크               |
+| `fillRule`          | `"nonzero" \| "evenodd"`                                    | `"nonzero"` | 채우기 규칙                                   |
+| `geometryTransform` | `readonly [number, number, number, number, number, number]` | 단위 행렬   | 인코딩 전에 기하에 구워 넣는 변환             |
 
 ## Props(Svg)
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `source` | `PingoSvg` | — | `createSvg` / `loadSvg`가 파싱한 문서(필수) |
+| Prop     | 타입       | 기본값 | 설명                                        |
+| -------- | ---------- | ------ | ------------------------------------------- |
+| `source` | `PingoSvg` | —      | `createSvg` / `loadSvg`가 파싱한 문서(필수) |
 
 둘 모두 [CommonProps](/api)(`width`/`height`, 이벤트, 의미 props 등)를 상속합니다.
 

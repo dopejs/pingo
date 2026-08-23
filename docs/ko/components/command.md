@@ -32,20 +32,20 @@ root.render(
 
 ## Props
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `items` | `readonly CommandItem[]` | — | 명령 항목 (필수) |
-| `onSelect` | `(value: string) => void` | — | 항목 선택 콜백 (클릭 또는 Enter) |
-| `onDismiss` | `() => void` | — | `Escape` 콜백 |
-| `placeholder` | `string` | `"검색"` | 검색창의 접근성 이름 |
-| `emptyLabel` | `string` | `"결과 없음"` | 필터링 결과가 없을 때의 안내 문구 |
-| `className` | `string` | — | 추가 클래스명 |
+| Prop          | 타입                      | 기본값        | 설명                              |
+| ------------- | ------------------------- | ------------- | --------------------------------- |
+| `items`       | `readonly CommandItem[]`  | —             | 명령 항목 (필수)                  |
+| `onSelect`    | `(value: string) => void` | —             | 항목 선택 콜백 (클릭 또는 Enter)  |
+| `onDismiss`   | `() => void`              | —             | `Escape` 콜백                     |
+| `placeholder` | `string`                  | `"검색"`      | 검색창의 접근성 이름              |
+| `emptyLabel`  | `string`                  | `"결과 없음"` | 필터링 결과가 없을 때의 안내 문구 |
+| `className`   | `string`                  | —             | 추가 클래스명                     |
 
 ### CommandItem
 
-| 필드 | 타입 | 설명 |
-| --- | --- | --- |
-| `value` | `string` | 항목 값 (필수) |
+| 필드    | 타입     | 설명                     |
+| ------- | -------- | ------------------------ |
+| `value` | `string` | 항목 값 (필수)           |
 | `label` | `string` | 표시 및 매칭 문구 (필수) |
 
 ## 접근성

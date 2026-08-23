@@ -53,17 +53,17 @@ se pasa tal cual, sin ningún envoltorio.
 
 `Card`, `CardHeader`, `CardContent` y `CardFooter` aceptan props de tipo contenedor:
 
-| Prop | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Contenido del hueco (obligatorio) |
-| `className` | `string` | — | Se añade tras las clases del propio componente |
+| Prop        | Tipo        | Valor predeterminado | Descripción                                    |
+| ----------- | ----------- | -------------------- | ---------------------------------------------- |
+| `children`  | `PingoNode` | —                    | Contenido del hueco (obligatorio)              |
+| `className` | `string`    | —                    | Se añade tras las clases del propio componente |
 
 `CardTitle` y `CardDescription` aceptan props de tipo texto:
 
-| Prop | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `children` | `string` | — | Contenido de texto (obligatorio) |
-| `className` | `string` | — | Se añade tras las clases del propio componente |
+| Prop        | Tipo     | Valor predeterminado | Descripción                                    |
+| ----------- | -------- | -------------------- | ---------------------------------------------- |
+| `children`  | `string` | —                    | Contenido de texto (obligatorio)               |
+| `className` | `string` | —                    | Se añade tras las clases del propio componente |
 
 ## Accesibilidad
 

@@ -44,22 +44,22 @@ root.render(
 
 ### Accordion
 
-| Prop | Type | Valeur par défaut | Description |
-| --- | --- | --- | --- |
-| `openValue` | `string` | — | Contrôlé : `value` du panneau actuellement ouvert |
-| `defaultOpenValue` | `string` | — | Non contrôlé : `value` du panneau ouvert initialement |
-| `onValueChange` | `(value: string \| undefined) => void` | — | Callback de changement de panneau ouvert ; `undefined` quand tout est replié |
-| `children` | `PingoNode` | — | Liste d'`AccordionItem` (obligatoire) |
-| `className` | `string` | — | Ajouté après les classes du composant |
+| Prop               | Type                                   | Valeur par défaut | Description                                                                  |
+| ------------------ | -------------------------------------- | ----------------- | ---------------------------------------------------------------------------- |
+| `openValue`        | `string`                               | —                 | Contrôlé : `value` du panneau actuellement ouvert                            |
+| `defaultOpenValue` | `string`                               | —                 | Non contrôlé : `value` du panneau ouvert initialement                        |
+| `onValueChange`    | `(value: string \| undefined) => void` | —                 | Callback de changement de panneau ouvert ; `undefined` quand tout est replié |
+| `children`         | `PingoNode`                            | —                 | Liste d'`AccordionItem` (obligatoire)                                        |
+| `className`        | `string`                               | —                 | Ajouté après les classes du composant                                        |
 
 ### AccordionItem
 
-| Prop | Type | Valeur par défaut | Description |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Identifiant unique du panneau (obligatoire) |
-| `title` | `string` | — | Titre du déclencheur (obligatoire) |
-| `children` | `PingoNode` | — | Contenu affiché une fois ouvert (obligatoire) |
-| `className` | `string` | — | Ajouté après les classes du composant |
+| Prop        | Type        | Valeur par défaut | Description                                   |
+| ----------- | ----------- | ----------------- | --------------------------------------------- |
+| `value`     | `string`    | —                 | Identifiant unique du panneau (obligatoire)   |
+| `title`     | `string`    | —                 | Titre du déclencheur (obligatoire)            |
+| `children`  | `PingoNode` | —                 | Contenu affiché une fois ouvert (obligatoire) |
+| `className` | `string`    | —                 | Ajouté après les classes du composant         |
 
 ## Accessibilité
 

@@ -29,11 +29,11 @@ Usa múltiples Skeleton de distintos tamaños para armar la estructura del conte
 
 ## Props
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `width` | `number` | — | Ancho del bloque de marcador de posición (px); si se omite, lo determina el layout |
-| `height` | `number` | — | Alto del bloque de marcador de posición (px); si se omite, lo determina el layout |
-| `className` | `string` | — | Se agrega después de la clase del componente |
+| Prop        | 类型     | 默认值 | 说明                                                                               |
+| ----------- | -------- | ------ | ---------------------------------------------------------------------------------- |
+| `width`     | `number` | —      | Ancho del bloque de marcador de posición (px); si se omite, lo determina el layout |
+| `height`    | `number` | —      | Alto del bloque de marcador de posición (px); si se omite, lo determina el layout  |
+| `className` | `string` | —      | Se agrega después de la clase del componente                                       |
 
 ## Accesibilidad
 

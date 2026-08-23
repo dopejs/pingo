@@ -45,14 +45,14 @@ createElement(StatCard, { label: "在线设备", value: "1,024" });
 
 ## Props
 
-| Prop | Typ | Standard | Beschreibung |
-| --- | --- | --- | --- |
-| `label` | `string` | — | Name des Indikators (erforderlich) |
-| `value` | `string` | — | Wert des Indikators, Formatierung übernimmt der Aufrufer (erforderlich) |
-| `delta` | `string` | — | Veränderung zum Vorzeitraum, z. B. `+12.5%` |
-| `trend` | `"up" \| "down" \| "flat"` | `"flat"` | Färbungsrichtung des Deltas, beeinflusst keine anderen Teile |
-| `description` | `string` | — | Beschreibungstext am unteren Rand, z. B. Vergleichszeitraum |
-| `className` | `string` | — | Wird an den Komponenten-Klassennamen angehängt |
+| Prop          | Typ                        | Standard | Beschreibung                                                            |
+| ------------- | -------------------------- | -------- | ----------------------------------------------------------------------- |
+| `label`       | `string`                   | —        | Name des Indikators (erforderlich)                                      |
+| `value`       | `string`                   | —        | Wert des Indikators, Formatierung übernimmt der Aufrufer (erforderlich) |
+| `delta`       | `string`                   | —        | Veränderung zum Vorzeitraum, z. B. `+12.5%`                             |
+| `trend`       | `"up" \| "down" \| "flat"` | `"flat"` | Färbungsrichtung des Deltas, beeinflusst keine anderen Teile            |
+| `description` | `string`                   | —        | Beschreibungstext am unteren Rand, z. B. Vergleichszeitraum             |
+| `className`   | `string`                   | —        | Wird an den Komponenten-Klassennamen angehängt                          |
 
 ## Barrierefreiheit
 

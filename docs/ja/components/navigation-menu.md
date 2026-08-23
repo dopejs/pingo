@@ -45,12 +45,12 @@ root.render(
 
 `NavigationMenu` は `MenubarProps` のうち `navigation` 以外のすべての props を受け取ります。
 
-| Prop | 型 | デフォルト | 説明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 制御：現在開いているメニューの値 |
-| `onValueChange` | `(value: string \| undefined) => void` | — | 開いているメニューが変化したときのコールバック（閉じたときは `undefined`） |
-| `children` | `PingoNode` | — | 複数の `MenubarMenu`（必須） |
-| `className` | `string` | — | 追加するクラス名 |
+| Prop            | 型                                     | デフォルト | 説明                                                                       |
+| --------------- | -------------------------------------- | ---------- | -------------------------------------------------------------------------- |
+| `value`         | `string`                               | —          | 制御：現在開いているメニューの値                                           |
+| `onValueChange` | `(value: string \| undefined) => void` | —          | 開いているメニューが変化したときのコールバック（閉じたときは `undefined`） |
+| `children`      | `PingoNode`                            | —          | 複数の `MenubarMenu`（必須）                                               |
+| `className`     | `string`                               | —          | 追加するクラス名                                                           |
 
 項目の props については [Menubar](/ja/components/menubar#menubarmenu) を参照してください。
 

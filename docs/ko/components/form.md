@@ -43,21 +43,21 @@ root.render(
 
 ### Form
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | 폼 내용(필수) |
-| `className` | `string` | — | 컴포넌트 클래스 이름 뒤에 추가 |
+| Prop        | 타입        | 기본값 | 설명                           |
+| ----------- | ----------- | ------ | ------------------------------ |
+| `children`  | `PingoNode` | —      | 폼 내용(필수)                  |
+| `className` | `string`    | —      | 컴포넌트 클래스 이름 뒤에 추가 |
 
 ### FormField
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `label` | `string` | — | 필드 라벨(필수) |
-| `children` | `PingoNode` | — | 필드 컨트롤(필수) |
-| `error` | `string` | — | 오류 정보. 존재하면 필드를 무효로 표시하고 설명을 대체합니다 |
-| `description` | `string` | — | 보조 설명 텍스트 |
-| `required` | `boolean` | `false` | 필수 표시. 라벨 뒤에 `*`를 추가합니다 |
-| `className` | `string` | — | 컴포넌트 클래스 이름 뒤에 추가 |
+| Prop          | 타입        | 기본값  | 설명                                                         |
+| ------------- | ----------- | ------- | ------------------------------------------------------------ |
+| `label`       | `string`    | —       | 필드 라벨(필수)                                              |
+| `children`    | `PingoNode` | —       | 필드 컨트롤(필수)                                            |
+| `error`       | `string`    | —       | 오류 정보. 존재하면 필드를 무효로 표시하고 설명을 대체합니다 |
+| `description` | `string`    | —       | 보조 설명 텍스트                                             |
+| `required`    | `boolean`   | `false` | 필수 표시. 라벨 뒤에 `*`를 추가합니다                        |
+| `className`   | `string`    | —       | 컴포넌트 클래스 이름 뒤에 추가                               |
 
 ## 접근성
 

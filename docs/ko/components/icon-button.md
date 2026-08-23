@@ -40,15 +40,15 @@ root.render(
 
 ## Props
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `icon` | `PingoNode` | — | 아이콘 슬롯이며 원래 그대로 전달됩니다(필수) |
-| `semanticLabel` | `string` | — | 접근성 이름(필수) |
-| `variant` | `"default" \| "secondary" \| "outline" \| "ghost" \| "destructive"` | `"default"` | 시각 변형 |
-| `size` | `"default" \| "sm" \| "lg"` | `"default"` | 크기(`sm`/`lg`는 현재 효과 없음, 위 내용 참조) |
-| `disabled` | `boolean` | `false` | 비활성화 상태 |
-| `onPress` | `() => void` | — | 포인터/키보드 활성화 콜백 |
-| `className` | `string` | — | 컴포넌트 클래스 이름 뒤에 추가됩니다 |
+| Prop            | 类型                                                                | 默认值      | 说明                                           |
+| --------------- | ------------------------------------------------------------------- | ----------- | ---------------------------------------------- |
+| `icon`          | `PingoNode`                                                         | —           | 아이콘 슬롯이며 원래 그대로 전달됩니다(필수)   |
+| `semanticLabel` | `string`                                                            | —           | 접근성 이름(필수)                              |
+| `variant`       | `"default" \| "secondary" \| "outline" \| "ghost" \| "destructive"` | `"default"` | 시각 변형                                      |
+| `size`          | `"default" \| "sm" \| "lg"`                                         | `"default"` | 크기(`sm`/`lg`는 현재 효과 없음, 위 내용 참조) |
+| `disabled`      | `boolean`                                                           | `false`     | 비활성화 상태                                  |
+| `onPress`       | `() => void`                                                        | —           | 포인터/키보드 활성화 콜백                      |
+| `className`     | `string`                                                            | —           | 컴포넌트 클래스 이름 뒤에 추가됩니다           |
 
 ## 접근성
 

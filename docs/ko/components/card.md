@@ -50,17 +50,17 @@ root.render(
 
 `Card`, `CardHeader`, `CardContent`, `CardFooter`는 컨테이너형 props를 받습니다.
 
-| Prop | 유형 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | 슬롯 콘텐츠 (필수) |
-| `className` | `string` | — | 컴포넌트 클래스 이름 뒤에 추가 |
+| Prop        | 유형        | 기본값 | 설명                           |
+| ----------- | ----------- | ------ | ------------------------------ |
+| `children`  | `PingoNode` | —      | 슬롯 콘텐츠 (필수)             |
+| `className` | `string`    | —      | 컴포넌트 클래스 이름 뒤에 추가 |
 
 `CardTitle`, `CardDescription`은 텍스트형 props를 받습니다.
 
-| Prop | 유형 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `children` | `string` | — | 텍스트 콘텐츠 (필수) |
-| `className` | `string` | — | 컴포넌트 클래스 이름 뒤에 추가 |
+| Prop        | 유형     | 기본값 | 설명                           |
+| ----------- | -------- | ------ | ------------------------------ |
+| `children`  | `string` | —      | 텍스트 콘텐츠 (필수)           |
+| `className` | `string` | —      | 컴포넌트 클래스 이름 뒤에 추가 |
 
 ## 접근성
 

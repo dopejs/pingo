@@ -42,17 +42,17 @@ Al pasar `disabled`, el control deja de responder al arrastre y al teclado.
 
 ## Props
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `value` | `number` | — | Valor actual controlado |
-| `defaultValue` | `number` | `min` | Valor inicial no controlado |
-| `onValueChange` | `(value: number) => void` | — | Callback al cambiar el valor |
-| `min` | `number` | `0` | Valor mínimo |
-| `max` | `number` | `100` | Valor máximo |
-| `step` | `number` | `1` | Incremento por teclado |
-| `disabled` | `boolean` | `false` | Estado deshabilitado |
-| `semanticLabel` | `string` | — | Nombre de accesibilidad |
-| `className` | `string` | — | Se añade después del nombre de clase del componente |
+| Prop            | 类型                      | 默认值  | 说明                                                |
+| --------------- | ------------------------- | ------- | --------------------------------------------------- |
+| `value`         | `number`                  | —       | Valor actual controlado                             |
+| `defaultValue`  | `number`                  | `min`   | Valor inicial no controlado                         |
+| `onValueChange` | `(value: number) => void` | —       | Callback al cambiar el valor                        |
+| `min`           | `number`                  | `0`     | Valor mínimo                                        |
+| `max`           | `number`                  | `100`   | Valor máximo                                        |
+| `step`          | `number`                  | `1`     | Incremento por teclado                              |
+| `disabled`      | `boolean`                 | `false` | Estado deshabilitado                                |
+| `semanticLabel` | `string`                  | —       | Nombre de accesibilidad                             |
+| `className`     | `string`                  | —       | Se añade después del nombre de clase del componente |
 
 ## Accesibilidad
 

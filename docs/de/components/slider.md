@@ -42,17 +42,17 @@ Mit `disabled` reagiert der Regler nicht mehr auf Ziehen oder Tastatureingaben.
 
 ## Props
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `value` | `number` | — | Kontrollierter aktueller Wert |
-| `defaultValue` | `number` | `min` | Unkontrollierter Anfangswert |
-| `onValueChange` | `(value: number) => void` | — | Callback bei Wertänderung |
-| `min` | `number` | `0` | Minimalwert |
-| `max` | `number` | `100` | Maximalwert |
-| `step` | `number` | `1` | Schrittweite für Tastatur |
-| `disabled` | `boolean` | `false` | Deaktivierter Zustand |
-| `semanticLabel` | `string` | — | Barrierefreie Bezeichnung |
-| `className` | `string` | — | Wird nach dem Komponenten-Klassennamen angehängt |
+| Prop            | Typ                       | Standardwert | Beschreibung                                     |
+| --------------- | ------------------------- | ------------ | ------------------------------------------------ |
+| `value`         | `number`                  | —            | Kontrollierter aktueller Wert                    |
+| `defaultValue`  | `number`                  | `min`        | Unkontrollierter Anfangswert                     |
+| `onValueChange` | `(value: number) => void` | —            | Callback bei Wertänderung                        |
+| `min`           | `number`                  | `0`          | Minimalwert                                      |
+| `max`           | `number`                  | `100`        | Maximalwert                                      |
+| `step`          | `number`                  | `1`          | Schrittweite für Tastatur                        |
+| `disabled`      | `boolean`                 | `false`      | Deaktivierter Zustand                            |
+| `semanticLabel` | `string`                  | —            | Barrierefreie Bezeichnung                        |
+| `className`     | `string`                  | —            | Wird nach dem Komponenten-Klassennamen angehängt |
 
 ## Barrierefreiheit
 

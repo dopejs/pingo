@@ -38,21 +38,21 @@ root.render(
 
 ## Пропсы
 
-| Prop | Тип | По умолчанию | Описание |
-| --- | --- | --- | --- |
-| `value` | `CalendarDate` | — | Выбранная дата |
-| `month` | `CalendarDate` | — | Контролируемый отображаемый месяц |
-| `defaultMonth` | `CalendarDate` | `value ?? 2026-01-01` | Неконтролируемый начальный месяц |
-| `onSelect` | `(date: CalendarDate) => void` | — | Колбэк выбора даты (затем слой сворачивается автоматически) |
-| `onMonthChange` | `(month: CalendarDate) => void` | — | Колбэк перелистывания |
-| `weekdayLabels` | `readonly string[]` | `["日","一","二","三","四","五","六"]` | Заголовки дней недели |
-| `monthLabel` | `(month: CalendarDate) => string` | — | Собственный заголовок месяца |
-| `isDisabled` | `(date: CalendarDate) => boolean` | — | Отключение отдельных дат |
-| `open` | `boolean` | — | Контролируемое открытие |
-| `onOpenChange` | `(open: boolean) => void` | — | Колбэк открытия/закрытия |
-| `placeholder` | `string` | `"选择日期"` | Текст-заполнитель, пока ничего не выбрано |
-| `format` | `(date: CalendarDate) => string` | `formatDate`（`YYYY-MM-DD`） | Рендеринг даты на триггере |
-| `className` | `string` | — | Добавляется после имени класса компонента |
+| Prop            | Тип                               | По умолчанию                           | Описание                                                    |
+| --------------- | --------------------------------- | -------------------------------------- | ----------------------------------------------------------- |
+| `value`         | `CalendarDate`                    | —                                      | Выбранная дата                                              |
+| `month`         | `CalendarDate`                    | —                                      | Контролируемый отображаемый месяц                           |
+| `defaultMonth`  | `CalendarDate`                    | `value ?? 2026-01-01`                  | Неконтролируемый начальный месяц                            |
+| `onSelect`      | `(date: CalendarDate) => void`    | —                                      | Колбэк выбора даты (затем слой сворачивается автоматически) |
+| `onMonthChange` | `(month: CalendarDate) => void`   | —                                      | Колбэк перелистывания                                       |
+| `weekdayLabels` | `readonly string[]`               | `["日","一","二","三","四","五","六"]` | Заголовки дней недели                                       |
+| `monthLabel`    | `(month: CalendarDate) => string` | —                                      | Собственный заголовок месяца                                |
+| `isDisabled`    | `(date: CalendarDate) => boolean` | —                                      | Отключение отдельных дат                                    |
+| `open`          | `boolean`                         | —                                      | Контролируемое открытие                                     |
+| `onOpenChange`  | `(open: boolean) => void`         | —                                      | Колбэк открытия/закрытия                                    |
+| `placeholder`   | `string`                          | `"选择日期"`                           | Текст-заполнитель, пока ничего не выбрано                   |
+| `format`        | `(date: CalendarDate) => string`  | `formatDate`（`YYYY-MM-DD`）           | Рендеринг даты на триггере                                  |
+| `className`     | `string`                          | —                                      | Добавляется после имени класса компонента                   |
 
 ## Доступность
 

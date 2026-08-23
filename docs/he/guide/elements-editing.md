@@ -58,15 +58,15 @@ createElement(Input, {
 
 שדות ה-`EditTransaction`:
 
-| שדה | טיפוס | תיאור |
-| --- | --- | --- |
-| `nodeId` | `number` | צומת העריכה שהפיק את הטרנזקציה |
-| `baseRevision` | `bigint` | ה-revision שעליו נשענת הטרנזקציה |
-| `revision` | `bigint` | ה-revision החדש לאחר הטרנזקציה |
-| `delta` | `{ range: { start, end }, text }` | הבדל טקסט; היסטים ב-UTF-16, מיושרים ל-EditContext/InputEvent. טרנזקציית בחירה בלבד — ללא שדה זה |
-| `selection` | `{ anchor, focus, anchorAffinity, focusAffinity }` | הבחירה לאחר הטרנזקציה |
-| `composition` | `{ start, end }` | טווח הרכבת IME פעילה |
-| `kind` | `"edit" \| "composition" \| "external" \| "undo" \| "redo"` | סוג הטרנזקציה |
+| שדה            | טיפוס                                                       | תיאור                                                                                           |
+| -------------- | ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `nodeId`       | `number`                                                    | צומת העריכה שהפיק את הטרנזקציה                                                                  |
+| `baseRevision` | `bigint`                                                    | ה-revision שעליו נשענת הטרנזקציה                                                                |
+| `revision`     | `bigint`                                                    | ה-revision החדש לאחר הטרנזקציה                                                                  |
+| `delta`        | `{ range: { start, end }, text }`                           | הבדל טקסט; היסטים ב-UTF-16, מיושרים ל-EditContext/InputEvent. טרנזקציית בחירה בלבד — ללא שדה זה |
+| `selection`    | `{ anchor, focus, anchorAffinity, focusAffinity }`          | הבחירה לאחר הטרנזקציה                                                                           |
+| `composition`  | `{ start, end }`                                            | טווח הרכבת IME פעילה                                                                            |
+| `kind`         | `"edit" \| "composition" \| "external" \| "undo" \| "redo"` | סוג הטרנזקציה                                                                                   |
 
 ## גשר הקלט: EditContext ופרוקסי נסיגה
 
@@ -93,17 +93,17 @@ createElement(Input, {
 
 שניהם חולקים `EditableTextProps` (`multiline` אינו חשוף — נעוץ על ידי הרכיב):
 
-| Prop | טיפוס | ברירת מחדל | תיאור |
-| --- | --- | --- | --- |
-| `value` | `string` | — | טקסט מבוקר |
-| `revision` | `number \| bigint` | — | ה-revision הסמכותי של הערך המבוקר; ערך שפג לא ידרוס קלט חדש יותר של הליבה |
-| `controller` | `TextEditingController` | — | controller מקומי יציב; שולל `value`/`revision` |
-| `readOnly` | `boolean` | `false` | קריאה בלבד |
-| `password` | `boolean` | `false` | מצב סיסמה (ראה להלן) |
-| `maxGraphemes` | `number` | — | תקרת grapheme-ים |
-| `inputMode` | `EditableInputMode` | `"text"` | רמז למקלדת רכה: `decimal` `email` `none` `numeric` `search` `tel` `text` `url` |
-| `onTransaction` | `(t: EditTransaction) => void` | — | callback לטרנזקציות עריכה של הליבה |
-| `onSubmit` | `() => void` | — | Enter בשורה יחידה שולח; במרובה-שורות Enter שמור למעבר שורה |
+| Prop            | טיפוס                          | ברירת מחדל | תיאור                                                                          |
+| --------------- | ------------------------------ | ---------- | ------------------------------------------------------------------------------ |
+| `value`         | `string`                       | —          | טקסט מבוקר                                                                     |
+| `revision`      | `number \| bigint`             | —          | ה-revision הסמכותי של הערך המבוקר; ערך שפג לא ידרוס קלט חדש יותר של הליבה      |
+| `controller`    | `TextEditingController`        | —          | controller מקומי יציב; שולל `value`/`revision`                                 |
+| `readOnly`      | `boolean`                      | `false`    | קריאה בלבד                                                                     |
+| `password`      | `boolean`                      | `false`    | מצב סיסמה (ראה להלן)                                                           |
+| `maxGraphemes`  | `number`                       | —          | תקרת grapheme-ים                                                               |
+| `inputMode`     | `EditableInputMode`            | `"text"`   | רמז למקלדת רכה: `decimal` `email` `none` `numeric` `search` `tel` `text` `url` |
+| `onTransaction` | `(t: EditTransaction) => void` | —          | callback לטרנזקציות עריכה של הליבה                                             |
+| `onSubmit`      | `() => void`                   | —          | Enter בשורה יחידה שולח; במרובה-שורות Enter שמור למעבר שורה                     |
 
 מראה הטקסט יורש את `TextProps`: `color`, `fontSize`, `fontWeight`, `lineHeight`, `fontFamily`,
 `font`; מידות, `padding`, `backgroundColor`, מסגרות (ערוץ `style`) וכדומה מגיעים מ-[CommonProps](/api).

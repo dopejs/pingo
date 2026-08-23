@@ -40,15 +40,15 @@ root.render(
 
 ## Props
 
-| Prop | סוג | ברירת מחדל | תיאור |
-| --- | --- | --- | --- |
-| `icon` | `PingoNode` | — | משבצת סמל, מועברת כפי שהיא (חובה) |
-| `semanticLabel` | `string` | — | שם נגיש (חובה) |
-| `variant` | `"default" \| "secondary" \| "outline" \| "ghost" \| "destructive"` | `"default"` | וריאנט חזותי |
-| `size` | `"default" \| "sm" \| "lg"` | `"default"` | גודל (`sm`/`lg` עדיין לא בתוקף, ראו למעלה) |
-| `disabled` | `boolean` | `false` | מצב מושבת |
-| `onPress` | `() => void` | — | קריאה חוזרת להפעלה באמצעות מצביע/מקלדת |
-| `className` | `string` | — | מצורף לאחר שם המחלקה של הרכיב |
+| Prop            | סוג                                                                 | ברירת מחדל  | תיאור                                      |
+| --------------- | ------------------------------------------------------------------- | ----------- | ------------------------------------------ |
+| `icon`          | `PingoNode`                                                         | —           | משבצת סמל, מועברת כפי שהיא (חובה)          |
+| `semanticLabel` | `string`                                                            | —           | שם נגיש (חובה)                             |
+| `variant`       | `"default" \| "secondary" \| "outline" \| "ghost" \| "destructive"` | `"default"` | וריאנט חזותי                               |
+| `size`          | `"default" \| "sm" \| "lg"`                                         | `"default"` | גודל (`sm`/`lg` עדיין לא בתוקף, ראו למעלה) |
+| `disabled`      | `boolean`                                                           | `false`     | מצב מושבת                                  |
+| `onPress`       | `() => void`                                                        | —           | קריאה חוזרת להפעלה באמצעות מצביע/מקלדת     |
+| `className`     | `string`                                                            | —           | מצורף לאחר שם המחלקה של הרכיב              |
 
 ## נגישות
 

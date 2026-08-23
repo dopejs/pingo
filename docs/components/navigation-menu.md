@@ -41,12 +41,12 @@ root.render(
 
 `NavigationMenu` 接受 `MenubarProps` 中除 `navigation` 外的全部 props：
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 受控：当前打开菜单的值 |
-| `onValueChange` | `(value: string \| undefined) => void` | — | 打开菜单变化回调（关闭时为 `undefined`） |
-| `children` | `PingoNode` | — | 若干 `MenubarMenu`（必填） |
-| `className` | `string` | — | 追加类名 |
+| Prop            | 类型                                   | 默认值 | 说明                                     |
+| --------------- | -------------------------------------- | ------ | ---------------------------------------- |
+| `value`         | `string`                               | —      | 受控：当前打开菜单的值                   |
+| `onValueChange` | `(value: string \| undefined) => void` | —      | 打开菜单变化回调（关闭时为 `undefined`） |
+| `children`      | `PingoNode`                            | —      | 若干 `MenubarMenu`（必填）               |
+| `className`     | `string`                               | —      | 追加类名                                 |
 
 条目 props 见 [Menubar](/components/menubar#menubarmenu)。
 

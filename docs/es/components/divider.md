@@ -30,10 +30,10 @@ Pasa `orientation: "vertical"` para obtener una línea divisoria vertical. La al
 
 ## Props
 
-| Prop | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `orientation` | `"horizontal" \| "vertical"` | `"horizontal"` | Dirección de la línea divisoria |
-| `className` | `string` | — | Se añade después del nombre de clase del componente |
+| Prop          | Tipo                         | Valor predeterminado | Descripción                                         |
+| ------------- | ---------------------------- | -------------------- | --------------------------------------------------- |
+| `orientation` | `"horizontal" \| "vertical"` | `"horizontal"`       | Dirección de la línea divisoria                     |
+| `className`   | `string`                     | —                    | Se añade después del nombre de clase del componente |
 
 Una línea divisoria horizontal tiene un ancho del 100 % del contenedor padre y una altura de 1 px; una línea divisoria vertical tiene una altura del 100 % del contenedor padre y un ancho de 1 px.
 

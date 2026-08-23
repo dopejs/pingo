@@ -38,8 +38,8 @@ La couche flottante remplit son propre conteneur parent, montez-la donc près du
 
 Hérite de `DialogProps` (`open`, `onOpenChange`, `children`, `className`), avec en plus :
 
-| Prop | Type | Défaut | Description |
-| --- | --- | --- | --- |
+| Prop   | Type                                     | Défaut    | Description                          |
+| ------ | ---------------------------------------- | --------- | ------------------------------------ |
 | `side` | `"left" \| "right" \| "top" \| "bottom"` | `"right"` | Bord depuis lequel le panneau glisse |
 
 ## Accessibilité

@@ -45,37 +45,37 @@ Toutes les parties collaborent via le context et doivent être montées sous for
 
 ### Select
 
-| Prop | Type | Défaut | Description |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Valeur sélectionnée, affichée sur le déclencheur |
-| `defaultOpen` | `boolean` | `false` | Ouvert initialement |
-| `onValueChange` | `(value: string) => void` | — | Rappel lors d'un changement de sélection (la liste se referme automatiquement après la sélection) |
-| `onOpenChange` | `(open: boolean) => void` | — | Rappel lors de l'ouverture ou de la fermeture |
-| `children` | `PingoNode` | — | Déclencheur et contenu (obligatoire) |
-| `className` | `string` | — | Ajouté après le nom de classe du composant |
+| Prop            | Type                      | Défaut  | Description                                                                                       |
+| --------------- | ------------------------- | ------- | ------------------------------------------------------------------------------------------------- |
+| `value`         | `string`                  | —       | Valeur sélectionnée, affichée sur le déclencheur                                                  |
+| `defaultOpen`   | `boolean`                 | `false` | Ouvert initialement                                                                               |
+| `onValueChange` | `(value: string) => void` | —       | Rappel lors d'un changement de sélection (la liste se referme automatiquement après la sélection) |
+| `onOpenChange`  | `(open: boolean) => void` | —       | Rappel lors de l'ouverture ou de la fermeture                                                     |
+| `children`      | `PingoNode`               | —       | Déclencheur et contenu (obligatoire)                                                              |
+| `className`     | `string`                  | —       | Ajouté après le nom de classe du composant                                                        |
 
 ### SelectTrigger
 
-| Prop | Type | Défaut | Description |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Contenu personnalisé du déclencheur ; par défaut, affiche la valeur sélectionnée ou le texte de substitution |
-| `placeholder` | `string` | — | Texte de substitution lorsqu'aucune valeur n'est sélectionnée |
-| `className` | `string` | — | Ajouté après le nom de classe du composant |
+| Prop          | Type        | Défaut | Description                                                                                                  |
+| ------------- | ----------- | ------ | ------------------------------------------------------------------------------------------------------------ |
+| `children`    | `PingoNode` | —      | Contenu personnalisé du déclencheur ; par défaut, affiche la valeur sélectionnée ou le texte de substitution |
+| `placeholder` | `string`    | —      | Texte de substitution lorsqu'aucune valeur n'est sélectionnée                                                |
+| `className`   | `string`    | —      | Ajouté après le nom de classe du composant                                                                   |
 
 ### SelectContent
 
-| Prop | Type | Défaut | Description |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Liste de `SelectItem` (obligatoire) |
-| `className` | `string` | — | Ajouté après le nom de classe du composant |
+| Prop        | Type        | Défaut | Description                                |
+| ----------- | ----------- | ------ | ------------------------------------------ |
+| `children`  | `PingoNode` | —      | Liste de `SelectItem` (obligatoire)        |
+| `className` | `string`    | —      | Ajouté après le nom de classe du composant |
 
 ### SelectItem
 
-| Prop | Type | Défaut | Description |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Valeur de l'option (obligatoire) |
-| `children` | `string` | — | Texte de l'option (obligatoire) |
-| `className` | `string` | — | Ajouté après le nom de classe du composant |
+| Prop        | Type     | Défaut | Description                                |
+| ----------- | -------- | ------ | ------------------------------------------ |
+| `value`     | `string` | —      | Valeur de l'option (obligatoire)           |
+| `children`  | `string` | —      | Texte de l'option (obligatoire)            |
+| `className` | `string` | —      | Ajouté après le nom de classe du composant |
 
 ## Accessibilité
 

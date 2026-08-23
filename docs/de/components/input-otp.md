@@ -36,16 +36,16 @@ Der interne Wert ist eine **Zeichenkette fester Länge, die mit Leerzeichen aufg
 
 ## Props
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `length` | `number` | `6` | Anzahl der Felder |
-| `value` | `string` | — | Kontrollierter aktueller Wert (mit Leerzeichen aufgefüllt) |
-| `defaultValue` | `string` | — | Unkontrollierter Anfangswert |
-| `onValueChange` | `(value: string) => void` | — | Callback bei Wertänderung; der Wert ist eine mit Leerzeichen aufgefüllte Zeichenkette fester Länge |
-| `onComplete` | `(value: string) => void` | — | Callback, sobald alle Felder gefüllt sind; der Wert ist der vollständige Code ohne Leerzeichen |
-| `disabled` | `boolean` | `false` | Deaktiviert alle Felder |
-| `semanticLabel` | `string` | — | Barrierefreier Name der Gruppe |
-| `className` | `string` | — | Wird nach den Komponenten-Klassennamen angehängt |
+| Prop            | Typ                       | Standardwert | Beschreibung                                                                                       |
+| --------------- | ------------------------- | ------------ | -------------------------------------------------------------------------------------------------- |
+| `length`        | `number`                  | `6`          | Anzahl der Felder                                                                                  |
+| `value`         | `string`                  | —            | Kontrollierter aktueller Wert (mit Leerzeichen aufgefüllt)                                         |
+| `defaultValue`  | `string`                  | —            | Unkontrollierter Anfangswert                                                                       |
+| `onValueChange` | `(value: string) => void` | —            | Callback bei Wertänderung; der Wert ist eine mit Leerzeichen aufgefüllte Zeichenkette fester Länge |
+| `onComplete`    | `(value: string) => void` | —            | Callback, sobald alle Felder gefüllt sind; der Wert ist der vollständige Code ohne Leerzeichen     |
+| `disabled`      | `boolean`                 | `false`      | Deaktiviert alle Felder                                                                            |
+| `semanticLabel` | `string`                  | —            | Barrierefreier Name der Gruppe                                                                     |
+| `className`     | `string`                  | —            | Wird nach den Komponenten-Klassennamen angehängt                                                   |
 
 ## Barrierefreiheit
 

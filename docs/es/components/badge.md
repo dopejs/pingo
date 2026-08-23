@@ -48,12 +48,12 @@ createElement(ListRow, {
 
 ## Props
 
-| Prop | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `children` | `string` | — | Texto de la etiqueta (obligatorio) |
-| `variant` | `"default" \| "secondary" \| "destructive" \| "outline"` | `"default"` | Variante visual |
-| `semanticLabel` | `string` | — | Nombre accesible; si se omite se usa la semántica por defecto |
-| `className` | `string` | — | Se añade tras las clases del propio componente |
+| Prop            | Tipo                                                     | Valor predeterminado | Descripción                                                   |
+| --------------- | -------------------------------------------------------- | -------------------- | ------------------------------------------------------------- |
+| `children`      | `string`                                                 | —                    | Texto de la etiqueta (obligatorio)                            |
+| `variant`       | `"default" \| "secondary" \| "destructive" \| "outline"` | `"default"`          | Variante visual                                               |
+| `semanticLabel` | `string`                                                 | —                    | Nombre accesible; si se omite se usa la semántica por defecto |
+| `className`     | `string`                                                 | —                    | Se añade tras las clases del propio componente                |
 
 ## Accesibilidad
 

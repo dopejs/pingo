@@ -41,15 +41,15 @@ s'applique.
 
 ## Props
 
-| Prop | Type | Valeur par défaut | Description |
-| --- | --- | --- | --- |
-| `trigger` | `string` | — | Texte du déclencheur (obligatoire) |
-| `children` | `PingoNode` | — | Contenu affiché une fois ouvert (obligatoire) |
-| `open` | `boolean` | — | Contrôlé : état d'ouverture actuel |
-| `defaultOpen` | `boolean` | `false` | Non contrôlé : état d'ouverture initial |
-| `onOpenChange` | `(open: boolean) => void` | — | Callback de changement d'état d'ouverture |
-| `disabled` | `boolean` | `false` | Désactive le déclencheur |
-| `className` | `string` | — | Ajouté après les classes du composant |
+| Prop           | Type                      | Valeur par défaut | Description                                   |
+| -------------- | ------------------------- | ----------------- | --------------------------------------------- |
+| `trigger`      | `string`                  | —                 | Texte du déclencheur (obligatoire)            |
+| `children`     | `PingoNode`               | —                 | Contenu affiché une fois ouvert (obligatoire) |
+| `open`         | `boolean`                 | —                 | Contrôlé : état d'ouverture actuel            |
+| `defaultOpen`  | `boolean`                 | `false`           | Non contrôlé : état d'ouverture initial       |
+| `onOpenChange` | `(open: boolean) => void` | —                 | Callback de changement d'état d'ouverture     |
+| `disabled`     | `boolean`                 | `false`           | Désactive le déclencheur                      |
+| `className`    | `string`                  | —                 | Ajouté après les classes du composant         |
 
 ## Accessibilité
 

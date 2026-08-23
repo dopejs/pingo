@@ -42,17 +42,17 @@ root.render(
 
 ## Props
 
-| Prop | 型 | デフォルト値 | 説明 |
-| --- | --- | --- | --- |
-| `value` | `number` | — | 制御された現在値 |
-| `defaultValue` | `number` | `min` | 非制御の初期値 |
-| `onValueChange` | `(value: number) => void` | — | 値の変更時コールバック |
-| `min` | `number` | `0` | 最小値 |
-| `max` | `number` | `100` | 最大値 |
-| `step` | `number` | `1` | キーボード操作の刻み幅 |
-| `disabled` | `boolean` | `false` | 無効状態 |
-| `semanticLabel` | `string` | — | アクセシビリティ名 |
-| `className` | `string` | — | コンポーネントのクラス名の後に追加 |
+| Prop            | 型                        | デフォルト値 | 説明                               |
+| --------------- | ------------------------- | ------------ | ---------------------------------- |
+| `value`         | `number`                  | —            | 制御された現在値                   |
+| `defaultValue`  | `number`                  | `min`        | 非制御の初期値                     |
+| `onValueChange` | `(value: number) => void` | —            | 値の変更時コールバック             |
+| `min`           | `number`                  | `0`          | 最小値                             |
+| `max`           | `number`                  | `100`        | 最大値                             |
+| `step`          | `number`                  | `1`          | キーボード操作の刻み幅             |
+| `disabled`      | `boolean`                 | `false`      | 無効状態                           |
+| `semanticLabel` | `string`                  | —            | アクセシビリティ名                 |
+| `className`     | `string`                  | —            | コンポーネントのクラス名の後に追加 |
 
 ## アクセシビリティ
 

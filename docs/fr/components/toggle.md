@@ -35,14 +35,14 @@ Lorsque `disabled` est fourni, le bouton ne répond plus au pointeur ni au clavi
 
 ## Props
 
-| Prop | Type | Valeur par défaut | Description |
-| --- | --- | --- | --- |
-| `children` | `string` | — | Texte du bouton (obligatoire) |
-| `pressed` | `boolean` | — | État pressé contrôlé |
-| `defaultPressed` | `boolean` | `false` | État pressé initial non contrôlé |
-| `onPressedChange` | `(pressed: boolean) => void` | — | Rappel lors du changement d’état |
-| `disabled` | `boolean` | `false` | État désactivé |
-| `className` | `string` | — | Ajouté après le nom de classe du composant |
+| Prop              | Type                         | Valeur par défaut | Description                                |
+| ----------------- | ---------------------------- | ----------------- | ------------------------------------------ |
+| `children`        | `string`                     | —                 | Texte du bouton (obligatoire)              |
+| `pressed`         | `boolean`                    | —                 | État pressé contrôlé                       |
+| `defaultPressed`  | `boolean`                    | `false`           | État pressé initial non contrôlé           |
+| `onPressedChange` | `(pressed: boolean) => void` | —                 | Rappel lors du changement d’état           |
+| `disabled`        | `boolean`                    | `false`           | État désactivé                             |
+| `className`       | `string`                     | —                 | Ajouté après le nom de classe du composant |
 
 ## Accessibilité
 

@@ -16,12 +16,12 @@ description: "@dopejs/pingo-widgets가 제공하는 TextField, TextArea, Pressab
 
 ## Export와 명명
 
-| Export | 설명 |
-| --- | --- |
+| Export      | 설명                                                                         |
+| ----------- | ---------------------------------------------------------------------------- |
 | `TextField` | 한 줄 입력: 테두리 + 오류 상태 장식, 내부는 `editableText` 프리미티브만 조합 |
-| `TextArea` | 여러 줄 변형. Enter는 줄바꿈, submit은 호스트 폼에 양보 |
-| `Pressable` | 포커스 가능한 활성화 표면: View + 포커스 + 네이티브 click/tap |
-| `Button` | `Pressable` + `Text`를 조합한 텍스트 버튼 편의 조합 |
+| `TextArea`  | 여러 줄 변형. Enter는 줄바꿈, submit은 호스트 폼에 양보                      |
+| `Pressable` | 포커스 가능한 활성화 표면: View + 포커스 + 네이티브 click/tap                |
+| `Button`    | `Pressable` + `Text`를 조합한 텍스트 버튼 편의 조합                          |
 
 명명 주의: `@dopejs/pingo`의 `TextArea`는 이 장식 붙은 widget을 가리킵니다. 여러 줄 **프리미티브**는
 `UnstyledTextArea`로 export됩니다(`TextAreaProps`도 마찬가지로 별칭 `UnstyledTextAreaProps`가 있습니다).
@@ -48,27 +48,27 @@ createElement(TextField, {
 
 ### Props(TextField)
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `value` | `string` | `""` | 제어 텍스트 |
-| `revision` | `number \| bigint` | `0n` | 제어 값의 권위 있는 revision |
-| `controller` | `TextEditingController` | — | 로컬 controller. `value`/`revision`과 상호 배타적 |
-| `readOnly` | `boolean` | — | 읽기 전용 |
-| `password` | `boolean` | — | 비밀번호 모드(평문은 DisplayList와 접근성 값에 들어가지 않음) |
-| `maxGraphemes` | `number` | — | 자소 상한 |
-| `inputMode` | `EditableInputMode` | — | 소프트 키보드 레이아웃 힌트 |
-| `width` | `number` | `240` | 테두리를 포함한 전체 너비 |
-| `height` | `number` | `lineHeight × rows + 16` | 테두리를 포함한 전체 높이 |
-| `fontSize` | `number` | `14` | 글자 크기 |
-| `lineHeight` | `number` | `round(fontSize × 1.5)` | 줄 높이 |
-| `color` | `Color` | `#1f2329ff` | 텍스트 색상 |
-| `backgroundColor` | `Color` | `#ffffffff` | 필드 배경색 |
-| `borderColor` | `Color` | `#c0c4ccff` | 테두리 색상 |
-| `errorColor` | `Color` | `#d03050ff` | 오류 상태의 테두리와 설명 색상 |
-| `error` | `string` | — | 비어 있지 않으면 오류 상태: 오류 색 테두리 + 아래쪽 오류 설명 |
-| `onTransaction` | `(t: EditTransaction) => void` | — | Core 편집 트랜잭션 콜백 |
-| `onSubmit` | `() => void` | — | 한 줄 Enter 제출 |
-| `semanticLabel` | `string` | — | 접근성 이름(역할은 항상 `textbox`) |
+| Prop              | 타입                           | 기본값                   | 설명                                                          |
+| ----------------- | ------------------------------ | ------------------------ | ------------------------------------------------------------- |
+| `value`           | `string`                       | `""`                     | 제어 텍스트                                                   |
+| `revision`        | `number \| bigint`             | `0n`                     | 제어 값의 권위 있는 revision                                  |
+| `controller`      | `TextEditingController`        | —                        | 로컬 controller. `value`/`revision`과 상호 배타적             |
+| `readOnly`        | `boolean`                      | —                        | 읽기 전용                                                     |
+| `password`        | `boolean`                      | —                        | 비밀번호 모드(평문은 DisplayList와 접근성 값에 들어가지 않음) |
+| `maxGraphemes`    | `number`                       | —                        | 자소 상한                                                     |
+| `inputMode`       | `EditableInputMode`            | —                        | 소프트 키보드 레이아웃 힌트                                   |
+| `width`           | `number`                       | `240`                    | 테두리를 포함한 전체 너비                                     |
+| `height`          | `number`                       | `lineHeight × rows + 16` | 테두리를 포함한 전체 높이                                     |
+| `fontSize`        | `number`                       | `14`                     | 글자 크기                                                     |
+| `lineHeight`      | `number`                       | `round(fontSize × 1.5)`  | 줄 높이                                                       |
+| `color`           | `Color`                        | `#1f2329ff`              | 텍스트 색상                                                   |
+| `backgroundColor` | `Color`                        | `#ffffffff`              | 필드 배경색                                                   |
+| `borderColor`     | `Color`                        | `#c0c4ccff`              | 테두리 색상                                                   |
+| `errorColor`      | `Color`                        | `#d03050ff`              | 오류 상태의 테두리와 설명 색상                                |
+| `error`           | `string`                       | —                        | 비어 있지 않으면 오류 상태: 오류 색 테두리 + 아래쪽 오류 설명 |
+| `onTransaction`   | `(t: EditTransaction) => void` | —                        | Core 편집 트랜잭션 콜백                                       |
+| `onSubmit`        | `() => void`                   | —                        | 한 줄 Enter 제출                                              |
+| `semanticLabel`   | `string`                       | —                        | 접근성 이름(역할은 항상 `textbox`)                            |
 
 `TextArea`는 여기에 `rows`(기본값 `3`)가 하나 더 있으며, 기본 높이 계산에 쓰입니다.
 
@@ -78,15 +78,15 @@ createElement(TextField, {
 포커스를 가져가며, 네이티브 click/tap을 `onPress`로 매핑하는 `View`일 뿐입니다. 스타일은 전적으로
 `style`과 `children`이 결정하고, `disabled`이면 불투명도를 낮추고 이벤트를 떼어 냅니다.
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | 내용(Button은 `string \| number`, 필수) |
-| `disabled` | `boolean` | `false` | 비활성 상태 |
-| `onPress` | `() => void` | — | 활성화 콜백 |
-| `className` | `string` | — | 클래스 이름(스타일시트에 연결) |
-| `style` | `PingoStyle` | — | 인라인 스타일 |
-| `width` / `height` | `number` | — | 크기 |
-| `semanticLabel` | `string` | `Button`은 `children`에서 취함 | 접근성 이름 |
+| Prop               | 타입         | 기본값                         | 설명                                    |
+| ------------------ | ------------ | ------------------------------ | --------------------------------------- |
+| `children`         | `PingoNode`  | —                              | 내용(Button은 `string \| number`, 필수) |
+| `disabled`         | `boolean`    | `false`                        | 비활성 상태                             |
+| `onPress`          | `() => void` | —                              | 활성화 콜백                             |
+| `className`        | `string`     | —                              | 클래스 이름(스타일시트에 연결)          |
+| `style`            | `PingoStyle` | —                              | 인라인 스타일                           |
+| `width` / `height` | `number`     | —                              | 크기                                    |
+| `semanticLabel`    | `string`     | `Button`은 `children`에서 취함 | 접근성 이름                             |
 
 `Button`은 추가로 `color`와 `fontSize`를 받습니다(내부 텍스트에 전달).
 

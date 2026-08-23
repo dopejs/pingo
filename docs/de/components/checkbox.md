@@ -45,14 +45,14 @@ zu `disabled`.
 
 ## Props
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `checked` | `boolean` | — | Auswahlzustand (Pflicht, kontrolliert) |
-| `onCheckedChange` | `(checked: boolean) => void` | — | Callback beim Umschalten |
-| `disabled` | `boolean` | `false` | Deaktivierter Zustand |
-| `label` | `string` | — | Textlabel rechts neben dem Kästchen |
-| `className` | `string` | — | Wird hinter die Komponentenklassen gehängt |
-| `semanticLabel` | `string` | — | Barrierefreiheitsname |
+| Prop              | Typ                          | Standardwert | Beschreibung                               |
+| ----------------- | ---------------------------- | ------------ | ------------------------------------------ |
+| `checked`         | `boolean`                    | —            | Auswahlzustand (Pflicht, kontrolliert)     |
+| `onCheckedChange` | `(checked: boolean) => void` | —            | Callback beim Umschalten                   |
+| `disabled`        | `boolean`                    | `false`      | Deaktivierter Zustand                      |
+| `label`           | `string`                     | —            | Textlabel rechts neben dem Kästchen        |
+| `className`       | `string`                     | —            | Wird hinter die Komponentenklassen gehängt |
+| `semanticLabel`   | `string`                     | —            | Barrierefreiheitsname                      |
 
 ## Barrierefreiheit
 

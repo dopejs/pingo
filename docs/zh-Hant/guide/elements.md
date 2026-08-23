@@ -52,16 +52,16 @@ Shell 參與。內容用 `value` 或字串 `children` 給出。
 
 ### Props（Text）
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 文字內容（與 `children` 二選一） |
-| `children` | `string \| number` | — | 文字內容 |
-| `color` | `Color` | `#000000ff` | 文字顏色，可繼承 |
-| `fontSize` | `number` | — | 字號（邏輯畫素） |
-| `lineHeight` | `number` | — | 行高（邏輯畫素） |
-| `fontWeight` | `number` | — | 字重 |
-| `fontFamily` | `string` | — | CSS 字型族 |
-| `font` | `PingoFont` | — | 顯式不可變字型；不支援的輸入整段回退 |
+| Prop         | 型別               | 預設值      | 說明                                 |
+| ------------ | ------------------ | ----------- | ------------------------------------ |
+| `value`      | `string`           | —           | 文字內容（與 `children` 二選一）     |
+| `children`   | `string \| number` | —           | 文字內容                             |
+| `color`      | `Color`            | `#000000ff` | 文字顏色，可繼承                     |
+| `fontSize`   | `number`           | —           | 字號（邏輯畫素）                     |
+| `lineHeight` | `number`           | —           | 行高（邏輯畫素）                     |
+| `fontWeight` | `number`           | —           | 字重                                 |
+| `fontFamily` | `string`           | —           | CSS 字型族                           |
+| `font`       | `PingoFont`        | —           | 顯式不可變字型；不支援的輸入整段回退 |
 
 `Text` 同時繼承全部 [CommonProps](/api)（尺寸、padding、事件、`semanticRole` /
 `semanticLabel` 等）。

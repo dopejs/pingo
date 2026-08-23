@@ -59,20 +59,20 @@ L'affichage, le masquage et le moment de fermeture automatique sont contrôlés 
 
 ### Toast
 
-| Prop | Type | Défaut | Description |
-| --- | --- | --- | --- |
-| `open` | `boolean` | — | Indique s'il est affiché ; rend `null` lorsque `false` (obligatoire) |
-| `title` | `string` | — | Titre (obligatoire) |
-| `description` | `string` | — | Corps de la description ; la ligne de description n'est pas rendue si omise |
-| `variant` | `"default" \| "destructive"` | `"default"` | Variante visuelle |
-| `className` | `string` | — | Ajouté après le nom de classe du composant |
+| Prop          | Type                         | Défaut      | Description                                                                 |
+| ------------- | ---------------------------- | ----------- | --------------------------------------------------------------------------- |
+| `open`        | `boolean`                    | —           | Indique s'il est affiché ; rend `null` lorsque `false` (obligatoire)        |
+| `title`       | `string`                     | —           | Titre (obligatoire)                                                         |
+| `description` | `string`                     | —           | Corps de la description ; la ligne de description n'est pas rendue si omise |
+| `variant`     | `"default" \| "destructive"` | `"default"` | Variante visuelle                                                           |
+| `className`   | `string`                     | —           | Ajouté après le nom de classe du composant                                  |
 
 ### ToastViewport
 
-| Prop | Type | Défaut | Description |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Liste des toasts dans le viewport ; plusieurs sont empilés verticalement avec un espacement de 8px (obligatoire) |
-| `className` | `string` | — | Ajouté après le nom de classe du composant |
+| Prop        | Type        | Défaut | Description                                                                                                      |
+| ----------- | ----------- | ------ | ---------------------------------------------------------------------------------------------------------------- |
+| `children`  | `PingoNode` | —      | Liste des toasts dans le viewport ; plusieurs sont empilés verticalement avec un espacement de 8px (obligatoire) |
+| `className` | `string`    | —      | Ajouté après le nom de classe du composant                                                                       |
 
 ## Accessibilité
 

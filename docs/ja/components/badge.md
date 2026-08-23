@@ -47,12 +47,12 @@ createElement(ListRow, {
 
 ## Props
 
-| Prop | 型 | デフォルト | 説明 |
-| --- | --- | --- | --- |
-| `children` | `string` | — | ラベルテキスト（必須） |
-| `variant` | `"default" \| "secondary" \| "destructive" \| "outline"` | `"default"` | 見た目のバリアント |
-| `semanticLabel` | `string` | — | アクセシブル名。省略時はデフォルトのセマンティクス |
-| `className` | `string` | — | コンポーネントのクラス名に追加される |
+| Prop            | 型                                                       | デフォルト  | 説明                                               |
+| --------------- | -------------------------------------------------------- | ----------- | -------------------------------------------------- |
+| `children`      | `string`                                                 | —           | ラベルテキスト（必須）                             |
+| `variant`       | `"default" \| "secondary" \| "destructive" \| "outline"` | `"default"` | 見た目のバリアント                                 |
+| `semanticLabel` | `string`                                                 | —           | アクセシブル名。省略時はデフォルトのセマンティクス |
+| `className`     | `string`                                                 | —           | コンポーネントのクラス名に追加される               |
 
 ## アクセシビリティ
 

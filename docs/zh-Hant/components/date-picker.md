@@ -38,21 +38,21 @@ root.render(
 
 ## Props
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `value` | `CalendarDate` | — | 選中日期 |
-| `month` | `CalendarDate` | — | 受控顯示月份 |
-| `defaultMonth` | `CalendarDate` | `value ?? 2026-01-01` | 非受控初始月份 |
-| `onSelect` | `(date: CalendarDate) => void` | — | 選中日期回調（隨後自動收起） |
-| `onMonthChange` | `(month: CalendarDate) => void` | — | 翻頁回調 |
-| `weekdayLabels` | `readonly string[]` | `["日","一","二","三","四","五","六"]` | 星期表頭 |
-| `monthLabel` | `(month: CalendarDate) => string` | — | 自訂月份標題 |
-| `isDisabled` | `(date: CalendarDate) => boolean` | — | 禁用特定日期 |
-| `open` | `boolean` | — | 受控開合 |
-| `onOpenChange` | `(open: boolean) => void` | — | 開合回調 |
-| `placeholder` | `string` | `"选择日期"` | 未選中時的佔位文字 |
-| `format` | `(date: CalendarDate) => string` | `formatDate`（`YYYY-MM-DD`） | 觸發器上的日期渲染 |
-| `className` | `string` | — | 追加在元件類名之後 |
+| Prop            | 型別                              | 預設值                                 | 說明                         |
+| --------------- | --------------------------------- | -------------------------------------- | ---------------------------- |
+| `value`         | `CalendarDate`                    | —                                      | 選中日期                     |
+| `month`         | `CalendarDate`                    | —                                      | 受控顯示月份                 |
+| `defaultMonth`  | `CalendarDate`                    | `value ?? 2026-01-01`                  | 非受控初始月份               |
+| `onSelect`      | `(date: CalendarDate) => void`    | —                                      | 選中日期回調（隨後自動收起） |
+| `onMonthChange` | `(month: CalendarDate) => void`   | —                                      | 翻頁回調                     |
+| `weekdayLabels` | `readonly string[]`               | `["日","一","二","三","四","五","六"]` | 星期表頭                     |
+| `monthLabel`    | `(month: CalendarDate) => string` | —                                      | 自訂月份標題                 |
+| `isDisabled`    | `(date: CalendarDate) => boolean` | —                                      | 禁用特定日期                 |
+| `open`          | `boolean`                         | —                                      | 受控開合                     |
+| `onOpenChange`  | `(open: boolean) => void`         | —                                      | 開合回調                     |
+| `placeholder`   | `string`                          | `"选择日期"`                           | 未選中時的佔位文字           |
+| `format`        | `(date: CalendarDate) => string`  | `formatDate`（`YYYY-MM-DD`）           | 觸發器上的日期渲染           |
+| `className`     | `string`                          | —                                      | 追加在元件類名之後           |
 
 ## 無障礙
 

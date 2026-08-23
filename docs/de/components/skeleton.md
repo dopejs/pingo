@@ -29,11 +29,11 @@ Setze aus mehreren Skeleton-Blöcken unterschiedlicher Größe die Struktur des 
 
 ## Props
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `width` | `number` | — | Breite des Platzhalterblocks (px); wenn weggelassen, vom Layout bestimmt |
-| `height` | `number` | — | Höhe des Platzhalterblocks (px); wenn weggelassen, vom Layout bestimmt |
-| `className` | `string` | — | Wird nach dem Klassennamen der Komponente angehängt |
+| Prop        | Typ      | Standardwert | Beschreibung                                                             |
+| ----------- | -------- | ------------ | ------------------------------------------------------------------------ |
+| `width`     | `number` | —            | Breite des Platzhalterblocks (px); wenn weggelassen, vom Layout bestimmt |
+| `height`    | `number` | —            | Höhe des Platzhalterblocks (px); wenn weggelassen, vom Layout bestimmt   |
+| `className` | `string` | —            | Wird nach dem Klassennamen der Komponente angehängt                      |
 
 ## Barrierefreiheit
 

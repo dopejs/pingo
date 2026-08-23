@@ -36,19 +36,19 @@ root.render(
 
 ## Props
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `value` | `string` | `""` | 비제어 방식의 초기값. `controller`를 설정하면 무시됩니다 |
-| `onValueChange` | `(value: string) => void` | — | 편집 트랜잭션이 적용될 때마다 최신 값을 콜백합니다 |
-| `controller` | `TextEditingController` | — | 고급 이스케이프 해치: 호출자가 보유하는 영속 컨트롤러입니다 |
-| `onTransaction` | `(transaction: EditTransaction) => void` | — | 편집 트랜잭션마다 발생하는 원시 콜백입니다 |
-| `onSubmit` | `() => void` | — | 제출 콜백입니다 |
-| `disabled` | `boolean` | `false` | 비활성화 상태입니다 |
-| `readOnly` | `boolean` | `false` | 읽기 전용 상태입니다 |
-| `rows` | `number` | — | 표시할 행 수로, 셸의 최소 높이를 결정합니다 |
-| `className` | `string` | — | 컴포넌트 클래스 이름 뒤에 추가됩니다 |
-| `width` | `number` | — | 고정 너비(px)입니다 |
-| `semanticLabel` | `string` | — | 접근성 이름입니다 |
+| Prop            | 타입                                     | 기본값  | 설명                                                        |
+| --------------- | ---------------------------------------- | ------- | ----------------------------------------------------------- |
+| `value`         | `string`                                 | `""`    | 비제어 방식의 초기값. `controller`를 설정하면 무시됩니다    |
+| `onValueChange` | `(value: string) => void`                | —       | 편집 트랜잭션이 적용될 때마다 최신 값을 콜백합니다          |
+| `controller`    | `TextEditingController`                  | —       | 고급 이스케이프 해치: 호출자가 보유하는 영속 컨트롤러입니다 |
+| `onTransaction` | `(transaction: EditTransaction) => void` | —       | 편집 트랜잭션마다 발생하는 원시 콜백입니다                  |
+| `onSubmit`      | `() => void`                             | —       | 제출 콜백입니다                                             |
+| `disabled`      | `boolean`                                | `false` | 비활성화 상태입니다                                         |
+| `readOnly`      | `boolean`                                | `false` | 읽기 전용 상태입니다                                        |
+| `rows`          | `number`                                 | —       | 표시할 행 수로, 셸의 최소 높이를 결정합니다                 |
+| `className`     | `string`                                 | —       | 컴포넌트 클래스 이름 뒤에 추가됩니다                        |
+| `width`         | `number`                                 | —       | 고정 너비(px)입니다                                         |
+| `semanticLabel` | `string`                                 | —       | 접근성 이름입니다                                           |
 
 ## 접근성
 

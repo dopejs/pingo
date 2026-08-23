@@ -42,17 +42,17 @@ root.render(
 
 ## Props
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `value` | `number` | — | 受控當前值 |
-| `defaultValue` | `number` | `min` | 非受控初始值 |
-| `onValueChange` | `(value: number) => void` | — | 值變化回調 |
-| `min` | `number` | `0` | 最小值 |
-| `max` | `number` | `100` | 最大值 |
-| `step` | `number` | `1` | 鍵盤步進 |
-| `disabled` | `boolean` | `false` | 禁用態 |
-| `semanticLabel` | `string` | — | 無障礙名稱 |
-| `className` | `string` | — | 追加在元件類名之後 |
+| Prop            | 型別                      | 預設值  | 說明               |
+| --------------- | ------------------------- | ------- | ------------------ |
+| `value`         | `number`                  | —       | 受控當前值         |
+| `defaultValue`  | `number`                  | `min`   | 非受控初始值       |
+| `onValueChange` | `(value: number) => void` | —       | 值變化回調         |
+| `min`           | `number`                  | `0`     | 最小值             |
+| `max`           | `number`                  | `100`   | 最大值             |
+| `step`          | `number`                  | `1`     | 鍵盤步進           |
+| `disabled`      | `boolean`                 | `false` | 禁用態             |
+| `semanticLabel` | `string`                  | —       | 無障礙名稱         |
+| `className`     | `string`                  | —       | 追加在元件類名之後 |
 
 ## 無障礙
 

@@ -47,7 +47,7 @@ root.render(
 
 ```ts
 const sheet = createStyleSheet({
-  card: { backgroundColor: "#ffffffff", borderRadius: 8, padding: 16 },
+  "card": { backgroundColor: "#ffffffff", borderRadius: 8, padding: 16 },
   "card:hover": { backgroundColor: "#f5f5f5ff" },
 });
 ```
@@ -140,7 +140,7 @@ const root = await createHostedCanvasRoot(canvas, {
 import { setTheme, useTheme } from "@dopejs/pingo-ui";
 
 setTheme("dark"); // כל הרכיבים המנויים מתרנדרים מחדש אוטומטית
-useTheme();       // קריאה ורישום מנוי מתוך render של רכיב
+useTheme(); // קריאה ורישום מנוי מתוך render של רכיב
 ```
 
 ערכת הנושא היא signal ברמת המודול: `useTheme()` בתוך render של רכיב נרשם אוטומטית כמנוי, ו-`setTheme`

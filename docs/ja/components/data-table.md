@@ -60,33 +60,33 @@ function MemberTable(): PingoNode {
 
 `TableProps<Row>` の全フィールドを継承します（`columns` はソート可能版に置き換わります）。
 
-| Prop | 型 | デフォルト | 説明 |
-| --- | --- | --- | --- |
-| `columns` | `readonly DataTableColumn<Row>[]` | — | 列定義（必須）。`TableColumn` に `sortable` が追加されたもの |
-| `sort` | `SortState` | — | 現在のソート状態。省略時は未ソート |
-| `onSortChange` | `(sort: SortState \| undefined) => void` | — | ソート変更時のコールバック。`undefined` はソート解除を意味する。未指定時はヘッダーをクリック不可 |
-| `rowCount` | `number` | — | 総行数（必須） |
-| `getRow` | `(index: number) => Row` | — | 行番号から行データを取得（必須） |
-| `estimatedRowHeight` | `number` | `44` | 推定行高 |
-| `onRowPress` | `(index: number) => void` | — | 行クリック時のコールバック |
-| `emptyLabel` | `string` | `"データがありません"` | 空状態のテキスト |
-| `renderHeaderCell` | `(column, index) => PingoNode` | — | 型上は存在するが、コンポーネント内部でソート可能ヘッダーの実装に使うため、渡しても上書きされる |
-| `className` | `string` | — | コンポーネントのクラス名に追加される |
+| Prop                 | 型                                       | デフォルト             | 説明                                                                                             |
+| -------------------- | ---------------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------ |
+| `columns`            | `readonly DataTableColumn<Row>[]`        | —                      | 列定義（必須）。`TableColumn` に `sortable` が追加されたもの                                     |
+| `sort`               | `SortState`                              | —                      | 現在のソート状態。省略時は未ソート                                                               |
+| `onSortChange`       | `(sort: SortState \| undefined) => void` | —                      | ソート変更時のコールバック。`undefined` はソート解除を意味する。未指定時はヘッダーをクリック不可 |
+| `rowCount`           | `number`                                 | —                      | 総行数（必須）                                                                                   |
+| `getRow`             | `(index: number) => Row`                 | —                      | 行番号から行データを取得（必須）                                                                 |
+| `estimatedRowHeight` | `number`                                 | `44`                   | 推定行高                                                                                         |
+| `onRowPress`         | `(index: number) => void`                | —                      | 行クリック時のコールバック                                                                       |
+| `emptyLabel`         | `string`                                 | `"データがありません"` | 空状態のテキスト                                                                                 |
+| `renderHeaderCell`   | `(column, index) => PingoNode`           | —                      | 型上は存在するが、コンポーネント内部でソート可能ヘッダーの実装に使うため、渡しても上書きされる   |
+| `className`          | `string`                                 | —                      | コンポーネントのクラス名に追加される                                                             |
 
 ### DataTableColumn\<Row\>
 
 `TableColumn<Row>` の拡張で、以下が追加されます。
 
-| フィールド | 型 | デフォルト | 説明 |
-| --- | --- | --- | --- |
-| `sortable` | `boolean` | `false` | ヘッダーをクリックしてソート可能かどうか |
+| フィールド | 型        | デフォルト | 説明                                     |
+| ---------- | --------- | ---------- | ---------------------------------------- |
+| `sortable` | `boolean` | `false`    | ヘッダーをクリックしてソート可能かどうか |
 
 ### SortState
 
-| フィールド | 型 | 説明 |
-| --- | --- | --- |
-| `key` | `string` | ソート列の `key` |
-| `direction` | `"ascending" \| "descending"` | ソート方向 |
+| フィールド  | 型                            | 説明             |
+| ----------- | ----------------------------- | ---------------- |
+| `key`       | `string`                      | ソート列の `key` |
+| `direction` | `"ascending" \| "descending"` | ソート方向       |
 
 現在ソート中の列のヘッダーには `▲` / `▼` インジケーターが付きます。
 

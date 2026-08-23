@@ -45,7 +45,7 @@ root.render(
 
 ```ts
 const sheet = createStyleSheet({
-  card: { backgroundColor: "#ffffffff", borderRadius: 8, padding: 16 },
+  "card": { backgroundColor: "#ffffffff", borderRadius: 8, padding: 16 },
   "card:hover": { backgroundColor: "#f5f5f5ff" },
 });
 ```
@@ -137,7 +137,7 @@ const root = await createHostedCanvasRoot(canvas, {
 import { setTheme, useTheme } from "@dopejs/pingo-ui";
 
 setTheme("dark"); // 구독 중인 모든 컴포넌트가 자동으로 다시 렌더링됩니다
-useTheme();       // 컴포넌트 render 안에서 읽고 구독합니다
+useTheme(); // 컴포넌트 render 안에서 읽고 구독합니다
 ```
 
 테마는 모듈 레벨 signal입니다. 컴포넌트 render에서 `useTheme()`이 자동으로 구독하고, `setTheme`이

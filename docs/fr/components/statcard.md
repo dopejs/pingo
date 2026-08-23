@@ -45,14 +45,14 @@ createElement(StatCard, { label: "在线设备", value: "1,024" });
 
 ## Props
 
-| Prop | Type | Défaut | Description |
-| --- | --- | --- | --- |
-| `label` | `string` | — | Nom de l’indicateur (obligatoire) |
-| `value` | `string` | — | Valeur de l’indicateur, le formatage est à la charge de l’appelant (obligatoire) |
-| `delta` | `string` | — | Variation périodique, par exemple `+12.5%` |
-| `trend` | `"up" \| "down" \| "flat"` | `"flat"` | Sens de coloration du delta, sans effet sur les autres parties |
-| `description` | `string` | — | Texte descriptif en bas, comme la période de comparaison |
-| `className` | `string` | — | Ajouté après le nom de classe du composant |
+| Prop          | Type                       | Défaut   | Description                                                                      |
+| ------------- | -------------------------- | -------- | -------------------------------------------------------------------------------- |
+| `label`       | `string`                   | —        | Nom de l’indicateur (obligatoire)                                                |
+| `value`       | `string`                   | —        | Valeur de l’indicateur, le formatage est à la charge de l’appelant (obligatoire) |
+| `delta`       | `string`                   | —        | Variation périodique, par exemple `+12.5%`                                       |
+| `trend`       | `"up" \| "down" \| "flat"` | `"flat"` | Sens de coloration du delta, sans effet sur les autres parties                   |
+| `description` | `string`                   | —        | Texte descriptif en bas, comme la période de comparaison                         |
+| `className`   | `string`                   | —        | Ajouté après le nom de classe du composant                                       |
 
 ## Accessibilité
 

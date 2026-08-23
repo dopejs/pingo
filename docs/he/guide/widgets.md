@@ -16,12 +16,12 @@ description: "@dopejs/pingo-widgets מספק TextField, ‏TextArea, ‏Pressabl
 
 ## ייצואים ושמות
 
-| ייצוא | תיאור |
-| --- | --- |
+| ייצוא       | תיאור                                                                             |
+| ----------- | --------------------------------------------------------------------------------- |
 | `TextField` | קלט חד-שורתי: קישוט מסגרת + מצב שגיאה, שבפנים מרכיב רק את פרימיטיב `editableText` |
-| `TextArea` | וריאנט מרובה-שורות; Enter מעביר שורה, submit נשאר לטופס המארח |
-| `Pressable` | משטח הפעלה בר-מיקוד: View + מיקוד + click/tap מקוריים |
-| `Button` | הרכבת-נוחות של כפתור טקסט: `Pressable` + `Text` |
+| `TextArea`  | וריאנט מרובה-שורות; Enter מעביר שורה, submit נשאר לטופס המארח                     |
+| `Pressable` | משטח הפעלה בר-מיקוד: View + מיקוד + click/tap מקוריים                             |
+| `Button`    | הרכבת-נוחות של כפתור טקסט: `Pressable` + `Text`                                   |
 
 שים לב לשמות: `TextArea` ב-`@dopejs/pingo` מתייחס ל-widget המקושט הזה; ה**פרימיטיב** מרובה-השורות
 מיוצא בשם `UnstyledTextArea` (ובאופן דומה ל-`TextAreaProps` יש כינוי `UnstyledTextAreaProps`).
@@ -48,27 +48,27 @@ createElement(TextField, {
 
 ### Props ‏(TextField)
 
-| Prop | טיפוס | ברירת מחדל | תיאור |
-| --- | --- | --- | --- |
-| `value` | `string` | `""` | טקסט מבוקר |
-| `revision` | `number \| bigint` | `0n` | ה-revision הסמכותי של הערך המבוקר |
-| `controller` | `TextEditingController` | — | controller מקומי; שולל `value`/`revision` |
-| `readOnly` | `boolean` | — | קריאה בלבד |
-| `password` | `boolean` | — | מצב סיסמה (טקסט גלוי לא נכנס ל-DisplayList ולערך הנגישות) |
-| `maxGraphemes` | `number` | — | תקרת grapheme-ים |
-| `inputMode` | `EditableInputMode` | — | רמז לפריסת מקלדת רכה |
-| `width` | `number` | `240` | רוחב כולל מסגרת |
-| `height` | `number` | `lineHeight × rows + 16` | גובה כולל מסגרת |
-| `fontSize` | `number` | `14` | גודל גופן |
-| `lineHeight` | `number` | `round(fontSize × 1.5)` | גובה שורה |
-| `color` | `Color` | `#1f2329ff` | צבע טקסט |
-| `backgroundColor` | `Color` | `#ffffffff` | צבע רקע של השדה |
-| `borderColor` | `Color` | `#c0c4ccff` | צבע מסגרת |
-| `errorColor` | `Color` | `#d03050ff` | צבע מסגרת והסבר במצב שגיאה |
-| `error` | `string` | — | לא ריק = מצב שגיאה: מסגרת בצבע שגיאה + הסבר מתחת |
-| `onTransaction` | `(t: EditTransaction) => void` | — | callback לטרנזקציות עריכה של הליבה |
-| `onSubmit` | `() => void` | — | Enter בשורה יחידה שולח |
-| `semanticLabel` | `string` | — | שם נגישות (התפקיד תמיד `textbox`) |
+| Prop              | טיפוס                          | ברירת מחדל               | תיאור                                                     |
+| ----------------- | ------------------------------ | ------------------------ | --------------------------------------------------------- |
+| `value`           | `string`                       | `""`                     | טקסט מבוקר                                                |
+| `revision`        | `number \| bigint`             | `0n`                     | ה-revision הסמכותי של הערך המבוקר                         |
+| `controller`      | `TextEditingController`        | —                        | controller מקומי; שולל `value`/`revision`                 |
+| `readOnly`        | `boolean`                      | —                        | קריאה בלבד                                                |
+| `password`        | `boolean`                      | —                        | מצב סיסמה (טקסט גלוי לא נכנס ל-DisplayList ולערך הנגישות) |
+| `maxGraphemes`    | `number`                       | —                        | תקרת grapheme-ים                                          |
+| `inputMode`       | `EditableInputMode`            | —                        | רמז לפריסת מקלדת רכה                                      |
+| `width`           | `number`                       | `240`                    | רוחב כולל מסגרת                                           |
+| `height`          | `number`                       | `lineHeight × rows + 16` | גובה כולל מסגרת                                           |
+| `fontSize`        | `number`                       | `14`                     | גודל גופן                                                 |
+| `lineHeight`      | `number`                       | `round(fontSize × 1.5)`  | גובה שורה                                                 |
+| `color`           | `Color`                        | `#1f2329ff`              | צבע טקסט                                                  |
+| `backgroundColor` | `Color`                        | `#ffffffff`              | צבע רקע של השדה                                           |
+| `borderColor`     | `Color`                        | `#c0c4ccff`              | צבע מסגרת                                                 |
+| `errorColor`      | `Color`                        | `#d03050ff`              | צבע מסגרת והסבר במצב שגיאה                                |
+| `error`           | `string`                       | —                        | לא ריק = מצב שגיאה: מסגרת בצבע שגיאה + הסבר מתחת          |
+| `onTransaction`   | `(t: EditTransaction) => void` | —                        | callback לטרנזקציות עריכה של הליבה                        |
+| `onSubmit`        | `() => void`                   | —                        | Enter בשורה יחידה שולח                                    |
+| `semanticLabel`   | `string`                       | —                        | שם נגישות (התפקיד תמיד `textbox`)                         |
 
 ל-`TextArea` מתווסף `rows` (ברירת מחדל `3`) לחישוב הגובה בברירת המחדל.
 
@@ -78,15 +78,15 @@ createElement(TextField, {
 בלחיצה וממפה click/tap מקוריים ל-`onPress`. הסגנון נקבע כולו על ידי `style` ו-`children`; במצב
 `disabled` הוא מנמיך שקיפות ומסיר אירועים.
 
-| Prop | טיפוס | ברירת מחדל | תיאור |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | תוכן (ב-Button: `string \| number`, חובה) |
-| `disabled` | `boolean` | `false` | מצב מושבת |
-| `onPress` | `() => void` | — | callback הפעלה |
-| `className` | `string` | — | שמות מחלקה (לחיבור לגיליון סגנונות) |
-| `style` | `PingoStyle` | — | סגנון inline |
-| `width` / `height` | `number` | — | מידות |
-| `semanticLabel` | `string` | ‏`Button` לוקח את `children` | שם נגישות |
+| Prop               | טיפוס        | ברירת מחדל                   | תיאור                                     |
+| ------------------ | ------------ | ---------------------------- | ----------------------------------------- |
+| `children`         | `PingoNode`  | —                            | תוכן (ב-Button: `string \| number`, חובה) |
+| `disabled`         | `boolean`    | `false`                      | מצב מושבת                                 |
+| `onPress`          | `() => void` | —                            | callback הפעלה                            |
+| `className`        | `string`     | —                            | שמות מחלקה (לחיבור לגיליון סגנונות)       |
+| `style`            | `PingoStyle` | —                            | סגנון inline                              |
+| `width` / `height` | `number`     | —                            | מידות                                     |
+| `semanticLabel`    | `string`     | ‏`Button` לוקח את `children` | שם נגישות                                 |
 
 ‏`Button` מקבל בנוסף `color` ו-`fontSize` (מועברים לטקסט הפנימי).
 

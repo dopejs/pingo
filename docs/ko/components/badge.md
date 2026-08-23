@@ -44,12 +44,12 @@ createElement(ListRow, {
 
 ## Props
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `children` | `string` | — | 라벨 텍스트(필수) |
-| `variant` | `"default" \| "secondary" \| "destructive" \| "outline"` | `"default"` | 시각적 변형 |
-| `semanticLabel` | `string` | — | 접근성 이름. 생략 시 기본 의미를 사용합니다 |
-| `className` | `string` | — | 컴포넌트 클래스 이름 뒤에 추가합니다 |
+| Prop            | 타입                                                     | 기본값      | 설명                                        |
+| --------------- | -------------------------------------------------------- | ----------- | ------------------------------------------- |
+| `children`      | `string`                                                 | —           | 라벨 텍스트(필수)                           |
+| `variant`       | `"default" \| "secondary" \| "destructive" \| "outline"` | `"default"` | 시각적 변형                                 |
+| `semanticLabel` | `string`                                                 | —           | 접근성 이름. 생략 시 기본 의미를 사용합니다 |
+| `className`     | `string`                                                 | —           | 컴포넌트 클래스 이름 뒤에 추가합니다        |
 
 ## 접근성
 

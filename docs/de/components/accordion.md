@@ -45,22 +45,22 @@ Schreibweise (`openValue` + `onValueChange`).
 
 ### Accordion
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `openValue` | `string` | — | Kontrolliert: `value` des geöffneten Eintrags |
-| `defaultOpenValue` | `string` | — | Unkontrolliert: `value` des anfangs geöffneten Eintrags |
-| `onValueChange` | `(value: string \| undefined) => void` | — | Callback bei Wechsel des geöffneten Eintrags; `undefined`, wenn alles zugeklappt ist |
-| `children` | `PingoNode` | — | Liste von `AccordionItem` (Pflicht) |
-| `className` | `string` | — | Wird hinter die Komponentenklassen gehängt |
+| Prop               | Typ                                    | Standardwert | Beschreibung                                                                         |
+| ------------------ | -------------------------------------- | ------------ | ------------------------------------------------------------------------------------ |
+| `openValue`        | `string`                               | —            | Kontrolliert: `value` des geöffneten Eintrags                                        |
+| `defaultOpenValue` | `string`                               | —            | Unkontrolliert: `value` des anfangs geöffneten Eintrags                              |
+| `onValueChange`    | `(value: string \| undefined) => void` | —            | Callback bei Wechsel des geöffneten Eintrags; `undefined`, wenn alles zugeklappt ist |
+| `children`         | `PingoNode`                            | —            | Liste von `AccordionItem` (Pflicht)                                                  |
+| `className`        | `string`                               | —            | Wird hinter die Komponentenklassen gehängt                                           |
 
 ### AccordionItem
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Eindeutige Kennung des Eintrags (Pflicht) |
-| `title` | `string` | — | Titel des Triggers (Pflicht) |
-| `children` | `PingoNode` | — | Inhalt im aufgeklappten Zustand (Pflicht) |
-| `className` | `string` | — | Wird hinter die Komponentenklassen gehängt |
+| Prop        | Typ         | Standardwert | Beschreibung                               |
+| ----------- | ----------- | ------------ | ------------------------------------------ |
+| `value`     | `string`    | —            | Eindeutige Kennung des Eintrags (Pflicht)  |
+| `title`     | `string`    | —            | Titel des Triggers (Pflicht)               |
+| `children`  | `PingoNode` | —            | Inhalt im aufgeklappten Zustand (Pflicht)  |
+| `className` | `string`    | —            | Wird hinter die Komponentenklassen gehängt |
 
 ## Barrierefreiheit
 

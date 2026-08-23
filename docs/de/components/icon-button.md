@@ -40,15 +40,15 @@ root.render(
 
 ## Props
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `icon` | `PingoNode` | — | Icon-Slot, unverändert durchgereicht (erforderlich) |
-| `semanticLabel` | `string` | — | Barrierefreiheitsname (erforderlich) |
-| `variant` | `"default" \| "secondary" \| "outline" \| "ghost" \| "destructive"` | `"default"` | Visuelle Variante |
-| `size` | `"default" \| "sm" \| "lg"` | `"default"` | Größe (`sm`/`lg` derzeit wirkungslos, siehe oben) |
-| `disabled` | `boolean` | `false` | Deaktivierter Zustand |
-| `onPress` | `() => void` | — | Callback für Zeiger-/Tastaturaktivierung |
-| `className` | `string` | — | Wird nach dem Komponentenklassennamen angehängt |
+| Prop            | Typ                                                                 | Standardwert | Beschreibung                                        |
+| --------------- | ------------------------------------------------------------------- | ------------ | --------------------------------------------------- |
+| `icon`          | `PingoNode`                                                         | —            | Icon-Slot, unverändert durchgereicht (erforderlich) |
+| `semanticLabel` | `string`                                                            | —            | Barrierefreiheitsname (erforderlich)                |
+| `variant`       | `"default" \| "secondary" \| "outline" \| "ghost" \| "destructive"` | `"default"`  | Visuelle Variante                                   |
+| `size`          | `"default" \| "sm" \| "lg"`                                         | `"default"`  | Größe (`sm`/`lg` derzeit wirkungslos, siehe oben)   |
+| `disabled`      | `boolean`                                                           | `false`      | Deaktivierter Zustand                               |
+| `onPress`       | `() => void`                                                        | —            | Callback für Zeiger-/Tastaturaktivierung            |
+| `className`     | `string`                                                            | —            | Wird nach dem Komponentenklassennamen angehängt     |
 
 ## Barrierefreiheit
 

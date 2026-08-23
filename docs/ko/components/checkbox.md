@@ -39,14 +39,14 @@ root.render(createElement(NotificationSetting));
 
 ## Props
 
-| Prop | 유형 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `checked` | `boolean` | — | 선택 상태(필수, 제어형) |
-| `onCheckedChange` | `(checked: boolean) => void` | — | 상태 전환 콜백 |
-| `disabled` | `boolean` | `false` | 비활성 상태 |
-| `label` | `string` | — | 선택 상자 오른쪽의 텍스트 라벨 |
-| `className` | `string` | — | 컴포넌트 클래스 이름 뒤에 추가 |
-| `semanticLabel` | `string` | — | 접근성 이름 |
+| Prop              | 유형                         | 기본값  | 설명                           |
+| ----------------- | ---------------------------- | ------- | ------------------------------ |
+| `checked`         | `boolean`                    | —       | 선택 상태(필수, 제어형)        |
+| `onCheckedChange` | `(checked: boolean) => void` | —       | 상태 전환 콜백                 |
+| `disabled`        | `boolean`                    | `false` | 비활성 상태                    |
+| `label`           | `string`                     | —       | 선택 상자 오른쪽의 텍스트 라벨 |
+| `className`       | `string`                     | —       | 컴포넌트 클래스 이름 뒤에 추가 |
+| `semanticLabel`   | `string`                     | —       | 접근성 이름                    |
 
 ## 접근성
 

@@ -36,16 +36,16 @@ La valeur interne est une **chaîne de longueur fixe, complétée par des espace
 
 ## Props
 
-| Prop | Type | Valeur par défaut | Description |
-| --- | --- | --- | --- |
-| `length` | `number` | `6` | Nombre de cases |
-| `value` | `string` | — | Valeur contrôlée courante (complétée par des espaces) |
-| `defaultValue` | `string` | — | Valeur initiale non contrôlée |
-| `onValueChange` | `(value: string) => void` | — | Rappel lors du changement de valeur, la valeur étant une chaîne de longueur fixe complétée par des espaces |
-| `onComplete` | `(value: string) => void` | — | Rappel lorsque toutes les cases sont remplies, la valeur étant le code complet sans les espaces |
-| `disabled` | `boolean` | `false` | Désactive toutes les cases |
-| `semanticLabel` | `string` | — | Nom accessible du groupe |
-| `className` | `string` | — | Ajouté après le nom de classe du composant |
+| Prop            | Type                      | Valeur par défaut | Description                                                                                                |
+| --------------- | ------------------------- | ----------------- | ---------------------------------------------------------------------------------------------------------- |
+| `length`        | `number`                  | `6`               | Nombre de cases                                                                                            |
+| `value`         | `string`                  | —                 | Valeur contrôlée courante (complétée par des espaces)                                                      |
+| `defaultValue`  | `string`                  | —                 | Valeur initiale non contrôlée                                                                              |
+| `onValueChange` | `(value: string) => void` | —                 | Rappel lors du changement de valeur, la valeur étant une chaîne de longueur fixe complétée par des espaces |
+| `onComplete`    | `(value: string) => void` | —                 | Rappel lorsque toutes les cases sont remplies, la valeur étant le code complet sans les espaces            |
+| `disabled`      | `boolean`                 | `false`           | Désactive toutes les cases                                                                                 |
+| `semanticLabel` | `string`                  | —                 | Nom accessible du groupe                                                                                   |
+| `className`     | `string`                  | —                 | Ajouté après le nom de classe du composant                                                                 |
 
 ## Accessibilité
 

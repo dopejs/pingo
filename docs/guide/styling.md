@@ -45,7 +45,7 @@ diagnostics。样式表也可以写成类型安全的对象形式（`PingoStyleS
 
 ```ts
 const sheet = createStyleSheet({
-  card: { backgroundColor: "#ffffffff", borderRadius: 8, padding: 16 },
+  "card": { backgroundColor: "#ffffffff", borderRadius: 8, padding: 16 },
   "card:hover": { backgroundColor: "#f5f5f5ff" },
 });
 ```
@@ -135,7 +135,7 @@ const root = await createHostedCanvasRoot(canvas, {
 import { setTheme, useTheme } from "@dopejs/pingo-ui";
 
 setTheme("dark"); // 所有订阅组件自动重渲染
-useTheme();       // 在组件 render 内读取并订阅
+useTheme(); // 在组件 render 内读取并订阅
 ```
 
 主题是模块级 signal：组件 render 中 `useTheme()` 自动订阅，`setTheme` 触发全部

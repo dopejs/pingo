@@ -17,12 +17,12 @@ description: "@dopejs/pingo-widgets предоставляет TextField, TextAr
 
 ## Экспорт и именование
 
-| Экспорт | Описание |
-| --- | --- |
+| Экспорт     | Описание                                                                                                  |
+| ----------- | --------------------------------------------------------------------------------------------------------- |
 | `TextField` | Однострочный ввод: рамка + оформление состояния ошибки, внутри только комбинирует примитив `editableText` |
-| `TextArea` | Многострочный вариант; Enter переносит строку, submit остаётся хост-форме |
-| `Pressable` | Фокусируемая активируемая поверхность: View + фокус + нативные click/tap |
-| `Button` | Удобная текстовая кнопка из `Pressable` + `Text` |
+| `TextArea`  | Многострочный вариант; Enter переносит строку, submit остаётся хост-форме                                 |
+| `Pressable` | Фокусируемая активируемая поверхность: View + фокус + нативные click/tap                                  |
+| `Button`    | Удобная текстовая кнопка из `Pressable` + `Text`                                                          |
 
 Замечание по именованию: `TextArea` в `@dopejs/pingo` означает именно этот оформленный
 widget; многострочный **примитив** экспортируется как `UnstyledTextArea` (`TextAreaProps`
@@ -50,27 +50,27 @@ createElement(TextField, {
 
 ### Props (TextField)
 
-| Prop | Тип | По умолчанию | Описание |
-| --- | --- | --- | --- |
-| `value` | `string` | `""` | Управляемый текст |
-| `revision` | `number \| bigint` | `0n` | Авторитетная revision управляемого значения |
-| `controller` | `TextEditingController` | — | Локальный controller; взаимоисключающий с `value`/`revision` |
-| `readOnly` | `boolean` | — | Только чтение |
-| `password` | `boolean` | — | Режим пароля (открытый текст не попадает в DisplayList и значения доступности) |
-| `maxGraphemes` | `number` | — | Максимум графем |
-| `inputMode` | `EditableInputMode` | — | Подсказка раскладки экранной клавиатуры |
-| `width` | `number` | `240` | Общая ширина с рамкой |
-| `height` | `number` | `lineHeight × rows + 16` | Общая высота с рамкой |
-| `fontSize` | `number` | `14` | Размер шрифта |
-| `lineHeight` | `number` | `round(fontSize × 1.5)` | Высота строки |
-| `color` | `Color` | `#1f2329ff` | Цвет текста |
-| `backgroundColor` | `Color` | `#ffffffff` | Цвет фона поля |
-| `borderColor` | `Color` | `#c0c4ccff` | Цвет рамки |
-| `errorColor` | `Color` | `#d03050ff` | Цвет рамки и сообщения в состоянии ошибки |
-| `error` | `string` | — | Непустое значение — состояние ошибки: рамка цвета ошибки + сообщение под полем |
-| `onTransaction` | `(t: EditTransaction) => void` | — | Колбэк транзакции редактирования Core |
-| `onSubmit` | `() => void` | — | Отправка однострочного ввода по Enter |
-| `semanticLabel` | `string` | — | Имя доступности (роль всегда `textbox`) |
+| Prop              | Тип                            | По умолчанию             | Описание                                                                       |
+| ----------------- | ------------------------------ | ------------------------ | ------------------------------------------------------------------------------ |
+| `value`           | `string`                       | `""`                     | Управляемый текст                                                              |
+| `revision`        | `number \| bigint`             | `0n`                     | Авторитетная revision управляемого значения                                    |
+| `controller`      | `TextEditingController`        | —                        | Локальный controller; взаимоисключающий с `value`/`revision`                   |
+| `readOnly`        | `boolean`                      | —                        | Только чтение                                                                  |
+| `password`        | `boolean`                      | —                        | Режим пароля (открытый текст не попадает в DisplayList и значения доступности) |
+| `maxGraphemes`    | `number`                       | —                        | Максимум графем                                                                |
+| `inputMode`       | `EditableInputMode`            | —                        | Подсказка раскладки экранной клавиатуры                                        |
+| `width`           | `number`                       | `240`                    | Общая ширина с рамкой                                                          |
+| `height`          | `number`                       | `lineHeight × rows + 16` | Общая высота с рамкой                                                          |
+| `fontSize`        | `number`                       | `14`                     | Размер шрифта                                                                  |
+| `lineHeight`      | `number`                       | `round(fontSize × 1.5)`  | Высота строки                                                                  |
+| `color`           | `Color`                        | `#1f2329ff`              | Цвет текста                                                                    |
+| `backgroundColor` | `Color`                        | `#ffffffff`              | Цвет фона поля                                                                 |
+| `borderColor`     | `Color`                        | `#c0c4ccff`              | Цвет рамки                                                                     |
+| `errorColor`      | `Color`                        | `#d03050ff`              | Цвет рамки и сообщения в состоянии ошибки                                      |
+| `error`           | `string`                       | —                        | Непустое значение — состояние ошибки: рамка цвета ошибки + сообщение под полем |
+| `onTransaction`   | `(t: EditTransaction) => void` | —                        | Колбэк транзакции редактирования Core                                          |
+| `onSubmit`        | `() => void`                   | —                        | Отправка однострочного ввода по Enter                                          |
+| `semanticLabel`   | `string`                       | —                        | Имя доступности (роль всегда `textbox`)                                        |
 
 `TextArea` дополнительно добавляет `rows` (по умолчанию `3`) для вычисления высоты по
 умолчанию.
@@ -82,15 +82,15 @@ createElement(TextField, {
 полностью определяется через `style` и `children`; при `disabled` снижается прозрачность и
 снимаются события.
 
-| Prop | Тип | По умолчанию | Описание |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Содержимое (у Button — `string \| number`, обязательное) |
-| `disabled` | `boolean` | `false` | Состояние отключения |
-| `onPress` | `() => void` | — | Колбэк активации |
-| `className` | `string` | — | Имя класса (подключение таблицы стилей) |
-| `style` | `PingoStyle` | — | Инлайн-стиль |
-| `width` / `height` | `number` | — | Размеры |
-| `semanticLabel` | `string` | `Button` берёт из `children` | Имя доступности |
+| Prop               | Тип          | По умолчанию                 | Описание                                                 |
+| ------------------ | ------------ | ---------------------------- | -------------------------------------------------------- |
+| `children`         | `PingoNode`  | —                            | Содержимое (у Button — `string \| number`, обязательное) |
+| `disabled`         | `boolean`    | `false`                      | Состояние отключения                                     |
+| `onPress`          | `() => void` | —                            | Колбэк активации                                         |
+| `className`        | `string`     | —                            | Имя класса (подключение таблицы стилей)                  |
+| `style`            | `PingoStyle` | —                            | Инлайн-стиль                                             |
+| `width` / `height` | `number`     | —                            | Размеры                                                  |
+| `semanticLabel`    | `string`     | `Button` берёт из `children` | Имя доступности                                          |
 
 `Button` дополнительно принимает `color` и `fontSize` (передаются внутреннему тексту).
 

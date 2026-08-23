@@ -58,16 +58,16 @@ El contenido se da con `value` o con `children` de tipo string.
 
 ### Props (Text)
 
-| Prop | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Contenido del texto (alternativa a `children`) |
-| `children` | `string \| number` | — | Contenido del texto |
-| `color` | `Color` | `#000000ff` | Color del texto, heredable |
-| `fontSize` | `number` | — | Tamaño de fuente (píxeles lógicos) |
-| `lineHeight` | `number` | — | Altura de línea (píxeles lógicos) |
-| `fontWeight` | `number` | — | Peso de la fuente |
-| `fontFamily` | `string` | — | Familia de fuentes CSS |
-| `font` | `PingoFont` | — | Fuente explícita e inmutable; la entrada no soportada degrada por completo |
+| Prop         | Tipo               | Valor predeterminado | Descripción                                                                |
+| ------------ | ------------------ | -------------------- | -------------------------------------------------------------------------- |
+| `value`      | `string`           | —                    | Contenido del texto (alternativa a `children`)                             |
+| `children`   | `string \| number` | —                    | Contenido del texto                                                        |
+| `color`      | `Color`            | `#000000ff`          | Color del texto, heredable                                                 |
+| `fontSize`   | `number`           | —                    | Tamaño de fuente (píxeles lógicos)                                         |
+| `lineHeight` | `number`           | —                    | Altura de línea (píxeles lógicos)                                          |
+| `fontWeight` | `number`           | —                    | Peso de la fuente                                                          |
+| `fontFamily` | `string`           | —                    | Familia de fuentes CSS                                                     |
+| `font`       | `PingoFont`        | —                    | Fuente explícita e inmutable; la entrada no soportada degrada por completo |
 
 `Text` además hereda todas las [CommonProps](/api) (tamaño, padding, eventos, `semanticRole` /
 `semanticLabel`, etc.).

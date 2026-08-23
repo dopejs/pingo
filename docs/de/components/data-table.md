@@ -53,33 +53,33 @@ Ein Klick auf eine bereits sortierte Spalte wechselt zyklisch zwischen aufsteige
 
 Erbt alle Felder von `TableProps<Row>` (`columns` wird durch eine sortierbare Version ersetzt):
 
-| Prop | Typ | Standard | Beschreibung |
-| --- | --- | --- | --- |
-| `columns` | `readonly DataTableColumn<Row>[]` | — | Spaltendefinition (erforderlich), besitzt gegenüber `TableColumn` ein zusätzliches `sortable` |
-| `sort` | `SortState` | — | Aktueller Sortierzustand; wird er weggelassen, ist nichts sortiert |
-| `onSortChange` | `(sort: SortState \| undefined) => void` | — | Callback bei Sortierungsänderung; `undefined` bedeutet, dass die Sortierung aufgehoben wird. Ohne Angabe sind die Tabellenköpfe nicht anklickbar |
-| `rowCount` | `number` | — | Gesamtzahl der Zeilen (erforderlich) |
-| `getRow` | `(index: number) => Row` | — | Liefert die Zeilendaten anhand der Zeilennummer (erforderlich) |
-| `estimatedRowHeight` | `number` | `44` | Geschätzte Zeilenhöhe |
-| `onRowPress` | `(index: number) => void` | — | Callback bei Zeilenklick |
-| `emptyLabel` | `string` | `"Keine Daten"` | Text für den Leerzustand |
-| `renderHeaderCell` | `(column, index) => PingoNode` | — | Existiert im Typ, wird aber intern für den sortierbaren Tabellenkopf verwendet; eine Übergabe wird überschrieben |
-| `className` | `string` | — | Wird an den Komponenten-Klassennamen angehängt |
+| Prop                 | Typ                                      | Standard        | Beschreibung                                                                                                                                     |
+| -------------------- | ---------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `columns`            | `readonly DataTableColumn<Row>[]`        | —               | Spaltendefinition (erforderlich), besitzt gegenüber `TableColumn` ein zusätzliches `sortable`                                                    |
+| `sort`               | `SortState`                              | —               | Aktueller Sortierzustand; wird er weggelassen, ist nichts sortiert                                                                               |
+| `onSortChange`       | `(sort: SortState \| undefined) => void` | —               | Callback bei Sortierungsänderung; `undefined` bedeutet, dass die Sortierung aufgehoben wird. Ohne Angabe sind die Tabellenköpfe nicht anklickbar |
+| `rowCount`           | `number`                                 | —               | Gesamtzahl der Zeilen (erforderlich)                                                                                                             |
+| `getRow`             | `(index: number) => Row`                 | —               | Liefert die Zeilendaten anhand der Zeilennummer (erforderlich)                                                                                   |
+| `estimatedRowHeight` | `number`                                 | `44`            | Geschätzte Zeilenhöhe                                                                                                                            |
+| `onRowPress`         | `(index: number) => void`                | —               | Callback bei Zeilenklick                                                                                                                         |
+| `emptyLabel`         | `string`                                 | `"Keine Daten"` | Text für den Leerzustand                                                                                                                         |
+| `renderHeaderCell`   | `(column, index) => PingoNode`           | —               | Existiert im Typ, wird aber intern für den sortierbaren Tabellenkopf verwendet; eine Übergabe wird überschrieben                                 |
+| `className`          | `string`                                 | —               | Wird an den Komponenten-Klassennamen angehängt                                                                                                   |
 
 ### DataTableColumn\<Row\>
 
 Erweiterung von `TableColumn<Row>` mit folgender Ergänzung:
 
-| Feld | Typ | Standard | Beschreibung |
-| --- | --- | --- | --- |
-| `sortable` | `boolean` | `false` | Gibt an, ob der Tabellenkopf per Klick sortierbar ist |
+| Feld       | Typ       | Standard | Beschreibung                                          |
+| ---------- | --------- | -------- | ----------------------------------------------------- |
+| `sortable` | `boolean` | `false`  | Gibt an, ob der Tabellenkopf per Klick sortierbar ist |
 
 ### SortState
 
-| Feld | Typ | Beschreibung |
-| --- | --- | --- |
-| `key` | `string` | `key` der sortierten Spalte |
-| `direction` | `"ascending" \| "descending"` | Sortierrichtung |
+| Feld        | Typ                           | Beschreibung                |
+| ----------- | ----------------------------- | --------------------------- |
+| `key`       | `string`                      | `key` der sortierten Spalte |
+| `direction` | `"ascending" \| "descending"` | Sortierrichtung             |
 
 Der Tabellenkopf der aktuell sortierten Spalte erhält eine Anzeige mit `▲` / `▼`.
 

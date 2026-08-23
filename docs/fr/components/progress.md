@@ -40,11 +40,11 @@ createElement(Progress, { value: 3, max: 10 }); // 30%
 
 ## Props
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `value` | `number` | — | Progression actuelle (obligatoire), bornée en cas de dépassement |
-| `max` | `number` | `100` | Valeur maximale, traitée au minimum comme 1 |
-| `className` | `string` | — | Ajouté après le nom de classe du composant |
+| Prop        | 类型     | 默认值 | 说明                                                             |
+| ----------- | -------- | ------ | ---------------------------------------------------------------- |
+| `value`     | `number` | —      | Progression actuelle (obligatoire), bornée en cas de dépassement |
+| `max`       | `number` | `100`  | Valeur maximale, traitée au minimum comme 1                      |
+| `className` | `string` | —      | Ajouté après le nom de classe du composant                       |
 
 ## Accessibilité
 

@@ -28,11 +28,11 @@ Tooltip se activa por la entrada y salida del puntero (`pointerenter` / `pointer
 
 ## Props
 
-| Prop | Tipo | Valor por defecto | Descripción |
-| --- | --- | --- | --- |
-| `content` | `string` | — | Texto del globo (obligatorio) |
-| `children` | `PingoNode` | — | Elemento desencadenante (obligatorio) |
-| `className` | `string` | — | Se añade después del nombre de clase del contenedor de anclaje |
+| Prop        | Tipo        | Valor por defecto | Descripción                                                    |
+| ----------- | ----------- | ----------------- | -------------------------------------------------------------- |
+| `content`   | `string`    | —                 | Texto del globo (obligatorio)                                  |
+| `children`  | `PingoNode` | —                 | Elemento desencadenante (obligatorio)                          |
+| `className` | `string`    | —                 | Se añade después del nombre de clase del contenedor de anclaje |
 
 ## Accesibilidad
 

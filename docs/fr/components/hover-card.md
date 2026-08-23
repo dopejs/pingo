@@ -30,15 +30,15 @@ Une fois ouverte, la carte ne se ferme pas même lorsque le pointeur la survole,
 
 ## Props
 
-| Prop | Type | Défaut | Description |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Élément déclencheur (obligatoire) |
-| `content` | `PingoNode` | — | Contenu de la carte (obligatoire) |
-| `open` | `boolean` | — | État d'ouverture contrôlé |
-| `onOpenChange` | `(open: boolean) => void` | — | Rappel de changement d'ouverture |
-| `openDelayMs` | `number` | `300` | Délai d'ouverture (millisecondes) |
-| `closeDelayMs` | `number` | `200` | Délai de fermeture (millisecondes) |
-| `className` | `string` | — | Ajouté après le nom de classe du conteneur d'ancrage |
+| Prop           | Type                      | Défaut | Description                                          |
+| -------------- | ------------------------- | ------ | ---------------------------------------------------- |
+| `children`     | `PingoNode`               | —      | Élément déclencheur (obligatoire)                    |
+| `content`      | `PingoNode`               | —      | Contenu de la carte (obligatoire)                    |
+| `open`         | `boolean`                 | —      | État d'ouverture contrôlé                            |
+| `onOpenChange` | `(open: boolean) => void` | —      | Rappel de changement d'ouverture                     |
+| `openDelayMs`  | `number`                  | `300`  | Délai d'ouverture (millisecondes)                    |
+| `closeDelayMs` | `number`                  | `200`  | Délai de fermeture (millisecondes)                   |
+| `className`    | `string`                  | —      | Ajouté après le nom de classe du conteneur d'ancrage |
 
 ## Accessibilité
 

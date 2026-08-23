@@ -38,18 +38,18 @@ root.render(
 
 ## Props
 
-| Prop | 型 | デフォルト値 | 説明 |
-| --- | --- | --- | --- |
-| `first` | `PingoNode` | — | 1つ目のパネルの内容（必須） |
-| `second` | `PingoNode` | — | 2つ目のパネルの内容（必須） |
-| `split` | `number` | — | 制御：1つ目のパネルの割合。`[0, 1]` |
-| `defaultSplit` | `number` | `0.5` | 非制御：初期の割合 |
-| `onSplitChange` | `(split: number) => void` | — | 割合変更時のコールバック |
-| `direction` | `"row" \| "column"` | `"row"` | 分割の方向 |
-| `minSplit` | `number` | `0.1` | 最小の割合（下限のクランプ） |
-| `maxSplit` | `number` | `0.9` | 最大の割合（上限のクランプ） |
-| `disabled` | `boolean` | `false` | ハンドル操作を無効化 |
-| `className` | `string` | — | コンポーネントのクラス名の後に追加 |
+| Prop            | 型                        | デフォルト値 | 説明                                |
+| --------------- | ------------------------- | ------------ | ----------------------------------- |
+| `first`         | `PingoNode`               | —            | 1つ目のパネルの内容（必須）         |
+| `second`        | `PingoNode`               | —            | 2つ目のパネルの内容（必須）         |
+| `split`         | `number`                  | —            | 制御：1つ目のパネルの割合。`[0, 1]` |
+| `defaultSplit`  | `number`                  | `0.5`        | 非制御：初期の割合                  |
+| `onSplitChange` | `(split: number) => void` | —            | 割合変更時のコールバック            |
+| `direction`     | `"row" \| "column"`       | `"row"`      | 分割の方向                          |
+| `minSplit`      | `number`                  | `0.1`        | 最小の割合（下限のクランプ）        |
+| `maxSplit`      | `number`                  | `0.9`        | 最大の割合（上限のクランプ）        |
+| `disabled`      | `boolean`                 | `false`      | ハンドル操作を無効化                |
+| `className`     | `string`                  | —            | コンポーネントのクラス名の後に追加  |
 
 ## アクセシビリティ
 

@@ -38,15 +38,15 @@ root.render(
 
 ## Props
 
-| Prop | 型 | デフォルト | 説明 |
-| --- | --- | --- | --- |
-| `children` | `string` | — | ボタンのテキスト（必須） |
-| `variant` | `"default" \| "secondary" \| "outline" \| "ghost" \| "destructive"` | `"default"` | 見た目のバリアント |
-| `size` | `"default" \| "sm" \| "lg" \| "icon"` | `"default"` | サイズ |
-| `disabled` | `boolean` | `false` | 無効状態 |
-| `onPress` | `() => void` | — | ポインタ/キーボードによるアクティブ化のコールバック |
-| `semanticLabel` | `string` | `children` | アクセシブル名 |
-| `className` | `string` | — | コンポーネントのクラス名に追加される |
+| Prop            | 型                                                                  | デフォルト  | 説明                                                |
+| --------------- | ------------------------------------------------------------------- | ----------- | --------------------------------------------------- |
+| `children`      | `string`                                                            | —           | ボタンのテキスト（必須）                            |
+| `variant`       | `"default" \| "secondary" \| "outline" \| "ghost" \| "destructive"` | `"default"` | 見た目のバリアント                                  |
+| `size`          | `"default" \| "sm" \| "lg" \| "icon"`                               | `"default"` | サイズ                                              |
+| `disabled`      | `boolean`                                                           | `false`     | 無効状態                                            |
+| `onPress`       | `() => void`                                                        | —           | ポインタ/キーボードによるアクティブ化のコールバック |
+| `semanticLabel` | `string`                                                            | `children`  | アクセシブル名                                      |
+| `className`     | `string`                                                            | —           | コンポーネントのクラス名に追加される                |
 
 ## アクセシビリティ
 

@@ -36,16 +36,16 @@ root.render(
 
 ## Props
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `length` | `number` | `6` | 格子数量 |
-| `value` | `string` | — | 受控当前值（空格补齐） |
-| `defaultValue` | `string` | — | 非受控初始值 |
-| `onValueChange` | `(value: string) => void` | — | 值变化回调，值为空格补齐的定长字符串 |
-| `onComplete` | `(value: string) => void` | — | 全部填满时回调，值为去空格的完整验证码 |
-| `disabled` | `boolean` | `false` | 禁用所有格子 |
-| `semanticLabel` | `string` | — | 组的无障碍名称 |
-| `className` | `string` | — | 追加在组件类名之后 |
+| Prop            | 类型                      | 默认值  | 说明                                   |
+| --------------- | ------------------------- | ------- | -------------------------------------- |
+| `length`        | `number`                  | `6`     | 格子数量                               |
+| `value`         | `string`                  | —       | 受控当前值（空格补齐）                 |
+| `defaultValue`  | `string`                  | —       | 非受控初始值                           |
+| `onValueChange` | `(value: string) => void` | —       | 值变化回调，值为空格补齐的定长字符串   |
+| `onComplete`    | `(value: string) => void` | —       | 全部填满时回调，值为去空格的完整验证码 |
+| `disabled`      | `boolean`                 | `false` | 禁用所有格子                           |
+| `semanticLabel` | `string`                  | —       | 组的无障碍名称                         |
+| `className`     | `string`                  | —       | 追加在组件类名之后                     |
 
 ## 无障碍
 

@@ -45,18 +45,18 @@ Icon-Set vorliegt, ist das Trennzeichen eine Textglyphe):
 
 ### BreadcrumbProps
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `items` | `readonly BreadcrumbItem[]` | — | Breadcrumb-Einträge; der letzte gilt als aktuelle Seite (Pflicht) |
-| `separator` | `string` | `"/"` | Trennzeichen zwischen den Einträgen |
-| `className` | `string` | — | Wird hinter die Komponentenklassen gehängt |
+| Prop        | Typ                         | Standardwert | Beschreibung                                                      |
+| ----------- | --------------------------- | ------------ | ----------------------------------------------------------------- |
+| `items`     | `readonly BreadcrumbItem[]` | —            | Breadcrumb-Einträge; der letzte gilt als aktuelle Seite (Pflicht) |
+| `separator` | `string`                    | `"/"`        | Trennzeichen zwischen den Einträgen                               |
+| `className` | `string`                    | —            | Wird hinter die Komponentenklassen gehängt                        |
 
 ### BreadcrumbItem
 
-| Feld | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `label` | `string` | — | Text des Eintrags (Pflicht) |
-| `onNavigate` | `() => void` | — | Klick-Callback; ohne Angabe trägt der Eintrag kein Aktivierungsverhalten (der letzte Eintrag gilt ohnehin als aktuelle Seite und braucht keins) |
+| Feld         | Typ          | Standardwert | Beschreibung                                                                                                                                    |
+| ------------ | ------------ | ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `label`      | `string`     | —            | Text des Eintrags (Pflicht)                                                                                                                     |
+| `onNavigate` | `() => void` | —            | Klick-Callback; ohne Angabe trägt der Eintrag kein Aktivierungsverhalten (der letzte Eintrag gilt ohnehin als aktuelle Seite und braucht keins) |
 
 ## Barrierefreiheit
 

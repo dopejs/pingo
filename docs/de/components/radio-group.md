@@ -41,22 +41,22 @@ Wird `disabled` an `RadioGroup` übergeben, wird die gesamte Gruppe deaktiviert,
 
 ### RadioGroup
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Kontrollierter ausgewählter Wert |
-| `defaultValue` | `string` | — | Unkontrollierter anfänglich ausgewählter Wert |
-| `onValueChange` | `(value: string) => void` | — | Callback bei Auswahländerung |
-| `disabled` | `boolean` | `false` | Deaktiviert die gesamte Gruppe |
-| `children` | `PingoNode` | — | Liste von `RadioGroupItem` (erforderlich) |
-| `className` | `string` | — | Wird an den Komponenten-Klassennamen angehängt |
+| Prop            | Typ                       | Standardwert | Beschreibung                                   |
+| --------------- | ------------------------- | ------------ | ---------------------------------------------- |
+| `value`         | `string`                  | —            | Kontrollierter ausgewählter Wert               |
+| `defaultValue`  | `string`                  | —            | Unkontrollierter anfänglich ausgewählter Wert  |
+| `onValueChange` | `(value: string) => void` | —            | Callback bei Auswahländerung                   |
+| `disabled`      | `boolean`                 | `false`      | Deaktiviert die gesamte Gruppe                 |
+| `children`      | `PingoNode`               | —            | Liste von `RadioGroupItem` (erforderlich)      |
+| `className`     | `string`                  | —            | Wird an den Komponenten-Klassennamen angehängt |
 
 ### RadioGroupItem
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Wert der Option (erforderlich) |
-| `label` | `string` | — | Text der Option |
-| `className` | `string` | — | Wird an den Komponenten-Klassennamen angehängt |
+| Prop        | Typ      | Standardwert | Beschreibung                                   |
+| ----------- | -------- | ------------ | ---------------------------------------------- |
+| `value`     | `string` | —            | Wert der Option (erforderlich)                 |
+| `label`     | `string` | —            | Text der Option                                |
+| `className` | `string` | —            | Wird an den Komponenten-Klassennamen angehängt |
 
 ## Barrierefreiheit
 

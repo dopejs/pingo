@@ -1,11 +1,5 @@
 import { createElement, type PingoNode } from "@dopejs/pingo";
-import {
-  Button,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  Drawer,
-} from "@dopejs/pingo-ui";
+import { Button, DialogDescription, DialogHeader, DialogTitle, Drawer } from "@dopejs/pingo-ui";
 
 import type { PreviewDemo } from "../../preview/contract";
 import { column, stage } from "../../preview/layout";

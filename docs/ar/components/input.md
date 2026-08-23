@@ -42,22 +42,22 @@ root.render(
 
 ## Props
 
-| Prop | النوع | القيمة الافتراضية | الوصف |
-| --- | --- | --- | --- |
-| `value` | `string` | `""` | القيمة الأولية للاستخدام غير المُتحكَّم به؛ تُتجاهل بعد ضبط `controller` |
-| `onValueChange` | `(value: string) => void` | — | يُستدعى بأحدث قيمة بعد تطبيق كل عملية تحرير |
-| `controller` | `TextEditingController` | — | منفذ متقدم: وحدة تحكم دائمة يحتفظ بها المستدعي |
-| `onTransaction` | `(transaction: EditTransaction) => void` | — | الاستدعاء الخام لكل عملية تحرير |
-| `onSubmit` | `() => void` | — | استدعاء الإرسال (مفتاح الإدخال) |
-| `disabled` | `boolean` | `false` | حالة التعطيل |
-| `readOnly` | `boolean` | `false` | حالة القراءة فقط |
-| `password` | `boolean` | `false` | الإدخال المقنّع |
-| `inputMode` | `"decimal" \| "email" \| "none" \| "numeric" \| "search" \| "tel" \| "text" \| "url"` | `"text"` | تلميح لتخطيط لوحة المفاتيح الافتراضية |
-| `className` | `string` | — | يُضاف بعد اسم فئة المكوّن |
-| `width` | `number` | — | عرض ثابت (بالبكسل) |
-| `semanticLabel` | `string` | — | الاسم المخصص لإمكانية الوصول |
-| `prefix` | `PingoNode` | — | زخرفة أمامية، مثل أيقونة أو رمز عملة |
-| `suffix` | `PingoNode` | — | زخرفة خلفية، مثل وحدة أو زر مسح |
+| Prop            | النوع                                                                                 | القيمة الافتراضية | الوصف                                                                    |
+| --------------- | ------------------------------------------------------------------------------------- | ----------------- | ------------------------------------------------------------------------ |
+| `value`         | `string`                                                                              | `""`              | القيمة الأولية للاستخدام غير المُتحكَّم به؛ تُتجاهل بعد ضبط `controller` |
+| `onValueChange` | `(value: string) => void`                                                             | —                 | يُستدعى بأحدث قيمة بعد تطبيق كل عملية تحرير                              |
+| `controller`    | `TextEditingController`                                                               | —                 | منفذ متقدم: وحدة تحكم دائمة يحتفظ بها المستدعي                           |
+| `onTransaction` | `(transaction: EditTransaction) => void`                                              | —                 | الاستدعاء الخام لكل عملية تحرير                                          |
+| `onSubmit`      | `() => void`                                                                          | —                 | استدعاء الإرسال (مفتاح الإدخال)                                          |
+| `disabled`      | `boolean`                                                                             | `false`           | حالة التعطيل                                                             |
+| `readOnly`      | `boolean`                                                                             | `false`           | حالة القراءة فقط                                                         |
+| `password`      | `boolean`                                                                             | `false`           | الإدخال المقنّع                                                          |
+| `inputMode`     | `"decimal" \| "email" \| "none" \| "numeric" \| "search" \| "tel" \| "text" \| "url"` | `"text"`          | تلميح لتخطيط لوحة المفاتيح الافتراضية                                    |
+| `className`     | `string`                                                                              | —                 | يُضاف بعد اسم فئة المكوّن                                                |
+| `width`         | `number`                                                                              | —                 | عرض ثابت (بالبكسل)                                                       |
+| `semanticLabel` | `string`                                                                              | —                 | الاسم المخصص لإمكانية الوصول                                             |
+| `prefix`        | `PingoNode`                                                                           | —                 | زخرفة أمامية، مثل أيقونة أو رمز عملة                                     |
+| `suffix`        | `PingoNode`                                                                           | —                 | زخرفة خلفية، مثل وحدة أو زر مسح                                          |
 
 ## إمكانية الوصول
 

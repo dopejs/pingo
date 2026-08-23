@@ -45,15 +45,15 @@ createElement(Checkbox, { defaultChecked: true, label: "已启用通知" });
 
 ## Props
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `checked` | `boolean` | — | 选中状态（受控用法；省略则组件自持） |
-| `defaultChecked` | `boolean` | `false` | 自持状态时的初始值 |
-| `onCheckedChange` | `(checked: boolean) => void` | — | 状态切换回调 |
-| `disabled` | `boolean` | `false` | 禁用态 |
-| `label` | `string` | — | 选框右侧的文字标签 |
-| `className` | `string` | — | 追加在组件类名之后 |
-| `semanticLabel` | `string` | — | 无障碍名称 |
+| Prop              | 类型                         | 默认值  | 说明                                 |
+| ----------------- | ---------------------------- | ------- | ------------------------------------ |
+| `checked`         | `boolean`                    | —       | 选中状态（受控用法；省略则组件自持） |
+| `defaultChecked`  | `boolean`                    | `false` | 自持状态时的初始值                   |
+| `onCheckedChange` | `(checked: boolean) => void` | —       | 状态切换回调                         |
+| `disabled`        | `boolean`                    | `false` | 禁用态                               |
+| `label`           | `string`                     | —       | 选框右侧的文字标签                   |
+| `className`       | `string`                     | —       | 追加在组件类名之后                   |
+| `semanticLabel`   | `string`                     | —       | 无障碍名称                           |
 
 ## 无障碍
 

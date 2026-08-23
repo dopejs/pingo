@@ -39,13 +39,13 @@ root.render(createElement(AirplaneMode));
 
 ## Props
 
-| Prop | סוג | ברירת מחדל | תיאור |
-| --- | --- | --- | --- |
-| `checked` | `boolean` | — | מצב המתג (חובה, נשלט) |
-| `onCheckedChange` | `(checked: boolean) => void` | — | קריאה חוזרת לשינוי מצב |
-| `disabled` | `boolean` | `false` | מצב מושבת |
-| `className` | `string` | — | מצורף לאחר שם מחלקת הרכיב |
-| `semanticLabel` | `string` | — | שם לנגישות |
+| Prop              | סוג                          | ברירת מחדל | תיאור                     |
+| ----------------- | ---------------------------- | ---------- | ------------------------- |
+| `checked`         | `boolean`                    | —          | מצב המתג (חובה, נשלט)     |
+| `onCheckedChange` | `(checked: boolean) => void` | —          | קריאה חוזרת לשינוי מצב    |
+| `disabled`        | `boolean`                    | `false`    | מצב מושבת                 |
+| `className`       | `string`                     | —          | מצורף לאחר שם מחלקת הרכיב |
+| `semanticLabel`   | `string`                     | —          | שם לנגישות                |
 
 ## נגישות
 

@@ -55,16 +55,16 @@ root.render(
 
 ### Props ‏(Text)
 
-| Prop | טיפוס | ברירת מחדל | תיאור |
-| --- | --- | --- | --- |
-| `value` | `string` | — | תוכן הטקסט (או `children`, אחד משניהם) |
-| `children` | `string \| number` | — | תוכן הטקסט |
-| `color` | `Color` | `#000000ff` | צבע טקסט, ניתן לירושה |
-| `fontSize` | `number` | — | גודל גופן (פיקסלים לוגיים) |
-| `lineHeight` | `number` | — | גובה שורה (פיקסלים לוגיים) |
-| `fontWeight` | `number` | — | משקל גופן |
-| `fontFamily` | `string` | — | משפחת גופנים של CSS |
-| `font` | `PingoFont` | — | גופן מפורש בלתי-ניתן-לשינוי; קלט לא נתמך נופל לנסיגה שלמה |
+| Prop         | טיפוס              | ברירת מחדל  | תיאור                                                     |
+| ------------ | ------------------ | ----------- | --------------------------------------------------------- |
+| `value`      | `string`           | —           | תוכן הטקסט (או `children`, אחד משניהם)                    |
+| `children`   | `string \| number` | —           | תוכן הטקסט                                                |
+| `color`      | `Color`            | `#000000ff` | צבע טקסט, ניתן לירושה                                     |
+| `fontSize`   | `number`           | —           | גודל גופן (פיקסלים לוגיים)                                |
+| `lineHeight` | `number`           | —           | גובה שורה (פיקסלים לוגיים)                                |
+| `fontWeight` | `number`           | —           | משקל גופן                                                 |
+| `fontFamily` | `string`           | —           | משפחת גופנים של CSS                                       |
+| `font`       | `PingoFont`        | —           | גופן מפורש בלתי-ניתן-לשינוי; קלט לא נתמך נופל לנסיגה שלמה |
 
 ‏`Text` יורש גם את כל ה-[CommonProps](/api) (מידות, padding, אירועים, `semanticRole` /
 `semanticLabel` ועוד).

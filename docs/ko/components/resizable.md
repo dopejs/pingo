@@ -38,18 +38,18 @@ root.render(
 
 ## Props
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `first` | `PingoNode` | — | 첫 번째 패널 콘텐츠(필수) |
-| `second` | `PingoNode` | — | 두 번째 패널 콘텐츠(필수) |
-| `split` | `number` | — | 제어: 첫 번째 패널 비율, `[0, 1]` |
-| `defaultSplit` | `number` | `0.5` | 비제어: 초기 비율 |
-| `onSplitChange` | `(split: number) => void` | — | 비율 변경 콜백 |
-| `direction` | `"row" \| "column"` | `"row"` | 분할 방향 |
-| `minSplit` | `number` | `0.1` | 최소 비율(하한 클램프) |
-| `maxSplit` | `number` | `0.9` | 최대 비율(상한 클램프) |
-| `disabled` | `boolean` | `false` | 핸들 상호작용 비활성화 |
-| `className` | `string` | — | 컴포넌트 클래스명 뒤에 추가 |
+| Prop            | 타입                      | 기본값  | 설명                              |
+| --------------- | ------------------------- | ------- | --------------------------------- |
+| `first`         | `PingoNode`               | —       | 첫 번째 패널 콘텐츠(필수)         |
+| `second`        | `PingoNode`               | —       | 두 번째 패널 콘텐츠(필수)         |
+| `split`         | `number`                  | —       | 제어: 첫 번째 패널 비율, `[0, 1]` |
+| `defaultSplit`  | `number`                  | `0.5`   | 비제어: 초기 비율                 |
+| `onSplitChange` | `(split: number) => void` | —       | 비율 변경 콜백                    |
+| `direction`     | `"row" \| "column"`       | `"row"` | 분할 방향                         |
+| `minSplit`      | `number`                  | `0.1`   | 최소 비율(하한 클램프)            |
+| `maxSplit`      | `number`                  | `0.9`   | 최대 비율(상한 클램프)            |
+| `disabled`      | `boolean`                 | `false` | 핸들 상호작용 비활성화            |
+| `className`     | `string`                  | —       | 컴포넌트 클래스명 뒤에 추가       |
 
 ## 접근성
 

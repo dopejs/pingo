@@ -38,21 +38,21 @@ root.render(
 
 ## الخصائص
 
-| الخاصية | النوع | القيمة الافتراضية | الوصف |
-| --- | --- | --- | --- |
-| `value` | `CalendarDate` | — | التاريخ المحدد |
-| `month` | `CalendarDate` | — | الشهر المعروض المُتحكَّم به |
-| `defaultMonth` | `CalendarDate` | `value ?? 2026-01-01` | الشهر الابتدائي غير المُتحكَّم به |
-| `onSelect` | `(date: CalendarDate) => void` | — | استدعاء عند تحديد تاريخ (يُغلق تلقائيًا بعده) |
-| `onMonthChange` | `(month: CalendarDate) => void` | — | استدعاء عند التنقل بين الأشهر |
-| `weekdayLabels` | `readonly string[]` | `["日","一","二","三","四","五","六"]` | ترويسة أيام الأسبوع |
-| `monthLabel` | `(month: CalendarDate) => string` | — | تخصيص عنوان الشهر |
-| `isDisabled` | `(date: CalendarDate) => boolean` | — | تعطيل تواريخ محددة |
-| `open` | `boolean` | — | حالة الفتح والإغلاق المُتحكَّم بها |
-| `onOpenChange` | `(open: boolean) => void` | — | استدعاء عند تغيير حالة الفتح والإغلاق |
-| `placeholder` | `string` | `"اختر تاريخًا"` | النص البديل عند عدم وجود تحديد |
-| `format` | `(date: CalendarDate) => string` | `formatDate` (`YYYY-MM-DD`) | عرض التاريخ على المُطلق |
-| `className` | `string` | — | يُضاف بعد اسم فئة المكوّن |
+| الخاصية         | النوع                             | القيمة الافتراضية                      | الوصف                                         |
+| --------------- | --------------------------------- | -------------------------------------- | --------------------------------------------- |
+| `value`         | `CalendarDate`                    | —                                      | التاريخ المحدد                                |
+| `month`         | `CalendarDate`                    | —                                      | الشهر المعروض المُتحكَّم به                   |
+| `defaultMonth`  | `CalendarDate`                    | `value ?? 2026-01-01`                  | الشهر الابتدائي غير المُتحكَّم به             |
+| `onSelect`      | `(date: CalendarDate) => void`    | —                                      | استدعاء عند تحديد تاريخ (يُغلق تلقائيًا بعده) |
+| `onMonthChange` | `(month: CalendarDate) => void`   | —                                      | استدعاء عند التنقل بين الأشهر                 |
+| `weekdayLabels` | `readonly string[]`               | `["日","一","二","三","四","五","六"]` | ترويسة أيام الأسبوع                           |
+| `monthLabel`    | `(month: CalendarDate) => string` | —                                      | تخصيص عنوان الشهر                             |
+| `isDisabled`    | `(date: CalendarDate) => boolean` | —                                      | تعطيل تواريخ محددة                            |
+| `open`          | `boolean`                         | —                                      | حالة الفتح والإغلاق المُتحكَّم بها            |
+| `onOpenChange`  | `(open: boolean) => void`         | —                                      | استدعاء عند تغيير حالة الفتح والإغلاق         |
+| `placeholder`   | `string`                          | `"اختر تاريخًا"`                       | النص البديل عند عدم وجود تحديد                |
+| `format`        | `(date: CalendarDate) => string`  | `formatDate` (`YYYY-MM-DD`)            | عرض التاريخ على المُطلق                       |
+| `className`     | `string`                          | —                                      | يُضاف بعد اسم فئة المكوّن                     |
 
 ## إمكانية الوصول
 

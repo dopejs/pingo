@@ -44,16 +44,16 @@ Cuando no se pasa `onPress`, la fila se comporta como un elemento puramente de p
 
 ## Props
 
-| Prop | Tipo | Valor por defecto | Descripción |
-| --- | --- | --- | --- |
-| `title` | `string` | — | Texto del título (obligatorio) |
-| `description` | `string` | — | Texto descriptivo secundario |
-| `leading` | `PingoNode` | — | Ranura delantera, para colocar un avatar o un icono |
-| `trailing` | `PingoNode` | — | Ranura trasera, para colocar una insignia, un interruptor o una flecha |
-| `selected` | `boolean` | — | Estado de selección; al pasarlo se exponen los valores semánticos `selected`/`unselected` |
-| `disabled` | `boolean` | `false` | Estado de desactivación, no registra ningún manejador de eventos |
-| `onPress` | `() => void` | — | Callback de clic; al pasarlo, la fila se vuelve interactiva |
-| `className` | `string` | — | Se añade después del nombre de clase del componente |
+| Prop          | Tipo         | Valor por defecto | Descripción                                                                               |
+| ------------- | ------------ | ----------------- | ----------------------------------------------------------------------------------------- |
+| `title`       | `string`     | —                 | Texto del título (obligatorio)                                                            |
+| `description` | `string`     | —                 | Texto descriptivo secundario                                                              |
+| `leading`     | `PingoNode`  | —                 | Ranura delantera, para colocar un avatar o un icono                                       |
+| `trailing`    | `PingoNode`  | —                 | Ranura trasera, para colocar una insignia, un interruptor o una flecha                    |
+| `selected`    | `boolean`    | —                 | Estado de selección; al pasarlo se exponen los valores semánticos `selected`/`unselected` |
+| `disabled`    | `boolean`    | `false`           | Estado de desactivación, no registra ningún manejador de eventos                          |
+| `onPress`     | `() => void` | —                 | Callback de clic; al pasarlo, la fila se vuelve interactiva                               |
+| `className`   | `string`     | —                 | Se añade después del nombre de clase del componente                                       |
 
 ## Accesibilidad
 

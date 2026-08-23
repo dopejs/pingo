@@ -62,15 +62,15 @@ createElement(Input, {
 
 Поля `EditTransaction`:
 
-| Поле | Тип | Описание |
-| --- | --- | --- |
-| `nodeId` | `number` | Редактируемый узел, породивший транзакцию |
-| `baseRevision` | `bigint` | Revision, на котором основана транзакция |
-| `revision` | `bigint` | Новый revision после транзакции |
-| `delta` | `{ range: { start, end }, text }` | Текстовая разница; смещения в UTF-16, согласованы с EditContext/InputEvent. У транзакций только с выделением это поле отсутствует |
-| `selection` | `{ anchor, focus, anchorAffinity, focusAffinity }` | Выделение после транзакции |
-| `composition` | `{ start, end }` | Активный диапазон композиции IME |
-| `kind` | `"edit" \| "composition" \| "external" \| "undo" \| "redo"` | Категория транзакции |
+| Поле           | Тип                                                         | Описание                                                                                                                          |
+| -------------- | ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `nodeId`       | `number`                                                    | Редактируемый узел, породивший транзакцию                                                                                         |
+| `baseRevision` | `bigint`                                                    | Revision, на котором основана транзакция                                                                                          |
+| `revision`     | `bigint`                                                    | Новый revision после транзакции                                                                                                   |
+| `delta`        | `{ range: { start, end }, text }`                           | Текстовая разница; смещения в UTF-16, согласованы с EditContext/InputEvent. У транзакций только с выделением это поле отсутствует |
+| `selection`    | `{ anchor, focus, anchorAffinity, focusAffinity }`          | Выделение после транзакции                                                                                                        |
+| `composition`  | `{ start, end }`                                            | Активный диапазон композиции IME                                                                                                  |
+| `kind`         | `"edit" \| "composition" \| "external" \| "undo" \| "redo"` | Категория транзакции                                                                                                              |
 
 ## Мост ввода: EditContext и запасной прокси
 
@@ -101,17 +101,17 @@ createElement(Input, {
 
 Оба разделяют `EditableTextProps` (`multiline` наружу не выставляется, фиксируется компонентом):
 
-| Prop | Тип | По умолчанию | Описание |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Управляемый текст |
-| `revision` | `number \| bigint` | — | Авторитетный revision управляемого значения; устаревшее значение не перезапишет более новый ввод Core |
-| `controller` | `TextEditingController` | — | Стабильный локальный controller; взаимоисключающий с `value`/`revision` |
-| `readOnly` | `boolean` | `false` | Только чтение |
-| `password` | `boolean` | `false` | Режим пароля (см. ниже) |
-| `maxGraphemes` | `number` | — | Максимум графем |
-| `inputMode` | `EditableInputMode` | `"text"` | Подсказка программной клавиатуре: `decimal` `email` `none` `numeric` `search` `tel` `text` `url` |
-| `onTransaction` | `(t: EditTransaction) => void` | — | Колбэк транзакций редактирования Core |
-| `onSubmit` | `() => void` | — | Отправка по Enter в однострочном режиме; в многострочном Enter оставляет перевод строки |
+| Prop            | Тип                            | По умолчанию | Описание                                                                                              |
+| --------------- | ------------------------------ | ------------ | ----------------------------------------------------------------------------------------------------- |
+| `value`         | `string`                       | —            | Управляемый текст                                                                                     |
+| `revision`      | `number \| bigint`             | —            | Авторитетный revision управляемого значения; устаревшее значение не перезапишет более новый ввод Core |
+| `controller`    | `TextEditingController`        | —            | Стабильный локальный controller; взаимоисключающий с `value`/`revision`                               |
+| `readOnly`      | `boolean`                      | `false`      | Только чтение                                                                                         |
+| `password`      | `boolean`                      | `false`      | Режим пароля (см. ниже)                                                                               |
+| `maxGraphemes`  | `number`                       | —            | Максимум графем                                                                                       |
+| `inputMode`     | `EditableInputMode`            | `"text"`     | Подсказка программной клавиатуре: `decimal` `email` `none` `numeric` `search` `tel` `text` `url`      |
+| `onTransaction` | `(t: EditTransaction) => void` | —            | Колбэк транзакций редактирования Core                                                                 |
+| `onSubmit`      | `() => void`                   | —            | Отправка по Enter в однострочном режиме; в многострочном Enter оставляет перевод строки               |
 
 Оформление текста наследует `TextProps`: `color`, `fontSize`, `fontWeight`, `lineHeight`,
 `fontFamily`, `font`; размеры, `padding`, `backgroundColor`, рамки (канал `style`) и т. д. —

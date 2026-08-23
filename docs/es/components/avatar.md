@@ -42,12 +42,12 @@ createElement(Avatar, { fallback: "李", size: 32 });
 
 ## Props
 
-| Prop | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `image` | `PingoImage` | — | Recurso de imagen predecodificado; si falta se muestran las iniciales de `fallback` |
-| `fallback` | `string` | — | Texto de iniciales mostrado cuando falta la imagen (obligatorio) |
-| `size` | `number` | piel por defecto `40` | Lado del cuadrado (px) |
-| `className` | `string` | — | Se añade tras las clases del propio componente |
+| Prop        | Tipo         | Valor predeterminado  | Descripción                                                                         |
+| ----------- | ------------ | --------------------- | ----------------------------------------------------------------------------------- |
+| `image`     | `PingoImage` | —                     | Recurso de imagen predecodificado; si falta se muestran las iniciales de `fallback` |
+| `fallback`  | `string`     | —                     | Texto de iniciales mostrado cuando falta la imagen (obligatorio)                    |
+| `size`      | `number`     | piel por defecto `40` | Lado del cuadrado (px)                                                              |
+| `className` | `string`     | —                     | Se añade tras las clases del propio componente                                      |
 
 ## Accesibilidad
 

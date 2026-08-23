@@ -49,18 +49,18 @@ root.render(
 
 ## Props
 
-| Prop | 型 | デフォルト | 説明 |
-| --- | --- | --- | --- |
-| `items` | `readonly { value: string; label: string }[]` | — | 選択肢リスト（必須） |
-| `value` | `string` | — | 制御された選択値 |
-| `defaultValue` | `string` | — | 非制御の初期選択値 |
-| `onValueChange` | `(value: string) => void` | — | 選択変更時のコールバック（選択後に自動で折りたたまれる） |
-| `open` | `boolean` | — | 制御された開閉 |
-| `defaultOpen` | `boolean` | `false` | 非制御の初期開閉 |
-| `onOpenChange` | `(open: boolean) => void` | — | 開閉時のコールバック |
-| `placeholder` | `string` | `"選択してください"` | 未選択時にトリガーに表示するプレースホルダーテキスト |
-| `emptyLabel` | `string` | — | フィルタ結果がないときのヒント |
-| `className` | `string` | — | コンポーネントのクラス名に追加される |
+| Prop            | 型                                            | デフォルト           | 説明                                                     |
+| --------------- | --------------------------------------------- | -------------------- | -------------------------------------------------------- |
+| `items`         | `readonly { value: string; label: string }[]` | —                    | 選択肢リスト（必須）                                     |
+| `value`         | `string`                                      | —                    | 制御された選択値                                         |
+| `defaultValue`  | `string`                                      | —                    | 非制御の初期選択値                                       |
+| `onValueChange` | `(value: string) => void`                     | —                    | 選択変更時のコールバック（選択後に自動で折りたたまれる） |
+| `open`          | `boolean`                                     | —                    | 制御された開閉                                           |
+| `defaultOpen`   | `boolean`                                     | `false`              | 非制御の初期開閉                                         |
+| `onOpenChange`  | `(open: boolean) => void`                     | —                    | 開閉時のコールバック                                     |
+| `placeholder`   | `string`                                      | `"選択してください"` | 未選択時にトリガーに表示するプレースホルダーテキスト     |
+| `emptyLabel`    | `string`                                      | —                    | フィルタ結果がないときのヒント                           |
+| `className`     | `string`                                      | —                    | コンポーネントのクラス名に追加される                     |
 
 ## アクセシビリティ
 

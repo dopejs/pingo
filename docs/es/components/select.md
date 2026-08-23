@@ -45,37 +45,37 @@ Todas las partes colaboran mediante contexto y deben montarse como componentes c
 
 ### Select
 
-| Prop | Tipo | Valor por defecto | Descripción |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Valor seleccionado, mostrado en el disparador |
-| `defaultOpen` | `boolean` | `false` | Expandido inicialmente |
-| `onValueChange` | `(value: string) => void` | — | Callback de cambio de selección (se cierra automáticamente tras seleccionar) |
-| `onOpenChange` | `(open: boolean) => void` | — | Callback de apertura y cierre |
-| `children` | `PingoNode` | — | Disparador y contenido (obligatorio) |
-| `className` | `string` | — | Se añade después del nombre de clase del componente |
+| Prop            | Tipo                      | Valor por defecto | Descripción                                                                  |
+| --------------- | ------------------------- | ----------------- | ---------------------------------------------------------------------------- |
+| `value`         | `string`                  | —                 | Valor seleccionado, mostrado en el disparador                                |
+| `defaultOpen`   | `boolean`                 | `false`           | Expandido inicialmente                                                       |
+| `onValueChange` | `(value: string) => void` | —                 | Callback de cambio de selección (se cierra automáticamente tras seleccionar) |
+| `onOpenChange`  | `(open: boolean) => void` | —                 | Callback de apertura y cierre                                                |
+| `children`      | `PingoNode`               | —                 | Disparador y contenido (obligatorio)                                         |
+| `className`     | `string`                  | —                 | Se añade después del nombre de clase del componente                          |
 
 ### SelectTrigger
 
-| Prop | Tipo | Valor por defecto | Descripción |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Contenido personalizado del disparador; por defecto renderiza el valor seleccionado o el texto de marcador de posición |
-| `placeholder` | `string` | — | Texto de marcador de posición cuando no hay selección |
-| `className` | `string` | — | Se añade después del nombre de clase del componente |
+| Prop          | Tipo        | Valor por defecto | Descripción                                                                                                            |
+| ------------- | ----------- | ----------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `children`    | `PingoNode` | —                 | Contenido personalizado del disparador; por defecto renderiza el valor seleccionado o el texto de marcador de posición |
+| `placeholder` | `string`    | —                 | Texto de marcador de posición cuando no hay selección                                                                  |
+| `className`   | `string`    | —                 | Se añade después del nombre de clase del componente                                                                    |
 
 ### SelectContent
 
-| Prop | Tipo | Valor por defecto | Descripción |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Lista de `SelectItem` (obligatorio) |
-| `className` | `string` | — | Se añade después del nombre de clase del componente |
+| Prop        | Tipo        | Valor por defecto | Descripción                                         |
+| ----------- | ----------- | ----------------- | --------------------------------------------------- |
+| `children`  | `PingoNode` | —                 | Lista de `SelectItem` (obligatorio)                 |
+| `className` | `string`    | —                 | Se añade después del nombre de clase del componente |
 
 ### SelectItem
 
-| Prop | Tipo | Valor por defecto | Descripción |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Valor de la opción (obligatorio) |
-| `children` | `string` | — | Texto de la opción (obligatorio) |
-| `className` | `string` | — | Se añade después del nombre de clase del componente |
+| Prop        | Tipo     | Valor por defecto | Descripción                                         |
+| ----------- | -------- | ----------------- | --------------------------------------------------- |
+| `value`     | `string` | —                 | Valor de la opción (obligatorio)                    |
+| `children`  | `string` | —                 | Texto de la opción (obligatorio)                    |
+| `className` | `string` | —                 | Se añade después del nombre de clase del componente |
 
 ## Accesibilidad
 

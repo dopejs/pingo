@@ -63,15 +63,15 @@ estado transitorio de la sesión de edición activa.**
 
 Los campos de `EditTransaction`:
 
-| Campo | Tipo | Descripción |
-| --- | --- | --- |
-| `nodeId` | `number` | Nodo de edición que produjo la transacción |
-| `baseRevision` | `bigint` | Revision sobre el que se basa la transacción |
-| `revision` | `bigint` | Nuevo revision tras la transacción |
-| `delta` | `{ range: { start, end }, text }` | Diferencia de texto; los desplazamientos son UTF-16, alineados con EditContext/InputEvent. Las transacciones de pura selección carecen de este campo |
-| `selection` | `{ anchor, focus, anchorAffinity, focusAffinity }` | Selección tras la transacción |
-| `composition` | `{ start, end }` | Intervalo de composición IME en curso |
-| `kind` | `"edit" \| "composition" \| "external" \| "undo" \| "redo"` | Categoría de la transacción |
+| Campo          | Tipo                                                        | Descripción                                                                                                                                          |
+| -------------- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `nodeId`       | `number`                                                    | Nodo de edición que produjo la transacción                                                                                                           |
+| `baseRevision` | `bigint`                                                    | Revision sobre el que se basa la transacción                                                                                                         |
+| `revision`     | `bigint`                                                    | Nuevo revision tras la transacción                                                                                                                   |
+| `delta`        | `{ range: { start, end }, text }`                           | Diferencia de texto; los desplazamientos son UTF-16, alineados con EditContext/InputEvent. Las transacciones de pura selección carecen de este campo |
+| `selection`    | `{ anchor, focus, anchorAffinity, focusAffinity }`          | Selección tras la transacción                                                                                                                        |
+| `composition`  | `{ start, end }`                                            | Intervalo de composición IME en curso                                                                                                                |
+| `kind`         | `"edit" \| "composition" \| "external" \| "undo" \| "redo"` | Categoría de la transacción                                                                                                                          |
 
 ## Puente de entrada: EditContext y el proxy de degradación
 
@@ -103,17 +103,17 @@ columna deseada (desired-x).
 
 Ambos comparten `EditableTextProps` (`multiline` no es público: lo fija el componente):
 
-| Prop | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Texto controlado |
-| `revision` | `number \| bigint` | — | Revision autoritativo del valor controlado; un valor caducado no sobrescribe entrada del Core más reciente |
-| `controller` | `TextEditingController` | — | Controller local estable; mutuamente excluyente con `value`/`revision` |
-| `readOnly` | `boolean` | `false` | Sólo lectura |
-| `password` | `boolean` | `false` | Modo contraseña (véase más abajo) |
-| `maxGraphemes` | `number` | — | Límite de grafemas |
-| `inputMode` | `EditableInputMode` | `"text"` | Sugerencia de teclado virtual: `decimal` `email` `none` `numeric` `search` `tel` `text` `url` |
-| `onTransaction` | `(t: EditTransaction) => void` | — | Callback de transacciones de edición del Core |
-| `onSubmit` | `() => void` | — | Enter envía en modo de una línea; en multilínea Enter se reserva para el salto de línea |
+| Prop            | Tipo                           | Valor predeterminado | Descripción                                                                                                |
+| --------------- | ------------------------------ | -------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `value`         | `string`                       | —                    | Texto controlado                                                                                           |
+| `revision`      | `number \| bigint`             | —                    | Revision autoritativo del valor controlado; un valor caducado no sobrescribe entrada del Core más reciente |
+| `controller`    | `TextEditingController`        | —                    | Controller local estable; mutuamente excluyente con `value`/`revision`                                     |
+| `readOnly`      | `boolean`                      | `false`              | Sólo lectura                                                                                               |
+| `password`      | `boolean`                      | `false`              | Modo contraseña (véase más abajo)                                                                          |
+| `maxGraphemes`  | `number`                       | —                    | Límite de grafemas                                                                                         |
+| `inputMode`     | `EditableInputMode`            | `"text"`             | Sugerencia de teclado virtual: `decimal` `email` `none` `numeric` `search` `tel` `text` `url`              |
+| `onTransaction` | `(t: EditTransaction) => void` | —                    | Callback de transacciones de edición del Core                                                              |
+| `onSubmit`      | `() => void`                   | —                    | Enter envía en modo de una línea; en multilínea Enter se reserva para el salto de línea                    |
 
 La apariencia del texto hereda `TextProps`: `color`, `fontSize`, `fontWeight`, `lineHeight`,
 `fontFamily`, `font`; el tamaño, `padding`, `backgroundColor`, los bordes (canal `style`), etc.

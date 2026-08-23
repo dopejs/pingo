@@ -38,18 +38,18 @@ root.render(
 
 ## Props
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `first` | `PingoNode` | — | 第一个面板内容（必填） |
-| `second` | `PingoNode` | — | 第二个面板内容（必填） |
-| `split` | `number` | — | 受控：第一个面板占比，`[0, 1]` |
-| `defaultSplit` | `number` | `0.5` | 非受控：初始占比 |
-| `onSplitChange` | `(split: number) => void` | — | 占比变化回调 |
-| `direction` | `"row" \| "column"` | `"row"` | 分割方向 |
-| `minSplit` | `number` | `0.1` | 最小占比（钳制下界） |
-| `maxSplit` | `number` | `0.9` | 最大占比（钳制上界） |
-| `disabled` | `boolean` | `false` | 禁用手柄交互 |
-| `className` | `string` | — | 追加在组件类名之后 |
+| Prop            | 类型                      | 默认值  | 说明                           |
+| --------------- | ------------------------- | ------- | ------------------------------ |
+| `first`         | `PingoNode`               | —       | 第一个面板内容（必填）         |
+| `second`        | `PingoNode`               | —       | 第二个面板内容（必填）         |
+| `split`         | `number`                  | —       | 受控：第一个面板占比，`[0, 1]` |
+| `defaultSplit`  | `number`                  | `0.5`   | 非受控：初始占比               |
+| `onSplitChange` | `(split: number) => void` | —       | 占比变化回调                   |
+| `direction`     | `"row" \| "column"`       | `"row"` | 分割方向                       |
+| `minSplit`      | `number`                  | `0.1`   | 最小占比（钳制下界）           |
+| `maxSplit`      | `number`                  | `0.9`   | 最大占比（钳制上界）           |
+| `disabled`      | `boolean`                 | `false` | 禁用手柄交互                   |
+| `className`     | `string`                  | —       | 追加在组件类名之后             |
 
 ## 无障碍
 

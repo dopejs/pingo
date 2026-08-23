@@ -50,15 +50,15 @@ un clic sur le masque ferme également.
 
 Hérite de `DialogProps` (`open`, `onOpenChange`, `children`, `className`), plus :
 
-| Prop | Type | Valeur par défaut | Description |
-| --- | --- | --- | --- |
-| `title` | `string` | — | Titre (obligatoire) |
-| `description` | `string` | — | Explication complémentaire |
-| `cancelLabel` | `string` | `"取消"` | Texte du bouton Annuler |
-| `actionLabel` | `string` | `"确定"` | Texte du bouton Confirmer |
-| `onCancel` | `() => void` | — | Callback d'annulation (fermeture ensuite) |
-| `onAction` | `() => void` | — | Callback de confirmation (fermeture ensuite) |
-| `destructive` | `boolean` | `false` | Bouton de confirmation en couleur danger |
+| Prop          | Type         | Valeur par défaut | Description                                  |
+| ------------- | ------------ | ----------------- | -------------------------------------------- |
+| `title`       | `string`     | —                 | Titre (obligatoire)                          |
+| `description` | `string`     | —                 | Explication complémentaire                   |
+| `cancelLabel` | `string`     | `"取消"`          | Texte du bouton Annuler                      |
+| `actionLabel` | `string`     | `"确定"`          | Texte du bouton Confirmer                    |
+| `onCancel`    | `() => void` | —                 | Callback d'annulation (fermeture ensuite)    |
+| `onAction`    | `() => void` | —                 | Callback de confirmation (fermeture ensuite) |
+| `destructive` | `boolean`    | `false`           | Bouton de confirmation en couleur danger     |
 
 ## Accessibilité
 

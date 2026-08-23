@@ -58,27 +58,27 @@ function FileTable(): PingoNode {
 
 ### TableProps\<Row\>
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `columns` | `readonly TableColumn<Row>[]` | — | 列定义，同时驱动表头与行（必填） |
-| `rowCount` | `number` | — | 总行数（必填）；为 `0` 时渲染空状态 |
-| `getRow` | `(index: number) => Row` | — | 按行号取行数据，仅会为可见窗口调用（必填） |
-| `estimatedRowHeight` | `number` | `44` | 估算行高，用于虚拟滚动规划 |
-| `onRowPress` | `(index: number) => void` | — | 行点击回调；传入后行可聚焦 |
-| `emptyLabel` | `string` | `"暂无数据"` | 空状态文案 |
-| `renderHeaderCell` | `(column: TableColumn<Row>, index: number) => PingoNode` | — | 替换某一列的默认表头单元格 |
-| `className` | `string` | — | 追加在组件类名之后 |
+| Prop                 | 类型                                                     | 默认值       | 说明                                       |
+| -------------------- | -------------------------------------------------------- | ------------ | ------------------------------------------ |
+| `columns`            | `readonly TableColumn<Row>[]`                            | —            | 列定义，同时驱动表头与行（必填）           |
+| `rowCount`           | `number`                                                 | —            | 总行数（必填）；为 `0` 时渲染空状态        |
+| `getRow`             | `(index: number) => Row`                                 | —            | 按行号取行数据，仅会为可见窗口调用（必填） |
+| `estimatedRowHeight` | `number`                                                 | `44`         | 估算行高，用于虚拟滚动规划                 |
+| `onRowPress`         | `(index: number) => void`                                | —            | 行点击回调；传入后行可聚焦                 |
+| `emptyLabel`         | `string`                                                 | `"暂无数据"` | 空状态文案                                 |
+| `renderHeaderCell`   | `(column: TableColumn<Row>, index: number) => PingoNode` | —            | 替换某一列的默认表头单元格                 |
+| `className`          | `string`                                                 | —            | 追加在组件类名之后                         |
 
 ### TableColumn\<Row\>
 
-| 字段 | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `key` | `string` | — | 列标识，用作节点的 key（必填） |
-| `header` | `string` | — | 表头文案（必填） |
-| `width` | `number` | — | 固定宽度（逻辑像素）；省略时按 `flex` 分配剩余宽度 |
-| `flex` | `number` | `1` | 未设 `width` 时对剩余宽度的分配份额 |
-| `align` | `"start" \| "center" \| "end"` | `"start"` | 列内容水平对齐，表头与单元格共用 |
-| `cell` | `(row: Row, index: number) => PingoNode` | — | 单元格内容构建函数（必填） |
+| 字段     | 类型                                     | 默认值    | 说明                                               |
+| -------- | ---------------------------------------- | --------- | -------------------------------------------------- |
+| `key`    | `string`                                 | —         | 列标识，用作节点的 key（必填）                     |
+| `header` | `string`                                 | —         | 表头文案（必填）                                   |
+| `width`  | `number`                                 | —         | 固定宽度（逻辑像素）；省略时按 `flex` 分配剩余宽度 |
+| `flex`   | `number`                                 | `1`       | 未设 `width` 时对剩余宽度的分配份额                |
+| `align`  | `"start" \| "center" \| "end"`           | `"start"` | 列内容水平对齐，表头与单元格共用                   |
+| `cell`   | `(row: Row, index: number) => PingoNode` | —         | 单元格内容构建函数（必填）                         |
 
 虚拟表格无法按内容测量列宽：未渲染的行不参与测量，因此列宽只能来自列定义——这也让表头与行天然对齐。
 

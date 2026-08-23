@@ -38,21 +38,21 @@ root.render(
 
 ## Props
 
-| Prop | סוג | ברירת מחדל | תיאור |
-| --- | --- | --- | --- |
-| `value` | `CalendarDate` | — | התאריך הנבחר |
-| `month` | `CalendarDate` | — | החודש המוצג המבוקר |
-| `defaultMonth` | `CalendarDate` | `value ?? 2026-01-01` | החודש ההתחלתי הלא־מבוקר |
-| `onSelect` | `(date: CalendarDate) => void` | — | קריאה חוזרת לבחירת תאריך (ונסגר אוטומטית לאחר מכן) |
-| `onMonthChange` | `(month: CalendarDate) => void` | — | קריאה חוזרת למעבר חודש |
-| `weekdayLabels` | `readonly string[]` | `["א","ב","ג","ד","ה","ו","ש"]` | כותרות ימות השבוע |
-| `monthLabel` | `(month: CalendarDate) => string` | — | כותרת חודש מותאמת אישית |
-| `isDisabled` | `(date: CalendarDate) => boolean` | — | השבתת תאריכים מסוימים |
-| `open` | `boolean` | — | פתיחה מבוקרת |
-| `onOpenChange` | `(open: boolean) => void` | — | קריאה חוזרת לשינוי מצב הפתיחה |
-| `placeholder` | `string` | `"בחר תאריך"` | טקסט חלופי כשאין תאריך נבחר |
-| `format` | `(date: CalendarDate) => string` | `formatDate` (`YYYY-MM-DD`) | רינדור התאריך על הטריגר |
-| `className` | `string` | — | מצורף לאחר שם המחלקה של הרכיב |
+| Prop            | סוג                               | ברירת מחדל                      | תיאור                                              |
+| --------------- | --------------------------------- | ------------------------------- | -------------------------------------------------- |
+| `value`         | `CalendarDate`                    | —                               | התאריך הנבחר                                       |
+| `month`         | `CalendarDate`                    | —                               | החודש המוצג המבוקר                                 |
+| `defaultMonth`  | `CalendarDate`                    | `value ?? 2026-01-01`           | החודש ההתחלתי הלא־מבוקר                            |
+| `onSelect`      | `(date: CalendarDate) => void`    | —                               | קריאה חוזרת לבחירת תאריך (ונסגר אוטומטית לאחר מכן) |
+| `onMonthChange` | `(month: CalendarDate) => void`   | —                               | קריאה חוזרת למעבר חודש                             |
+| `weekdayLabels` | `readonly string[]`               | `["א","ב","ג","ד","ה","ו","ש"]` | כותרות ימות השבוע                                  |
+| `monthLabel`    | `(month: CalendarDate) => string` | —                               | כותרת חודש מותאמת אישית                            |
+| `isDisabled`    | `(date: CalendarDate) => boolean` | —                               | השבתת תאריכים מסוימים                              |
+| `open`          | `boolean`                         | —                               | פתיחה מבוקרת                                       |
+| `onOpenChange`  | `(open: boolean) => void`         | —                               | קריאה חוזרת לשינוי מצב הפתיחה                      |
+| `placeholder`   | `string`                          | `"בחר תאריך"`                   | טקסט חלופי כשאין תאריך נבחר                        |
+| `format`        | `(date: CalendarDate) => string`  | `formatDate` (`YYYY-MM-DD`)     | רינדור התאריך על הטריגר                            |
+| `className`     | `string`                          | —                               | מצורף לאחר שם המחלקה של הרכיב                      |
 
 ## נגישות
 

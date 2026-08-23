@@ -44,12 +44,12 @@ createElement(Alert, {
 
 ## Props
 
-| Prop | Type | Valeur par défaut | Description |
-| --- | --- | --- | --- |
-| `title` | `string` | — | Titre (obligatoire) |
-| `children` | `string` | — | Texte descriptif (obligatoire) |
-| `variant` | `"default" \| "destructive"` | `"default"` | Variante visuelle |
-| `className` | `string` | — | Ajouté après les classes du composant |
+| Prop        | Type                         | Valeur par défaut | Description                           |
+| ----------- | ---------------------------- | ----------------- | ------------------------------------- |
+| `title`     | `string`                     | —                 | Titre (obligatoire)                   |
+| `children`  | `string`                     | —                 | Texte descriptif (obligatoire)        |
+| `variant`   | `"default" \| "destructive"` | `"default"`       | Variante visuelle                     |
+| `className` | `string`                     | —                 | Ajouté après les classes du composant |
 
 ## Accessibilité
 

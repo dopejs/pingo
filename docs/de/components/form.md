@@ -43,21 +43,21 @@ Wenn `error` vorhanden ist, wird das Feld als ungültig markiert und der Beschre
 
 ### Form
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Formularinhalt (erforderlich) |
-| `className` | `string` | — | Wird nach dem Komponentenklassennamen angehängt |
+| Prop        | Typ         | Standardwert | Beschreibung                                    |
+| ----------- | ----------- | ------------ | ----------------------------------------------- |
+| `children`  | `PingoNode` | —            | Formularinhalt (erforderlich)                   |
+| `className` | `string`    | —            | Wird nach dem Komponentenklassennamen angehängt |
 
 ### FormField
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `label` | `string` | — | Feldlabel (erforderlich) |
-| `children` | `PingoNode` | — | Feldsteuerelement (erforderlich) |
-| `error` | `string` | — | Fehlermeldung; wenn vorhanden, wird das Feld als ungültig markiert und die Beschreibung ersetzt |
-| `description` | `string` | — | Unterstützender Beschreibungstext |
-| `required` | `boolean` | `false` | Pflichtmarkierung, fügt nach dem Label `*` an |
-| `className` | `string` | — | Wird nach dem Komponentenklassennamen angehängt |
+| Prop          | Typ         | Standardwert | Beschreibung                                                                                    |
+| ------------- | ----------- | ------------ | ----------------------------------------------------------------------------------------------- |
+| `label`       | `string`    | —            | Feldlabel (erforderlich)                                                                        |
+| `children`    | `PingoNode` | —            | Feldsteuerelement (erforderlich)                                                                |
+| `error`       | `string`    | —            | Fehlermeldung; wenn vorhanden, wird das Feld als ungültig markiert und die Beschreibung ersetzt |
+| `description` | `string`    | —            | Unterstützender Beschreibungstext                                                               |
+| `required`    | `boolean`   | `false`      | Pflichtmarkierung, fügt nach dem Label `*` an                                                   |
+| `className`   | `string`    | —            | Wird nach dem Komponentenklassennamen angehängt                                                 |
 
 ## Barrierefreiheit
 

@@ -63,15 +63,15 @@ den flüchtigen Zustand der aktiven Bearbeitungssitzung.**
 
 Die Felder von `EditTransaction`:
 
-| Feld | Typ | Beschreibung |
-| --- | --- | --- |
-| `nodeId` | `number` | Der Bearbeitungsknoten, der die Transaktion erzeugt hat |
-| `baseRevision` | `bigint` | Die Revision, auf der die Transaktion aufbaut |
-| `revision` | `bigint` | Die neue Revision nach der Transaktion |
-| `delta` | `{ range: { start, end }, text }` | Textdifferenz; Offsets in UTF-16, an EditContext/InputEvent ausgerichtet. Reine Auswahl-Transaktionen haben dieses Feld nicht |
-| `selection` | `{ anchor, focus, anchorAffinity, focusAffinity }` | Die Auswahl nach der Transaktion |
-| `composition` | `{ start, end }` | Der laufende IME-Kompositionsbereich |
-| `kind` | `"edit" \| "composition" \| "external" \| "undo" \| "redo"` | Art der Transaktion |
+| Feld           | Typ                                                         | Beschreibung                                                                                                                  |
+| -------------- | ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `nodeId`       | `number`                                                    | Der Bearbeitungsknoten, der die Transaktion erzeugt hat                                                                       |
+| `baseRevision` | `bigint`                                                    | Die Revision, auf der die Transaktion aufbaut                                                                                 |
+| `revision`     | `bigint`                                                    | Die neue Revision nach der Transaktion                                                                                        |
+| `delta`        | `{ range: { start, end }, text }`                           | Textdifferenz; Offsets in UTF-16, an EditContext/InputEvent ausgerichtet. Reine Auswahl-Transaktionen haben dieses Feld nicht |
+| `selection`    | `{ anchor, focus, anchorAffinity, focusAffinity }`          | Die Auswahl nach der Transaktion                                                                                              |
+| `composition`  | `{ start, end }`                                            | Der laufende IME-Kompositionsbereich                                                                                          |
+| `kind`         | `"edit" \| "composition" \| "external" \| "undo" \| "redo"` | Art der Transaktion                                                                                                           |
 
 ## Eingabebrücke: EditContext und Rückfall-Proxy
 
@@ -103,17 +103,17 @@ Pfeiltasten wird die Wunschspalte (desired-x) beibehalten.
 Beide teilen sich `EditableTextProps` (`multiline` ist nicht öffentlich und wird von der Komponente
 fixiert):
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Kontrollierter Text |
-| `revision` | `number \| bigint` | — | Autoritative Revision des kontrollierten Werts; veraltete Werte überschreiben keine neueren Core-Eingaben |
-| `controller` | `TextEditingController` | — | Stabiler lokaler Controller; schließt `value`/`revision` aus |
-| `readOnly` | `boolean` | `false` | Nur lesen |
-| `password` | `boolean` | `false` | Passwortmodus (siehe unten) |
-| `maxGraphemes` | `number` | — | Obergrenze für Grapheme |
-| `inputMode` | `EditableInputMode` | `"text"` | Hinweis für die Bildschirmtastatur: `decimal` `email` `none` `numeric` `search` `tel` `text` `url` |
-| `onTransaction` | `(t: EditTransaction) => void` | — | Callback für Core-Bearbeitungstransaktionen |
-| `onSubmit` | `() => void` | — | Einzeilig: Enter löst Submit aus; mehrzeilig bleibt Enter dem Zeilenumbruch vorbehalten |
+| Prop            | Typ                            | Standardwert | Beschreibung                                                                                              |
+| --------------- | ------------------------------ | ------------ | --------------------------------------------------------------------------------------------------------- |
+| `value`         | `string`                       | —            | Kontrollierter Text                                                                                       |
+| `revision`      | `number \| bigint`             | —            | Autoritative Revision des kontrollierten Werts; veraltete Werte überschreiben keine neueren Core-Eingaben |
+| `controller`    | `TextEditingController`        | —            | Stabiler lokaler Controller; schließt `value`/`revision` aus                                              |
+| `readOnly`      | `boolean`                      | `false`      | Nur lesen                                                                                                 |
+| `password`      | `boolean`                      | `false`      | Passwortmodus (siehe unten)                                                                               |
+| `maxGraphemes`  | `number`                       | —            | Obergrenze für Grapheme                                                                                   |
+| `inputMode`     | `EditableInputMode`            | `"text"`     | Hinweis für die Bildschirmtastatur: `decimal` `email` `none` `numeric` `search` `tel` `text` `url`        |
+| `onTransaction` | `(t: EditTransaction) => void` | —            | Callback für Core-Bearbeitungstransaktionen                                                               |
+| `onSubmit`      | `() => void`                   | —            | Einzeilig: Enter löst Submit aus; mehrzeilig bleibt Enter dem Zeilenumbruch vorbehalten                   |
 
 Die Textdarstellung erbt `TextProps`: `color`, `fontSize`, `fontWeight`, `lineHeight`, `fontFamily`,
 `font`; Größe, `padding`, `backgroundColor`, Rahmen (über den `style`-Kanal) usw. stammen aus den

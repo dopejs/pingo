@@ -31,11 +31,11 @@ Le composant occupe 100 % de la largeur du parent ; `ratio` vaut largeur divisé
 
 ## Props
 
-| Prop | Type | Valeur par défaut | Description |
-| --- | --- | --- | --- |
-| `ratio` | `number` | `1` | Rapport largeur/hauteur (largeur ÷ hauteur) |
-| `children` | `PingoNode` | — | Contenu contraint (obligatoire) |
-| `className` | `string` | — | Ajouté après les classes du composant |
+| Prop        | Type        | Valeur par défaut | Description                                 |
+| ----------- | ----------- | ----------------- | ------------------------------------------- |
+| `ratio`     | `number`    | `1`               | Rapport largeur/hauteur (largeur ÷ hauteur) |
+| `children`  | `PingoNode` | —                 | Contenu contraint (obligatoire)             |
+| `className` | `string`    | —                 | Ajouté après les classes du composant       |
 
 ## Accessibilité
 

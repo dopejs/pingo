@@ -38,21 +38,21 @@ El disparador muestra por defecto la fecha seleccionada según `YYYY-MM-DD`; `fo
 
 ## Props
 
-| Prop | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `value` | `CalendarDate` | — | Fecha seleccionada |
-| `month` | `CalendarDate` | — | Mes mostrado de forma controlada |
-| `defaultMonth` | `CalendarDate` | `value ?? 2026-01-01` | Mes inicial no controlado |
-| `onSelect` | `(date: CalendarDate) => void` | — | Devolución de llamada al seleccionar una fecha (luego se cierra automáticamente) |
-| `onMonthChange` | `(month: CalendarDate) => void` | — | Devolución de llamada al cambiar de página |
-| `weekdayLabels` | `readonly string[]` | `["日","一","二","三","四","五","六"]` | Encabezado de días de la semana |
-| `monthLabel` | `(month: CalendarDate) => string` | — | Título de mes personalizado |
-| `isDisabled` | `(date: CalendarDate) => boolean` | — | Deshabilita fechas específicas |
-| `open` | `boolean` | — | Apertura controlada |
-| `onOpenChange` | `(open: boolean) => void` | — | Devolución de llamada al abrir o cerrar |
-| `placeholder` | `string` | `"选择日期"` | Texto de marcador de posición cuando no hay selección |
-| `format` | `(date: CalendarDate) => string` | `formatDate` (`YYYY-MM-DD`) | Renderizado de la fecha en el disparador |
-| `className` | `string` | — | Se añade después del nombre de clase del componente |
+| Prop            | Tipo                              | Valor predeterminado                   | Descripción                                                                      |
+| --------------- | --------------------------------- | -------------------------------------- | -------------------------------------------------------------------------------- |
+| `value`         | `CalendarDate`                    | —                                      | Fecha seleccionada                                                               |
+| `month`         | `CalendarDate`                    | —                                      | Mes mostrado de forma controlada                                                 |
+| `defaultMonth`  | `CalendarDate`                    | `value ?? 2026-01-01`                  | Mes inicial no controlado                                                        |
+| `onSelect`      | `(date: CalendarDate) => void`    | —                                      | Devolución de llamada al seleccionar una fecha (luego se cierra automáticamente) |
+| `onMonthChange` | `(month: CalendarDate) => void`   | —                                      | Devolución de llamada al cambiar de página                                       |
+| `weekdayLabels` | `readonly string[]`               | `["日","一","二","三","四","五","六"]` | Encabezado de días de la semana                                                  |
+| `monthLabel`    | `(month: CalendarDate) => string` | —                                      | Título de mes personalizado                                                      |
+| `isDisabled`    | `(date: CalendarDate) => boolean` | —                                      | Deshabilita fechas específicas                                                   |
+| `open`          | `boolean`                         | —                                      | Apertura controlada                                                              |
+| `onOpenChange`  | `(open: boolean) => void`         | —                                      | Devolución de llamada al abrir o cerrar                                          |
+| `placeholder`   | `string`                          | `"选择日期"`                           | Texto de marcador de posición cuando no hay selección                            |
+| `format`        | `(date: CalendarDate) => string`  | `formatDate` (`YYYY-MM-DD`)            | Renderizado de la fecha en el disparador                                         |
+| `className`     | `string`                          | —                                      | Se añade después del nombre de clase del componente                              |
 
 ## Accesibilidad
 

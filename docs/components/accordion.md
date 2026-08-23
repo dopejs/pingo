@@ -41,22 +41,22 @@ root.render(
 
 ### Accordion
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `openValue` | `string` | — | 受控：当前展开项的 `value` |
-| `defaultOpenValue` | `string` | — | 非受控：初始展开项的 `value` |
-| `onValueChange` | `(value: string \| undefined) => void` | — | 展开项变化回调；全部收起时为 `undefined` |
-| `children` | `PingoNode` | — | `AccordionItem` 列表（必填） |
-| `className` | `string` | — | 追加在组件类名之后 |
+| Prop               | 类型                                   | 默认值 | 说明                                     |
+| ------------------ | -------------------------------------- | ------ | ---------------------------------------- |
+| `openValue`        | `string`                               | —      | 受控：当前展开项的 `value`               |
+| `defaultOpenValue` | `string`                               | —      | 非受控：初始展开项的 `value`             |
+| `onValueChange`    | `(value: string \| undefined) => void` | —      | 展开项变化回调；全部收起时为 `undefined` |
+| `children`         | `PingoNode`                            | —      | `AccordionItem` 列表（必填）             |
+| `className`        | `string`                               | —      | 追加在组件类名之后                       |
 
 ### AccordionItem
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 项的唯一标识（必填） |
-| `title` | `string` | — | 触发器标题（必填） |
-| `children` | `PingoNode` | — | 展开后显示的内容（必填） |
-| `className` | `string` | — | 追加在组件类名之后 |
+| Prop        | 类型        | 默认值 | 说明                     |
+| ----------- | ----------- | ------ | ------------------------ |
+| `value`     | `string`    | —      | 项的唯一标识（必填）     |
+| `title`     | `string`    | —      | 触发器标题（必填）       |
+| `children`  | `PingoNode` | —      | 展开后显示的内容（必填） |
+| `className` | `string`    | —      | 追加在组件类名之后       |
 
 ## 无障碍
 

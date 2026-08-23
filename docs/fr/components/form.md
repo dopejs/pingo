@@ -43,21 +43,21 @@ Quand `error` existe, le champ est marqué comme invalide et **remplace** le tex
 
 ### Form
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Contenu du formulaire (obligatoire) |
-| `className` | `string` | — | Ajouté après le nom de classe du composant |
+| Prop        | 类型        | 默认值 | 说明                                       |
+| ----------- | ----------- | ------ | ------------------------------------------ |
+| `children`  | `PingoNode` | —      | Contenu du formulaire (obligatoire)        |
+| `className` | `string`    | —      | Ajouté après le nom de classe du composant |
 
 ### FormField
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `label` | `string` | — | Étiquette du champ (obligatoire) |
-| `children` | `PingoNode` | — | Contrôle du champ (obligatoire) |
-| `error` | `string` | — | Message d’erreur ; s’il existe, marque le champ comme invalide et remplace la description |
-| `description` | `string` | — | Texte d’aide descriptif |
-| `required` | `boolean` | `false` | Marque obligatoire, ajoute un `*` après l’étiquette |
-| `className` | `string` | — | Ajouté après le nom de classe du composant |
+| Prop          | 类型        | 默认值  | 说明                                                                                      |
+| ------------- | ----------- | ------- | ----------------------------------------------------------------------------------------- |
+| `label`       | `string`    | —       | Étiquette du champ (obligatoire)                                                          |
+| `children`    | `PingoNode` | —       | Contrôle du champ (obligatoire)                                                           |
+| `error`       | `string`    | —       | Message d’erreur ; s’il existe, marque le champ comme invalide et remplace la description |
+| `description` | `string`    | —       | Texte d’aide descriptif                                                                   |
+| `required`    | `boolean`   | `false` | Marque obligatoire, ajoute un `*` après l’étiquette                                       |
+| `className`   | `string`    | —       | Ajouté après le nom de classe du composant                                                |
 
 ## Accessibilité
 

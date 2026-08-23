@@ -47,7 +47,7 @@ diagnostics مستقرّة. يمكن أيضًا كتابة ورقة الأنما
 
 ```ts
 const sheet = createStyleSheet({
-  card: { backgroundColor: "#ffffffff", borderRadius: 8, padding: 16 },
+  "card": { backgroundColor: "#ffffffff", borderRadius: 8, padding: 16 },
   "card:hover": { backgroundColor: "#f5f5f5ff" },
 });
 ```
@@ -143,7 +143,7 @@ const root = await createHostedCanvasRoot(canvas, {
 import { setTheme, useTheme } from "@dopejs/pingo-ui";
 
 setTheme("dark"); // 所有订阅组件自动重渲染
-useTheme();       // 在组件 render 内读取并订阅
+useTheme(); // 在组件 render 内读取并订阅
 ```
 
 السمة signal على مستوى الوحدة: استدعاء `useTheme()` داخل render للمكوّن يشترك تلقائيًا، و`setTheme`

@@ -42,22 +42,22 @@ root.render(
 
 ## Props
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `value` | `string` | `""` | 非受控用法的初始值；設定 `controller` 後被忽略 |
-| `onValueChange` | `(value: string) => void` | — | 每次編輯事務應用後回調最新值 |
-| `controller` | `TextEditingController` | — | 高階逃生艙：呼叫方持有的持久控制器 |
-| `onTransaction` | `(transaction: EditTransaction) => void` | — | 每次編輯事務的原始回調 |
-| `onSubmit` | `() => void` | — | 提交（回車）回調 |
-| `disabled` | `boolean` | `false` | 禁用態 |
-| `readOnly` | `boolean` | `false` | 唯讀態 |
-| `password` | `boolean` | `false` | 掩碼輸入 |
-| `inputMode` | `"decimal" \| "email" \| "none" \| "numeric" \| "search" \| "tel" \| "text" \| "url"` | `"text"` | 軟鍵盤版面提示 |
-| `className` | `string` | — | 追加在元件類名之後 |
-| `width` | `number` | — | 固定寬度（px） |
-| `semanticLabel` | `string` | — | 無障礙名稱 |
-| `prefix` | `PingoNode` | — | 前置裝飾，如圖示或貨幣符號 |
-| `suffix` | `PingoNode` | — | 後置裝飾，如單位或清除按鈕 |
+| Prop            | 型別                                                                                  | 預設值   | 說明                                           |
+| --------------- | ------------------------------------------------------------------------------------- | -------- | ---------------------------------------------- |
+| `value`         | `string`                                                                              | `""`     | 非受控用法的初始值；設定 `controller` 後被忽略 |
+| `onValueChange` | `(value: string) => void`                                                             | —        | 每次編輯事務應用後回調最新值                   |
+| `controller`    | `TextEditingController`                                                               | —        | 高階逃生艙：呼叫方持有的持久控制器             |
+| `onTransaction` | `(transaction: EditTransaction) => void`                                              | —        | 每次編輯事務的原始回調                         |
+| `onSubmit`      | `() => void`                                                                          | —        | 提交（回車）回調                               |
+| `disabled`      | `boolean`                                                                             | `false`  | 禁用態                                         |
+| `readOnly`      | `boolean`                                                                             | `false`  | 唯讀態                                         |
+| `password`      | `boolean`                                                                             | `false`  | 掩碼輸入                                       |
+| `inputMode`     | `"decimal" \| "email" \| "none" \| "numeric" \| "search" \| "tel" \| "text" \| "url"` | `"text"` | 軟鍵盤版面提示                                 |
+| `className`     | `string`                                                                              | —        | 追加在元件類名之後                             |
+| `width`         | `number`                                                                              | —        | 固定寬度（px）                                 |
+| `semanticLabel` | `string`                                                                              | —        | 無障礙名稱                                     |
+| `prefix`        | `PingoNode`                                                                           | —        | 前置裝飾，如圖示或貨幣符號                     |
+| `suffix`        | `PingoNode`                                                                           | —        | 後置裝飾，如單位或清除按鈕                     |
 
 ## 無障礙
 

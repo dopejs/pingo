@@ -50,22 +50,22 @@ root.render(
 
 ### Menubar
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 受控：當前開啟選單的值 |
-| `onValueChange` | `(value: string \| undefined) => void` | — | 開啟選單變化回調（關閉時為 `undefined`） |
-| `children` | `PingoNode` | — | 若干 `MenubarMenu`（必填） |
-| `className` | `string` | — | 追加類名 |
-| `navigation` | `boolean` | `false` | 使用導航語義（[NavigationMenu](/components/navigation-menu) 內部使用） |
+| Prop            | 型別                                   | 預設值  | 說明                                                                   |
+| --------------- | -------------------------------------- | ------- | ---------------------------------------------------------------------- |
+| `value`         | `string`                               | —       | 受控：當前開啟選單的值                                                 |
+| `onValueChange` | `(value: string \| undefined) => void` | —       | 開啟選單變化回調（關閉時為 `undefined`）                               |
+| `children`      | `PingoNode`                            | —       | 若干 `MenubarMenu`（必填）                                             |
+| `className`     | `string`                               | —       | 追加類名                                                               |
+| `navigation`    | `boolean`                              | `false` | 使用導航語義（[NavigationMenu](/components/navigation-menu) 內部使用） |
 
 ### MenubarMenu
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 選單標識（必填） |
-| `label` | `string` | — | 欄上顯示的標籤（必填） |
-| `children` | `PingoNode` | — | 開啟時的面板內容（必填） |
-| `className` | `string` | — | 追加類名 |
+| Prop        | 型別        | 預設值 | 說明                     |
+| ----------- | ----------- | ------ | ------------------------ |
+| `value`     | `string`    | —      | 選單標識（必填）         |
+| `label`     | `string`    | —      | 欄上顯示的標籤（必填）   |
+| `children`  | `PingoNode` | —      | 開啟時的面板內容（必填） |
+| `className` | `string`    | —      | 追加類名                 |
 
 ## 無障礙
 

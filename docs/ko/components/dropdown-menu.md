@@ -46,37 +46,37 @@ Trigger와 Content는 context를 통해 루트 컴포넌트 상태를 읽으므�
 
 ### DropdownMenu
 
-| Prop | 유형 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 현재 선택된 값(해당 항목 강조) |
-| `defaultOpen` | `boolean` | `false` | 초기 열림/닫힘 |
-| `onValueChange` | `(value: string) => void` | — | 메뉴 항목 선택 콜백 |
-| `onOpenChange` | `(open: boolean) => void` | — | 열림/닫힘 변경 콜백 |
-| `children` | `PingoNode` | — | Trigger와 Content(필수) |
-| `className` | `string` | — | 앵커 컨테이너 클래스 이름 뒤에 추가 |
+| Prop            | 유형                      | 기본값  | 설명                                |
+| --------------- | ------------------------- | ------- | ----------------------------------- |
+| `value`         | `string`                  | —       | 현재 선택된 값(해당 항목 강조)      |
+| `defaultOpen`   | `boolean`                 | `false` | 초기 열림/닫힘                      |
+| `onValueChange` | `(value: string) => void` | —       | 메뉴 항목 선택 콜백                 |
+| `onOpenChange`  | `(open: boolean) => void` | —       | 열림/닫힘 변경 콜백                 |
+| `children`      | `PingoNode`               | —       | Trigger와 Content(필수)             |
+| `className`     | `string`                  | —       | 앵커 컨테이너 클래스 이름 뒤에 추가 |
 
 ### DropdownMenuTrigger
 
-| Prop | 유형 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | 트리거 요소. 생략하면 현재 값/자리표시자 텍스트를 렌더링합니다 |
-| `placeholder` | `string` | — | 선택된 값이 없을 때의 자리표시자 텍스트 |
-| `className` | `string` | — | 추가 클래스 이름 |
+| Prop          | 유형        | 기본값 | 설명                                                           |
+| ------------- | ----------- | ------ | -------------------------------------------------------------- |
+| `children`    | `PingoNode` | —      | 트리거 요소. 생략하면 현재 값/자리표시자 텍스트를 렌더링합니다 |
+| `placeholder` | `string`    | —      | 선택된 값이 없을 때의 자리표시자 텍스트                        |
+| `className`   | `string`    | —      | 추가 클래스 이름                                               |
 
 ### DropdownMenuContent
 
-| Prop | 유형 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | 메뉴 항목(필수) |
-| `className` | `string` | — | 추가 클래스 이름 |
+| Prop        | 유형        | 기본값 | 설명             |
+| ----------- | ----------- | ------ | ---------------- |
+| `children`  | `PingoNode` | —      | 메뉴 항목(필수)  |
+| `className` | `string`    | —      | 추가 클래스 이름 |
 
 ### DropdownMenuItem
 
-| Prop | 유형 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 메뉴 항목 값(필수) |
-| `children` | `string` | — | 표시 텍스트(필수) |
-| `className` | `string` | — | 추가 클래스 이름 |
+| Prop        | 유형     | 기본값 | 설명               |
+| ----------- | -------- | ------ | ------------------ |
+| `value`     | `string` | —      | 메뉴 항목 값(필수) |
+| `children`  | `string` | —      | 표시 텍스트(필수)  |
+| `className` | `string` | —      | 추가 클래스 이름   |
 
 ## 접근성
 

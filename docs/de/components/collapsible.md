@@ -42,15 +42,15 @@ Stil.
 
 ## Props
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `trigger` | `string` | — | Triggertext (Pflicht) |
-| `children` | `PingoNode` | — | Inhalt im aufgeklappten Zustand (Pflicht) |
-| `open` | `boolean` | — | Kontrolliert: aktueller Aufklappzustand |
-| `defaultOpen` | `boolean` | `false` | Unkontrolliert: anfänglicher Aufklappzustand |
-| `onOpenChange` | `(open: boolean) => void` | — | Callback bei Änderung des Aufklappzustands |
-| `disabled` | `boolean` | `false` | Deaktiviert den Trigger |
-| `className` | `string` | — | Wird hinter die Komponentenklassen gehängt |
+| Prop           | Typ                       | Standardwert | Beschreibung                                 |
+| -------------- | ------------------------- | ------------ | -------------------------------------------- |
+| `trigger`      | `string`                  | —            | Triggertext (Pflicht)                        |
+| `children`     | `PingoNode`               | —            | Inhalt im aufgeklappten Zustand (Pflicht)    |
+| `open`         | `boolean`                 | —            | Kontrolliert: aktueller Aufklappzustand      |
+| `defaultOpen`  | `boolean`                 | `false`      | Unkontrolliert: anfänglicher Aufklappzustand |
+| `onOpenChange` | `(open: boolean) => void` | —            | Callback bei Änderung des Aufklappzustands   |
+| `disabled`     | `boolean`                 | `false`      | Deaktiviert den Trigger                      |
+| `className`    | `string`                  | —            | Wird hinter die Komponentenklassen gehängt   |
 
 ## Barrierefreiheit
 

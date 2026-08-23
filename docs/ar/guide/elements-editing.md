@@ -59,15 +59,15 @@ createElement(Input, {
 
 حقول `EditTransaction`:
 
-| الحقل | النوع | الوصف |
-| --- | --- | --- |
-| `nodeId` | `number` | عقدة التحرير التي أنتجت المعاملة |
-| `baseRevision` | `bigint` | ‏revision التي بُنيت عليها المعاملة |
-| `revision` | `bigint` | ‏revision الجديدة بعد المعاملة |
-| `delta` | `{ range: { start, end }, text }` | فرق النصّ؛ الإزاحات UTF-16 مواءَمة لـ EditContext/InputEvent. معاملات التحديد الصرفة بلا هذا الحقل |
-| `selection` | `{ anchor, focus, anchorAffinity, focusAffinity }` | التحديد بعد المعاملة |
-| `composition` | `{ start, end }` | مجال تركيب IME الجاري |
-| `kind` | `"edit" \| "composition" \| "external" \| "undo" \| "redo"` | فئة المعاملة |
+| الحقل          | النوع                                                       | الوصف                                                                                              |
+| -------------- | ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `nodeId`       | `number`                                                    | عقدة التحرير التي أنتجت المعاملة                                                                   |
+| `baseRevision` | `bigint`                                                    | ‏revision التي بُنيت عليها المعاملة                                                                |
+| `revision`     | `bigint`                                                    | ‏revision الجديدة بعد المعاملة                                                                     |
+| `delta`        | `{ range: { start, end }, text }`                           | فرق النصّ؛ الإزاحات UTF-16 مواءَمة لـ EditContext/InputEvent. معاملات التحديد الصرفة بلا هذا الحقل |
+| `selection`    | `{ anchor, focus, anchorAffinity, focusAffinity }`          | التحديد بعد المعاملة                                                                               |
+| `composition`  | `{ start, end }`                                            | مجال تركيب IME الجاري                                                                              |
+| `kind`         | `"edit" \| "composition" \| "external" \| "undo" \| "redo"` | فئة المعاملة                                                                                       |
 
 ## جسر الإدخال: EditContext والوكيل التراجعي
 
@@ -94,17 +94,17 @@ createElement(Input, {
 
 يتشارك كلاهما `EditableTextProps` (‏`multiline` غير مكشوفة بل يثبّتها المكوّن):
 
-| Prop | النوع | القيمة الافتراضية | الوصف |
-| --- | --- | --- | --- |
-| `value` | `string` | — | النصّ المتحكَّم به |
-| `revision` | `number \| bigint` | — | ‏revision المرجعية للقيمة المتحكَّم بها؛ القيمة المنتهية الصلاحية لا تطمس إدخالًا أحدث في النواة |
-| `controller` | `TextEditingController` | — | متحكّم محلّي مستقرّ؛ متنافٍ مع `value`/`revision` |
-| `readOnly` | `boolean` | `false` | قراءة فقط |
-| `password` | `boolean` | `false` | وضع كلمة المرور (انظر أدناه) |
-| `maxGraphemes` | `number` | — | الحدّ الأقصى للعناقيد الحرفية |
-| `inputMode` | `EditableInputMode` | `"text"` | تلميح لوحة المفاتيح البرمجية: `decimal` `email` `none` `numeric` `search` `tel` `text` `url` |
-| `onTransaction` | `(t: EditTransaction) => void` | — | ردّ نداء معاملات تحرير النواة |
-| `onSubmit` | `() => void` | — | إرسال بـ Enter في السطر الواحد؛ Enter في تعدّد الأسطر محجوز للسطر الجديد |
+| Prop            | النوع                          | القيمة الافتراضية | الوصف                                                                                            |
+| --------------- | ------------------------------ | ----------------- | ------------------------------------------------------------------------------------------------ |
+| `value`         | `string`                       | —                 | النصّ المتحكَّم به                                                                               |
+| `revision`      | `number \| bigint`             | —                 | ‏revision المرجعية للقيمة المتحكَّم بها؛ القيمة المنتهية الصلاحية لا تطمس إدخالًا أحدث في النواة |
+| `controller`    | `TextEditingController`        | —                 | متحكّم محلّي مستقرّ؛ متنافٍ مع `value`/`revision`                                                |
+| `readOnly`      | `boolean`                      | `false`           | قراءة فقط                                                                                        |
+| `password`      | `boolean`                      | `false`           | وضع كلمة المرور (انظر أدناه)                                                                     |
+| `maxGraphemes`  | `number`                       | —                 | الحدّ الأقصى للعناقيد الحرفية                                                                    |
+| `inputMode`     | `EditableInputMode`            | `"text"`          | تلميح لوحة المفاتيح البرمجية: `decimal` `email` `none` `numeric` `search` `tel` `text` `url`     |
+| `onTransaction` | `(t: EditTransaction) => void` | —                 | ردّ نداء معاملات تحرير النواة                                                                    |
+| `onSubmit`      | `() => void`                   | —                 | إرسال بـ Enter في السطر الواحد؛ Enter في تعدّد الأسطر محجوز للسطر الجديد                         |
 
 يرث مظهر النصّ من `TextProps`: ‏`color` و`fontSize` و`fontWeight` و`lineHeight` و`fontFamily`
 و`font`؛ والمقاسات و`padding` و`backgroundColor` والإطارات (قناة `style`) وغيرها من

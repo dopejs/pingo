@@ -48,25 +48,25 @@ noch auf Tastatur. Das Beispiel deaktiviert die Wochenenden:
 
 ### CalendarProps
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `value` | `CalendarDate` | — | Gewähltes Datum (kontrolliert) |
-| `month` | `CalendarDate` | — | Angezeigter Monat (kontrolliert); ohne Angabe intern verwaltet |
-| `defaultMonth` | `CalendarDate` | `value` ?? Januar 2026 | Anfangsmonat im unkontrollierten Modus |
-| `onSelect` | `(date: CalendarDate) => void` | — | Callback beim Anklicken eines Datums |
-| `onMonthChange` | `(month: CalendarDate) => void` | — | Callback beim Monatswechsel (kontrolliert wie unkontrolliert) |
-| `weekdayLabels` | `readonly string[]` | `["日","一","二","三","四","五","六"]` | Wochentag-Köpfe, beginnend mit Sonntag |
-| `monthLabel` | `(month: CalendarDate) => string` | Format `"2026 年 8 月"` | Eigener Monatstitel |
-| `isDisabled` | `(date: CalendarDate) => boolean` | — | Bestimmte Tage deaktivieren |
-| `className` | `string` | — | Wird hinter die Komponentenklassen gehängt |
+| Prop            | Typ                               | Standardwert                           | Beschreibung                                                   |
+| --------------- | --------------------------------- | -------------------------------------- | -------------------------------------------------------------- |
+| `value`         | `CalendarDate`                    | —                                      | Gewähltes Datum (kontrolliert)                                 |
+| `month`         | `CalendarDate`                    | —                                      | Angezeigter Monat (kontrolliert); ohne Angabe intern verwaltet |
+| `defaultMonth`  | `CalendarDate`                    | `value` ?? Januar 2026                 | Anfangsmonat im unkontrollierten Modus                         |
+| `onSelect`      | `(date: CalendarDate) => void`    | —                                      | Callback beim Anklicken eines Datums                           |
+| `onMonthChange` | `(month: CalendarDate) => void`   | —                                      | Callback beim Monatswechsel (kontrolliert wie unkontrolliert)  |
+| `weekdayLabels` | `readonly string[]`               | `["日","一","二","三","四","五","六"]` | Wochentag-Köpfe, beginnend mit Sonntag                         |
+| `monthLabel`    | `(month: CalendarDate) => string` | Format `"2026 年 8 月"`                | Eigener Monatstitel                                            |
+| `isDisabled`    | `(date: CalendarDate) => boolean` | —                                      | Bestimmte Tage deaktivieren                                    |
+| `className`     | `string`                          | —                                      | Wird hinter die Komponentenklassen gehängt                     |
 
 ### CalendarDate
 
-| Feld | Typ | Beschreibung |
-| --- | --- | --- |
-| `year` | `number` | Jahr |
-| `month` | `number` | Monat, 1–12 |
-| `day` | `number` | Tag, 1–31 |
+| Feld    | Typ      | Beschreibung |
+| ------- | -------- | ------------ |
+| `year`  | `number` | Jahr         |
+| `month` | `number` | Monat, 1–12  |
+| `day`   | `number` | Tag, 1–31    |
 
 Das Paket exportiert außerdem reine Funktionen wie `daysInMonth`, `monthGrid`, `shiftMonth` und
 `sameDate` für eigene Datumslogik.

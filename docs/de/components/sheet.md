@@ -38,9 +38,9 @@ Der Overlay füllt seinen eigenen Eltern-Container; montieren Sie ihn daher nahe
 
 Erbt von `DialogProps` (`open`, `onOpenChange`, `children`, `className`) und bietet zusätzlich:
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `side` | `"left" \| "right" \| "top" \| "bottom"` | `"right"` | Kante, von der eingefahren wird |
+| Prop   | Typ                                      | Standardwert | Beschreibung                    |
+| ------ | ---------------------------------------- | ------------ | ------------------------------- |
+| `side` | `"left" \| "right" \| "top" \| "bottom"` | `"right"`    | Kante, von der eingefahren wird |
 
 ## Barrierefreiheit
 

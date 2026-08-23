@@ -29,11 +29,11 @@ root.render(createElement(Skeleton, { width: 320, height: 16 }));
 
 ## Props
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `width` | `number` | — | 占位块宽度（px），省略时由布局决定 |
-| `height` | `number` | — | 占位块高度（px），省略时由布局决定 |
-| `className` | `string` | — | 追加在组件类名之后 |
+| Prop        | 类型     | 默认值 | 说明                               |
+| ----------- | -------- | ------ | ---------------------------------- |
+| `width`     | `number` | —      | 占位块宽度（px），省略时由布局决定 |
+| `height`    | `number` | —      | 占位块高度（px），省略时由布局决定 |
+| `className` | `string` | —      | 追加在组件类名之后                 |
 
 ## 无障碍
 

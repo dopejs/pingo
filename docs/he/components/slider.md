@@ -42,17 +42,17 @@ root.render(
 
 ## Props
 
-| Prop | טיפוס | ברירת מחדל | תיאור |
-| --- | --- | --- | --- |
-| `value` | `number` | — | הערך הנוכחי במצב נשלט |
-| `defaultValue` | `number` | `min` | ערך התחלתי במצב לא נשלט |
-| `onValueChange` | `(value: number) => void` | — | קריאה חוזרת בעת שינוי הערך |
-| `min` | `number` | `0` | ערך מינימלי |
-| `max` | `number` | `100` | ערך מקסימלי |
-| `step` | `number` | `1` | קפיצת מקלדת |
-| `disabled` | `boolean` | `false` | מצב מושבת |
-| `semanticLabel` | `string` | — | שם נגיש |
-| `className` | `string` | — | מתווסף לאחר שם המחלקה של הרכיב |
+| Prop            | טיפוס                     | ברירת מחדל | תיאור                          |
+| --------------- | ------------------------- | ---------- | ------------------------------ |
+| `value`         | `number`                  | —          | הערך הנוכחי במצב נשלט          |
+| `defaultValue`  | `number`                  | `min`      | ערך התחלתי במצב לא נשלט        |
+| `onValueChange` | `(value: number) => void` | —          | קריאה חוזרת בעת שינוי הערך     |
+| `min`           | `number`                  | `0`        | ערך מינימלי                    |
+| `max`           | `number`                  | `100`      | ערך מקסימלי                    |
+| `step`          | `number`                  | `1`        | קפיצת מקלדת                    |
+| `disabled`      | `boolean`                 | `false`    | מצב מושבת                      |
+| `semanticLabel` | `string`                  | —          | שם נגיש                        |
+| `className`     | `string`                  | —          | מתווסף לאחר שם המחלקה של הרכיב |
 
 ## נגישות
 

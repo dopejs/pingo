@@ -38,18 +38,18 @@ Mit `direction: "column"` wechseln Sie zu einer horizontalen Teilung; der Griff 
 
 ## Props
 
-| Prop | Typ | Standard | Beschreibung |
-| --- | --- | --- | --- |
-| `first` | `PingoNode` | — | Inhalt des ersten Panels (erforderlich) |
-| `second` | `PingoNode` | — | Inhalt des zweiten Panels (erforderlich) |
-| `split` | `number` | — | Kontrolliert: Anteil des ersten Panels, `[0, 1]` |
-| `defaultSplit` | `number` | `0.5` | Unkontrolliert: anfänglicher Anteil |
-| `onSplitChange` | `(split: number) => void` | — | Callback bei Anteilsänderung |
-| `direction` | `"row" \| "column"` | `"row"` | Teilungsrichtung |
-| `minSplit` | `number` | `0.1` | Minimaler Anteil (untere Grenze) |
-| `maxSplit` | `number` | `0.9` | Maximaler Anteil (obere Grenze) |
-| `disabled` | `boolean` | `false` | Interaktion mit dem Griff deaktivieren |
-| `className` | `string` | — | Wird nach dem Komponenten-Klassennamen angehängt |
+| Prop            | Typ                       | Standard | Beschreibung                                     |
+| --------------- | ------------------------- | -------- | ------------------------------------------------ |
+| `first`         | `PingoNode`               | —        | Inhalt des ersten Panels (erforderlich)          |
+| `second`        | `PingoNode`               | —        | Inhalt des zweiten Panels (erforderlich)         |
+| `split`         | `number`                  | —        | Kontrolliert: Anteil des ersten Panels, `[0, 1]` |
+| `defaultSplit`  | `number`                  | `0.5`    | Unkontrolliert: anfänglicher Anteil              |
+| `onSplitChange` | `(split: number) => void` | —        | Callback bei Anteilsänderung                     |
+| `direction`     | `"row" \| "column"`       | `"row"`  | Teilungsrichtung                                 |
+| `minSplit`      | `number`                  | `0.1`    | Minimaler Anteil (untere Grenze)                 |
+| `maxSplit`      | `number`                  | `0.9`    | Maximaler Anteil (obere Grenze)                  |
+| `disabled`      | `boolean`                 | `false`  | Interaktion mit dem Griff deaktivieren           |
+| `className`     | `string`                  | —        | Wird nach dem Komponenten-Klassennamen angehängt |
 
 ## Barrierefreiheit
 

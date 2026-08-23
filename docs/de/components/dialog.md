@@ -54,26 +54,26 @@ Die Overlay-Ebene des Dialogs füllt **ihren eigenen Elterncontainer** aus (nich
 
 ### Dialog
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `open` | `boolean` | — | Ob der Dialog geöffnet ist (erforderlich, kontrolliert) |
-| `onOpenChange` | `(open: boolean) => void` | — | Callback, wenn ein Schließen/Öffnen angefordert wird |
-| `children` | `PingoNode` | — | Inhalt des Panels (erforderlich) |
-| `className` | `string` | — | Wird nach dem Klassennamen der Overlay-Ebene angehängt |
+| Prop           | Typ                       | Standardwert | Beschreibung                                            |
+| -------------- | ------------------------- | ------------ | ------------------------------------------------------- |
+| `open`         | `boolean`                 | —            | Ob der Dialog geöffnet ist (erforderlich, kontrolliert) |
+| `onOpenChange` | `(open: boolean) => void` | —            | Callback, wenn ein Schließen/Öffnen angefordert wird    |
+| `children`     | `PingoNode`               | —            | Inhalt des Panels (erforderlich)                        |
+| `className`    | `string`                  | —            | Wird nach dem Klassennamen der Overlay-Ebene angehängt  |
 
 ### DialogHeader / DialogFooter
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Inhalt des Bereichs (erforderlich) |
-| `className` | `string` | — | Zusätzlicher Klassenname |
+| Prop        | Typ         | Standardwert | Beschreibung                       |
+| ----------- | ----------- | ------------ | ---------------------------------- |
+| `children`  | `PingoNode` | —            | Inhalt des Bereichs (erforderlich) |
+| `className` | `string`    | —            | Zusätzlicher Klassenname           |
 
 ### DialogTitle / DialogDescription
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `children` | `string` | — | Textinhalt (erforderlich) |
-| `className` | `string` | — | Zusätzlicher Klassenname |
+| Prop        | Typ      | Standardwert | Beschreibung              |
+| ----------- | -------- | ------------ | ------------------------- |
+| `children`  | `string` | —            | Textinhalt (erforderlich) |
+| `className` | `string` | —            | Zusätzlicher Klassenname  |
 
 ## Barrierefreiheit
 

@@ -43,30 +43,30 @@ root.render(
 
 ### Sidebar
 
-| Prop | 型 | デフォルト値 | 説明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 制御：現在選択中の項目の `value` |
-| `defaultValue` | `string` | — | 非制御：初期選択項目の `value` |
-| `onValueChange` | `(value: string) => void` | — | 選択変更時のコールバック |
-| `children` | `PingoNode` | — | `SidebarSection` のリスト（必須） |
-| `className` | `string` | — | コンポーネントのクラス名の後に追加 |
+| Prop            | 型                        | デフォルト値 | 説明                               |
+| --------------- | ------------------------- | ------------ | ---------------------------------- |
+| `value`         | `string`                  | —            | 制御：現在選択中の項目の `value`   |
+| `defaultValue`  | `string`                  | —            | 非制御：初期選択項目の `value`     |
+| `onValueChange` | `(value: string) => void` | —            | 選択変更時のコールバック           |
+| `children`      | `PingoNode`               | —            | `SidebarSection` のリスト（必須）  |
+| `className`     | `string`                  | —            | コンポーネントのクラス名の後に追加 |
 
 ### SidebarSection
 
-| Prop | 型 | デフォルト値 | 説明 |
-| --- | --- | --- | --- |
-| `title` | `string` | — | グループのタイトル。省略時はタイトル行を描画しません |
-| `children` | `PingoNode` | — | `SidebarItem` のリスト（必須） |
-| `className` | `string` | — | コンポーネントのクラス名の後に追加 |
+| Prop        | 型          | デフォルト値 | 説明                                                 |
+| ----------- | ----------- | ------------ | ---------------------------------------------------- |
+| `title`     | `string`    | —            | グループのタイトル。省略時はタイトル行を描画しません |
+| `children`  | `PingoNode` | —            | `SidebarItem` のリスト（必須）                       |
+| `className` | `string`    | —            | コンポーネントのクラス名の後に追加                   |
 
 ### SidebarItem
 
-| Prop | 型 | デフォルト値 | 説明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 項目の一意な識別子（必須） |
-| `label` | `string` | — | 項目のテキスト。アクセシビリティ名としても使用（必須） |
-| `icon` | `PingoNode` | — | 先頭スロット。アイコン用 |
-| `className` | `string` | — | コンポーネントのクラス名の後に追加 |
+| Prop        | 型          | デフォルト値 | 説明                                                   |
+| ----------- | ----------- | ------------ | ------------------------------------------------------ |
+| `value`     | `string`    | —            | 項目の一意な識別子（必須）                             |
+| `label`     | `string`    | —            | 項目のテキスト。アクセシビリティ名としても使用（必須） |
+| `icon`      | `PingoNode` | —            | 先頭スロット。アイコン用                               |
+| `className` | `string`    | —            | コンポーネントのクラス名の後に追加                     |
 
 ## アクセシビリティ
 

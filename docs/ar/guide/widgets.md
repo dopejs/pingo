@@ -15,12 +15,12 @@ description: "@dopejs/pingo-widgets يوفر TextField وTextArea وPressable و
 
 ## الصادرات والتسمية
 
-| الصادر | الوصف |
-| --- | --- |
+| الصادر      | الوصف                                                                           |
+| ----------- | ------------------------------------------------------------------------------- |
 | `TextField` | إدخال سطر واحد: حدود + زخرفة حالة الخطأ، يجمع داخليًا بدائية `editableText` فقط |
-| `TextArea` | نسخة متعددة الأسطر؛ Enter ينشئ سطرًا جديدًا، ويُترك الإرسال لنموذج المضيف |
-| `Pressable` | سطح تفعيل قابل للتركيز: View + تركيز + click/tap أصلي |
-| `Button` | تركيبة ملائمة لزر نصي من `Pressable` + `Text` |
+| `TextArea`  | نسخة متعددة الأسطر؛ Enter ينشئ سطرًا جديدًا، ويُترك الإرسال لنموذج المضيف       |
+| `Pressable` | سطح تفعيل قابل للتركيز: View + تركيز + click/tap أصلي                           |
+| `Button`    | تركيبة ملائمة لزر نصي من `Pressable` + `Text`                                   |
 
 ملاحظة حول التسمية: `TextArea` في `@dopejs/pingo` تشير إلى هذا المكوّن المزخرف؛ بينما تُصدَّر البدائية**متعددة الأسطر** باسم
 `UnstyledTextArea` (وبالمثل `TextAreaProps` لها الاسم المستعار `UnstyledTextAreaProps`).
@@ -46,27 +46,27 @@ createElement(TextField, {
 
 ### Props (TextField)
 
-| Prop | النوع | الافتراضي | الوصف |
-| --- | --- | --- | --- |
-| `value` | `string` | `""` | النص المُتحكم به |
-| `revision` | `number \| bigint` | `0n` | المراجعة الموثوقة للقيمة المُتحكم بها |
-| `controller` | `TextEditingController` | — | controller محلي؛ حصري مع `value`/`revision` |
-| `readOnly` | `boolean` | — | للقراءة فقط |
-| `password` | `boolean` | — | وضع كلمة المرور (النص الصريح لا يدخل DisplayList ولا قيمة إمكانية الوصول) |
-| `maxGraphemes` | `number` | — | الحد الأقصى للوحدات الخطية (grapheme) |
-| `inputMode` | `EditableInputMode` | — | تلميح لتخطيط لوحة المفاتيح الافتراضية |
-| `width` | `number` | `240` | العرض الكلي بما فيه الحدود |
-| `height` | `number` | `lineHeight × rows + 16` | الارتفاع الكلي بما فيه الحدود |
-| `fontSize` | `number` | `14` | حجم الخط |
-| `lineHeight` | `number` | `round(fontSize × 1.5)` | ارتفاع السطر |
-| `color` | `Color` | `#1f2329ff` | لون النص |
-| `backgroundColor` | `Color` | `#ffffffff` | لون خلفية الحقل |
-| `borderColor` | `Color` | `#c0c4ccff` | لون الحدود |
-| `errorColor` | `Color` | `#d03050ff` | لون حدود ووصف حالة الخطأ |
-| `error` | `string` | — | غير فارغ يعني حالة خطأ: حدود بلون الخطأ + وصف خطأ أسفله |
-| `onTransaction` | `(t: EditTransaction) => void` | — | معاودة معاملة التحرير الأساسية (Core) |
-| `onSubmit` | `() => void` | — | إرسال عند Enter في السطر الواحد |
-| `semanticLabel` | `string` | — | اسم إمكانية الوصول (الدور ثابت دائمًا `textbox`) |
+| Prop              | النوع                          | الافتراضي                | الوصف                                                                     |
+| ----------------- | ------------------------------ | ------------------------ | ------------------------------------------------------------------------- |
+| `value`           | `string`                       | `""`                     | النص المُتحكم به                                                          |
+| `revision`        | `number \| bigint`             | `0n`                     | المراجعة الموثوقة للقيمة المُتحكم بها                                     |
+| `controller`      | `TextEditingController`        | —                        | controller محلي؛ حصري مع `value`/`revision`                               |
+| `readOnly`        | `boolean`                      | —                        | للقراءة فقط                                                               |
+| `password`        | `boolean`                      | —                        | وضع كلمة المرور (النص الصريح لا يدخل DisplayList ولا قيمة إمكانية الوصول) |
+| `maxGraphemes`    | `number`                       | —                        | الحد الأقصى للوحدات الخطية (grapheme)                                     |
+| `inputMode`       | `EditableInputMode`            | —                        | تلميح لتخطيط لوحة المفاتيح الافتراضية                                     |
+| `width`           | `number`                       | `240`                    | العرض الكلي بما فيه الحدود                                                |
+| `height`          | `number`                       | `lineHeight × rows + 16` | الارتفاع الكلي بما فيه الحدود                                             |
+| `fontSize`        | `number`                       | `14`                     | حجم الخط                                                                  |
+| `lineHeight`      | `number`                       | `round(fontSize × 1.5)`  | ارتفاع السطر                                                              |
+| `color`           | `Color`                        | `#1f2329ff`              | لون النص                                                                  |
+| `backgroundColor` | `Color`                        | `#ffffffff`              | لون خلفية الحقل                                                           |
+| `borderColor`     | `Color`                        | `#c0c4ccff`              | لون الحدود                                                                |
+| `errorColor`      | `Color`                        | `#d03050ff`              | لون حدود ووصف حالة الخطأ                                                  |
+| `error`           | `string`                       | —                        | غير فارغ يعني حالة خطأ: حدود بلون الخطأ + وصف خطأ أسفله                   |
+| `onTransaction`   | `(t: EditTransaction) => void` | —                        | معاودة معاملة التحرير الأساسية (Core)                                     |
+| `onSubmit`        | `() => void`                   | —                        | إرسال عند Enter في السطر الواحد                                           |
+| `semanticLabel`   | `string`                       | —                        | اسم إمكانية الوصول (الدور ثابت دائمًا `textbox`)                          |
 
 يضيف `TextArea` إلى ذلك خاصية `rows` (الافتراضي `3`)، تُستخدم لحساب الارتفاع الافتراضي.
 
@@ -76,15 +76,15 @@ createElement(TextField, {
 ويربط click/tap الأصلي بـ `onPress`. تُحدد الأنماط بالكامل بواسطة `style` و`children`،
 وعند `disabled` تُخفَّض الشفافية وتُزال الأحداث.
 
-| Prop | النوع | الافتراضي | الوصف |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | المحتوى (في Button يكون `string \| number` وإلزاميًا) |
-| `disabled` | `boolean` | `false` | حالة التعطيل |
-| `onPress` | `() => void` | — | معاودة التفعيل |
-| `className` | `string` | — | اسم الفئة (للربط بأوراق الأنماط) |
-| `style` | `PingoStyle` | — | أنماط سطرية |
-| `width` / `height` | `number` | — | الأبعاد |
-| `semanticLabel` | `string` | يأخذ `Button` قيمة `children` | اسم إمكانية الوصول |
+| Prop               | النوع        | الافتراضي                     | الوصف                                                 |
+| ------------------ | ------------ | ----------------------------- | ----------------------------------------------------- |
+| `children`         | `PingoNode`  | —                             | المحتوى (في Button يكون `string \| number` وإلزاميًا) |
+| `disabled`         | `boolean`    | `false`                       | حالة التعطيل                                          |
+| `onPress`          | `() => void` | —                             | معاودة التفعيل                                        |
+| `className`        | `string`     | —                             | اسم الفئة (للربط بأوراق الأنماط)                      |
+| `style`            | `PingoStyle` | —                             | أنماط سطرية                                           |
+| `width` / `height` | `number`     | —                             | الأبعاد                                               |
+| `semanticLabel`    | `string`     | يأخذ `Button` قيمة `children` | اسم إمكانية الوصول                                    |
 
 يقبل `Button` إضافةً إلى ذلك `color` و`fontSize` (يمرران إلى النص الداخلي).
 

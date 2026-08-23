@@ -45,36 +45,36 @@ root.render(
 
 ### Tabs
 
-| Prop | Tipo | Valor por defecto | Descripción |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Controlado: `value` de la pestaña seleccionada actualmente |
-| `defaultValue` | `string` | — | No controlado: `value` de la pestaña seleccionada inicialmente |
-| `onValueChange` | `(value: string) => void` | — | Callback cuando cambia la selección |
-| `children` | `PingoNode` | — | `TabsList` y varios `TabsContent` (obligatorio) |
-| `className` | `string` | — | Se añade después del nombre de clase del componente |
+| Prop            | Tipo                      | Valor por defecto | Descripción                                                    |
+| --------------- | ------------------------- | ----------------- | -------------------------------------------------------------- |
+| `value`         | `string`                  | —                 | Controlado: `value` de la pestaña seleccionada actualmente     |
+| `defaultValue`  | `string`                  | —                 | No controlado: `value` de la pestaña seleccionada inicialmente |
+| `onValueChange` | `(value: string) => void` | —                 | Callback cuando cambia la selección                            |
+| `children`      | `PingoNode`               | —                 | `TabsList` y varios `TabsContent` (obligatorio)                |
+| `className`     | `string`                  | —                 | Se añade después del nombre de clase del componente            |
 
 ### TabsList
 
-| Prop | Tipo | Valor por defecto | Descripción |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Lista de `TabsTrigger` (obligatorio) |
-| `className` | `string` | — | Se añade después del nombre de clase del componente |
+| Prop        | Tipo        | Valor por defecto | Descripción                                         |
+| ----------- | ----------- | ----------------- | --------------------------------------------------- |
+| `children`  | `PingoNode` | —                 | Lista de `TabsTrigger` (obligatorio)                |
+| `className` | `string`    | —                 | Se añade después del nombre de clase del componente |
 
 ### TabsTrigger
 
-| Prop | Tipo | Valor por defecto | Descripción |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Identificador asociado al `TabsContent` correspondiente (obligatorio) |
-| `children` | `string` | — | Texto de la pestaña (obligatorio) |
-| `className` | `string` | — | Se añade después del nombre de clase del componente |
+| Prop        | Tipo     | Valor por defecto | Descripción                                                           |
+| ----------- | -------- | ----------------- | --------------------------------------------------------------------- |
+| `value`     | `string` | —                 | Identificador asociado al `TabsContent` correspondiente (obligatorio) |
+| `children`  | `string` | —                 | Texto de la pestaña (obligatorio)                                     |
+| `className` | `string` | —                 | Se añade después del nombre de clase del componente                   |
 
 ### TabsContent
 
-| Prop | Tipo | Valor por defecto | Descripción |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Identificador asociado al `TabsTrigger` correspondiente (obligatorio) |
-| `children` | `PingoNode` | — | Contenido del panel (obligatorio) |
-| `className` | `string` | — | Se añade después del nombre de clase del componente |
+| Prop        | Tipo        | Valor por defecto | Descripción                                                           |
+| ----------- | ----------- | ----------------- | --------------------------------------------------------------------- |
+| `value`     | `string`    | —                 | Identificador asociado al `TabsTrigger` correspondiente (obligatorio) |
+| `children`  | `PingoNode` | —                 | Contenido del panel (obligatorio)                                     |
+| `className` | `string`    | —                 | Se añade después del nombre de clase del componente                   |
 
 ## Accesibilidad
 

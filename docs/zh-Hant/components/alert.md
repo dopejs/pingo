@@ -40,12 +40,12 @@ createElement(Alert, {
 
 ## Props
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `title` | `string` | — | 標題（必填） |
-| `children` | `string` | — | 描述正文（必填） |
-| `variant` | `"default" \| "destructive"` | `"default"` | 視覺變體 |
-| `className` | `string` | — | 追加在元件類名之後 |
+| Prop        | 型別                         | 預設值      | 說明               |
+| ----------- | ---------------------------- | ----------- | ------------------ |
+| `title`     | `string`                     | —           | 標題（必填）       |
+| `children`  | `string`                     | —           | 描述正文（必填）   |
+| `variant`   | `"default" \| "destructive"` | `"default"` | 視覺變體           |
+| `className` | `string`                     | —           | 追加在元件類名之後 |
 
 ## 無障礙
 

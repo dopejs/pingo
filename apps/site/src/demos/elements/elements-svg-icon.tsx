@@ -1,4 +1,12 @@
-import { createElement, createSvg, Svg, Text, View, type PingoNode, type PingoSvg } from "@dopejs/pingo";
+import {
+  createElement,
+  createSvg,
+  Svg,
+  Text,
+  View,
+  type PingoNode,
+  type PingoSvg,
+} from "@dopejs/pingo";
 import { useTheme } from "@dopejs/pingo-ui";
 
 import type { PreviewDemo } from "../../preview/contract";

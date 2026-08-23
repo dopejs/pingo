@@ -39,13 +39,13 @@ Une fois `disabled` transmis, l'interrupteur ne répond plus au pointeur ni au c
 
 ## Props
 
-| Prop | Type | Valeur par défaut | Description |
-| --- | --- | --- | --- |
-| `checked` | `boolean` | — | État de l'interrupteur (obligatoire, contrôlé) |
-| `onCheckedChange` | `(checked: boolean) => void` | — | Rappel de changement d'état |
-| `disabled` | `boolean` | `false` | État désactivé |
-| `className` | `string` | — | Ajouté après le nom de classe du composant |
-| `semanticLabel` | `string` | — | Nom d'accessibilité |
+| Prop              | Type                         | Valeur par défaut | Description                                    |
+| ----------------- | ---------------------------- | ----------------- | ---------------------------------------------- |
+| `checked`         | `boolean`                    | —                 | État de l'interrupteur (obligatoire, contrôlé) |
+| `onCheckedChange` | `(checked: boolean) => void` | —                 | Rappel de changement d'état                    |
+| `disabled`        | `boolean`                    | `false`           | État désactivé                                 |
+| `className`       | `string`                     | —                 | Ajouté après le nom de classe du composant     |
+| `semanticLabel`   | `string`                     | —                 | Nom d'accessibilité                            |
 
 ## Accessibilité
 

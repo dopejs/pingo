@@ -41,12 +41,12 @@ Die Einträge verwenden `MenubarMenu` wieder. Das Öffnen und Schließen ist sta
 
 `NavigationMenu` akzeptiert alle Props aus `MenubarProps` außer `navigation`:
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Kontrolliert: Wert des aktuell geöffneten Menüs |
-| `onValueChange` | `(value: string \| undefined) => void` | — | Callback bei Änderung des geöffneten Menüs (`undefined` beim Schließen) |
-| `children` | `PingoNode` | — | Mehrere `MenubarMenu` (erforderlich) |
-| `className` | `string` | — | Zusätzliche Klasse |
+| Prop            | Typ                                    | Standardwert | Beschreibung                                                            |
+| --------------- | -------------------------------------- | ------------ | ----------------------------------------------------------------------- |
+| `value`         | `string`                               | —            | Kontrolliert: Wert des aktuell geöffneten Menüs                         |
+| `onValueChange` | `(value: string \| undefined) => void` | —            | Callback bei Änderung des geöffneten Menüs (`undefined` beim Schließen) |
+| `children`      | `PingoNode`                            | —            | Mehrere `MenubarMenu` (erforderlich)                                    |
+| `className`     | `string`                               | —            | Zusätzliche Klasse                                                      |
 
 Props der Einträge siehe [Menubar](/components/menubar#menubarmenu).
 

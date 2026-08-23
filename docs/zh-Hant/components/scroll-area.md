@@ -27,11 +27,11 @@ root.render(
 
 ## Props
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | 捲動內容（必填） |
-| `hideScrollbar` | `boolean` | `false` | 隱藏繪製的捲軸（捲動能力不變） |
-| `className` | `string` | — | 追加在元件類名之後 |
+| Prop            | 型別        | 預設值  | 說明                           |
+| --------------- | ----------- | ------- | ------------------------------ |
+| `children`      | `PingoNode` | —       | 捲動內容（必填）               |
+| `hideScrollbar` | `boolean`   | `false` | 隱藏繪製的捲軸（捲動能力不變） |
+| `className`     | `string`    | —       | 追加在元件類名之後             |
 
 ## 無障礙
 

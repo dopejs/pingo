@@ -39,13 +39,13 @@ root.render(createElement(AirplaneMode));
 
 ## Props
 
-| Prop | النوع | القيمة الافتراضية | الوصف |
-| --- | --- | --- | --- |
-| `checked` | `boolean` | — | حالة المفتاح (مطلوبة، مُدارة) |
-| `onCheckedChange` | `(checked: boolean) => void` | — | دالة الاستدعاء عند تبديل الحالة |
-| `disabled` | `boolean` | `false` | حالة التعطيل |
-| `className` | `string` | — | تُضاف بعد اسم فئة المكوّن |
-| `semanticLabel` | `string` | — | الاسم الخاص بإمكانية الوصول |
+| Prop              | النوع                        | القيمة الافتراضية | الوصف                           |
+| ----------------- | ---------------------------- | ----------------- | ------------------------------- |
+| `checked`         | `boolean`                    | —                 | حالة المفتاح (مطلوبة، مُدارة)   |
+| `onCheckedChange` | `(checked: boolean) => void` | —                 | دالة الاستدعاء عند تبديل الحالة |
+| `disabled`        | `boolean`                    | `false`           | حالة التعطيل                    |
+| `className`       | `string`                     | —                 | تُضاف بعد اسم فئة المكوّن       |
+| `semanticLabel`   | `string`                     | —                 | الاسم الخاص بإمكانية الوصول     |
 
 ## إمكانية الوصول
 

@@ -50,22 +50,22 @@ root.render(
 
 ### Menubar
 
-| Prop | Typ | Standard | Beschreibung |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Gesteuert: Wert des aktuell geöffneten Menüs |
-| `onValueChange` | `(value: string \| undefined) => void` | — | Callback bei Änderung des geöffneten Menüs (`undefined` beim Schließen) |
-| `children` | `PingoNode` | — | Mehrere `MenubarMenu` (erforderlich) |
-| `className` | `string` | — | Zusätzliche Klassen |
-| `navigation` | `boolean` | `false` | Navigationssemantik verwenden (intern von [NavigationMenu](/components/navigation-menu) genutzt) |
+| Prop            | Typ                                    | Standard | Beschreibung                                                                                     |
+| --------------- | -------------------------------------- | -------- | ------------------------------------------------------------------------------------------------ |
+| `value`         | `string`                               | —        | Gesteuert: Wert des aktuell geöffneten Menüs                                                     |
+| `onValueChange` | `(value: string \| undefined) => void` | —        | Callback bei Änderung des geöffneten Menüs (`undefined` beim Schließen)                          |
+| `children`      | `PingoNode`                            | —        | Mehrere `MenubarMenu` (erforderlich)                                                             |
+| `className`     | `string`                               | —        | Zusätzliche Klassen                                                                              |
+| `navigation`    | `boolean`                              | `false`  | Navigationssemantik verwenden (intern von [NavigationMenu](/components/navigation-menu) genutzt) |
 
 ### MenubarMenu
 
-| Prop | Typ | Standard | Beschreibung |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Menübezeichner (erforderlich) |
-| `label` | `string` | — | In der Leiste angezeigtes Label (erforderlich) |
-| `children` | `PingoNode` | — | Inhalt des Panels beim Öffnen (erforderlich) |
-| `className` | `string` | — | Zusätzliche Klassen |
+| Prop        | Typ         | Standard | Beschreibung                                   |
+| ----------- | ----------- | -------- | ---------------------------------------------- |
+| `value`     | `string`    | —        | Menübezeichner (erforderlich)                  |
+| `label`     | `string`    | —        | In der Leiste angezeigtes Label (erforderlich) |
+| `children`  | `PingoNode` | —        | Inhalt des Panels beim Öffnen (erforderlich)   |
+| `className` | `string`    | —        | Zusätzliche Klassen                            |
 
 ## Barrierefreiheit
 

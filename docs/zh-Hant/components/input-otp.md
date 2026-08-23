@@ -36,16 +36,16 @@ root.render(
 
 ## Props
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `length` | `number` | `6` | 格子數量 |
-| `value` | `string` | — | 受控當前值（空格補齊） |
-| `defaultValue` | `string` | — | 非受控初始值 |
-| `onValueChange` | `(value: string) => void` | — | 值變化回調，值為空格補齊的定長字串 |
-| `onComplete` | `(value: string) => void` | — | 全部填滿時回調，值為去空格的完整驗證碼 |
-| `disabled` | `boolean` | `false` | 禁用所有格子 |
-| `semanticLabel` | `string` | — | 組的無障礙名稱 |
-| `className` | `string` | — | 追加在元件類名之後 |
+| Prop            | 型別                      | 預設值  | 說明                                   |
+| --------------- | ------------------------- | ------- | -------------------------------------- |
+| `length`        | `number`                  | `6`     | 格子數量                               |
+| `value`         | `string`                  | —       | 受控當前值（空格補齊）                 |
+| `defaultValue`  | `string`                  | —       | 非受控初始值                           |
+| `onValueChange` | `(value: string) => void` | —       | 值變化回調，值為空格補齊的定長字串     |
+| `onComplete`    | `(value: string) => void` | —       | 全部填滿時回調，值為去空格的完整驗證碼 |
+| `disabled`      | `boolean`                 | `false` | 禁用所有格子                           |
+| `semanticLabel` | `string`                  | —       | 組的無障礙名稱                         |
+| `className`     | `string`                  | —       | 追加在元件類名之後                     |
 
 ## 無障礙
 

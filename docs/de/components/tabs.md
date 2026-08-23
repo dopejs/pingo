@@ -45,36 +45,36 @@ root.render(
 
 ### Tabs
 
-| Prop | Typ | Standard | Beschreibung |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Kontrolliert: `value` des aktuell ausgewählten Tabs |
-| `defaultValue` | `string` | — | Unkontrolliert: `value` des anfänglich ausgewählten Tabs |
-| `onValueChange` | `(value: string) => void` | — | Callback bei Auswahländerung |
-| `children` | `PingoNode` | — | `TabsList` und mehrere `TabsContent` (erforderlich) |
-| `className` | `string` | — | Wird nach den Komponentenklassen angehängt |
+| Prop            | Typ                       | Standard | Beschreibung                                             |
+| --------------- | ------------------------- | -------- | -------------------------------------------------------- |
+| `value`         | `string`                  | —        | Kontrolliert: `value` des aktuell ausgewählten Tabs      |
+| `defaultValue`  | `string`                  | —        | Unkontrolliert: `value` des anfänglich ausgewählten Tabs |
+| `onValueChange` | `(value: string) => void` | —        | Callback bei Auswahländerung                             |
+| `children`      | `PingoNode`               | —        | `TabsList` und mehrere `TabsContent` (erforderlich)      |
+| `className`     | `string`                  | —        | Wird nach den Komponentenklassen angehängt               |
 
 ### TabsList
 
-| Prop | Typ | Standard | Beschreibung |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Liste von `TabsTrigger` (erforderlich) |
-| `className` | `string` | — | Wird nach den Komponentenklassen angehängt |
+| Prop        | Typ         | Standard | Beschreibung                               |
+| ----------- | ----------- | -------- | ------------------------------------------ |
+| `children`  | `PingoNode` | —        | Liste von `TabsTrigger` (erforderlich)     |
+| `className` | `string`    | —        | Wird nach den Komponentenklassen angehängt |
 
 ### TabsTrigger
 
-| Prop | Typ | Standard | Beschreibung |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Kennung, die mit dem zugehörigen `TabsContent` verknüpft ist (erforderlich) |
-| `children` | `string` | — | Tab-Text (erforderlich) |
-| `className` | `string` | — | Wird nach den Komponentenklassen angehängt |
+| Prop        | Typ      | Standard | Beschreibung                                                                |
+| ----------- | -------- | -------- | --------------------------------------------------------------------------- |
+| `value`     | `string` | —        | Kennung, die mit dem zugehörigen `TabsContent` verknüpft ist (erforderlich) |
+| `children`  | `string` | —        | Tab-Text (erforderlich)                                                     |
+| `className` | `string` | —        | Wird nach den Komponentenklassen angehängt                                  |
 
 ### TabsContent
 
-| Prop | Typ | Standard | Beschreibung |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Kennung, die mit dem zugehörigen `TabsTrigger` verknüpft ist (erforderlich) |
-| `children` | `PingoNode` | — | Panel-Inhalt (erforderlich) |
-| `className` | `string` | — | Wird nach den Komponentenklassen angehängt |
+| Prop        | Typ         | Standard | Beschreibung                                                                |
+| ----------- | ----------- | -------- | --------------------------------------------------------------------------- |
+| `value`     | `string`    | —        | Kennung, die mit dem zugehörigen `TabsTrigger` verknüpft ist (erforderlich) |
+| `children`  | `PingoNode` | —        | Panel-Inhalt (erforderlich)                                                 |
+| `className` | `string`    | —        | Wird nach den Komponentenklassen angehängt                                  |
 
 ## Barrierefreiheit
 

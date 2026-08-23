@@ -30,10 +30,10 @@ Passez `orientation: "vertical"` pour obtenir un séparateur vertical. La hauteu
 
 ## Props
 
-| Prop | Type | Valeur par défaut | Description |
-| --- | --- | --- | --- |
-| `orientation` | `"horizontal" \| "vertical"` | `"horizontal"` | Direction du séparateur |
-| `className` | `string` | — | Ajouté après le nom de classe du composant |
+| Prop          | Type                         | Valeur par défaut | Description                                |
+| ------------- | ---------------------------- | ----------------- | ------------------------------------------ |
+| `orientation` | `"horizontal" \| "vertical"` | `"horizontal"`    | Direction du séparateur                    |
+| `className`   | `string`                     | —                 | Ajouté après le nom de classe du composant |
 
 La largeur d’un séparateur horizontal est de 100 % du conteneur parent et sa hauteur de 1px ; la hauteur d’un séparateur vertical est de 100 % du conteneur parent et sa largeur de 1px.
 

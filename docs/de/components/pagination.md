@@ -41,15 +41,15 @@ Die Faltregeln für die Seitenzahlfolge werden durch die exportierte reine Funkt
 
 ## Props
 
-| Prop | Typ | Standard | Beschreibung |
-| --- | --- | --- | --- |
-| `page` | `number` | — | Aktuelle Seite, beginnend bei 1 (erforderlich); Werte außerhalb des Bereichs werden auf `[1, pageCount]` begrenzt |
-| `pageCount` | `number` | — | Gesamtzahl der Seiten (erforderlich); bei weniger als 1 werden keine Seitenzahlen gerendert |
-| `onPageChange` | `(page: number) => void` | — | Callback beim Blättern; wird beim Klick auf die aktuelle Seite oder auf ein Ziel außerhalb des Bereichs nicht ausgelöst |
-| `siblingCount` | `number` | `1` | Anzahl der Seitenzahlen, die auf jeder Seite der aktuellen Seite angezeigt werden |
-| `previousLabel` | `string` | — | Im Typ vorgesehener Text für die vorherige Seite; in der aktuellen Version wird ein Icon gerendert, dieses Feld wird beim Rendering noch nicht verwendet |
-| `nextLabel` | `string` | — | Im Typ vorgesehener Text für die nächste Seite; in der aktuellen Version wird ein Icon gerendert, dieses Feld wird beim Rendering noch nicht verwendet |
-| `className` | `string` | — | Wird nach den Komponenten-Klassennamen angehängt |
+| Prop            | Typ                      | Standard | Beschreibung                                                                                                                                             |
+| --------------- | ------------------------ | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `page`          | `number`                 | —        | Aktuelle Seite, beginnend bei 1 (erforderlich); Werte außerhalb des Bereichs werden auf `[1, pageCount]` begrenzt                                        |
+| `pageCount`     | `number`                 | —        | Gesamtzahl der Seiten (erforderlich); bei weniger als 1 werden keine Seitenzahlen gerendert                                                              |
+| `onPageChange`  | `(page: number) => void` | —        | Callback beim Blättern; wird beim Klick auf die aktuelle Seite oder auf ein Ziel außerhalb des Bereichs nicht ausgelöst                                  |
+| `siblingCount`  | `number`                 | `1`      | Anzahl der Seitenzahlen, die auf jeder Seite der aktuellen Seite angezeigt werden                                                                        |
+| `previousLabel` | `string`                 | —        | Im Typ vorgesehener Text für die vorherige Seite; in der aktuellen Version wird ein Icon gerendert, dieses Feld wird beim Rendering noch nicht verwendet |
+| `nextLabel`     | `string`                 | —        | Im Typ vorgesehener Text für die nächste Seite; in der aktuellen Version wird ein Icon gerendert, dieses Feld wird beim Rendering noch nicht verwendet   |
+| `className`     | `string`                 | —        | Wird nach den Komponenten-Klassennamen angehängt                                                                                                         |
 
 ## Barrierefreiheit
 

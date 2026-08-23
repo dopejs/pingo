@@ -37,15 +37,15 @@ root.render(
 
 ## Props
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `children` | `string` | — | 按鈕文字（必填） |
-| `variant` | `"default" \| "secondary" \| "outline" \| "ghost" \| "destructive"` | `"default"` | 視覺變體 |
-| `size` | `"default" \| "sm" \| "lg" \| "icon"` | `"default"` | 尺寸 |
-| `disabled` | `boolean` | `false` | 禁用態 |
-| `onPress` | `() => void` | — | 指標/鍵盤觸發回調 |
-| `semanticLabel` | `string` | `children` | 無障礙名稱 |
-| `className` | `string` | — | 追加在元件類名之後 |
+| Prop            | 型別                                                                | 預設值      | 說明               |
+| --------------- | ------------------------------------------------------------------- | ----------- | ------------------ |
+| `children`      | `string`                                                            | —           | 按鈕文字（必填）   |
+| `variant`       | `"default" \| "secondary" \| "outline" \| "ghost" \| "destructive"` | `"default"` | 視覺變體           |
+| `size`          | `"default" \| "sm" \| "lg" \| "icon"`                               | `"default"` | 尺寸               |
+| `disabled`      | `boolean`                                                           | `false`     | 禁用態             |
+| `onPress`       | `() => void`                                                        | —           | 指標/鍵盤觸發回調  |
+| `semanticLabel` | `string`                                                            | `children`  | 無障礙名稱         |
+| `className`     | `string`                                                            | —           | 追加在元件類名之後 |
 
 ## 無障礙
 

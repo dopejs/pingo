@@ -32,20 +32,20 @@ El filtrado es una coincidencia de subcadenas de etiquetas que no distingue entr
 
 ## Props
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `items` | `readonly CommandItem[]` | — | Opciones de comando (obligatorio) |
-| `onSelect` | `(value: string) => void` | — | Callback al seleccionar una opción (clic o Enter) |
-| `onDismiss` | `() => void` | — | Callback para `Escape` |
-| `placeholder` | `string` | `"搜索"` | Nombre accesible del cuadro de búsqueda |
-| `emptyLabel` | `string` | `"无结果"` | Texto de aviso cuando el filtrado no devuelve resultados |
-| `className` | `string` | — | Nombre de clase adicional |
+| Prop          | 类型                      | 默认值     | 说明                                                     |
+| ------------- | ------------------------- | ---------- | -------------------------------------------------------- |
+| `items`       | `readonly CommandItem[]`  | —          | Opciones de comando (obligatorio)                        |
+| `onSelect`    | `(value: string) => void` | —          | Callback al seleccionar una opción (clic o Enter)        |
+| `onDismiss`   | `() => void`              | —          | Callback para `Escape`                                   |
+| `placeholder` | `string`                  | `"搜索"`   | Nombre accesible del cuadro de búsqueda                  |
+| `emptyLabel`  | `string`                  | `"无结果"` | Texto de aviso cuando el filtrado no devuelve resultados |
+| `className`   | `string`                  | —          | Nombre de clase adicional                                |
 
 ### CommandItem
 
-| 字段 | 类型 | 说明 |
-| --- | --- | --- |
-| `value` | `string` | Valor de la opción (obligatorio) |
+| 字段    | 类型     | 说明                                                      |
+| ------- | -------- | --------------------------------------------------------- |
+| `value` | `string` | Valor de la opción (obligatorio)                          |
 | `label` | `string` | Texto mostrado y usado para la coincidencia (obligatorio) |
 
 ## Accesibilidad

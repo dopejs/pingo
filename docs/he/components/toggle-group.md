@@ -45,23 +45,23 @@ root.render(
 
 ### ToggleGroup
 
-| Prop | טיפוס | ברירת מחדל | תיאור |
-| --- | --- | --- | --- |
-| `type` | `"single" \| "multiple"` | `"single"` | בחירה יחידה מנקה את הבחירה הקודמת; בחירה מרובה מצטברת פריט אחר פריט |
-| `value` | `readonly string[]` | — | אוסף ערכי בחירה נשלט |
-| `defaultValue` | `readonly string[]` | `[]` | אוסף בחירה התחלתי בלתי נשלט |
-| `onValueChange` | `(value: readonly string[]) => void` | — | קריאה חוזרת בשינוי אוסף הבחירה |
-| `children` | `PingoNode` | — | רשימת `ToggleGroupItem` (חובה) |
-| `className` | `string` | — | מצורף אחרי שם המחלקה של הרכיב |
+| Prop            | טיפוס                                | ברירת מחדל | תיאור                                                               |
+| --------------- | ------------------------------------ | ---------- | ------------------------------------------------------------------- |
+| `type`          | `"single" \| "multiple"`             | `"single"` | בחירה יחידה מנקה את הבחירה הקודמת; בחירה מרובה מצטברת פריט אחר פריט |
+| `value`         | `readonly string[]`                  | —          | אוסף ערכי בחירה נשלט                                                |
+| `defaultValue`  | `readonly string[]`                  | `[]`       | אוסף בחירה התחלתי בלתי נשלט                                         |
+| `onValueChange` | `(value: readonly string[]) => void` | —          | קריאה חוזרת בשינוי אוסף הבחירה                                      |
+| `children`      | `PingoNode`                          | —          | רשימת `ToggleGroupItem` (חובה)                                      |
+| `className`     | `string`                             | —          | מצורף אחרי שם המחלקה של הרכיב                                       |
 
 ### ToggleGroupItem
 
-| Prop | טיפוס | ברירת מחדל | תיאור |
-| --- | --- | --- | --- |
-| `value` | `string` | — | ערך הפריט (חובה) |
-| `children` | `string` | — | טקסט הפריט (חובה) |
-| `disabled` | `boolean` | `false` | השבתת פריט בודד |
-| `className` | `string` | — | מצורף אחרי שם המחלקה של הרכיב |
+| Prop        | טיפוס     | ברירת מחדל | תיאור                         |
+| ----------- | --------- | ---------- | ----------------------------- |
+| `value`     | `string`  | —          | ערך הפריט (חובה)              |
+| `children`  | `string`  | —          | טקסט הפריט (חובה)             |
+| `disabled`  | `boolean` | `false`    | השבתת פריט בודד               |
+| `className` | `string`  | —          | מצורף אחרי שם המחלקה של הרכיב |
 
 ## נגישות
 

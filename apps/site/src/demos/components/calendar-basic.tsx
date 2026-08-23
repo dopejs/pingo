@@ -22,7 +22,8 @@ const SelectableCalendar = memo(function SelectableCalendar(
 
 const demo: PreviewDemo = {
   height: 400,
-  render: (context): PingoNode => stage(context, [frame(280, [createElement(SelectableCalendar, {})])]),
+  render: (context): PingoNode =>
+    stage(context, [frame(280, [createElement(SelectableCalendar, {})])]),
 };
 
 export default demo;

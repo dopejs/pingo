@@ -46,37 +46,37 @@ Trigger y Content leen el estado del componente raíz a través del contexto, y 
 
 ### DropdownMenu
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Valor seleccionado actualmente (resalta el elemento correspondiente) |
-| `defaultOpen` | `boolean` | `false` | Estado inicial de apertura |
-| `onValueChange` | `(value: string) => void` | — | Callback al seleccionar un elemento del menú |
-| `onOpenChange` | `(open: boolean) => void` | — | Callback al cambiar el estado de apertura |
-| `children` | `PingoNode` | — | Trigger y Content (obligatorio) |
-| `className` | `string` | — | Se añade después del nombre de clase del contenedor ancla |
+| Prop            | 类型                      | 默认值  | 说明                                                                 |
+| --------------- | ------------------------- | ------- | -------------------------------------------------------------------- |
+| `value`         | `string`                  | —       | Valor seleccionado actualmente (resalta el elemento correspondiente) |
+| `defaultOpen`   | `boolean`                 | `false` | Estado inicial de apertura                                           |
+| `onValueChange` | `(value: string) => void` | —       | Callback al seleccionar un elemento del menú                         |
+| `onOpenChange`  | `(open: boolean) => void` | —       | Callback al cambiar el estado de apertura                            |
+| `children`      | `PingoNode`               | —       | Trigger y Content (obligatorio)                                      |
+| `className`     | `string`                  | —       | Se añade después del nombre de clase del contenedor ancla            |
 
 ### DropdownMenuTrigger
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Elemento activador; si no se proporciona, renderiza el valor actual o el texto de respaldo |
-| `placeholder` | `string` | — | Texto de respaldo cuando no hay valor seleccionado |
-| `className` | `string` | — | Nombre de clase adicional |
+| Prop          | 类型        | 默认值 | 说明                                                                                       |
+| ------------- | ----------- | ------ | ------------------------------------------------------------------------------------------ |
+| `children`    | `PingoNode` | —      | Elemento activador; si no se proporciona, renderiza el valor actual o el texto de respaldo |
+| `placeholder` | `string`    | —      | Texto de respaldo cuando no hay valor seleccionado                                         |
+| `className`   | `string`    | —      | Nombre de clase adicional                                                                  |
 
 ### DropdownMenuContent
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Elementos del menú (obligatorio) |
-| `className` | `string` | — | Nombre de clase adicional |
+| Prop        | 类型        | 默认值 | 说明                             |
+| ----------- | ----------- | ------ | -------------------------------- |
+| `children`  | `PingoNode` | —      | Elementos del menú (obligatorio) |
+| `className` | `string`    | —      | Nombre de clase adicional        |
 
 ### DropdownMenuItem
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Valor del elemento del menú (obligatorio) |
-| `children` | `string` | — | Texto mostrado (obligatorio) |
-| `className` | `string` | — | Nombre de clase adicional |
+| Prop        | 类型     | 默认值 | 说明                                      |
+| ----------- | -------- | ------ | ----------------------------------------- |
+| `value`     | `string` | —      | Valor del elemento del menú (obligatorio) |
+| `children`  | `string` | —      | Texto mostrado (obligatorio)              |
+| `className` | `string` | —      | Nombre de clase adicional                 |
 
 ## Accesibilidad
 

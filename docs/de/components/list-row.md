@@ -44,16 +44,16 @@ Ohne `onPress` verhält sich die Zeile als reines Anzeigeelement: Die semantisch
 
 ## Props
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `title` | `string` | — | Titeltext (erforderlich) |
-| `description` | `string` | — | Sekundärer Beschreibungstext |
-| `leading` | `PingoNode` | — | Vorderer Slot für Avatar oder Symbol |
-| `trailing` | `PingoNode` | — | Hinterer Slot für Badge, Schalter oder Pfeil |
-| `selected` | `boolean` | — | Auswahlstatus; bei Angabe werden die semantischen Werte `selected`/`unselected` offengelegt |
-| `disabled` | `boolean` | `false` | Deaktivierter Zustand, es werden keine Ereignishandler registriert |
-| `onPress` | `() => void` | — | Klick-Callback; bei Angabe wird die Zeile interaktiv |
-| `className` | `string` | — | Wird nach dem Komponentenklassennamen angehängt |
+| Prop          | Typ          | Standardwert | Beschreibung                                                                                |
+| ------------- | ------------ | ------------ | ------------------------------------------------------------------------------------------- |
+| `title`       | `string`     | —            | Titeltext (erforderlich)                                                                    |
+| `description` | `string`     | —            | Sekundärer Beschreibungstext                                                                |
+| `leading`     | `PingoNode`  | —            | Vorderer Slot für Avatar oder Symbol                                                        |
+| `trailing`    | `PingoNode`  | —            | Hinterer Slot für Badge, Schalter oder Pfeil                                                |
+| `selected`    | `boolean`    | —            | Auswahlstatus; bei Angabe werden die semantischen Werte `selected`/`unselected` offengelegt |
+| `disabled`    | `boolean`    | `false`      | Deaktivierter Zustand, es werden keine Ereignishandler registriert                          |
+| `onPress`     | `() => void` | —            | Klick-Callback; bei Angabe wird die Zeile interaktiv                                        |
+| `className`   | `string`     | —            | Wird nach dem Komponentenklassennamen angehängt                                             |
 
 ## Barrierefreiheit
 

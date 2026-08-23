@@ -44,15 +44,15 @@ root.render(
 
 继承 `DialogProps`（`open`、`onOpenChange`、`children`、`className`），另有：
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `title` | `string` | — | 标题（必填） |
-| `description` | `string` | — | 补充说明 |
-| `cancelLabel` | `string` | `"取消"` | 取消按钮文案 |
-| `actionLabel` | `string` | `"确定"` | 确认按钮文案 |
-| `onCancel` | `() => void` | — | 取消回调（随后关闭） |
-| `onAction` | `() => void` | — | 确认回调（随后关闭） |
-| `destructive` | `boolean` | `false` | 确认按钮使用危险色 |
+| Prop          | 类型         | 默认值   | 说明                 |
+| ------------- | ------------ | -------- | -------------------- |
+| `title`       | `string`     | —        | 标题（必填）         |
+| `description` | `string`     | —        | 补充说明             |
+| `cancelLabel` | `string`     | `"取消"` | 取消按钮文案         |
+| `actionLabel` | `string`     | `"确定"` | 确认按钮文案         |
+| `onCancel`    | `() => void` | —        | 取消回调（随后关闭） |
+| `onAction`    | `() => void` | —        | 确认回调（随后关闭） |
+| `destructive` | `boolean`    | `false`  | 确认按钮使用危险色   |
 
 ## 无障碍
 

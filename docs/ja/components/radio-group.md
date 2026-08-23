@@ -46,22 +46,22 @@ root.render(
 
 ### RadioGroup
 
-| Prop | 型 | デフォルト | 説明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 制御された選択値 |
-| `defaultValue` | `string` | — | 非制御の初期選択値 |
-| `onValueChange` | `(value: string) => void` | — | 選択変更時のコールバック |
-| `disabled` | `boolean` | `false` | グループ全体を無効化 |
-| `children` | `PingoNode` | — | `RadioGroupItem` のリスト（必須） |
-| `className` | `string` | — | コンポーネントのクラス名に追加される |
+| Prop            | 型                        | デフォルト | 説明                                 |
+| --------------- | ------------------------- | ---------- | ------------------------------------ |
+| `value`         | `string`                  | —          | 制御された選択値                     |
+| `defaultValue`  | `string`                  | —          | 非制御の初期選択値                   |
+| `onValueChange` | `(value: string) => void` | —          | 選択変更時のコールバック             |
+| `disabled`      | `boolean`                 | `false`    | グループ全体を無効化                 |
+| `children`      | `PingoNode`               | —          | `RadioGroupItem` のリスト（必須）    |
+| `className`     | `string`                  | —          | コンポーネントのクラス名に追加される |
 
 ### RadioGroupItem
 
-| Prop | 型 | デフォルト | 説明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 選択肢の値（必須） |
-| `label` | `string` | — | 選択肢のテキスト |
-| `className` | `string` | — | コンポーネントのクラス名に追加される |
+| Prop        | 型       | デフォルト | 説明                                 |
+| ----------- | -------- | ---------- | ------------------------------------ |
+| `value`     | `string` | —          | 選択肢の値（必須）                   |
+| `label`     | `string` | —          | 選択肢のテキスト                     |
+| `className` | `string` | —          | コンポーネントのクラス名に追加される |
 
 ## アクセシビリティ
 

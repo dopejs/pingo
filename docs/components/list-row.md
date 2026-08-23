@@ -44,16 +44,16 @@ root.render(
 
 ## Props
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `title` | `string` | — | 标题文本（必填） |
-| `description` | `string` | — | 次要描述文本 |
-| `leading` | `PingoNode` | — | 前部插槽，放头像或图标 |
-| `trailing` | `PingoNode` | — | 尾部插槽，放徽标、开关或箭号 |
-| `selected` | `boolean` | — | 选中态；传入即暴露 `selected`/`unselected` 语义值 |
-| `disabled` | `boolean` | `false` | 禁用态，不注册任何事件处理器 |
-| `onPress` | `() => void` | — | 点击回调；传入后行变为可交互 |
-| `className` | `string` | — | 追加在组件类名之后 |
+| Prop          | 类型         | 默认值  | 说明                                              |
+| ------------- | ------------ | ------- | ------------------------------------------------- |
+| `title`       | `string`     | —       | 标题文本（必填）                                  |
+| `description` | `string`     | —       | 次要描述文本                                      |
+| `leading`     | `PingoNode`  | —       | 前部插槽，放头像或图标                            |
+| `trailing`    | `PingoNode`  | —       | 尾部插槽，放徽标、开关或箭号                      |
+| `selected`    | `boolean`    | —       | 选中态；传入即暴露 `selected`/`unselected` 语义值 |
+| `disabled`    | `boolean`    | `false` | 禁用态，不注册任何事件处理器                      |
+| `onPress`     | `() => void` | —       | 点击回调；传入后行变为可交互                      |
+| `className`   | `string`     | —       | 追加在组件类名之后                                |
 
 ## 无障碍
 

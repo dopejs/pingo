@@ -41,15 +41,15 @@ La regla de plegado de la secuencia de números la implementa la función pura e
 
 ## Props
 
-| Prop | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `page` | `number` | — | Página actual, comienza en 1 (obligatorio); los valores fuera de rango se ajustan a `[1, pageCount]` |
-| `pageCount` | `number` | — | Número total de páginas (obligatorio); si es menor que 1 no se renderiza ningún número de página |
-| `onPageChange` | `(page: number) => void` | — | Devolución de llamada al cambiar de página; no se activa al hacer clic en la página actual o en destinos fuera de rango |
-| `siblingCount` | `number` | `1` | Cantidad de números de página mostrados a cada lado de la página actual |
-| `previousLabel` | `string` | — | Texto de página anterior reservado en el tipo; la versión actual lo renderiza como icono y este campo aún no participa en el renderizado |
-| `nextLabel` | `string` | — | Texto de página siguiente reservado en el tipo; la versión actual lo renderiza como icono y este campo aún no participa en el renderizado |
-| `className` | `string` | — | Se añade después del nombre de clase del componente |
+| Prop            | Tipo                     | Valor predeterminado | Descripción                                                                                                                               |
+| --------------- | ------------------------ | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `page`          | `number`                 | —                    | Página actual, comienza en 1 (obligatorio); los valores fuera de rango se ajustan a `[1, pageCount]`                                      |
+| `pageCount`     | `number`                 | —                    | Número total de páginas (obligatorio); si es menor que 1 no se renderiza ningún número de página                                          |
+| `onPageChange`  | `(page: number) => void` | —                    | Devolución de llamada al cambiar de página; no se activa al hacer clic en la página actual o en destinos fuera de rango                   |
+| `siblingCount`  | `number`                 | `1`                  | Cantidad de números de página mostrados a cada lado de la página actual                                                                   |
+| `previousLabel` | `string`                 | —                    | Texto de página anterior reservado en el tipo; la versión actual lo renderiza como icono y este campo aún no participa en el renderizado  |
+| `nextLabel`     | `string`                 | —                    | Texto de página siguiente reservado en el tipo; la versión actual lo renderiza como icono y este campo aún no participa en el renderizado |
+| `className`     | `string`                 | —                    | Se añade después del nombre de clase del componente                                                                                       |
 
 ## Accesibilidad
 

@@ -45,36 +45,36 @@ root.render(
 
 ### Tabs
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 受控：當前選中標籤的 `value` |
-| `defaultValue` | `string` | — | 非受控：初始選中標籤的 `value` |
-| `onValueChange` | `(value: string) => void` | — | 選中變化回調 |
-| `children` | `PingoNode` | — | `TabsList` 與若干 `TabsContent`（必填） |
-| `className` | `string` | — | 追加在元件類名之後 |
+| Prop            | 型別                      | 預設值 | 說明                                    |
+| --------------- | ------------------------- | ------ | --------------------------------------- |
+| `value`         | `string`                  | —      | 受控：當前選中標籤的 `value`            |
+| `defaultValue`  | `string`                  | —      | 非受控：初始選中標籤的 `value`          |
+| `onValueChange` | `(value: string) => void` | —      | 選中變化回調                            |
+| `children`      | `PingoNode`               | —      | `TabsList` 與若干 `TabsContent`（必填） |
+| `className`     | `string`                  | —      | 追加在元件類名之後                      |
 
 ### TabsList
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | `TabsTrigger` 列表（必填） |
-| `className` | `string` | — | 追加在元件類名之後 |
+| Prop        | 型別        | 預設值 | 說明                       |
+| ----------- | ----------- | ------ | -------------------------- |
+| `children`  | `PingoNode` | —      | `TabsTrigger` 列表（必填） |
+| `className` | `string`    | —      | 追加在元件類名之後         |
 
 ### TabsTrigger
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 與對應 `TabsContent` 關聯的標識（必填） |
-| `children` | `string` | — | 標籤文字（必填） |
-| `className` | `string` | — | 追加在元件類名之後 |
+| Prop        | 型別     | 預設值 | 說明                                    |
+| ----------- | -------- | ------ | --------------------------------------- |
+| `value`     | `string` | —      | 與對應 `TabsContent` 關聯的標識（必填） |
+| `children`  | `string` | —      | 標籤文字（必填）                        |
+| `className` | `string` | —      | 追加在元件類名之後                      |
 
 ### TabsContent
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 與對應 `TabsTrigger` 關聯的標識（必填） |
-| `children` | `PingoNode` | — | 面板內容（必填） |
-| `className` | `string` | — | 追加在元件類名之後 |
+| Prop        | 型別        | 預設值 | 說明                                    |
+| ----------- | ----------- | ------ | --------------------------------------- |
+| `value`     | `string`    | —      | 與對應 `TabsTrigger` 關聯的標識（必填） |
+| `children`  | `PingoNode` | —      | 面板內容（必填）                        |
+| `className` | `string`    | —      | 追加在元件類名之後                      |
 
 ## 無障礙
 

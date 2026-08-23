@@ -50,37 +50,37 @@ Trigger と Content はコンテキスト経由でルートコンポーネント
 
 ### DropdownMenu
 
-| Prop | 型 | デフォルト | 説明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 現在の選択値（対応する項目をハイライト） |
-| `defaultOpen` | `boolean` | `false` | 初期の開閉状態 |
-| `onValueChange` | `(value: string) => void` | — | メニュー項目選択時のコールバック |
-| `onOpenChange` | `(open: boolean) => void` | — | 開閉変化時のコールバック |
-| `children` | `PingoNode` | — | Trigger と Content（必須） |
-| `className` | `string` | — | アンカーコンテナのクラス名に追加される |
+| Prop            | 型                        | デフォルト | 説明                                     |
+| --------------- | ------------------------- | ---------- | ---------------------------------------- |
+| `value`         | `string`                  | —          | 現在の選択値（対応する項目をハイライト） |
+| `defaultOpen`   | `boolean`                 | `false`    | 初期の開閉状態                           |
+| `onValueChange` | `(value: string) => void` | —          | メニュー項目選択時のコールバック         |
+| `onOpenChange`  | `(open: boolean) => void` | —          | 開閉変化時のコールバック                 |
+| `children`      | `PingoNode`               | —          | Trigger と Content（必須）               |
+| `className`     | `string`                  | —          | アンカーコンテナのクラス名に追加される   |
 
 ### DropdownMenuTrigger
 
-| Prop | 型 | デフォルト | 説明 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | トリガー要素。省略時は現在の値/プレースホルダーテキストをレンダリング |
-| `placeholder` | `string` | — | 選択値がないときのプレースホルダーテキスト |
-| `className` | `string` | — | 追加するクラス名 |
+| Prop          | 型          | デフォルト | 説明                                                                  |
+| ------------- | ----------- | ---------- | --------------------------------------------------------------------- |
+| `children`    | `PingoNode` | —          | トリガー要素。省略時は現在の値/プレースホルダーテキストをレンダリング |
+| `placeholder` | `string`    | —          | 選択値がないときのプレースホルダーテキスト                            |
+| `className`   | `string`    | —          | 追加するクラス名                                                      |
 
 ### DropdownMenuContent
 
-| Prop | 型 | デフォルト | 説明 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | メニュー項目（必須） |
-| `className` | `string` | — | 追加するクラス名 |
+| Prop        | 型          | デフォルト | 説明                 |
+| ----------- | ----------- | ---------- | -------------------- |
+| `children`  | `PingoNode` | —          | メニュー項目（必須） |
+| `className` | `string`    | —          | 追加するクラス名     |
 
 ### DropdownMenuItem
 
-| Prop | 型 | デフォルト | 説明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | メニュー項目の値（必須） |
-| `children` | `string` | — | 表示テキスト（必須） |
-| `className` | `string` | — | 追加するクラス名 |
+| Prop        | 型       | デフォルト | 説明                     |
+| ----------- | -------- | ---------- | ------------------------ |
+| `value`     | `string` | —          | メニュー項目の値（必須） |
+| `children`  | `string` | —          | 表示テキスト（必須）     |
+| `className` | `string` | —          | 追加するクラス名         |
 
 ## アクセシビリティ
 

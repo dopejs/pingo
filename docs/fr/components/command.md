@@ -32,20 +32,20 @@ Le filtrage est une correspondance de sous-chaîne sur le libellé, insensible �
 
 ## Props
 
-| Prop | Type | Valeur par défaut | Description |
-| --- | --- | --- | --- |
-| `items` | `readonly CommandItem[]` | — | Entrées de commande (requis) |
-| `onSelect` | `(value: string) => void` | — | Rappel de sélection d’une entrée (clic ou Entrée) |
-| `onDismiss` | `() => void` | — | Rappel sur `Escape` |
-| `placeholder` | `string` | `"搜索"` | Nom accessible du champ de recherche |
-| `emptyLabel` | `string` | `"无结果"` | Texte affiché lorsque le filtrage ne renvoie aucun résultat |
-| `className` | `string` | — | Classe supplémentaire |
+| Prop          | Type                      | Valeur par défaut | Description                                                 |
+| ------------- | ------------------------- | ----------------- | ----------------------------------------------------------- |
+| `items`       | `readonly CommandItem[]`  | —                 | Entrées de commande (requis)                                |
+| `onSelect`    | `(value: string) => void` | —                 | Rappel de sélection d’une entrée (clic ou Entrée)           |
+| `onDismiss`   | `() => void`              | —                 | Rappel sur `Escape`                                         |
+| `placeholder` | `string`                  | `"搜索"`          | Nom accessible du champ de recherche                        |
+| `emptyLabel`  | `string`                  | `"无结果"`        | Texte affiché lorsque le filtrage ne renvoie aucun résultat |
+| `className`   | `string`                  | —                 | Classe supplémentaire                                       |
 
 ### CommandItem
 
-| Champ | Type | Description |
-| --- | --- | --- |
-| `value` | `string` | Valeur de l’entrée (requis) |
+| Champ   | Type     | Description                                              |
+| ------- | -------- | -------------------------------------------------------- |
+| `value` | `string` | Valeur de l’entrée (requis)                              |
 | `label` | `string` | Texte affiché et utilisé pour la correspondance (requis) |
 
 ## Accessibilité

@@ -37,21 +37,21 @@ root.render(
 
 ## Props
 
-| Prop | 型 | デフォルト | 説明 |
-| --- | --- | --- | --- |
-| `items` | `readonly CommandItem[]` | — | コマンド項目（必須） |
-| `onSelect` | `(value: string) => void` | — | 項目選択時のコールバック（クリックまたは Enter） |
-| `onDismiss` | `() => void` | — | `Escape` のコールバック |
-| `placeholder` | `string` | `"検索"` | 検索ボックスのアクセシブル名 |
-| `emptyLabel` | `string` | `"結果なし"` | フィルタ結果が空のときのヒントテキスト |
-| `className` | `string` | — | 追加するクラス名 |
+| Prop          | 型                        | デフォルト   | 説明                                             |
+| ------------- | ------------------------- | ------------ | ------------------------------------------------ |
+| `items`       | `readonly CommandItem[]`  | —            | コマンド項目（必須）                             |
+| `onSelect`    | `(value: string) => void` | —            | 項目選択時のコールバック（クリックまたは Enter） |
+| `onDismiss`   | `() => void`              | —            | `Escape` のコールバック                          |
+| `placeholder` | `string`                  | `"検索"`     | 検索ボックスのアクセシブル名                     |
+| `emptyLabel`  | `string`                  | `"結果なし"` | フィルタ結果が空のときのヒントテキスト           |
+| `className`   | `string`                  | —            | 追加するクラス名                                 |
 
 ### CommandItem
 
-| フィールド | 型 | 説明 |
-| --- | --- | --- |
-| `value` | `string` | 項目の値（必須） |
-| `label` | `string` | 表示およびマッチング用のテキスト（必須） |
+| フィールド | 型       | 説明                                     |
+| ---------- | -------- | ---------------------------------------- |
+| `value`    | `string` | 項目の値（必須）                         |
+| `label`    | `string` | 表示およびマッチング用のテキスト（必須） |
 
 ## アクセシビリティ
 

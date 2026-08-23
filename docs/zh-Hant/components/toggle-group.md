@@ -45,23 +45,23 @@ root.render(
 
 ### ToggleGroup
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `type` | `"single" \| "multiple"` | `"single"` | 單選清掉上一個選擇；多選逐項累加 |
-| `value` | `readonly string[]` | — | 受控選中值集合 |
-| `defaultValue` | `readonly string[]` | `[]` | 非受控初始選中集合 |
-| `onValueChange` | `(value: readonly string[]) => void` | — | 選中集合變化回調 |
-| `children` | `PingoNode` | — | `ToggleGroupItem` 列表（必填） |
-| `className` | `string` | — | 追加在元件類名之後 |
+| Prop            | 型別                                 | 預設值     | 說明                             |
+| --------------- | ------------------------------------ | ---------- | -------------------------------- |
+| `type`          | `"single" \| "multiple"`             | `"single"` | 單選清掉上一個選擇；多選逐項累加 |
+| `value`         | `readonly string[]`                  | —          | 受控選中值集合                   |
+| `defaultValue`  | `readonly string[]`                  | `[]`       | 非受控初始選中集合               |
+| `onValueChange` | `(value: readonly string[]) => void` | —          | 選中集合變化回調                 |
+| `children`      | `PingoNode`                          | —          | `ToggleGroupItem` 列表（必填）   |
+| `className`     | `string`                             | —          | 追加在元件類名之後               |
 
 ### ToggleGroupItem
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 項值（必填） |
-| `children` | `string` | — | 項文字（必填） |
-| `disabled` | `boolean` | `false` | 禁用單項 |
-| `className` | `string` | — | 追加在元件類名之後 |
+| Prop        | 型別      | 預設值  | 說明               |
+| ----------- | --------- | ------- | ------------------ |
+| `value`     | `string`  | —       | 項值（必填）       |
+| `children`  | `string`  | —       | 項文字（必填）     |
+| `disabled`  | `boolean` | `false` | 禁用單項           |
+| `className` | `string`  | —       | 追加在元件類名之後 |
 
 ## 無障礙
 

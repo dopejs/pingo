@@ -28,11 +28,11 @@ root.render(
 
 ## Props
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `ratio` | `number` | `1` | 宽高比（宽 ÷ 高） |
-| `children` | `PingoNode` | — | 受约束的内容（必填） |
-| `className` | `string` | — | 追加在组件类名之后 |
+| Prop        | 类型        | 默认值 | 说明                 |
+| ----------- | ----------- | ------ | -------------------- |
+| `ratio`     | `number`    | `1`    | 宽高比（宽 ÷ 高）    |
+| `children`  | `PingoNode` | —      | 受约束的内容（必填） |
+| `className` | `string`    | —      | 追加在组件类名之后   |
 
 ## 无障碍
 

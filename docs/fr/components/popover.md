@@ -47,27 +47,27 @@ Le `children` de `PopoverContent` accepte n’importe quel `PingoNode`, ce qui p
 
 ### Popover
 
-| Prop | Type | Défaut | Description |
-| --- | --- | --- | --- |
-| `open` | `boolean` | — | État d’ouverture contrôlé |
-| `defaultOpen` | `boolean` | `false` | Ouverture initiale non contrôlée |
-| `onOpenChange` | `(open: boolean) => void` | — | Rappel lors du changement d’ouverture |
-| `children` | `PingoNode` | — | Trigger et Content (requis) |
-| `className` | `string` | — | Ajouté après le nom de classe du conteneur d’ancrage |
+| Prop           | Type                      | Défaut  | Description                                          |
+| -------------- | ------------------------- | ------- | ---------------------------------------------------- |
+| `open`         | `boolean`                 | —       | État d’ouverture contrôlé                            |
+| `defaultOpen`  | `boolean`                 | `false` | Ouverture initiale non contrôlée                     |
+| `onOpenChange` | `(open: boolean) => void` | —       | Rappel lors du changement d’ouverture                |
+| `children`     | `PingoNode`               | —       | Trigger et Content (requis)                          |
+| `className`    | `string`                  | —       | Ajouté après le nom de classe du conteneur d’ancrage |
 
 ### PopoverTrigger
 
-| Prop | Type | Défaut | Description |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Élément déclencheur (requis) |
-| `className` | `string` | — | Nom de classe supplémentaire |
+| Prop        | Type        | Défaut | Description                  |
+| ----------- | ----------- | ------ | ---------------------------- |
+| `children`  | `PingoNode` | —      | Élément déclencheur (requis) |
+| `className` | `string`    | —      | Nom de classe supplémentaire |
 
 ### PopoverContent
 
-| Prop | Type | Défaut | Description |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Contenu du panneau (requis) |
-| `className` | `string` | — | Nom de classe supplémentaire |
+| Prop        | Type        | Défaut | Description                  |
+| ----------- | ----------- | ------ | ---------------------------- |
+| `children`  | `PingoNode` | —      | Contenu du panneau (requis)  |
+| `className` | `string`    | —      | Nom de classe supplémentaire |
 
 ## Accessibilité
 

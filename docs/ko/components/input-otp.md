@@ -36,16 +36,16 @@ root.render(
 
 ## Props
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `length` | `number` | `6` | 칸 수 |
-| `value` | `string` | — | 제어되는 현재 값(공백으로 채워짐) |
-| `defaultValue` | `string` | — | 비제어 초기값 |
-| `onValueChange` | `(value: string) => void` | — | 값 변경 콜백, 값은 공백으로 채워진 정길이 문자열 |
-| `onComplete` | `(value: string) => void` | — | 모두 채워졌을 때 호출되는 콜백, 값은 공백을 제거한 완전한 인증번호 |
-| `disabled` | `boolean` | `false` | 모든 칸 비활성화 |
-| `semanticLabel` | `string` | — | 그룹의 접근성 이름 |
-| `className` | `string` | — | 컴포넌트 클래스 이름 뒤에 추가됨 |
+| Prop            | 타입                      | 기본값  | 설명                                                               |
+| --------------- | ------------------------- | ------- | ------------------------------------------------------------------ |
+| `length`        | `number`                  | `6`     | 칸 수                                                              |
+| `value`         | `string`                  | —       | 제어되는 현재 값(공백으로 채워짐)                                  |
+| `defaultValue`  | `string`                  | —       | 비제어 초기값                                                      |
+| `onValueChange` | `(value: string) => void` | —       | 값 변경 콜백, 값은 공백으로 채워진 정길이 문자열                   |
+| `onComplete`    | `(value: string) => void` | —       | 모두 채워졌을 때 호출되는 콜백, 값은 공백을 제거한 완전한 인증번호 |
+| `disabled`      | `boolean`                 | `false` | 모든 칸 비활성화                                                   |
+| `semanticLabel` | `string`                  | —       | 그룹의 접근성 이름                                                 |
+| `className`     | `string`                  | —       | 컴포넌트 클래스 이름 뒤에 추가됨                                   |
 
 ## 접근성
 

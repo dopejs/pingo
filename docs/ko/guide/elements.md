@@ -54,16 +54,16 @@ root.render(
 
 ### Props(Text)
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 텍스트 내용(`children`과 택일) |
-| `children` | `string \| number` | — | 텍스트 내용 |
-| `color` | `Color` | `#000000ff` | 텍스트 색상, 상속 가능 |
-| `fontSize` | `number` | — | 글자 크기(논리 픽셀) |
-| `lineHeight` | `number` | — | 줄 높이(논리 픽셀) |
-| `fontWeight` | `number` | — | 글자 굵기 |
-| `fontFamily` | `string` | — | CSS 폰트 패밀리 |
-| `font` | `PingoFont` | — | 명시적 불변 폰트. 지원하지 않는 입력은 전체가 폴백 |
+| Prop         | 타입               | 기본값      | 설명                                               |
+| ------------ | ------------------ | ----------- | -------------------------------------------------- |
+| `value`      | `string`           | —           | 텍스트 내용(`children`과 택일)                     |
+| `children`   | `string \| number` | —           | 텍스트 내용                                        |
+| `color`      | `Color`            | `#000000ff` | 텍스트 색상, 상속 가능                             |
+| `fontSize`   | `number`           | —           | 글자 크기(논리 픽셀)                               |
+| `lineHeight` | `number`           | —           | 줄 높이(논리 픽셀)                                 |
+| `fontWeight` | `number`           | —           | 글자 굵기                                          |
+| `fontFamily` | `string`           | —           | CSS 폰트 패밀리                                    |
+| `font`       | `PingoFont`        | —           | 명시적 불변 폰트. 지원하지 않는 입력은 전체가 폴백 |
 
 `Text`는 모든 [CommonProps](/api)(크기, padding, 이벤트, `semanticRole` / `semanticLabel` 등)도
 상속합니다.

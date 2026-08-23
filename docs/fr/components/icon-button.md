@@ -40,15 +40,15 @@ root.render(
 
 ## Props
 
-| Prop | Type | Défaut | Description |
-| --- | --- | --- | --- |
-| `icon` | `PingoNode` | — | Slot d'icône, transmis tel quel (obligatoire) |
-| `semanticLabel` | `string` | — | Nom accessible (obligatoire) |
-| `variant` | `"default" \| "secondary" \| "outline" \| "ghost" \| "destructive"` | `"default"` | Variante visuelle |
-| `size` | `"default" \| "sm" \| "lg"` | `"default"` | Taille (`sm`/`lg` sans effet pour l'instant, voir ci-dessus) |
-| `disabled` | `boolean` | `false` | État désactivé |
-| `onPress` | `() => void` | — | Rappel d'activation pointeur/clavier |
-| `className` | `string` | — | Ajouté après le nom de classe du composant |
+| Prop            | Type                                                                | Défaut      | Description                                                  |
+| --------------- | ------------------------------------------------------------------- | ----------- | ------------------------------------------------------------ |
+| `icon`          | `PingoNode`                                                         | —           | Slot d'icône, transmis tel quel (obligatoire)                |
+| `semanticLabel` | `string`                                                            | —           | Nom accessible (obligatoire)                                 |
+| `variant`       | `"default" \| "secondary" \| "outline" \| "ghost" \| "destructive"` | `"default"` | Variante visuelle                                            |
+| `size`          | `"default" \| "sm" \| "lg"`                                         | `"default"` | Taille (`sm`/`lg` sans effet pour l'instant, voir ci-dessus) |
+| `disabled`      | `boolean`                                                           | `false`     | État désactivé                                               |
+| `onPress`       | `() => void`                                                        | —           | Rappel d'activation pointeur/clavier                         |
+| `className`     | `string`                                                            | —           | Ajouté après le nom de classe du composant                   |
 
 ## Accessibilité
 

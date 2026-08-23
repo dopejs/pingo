@@ -39,14 +39,14 @@ root.render(createElement(NotificationSetting));
 
 ## Props
 
-| Prop | النوع | القيمة الافتراضية | الوصف |
-| --- | --- | --- | --- |
-| `checked` | `boolean` | — | حالة الاختيار (إلزامية، مُتحكَّم بها) |
-| `onCheckedChange` | `(checked: boolean) => void` | — | استدعاء رجعي عند تبديل الحالة |
-| `disabled` | `boolean` | `false` | حالة التعطيل |
-| `label` | `string` | — | تسمية نصية على يمين مربع الاختيار |
-| `className` | `string` | — | تُضاف بعد اسم فئة المكوّن |
-| `semanticLabel` | `string` | — | اسم خاص بإمكانية الوصول |
+| Prop              | النوع                        | القيمة الافتراضية | الوصف                                 |
+| ----------------- | ---------------------------- | ----------------- | ------------------------------------- |
+| `checked`         | `boolean`                    | —                 | حالة الاختيار (إلزامية، مُتحكَّم بها) |
+| `onCheckedChange` | `(checked: boolean) => void` | —                 | استدعاء رجعي عند تبديل الحالة         |
+| `disabled`        | `boolean`                    | `false`           | حالة التعطيل                          |
+| `label`           | `string`                     | —                 | تسمية نصية على يمين مربع الاختيار     |
+| `className`       | `string`                     | —                 | تُضاف بعد اسم فئة المكوّن             |
+| `semanticLabel`   | `string`                     | —                 | اسم خاص بإمكانية الوصول               |
 
 ## إمكانية الوصول
 

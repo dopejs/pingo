@@ -38,9 +38,9 @@ La capa flotante llena su propio contenedor padre; móntala cerca del nodo raíz
 
 Hereda `DialogProps` (`open`, `onOpenChange`, `children`, `className`), además de:
 
-| Prop | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `side` | `"left" \| "right" \| "top" \| "bottom"` | `"right"` | Borde desde el que se desliza |
+| Prop   | Tipo                                     | Valor predeterminado | Descripción                   |
+| ------ | ---------------------------------------- | -------------------- | ----------------------------- |
+| `side` | `"left" \| "right" \| "top" \| "bottom"` | `"right"`            | Borde desde el que se desliza |
 
 ## Accesibilidad
 

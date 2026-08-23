@@ -205,9 +205,7 @@ export async function loadSiteContent() {
     try {
       parsed = matter(source);
     } catch (cause) {
-      throw new Error(
-        `frontmatter parse failed for docs/${sourcePath}: ${cause instanceof Error ? cause.message : String(cause)}`,
-      );
+      throw new Error(`frontmatter parse failed for docs/${sourcePath}`, { cause });
     }
     const environment = { sourcePath };
     const tokens = markdown.parse(parsed.content, environment);

@@ -45,12 +45,12 @@ createElement(TopBar, {
 
 ## Props
 
-| Prop | Tipo | Valor por defecto | Descripción |
-| --- | --- | --- | --- |
-| `title` | `string` | — | Texto del título; al omitirlo se renderiza una columna flexible vacía |
-| `leading` | `PingoNode` | — | Ranura delantera para el logo o el botón de volver |
-| `actions` | `PingoNode` | — | Ranura trasera, empujada al extremo derecho por la columna del título |
-| `className` | `string` | — | Se añade después del nombre de clase del componente |
+| Prop        | Tipo        | Valor por defecto | Descripción                                                           |
+| ----------- | ----------- | ----------------- | --------------------------------------------------------------------- |
+| `title`     | `string`    | —                 | Texto del título; al omitirlo se renderiza una columna flexible vacía |
+| `leading`   | `PingoNode` | —                 | Ranura delantera para el logo o el botón de volver                    |
+| `actions`   | `PingoNode` | —                 | Ranura trasera, empujada al extremo derecho por la columna del título |
+| `className` | `string`    | —                 | Se añade después del nombre de clase del componente                   |
 
 ## Accesibilidad
 

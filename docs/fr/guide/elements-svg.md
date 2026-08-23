@@ -85,19 +85,19 @@ forme individuel en donnée de path équivalente.
 
 ## Props (Path)
 
-| Prop | Type | Valeur par défaut | Description |
-| --- | --- | --- | --- |
-| `d` | `string` | — | Donnée de path SVG (obligatoire, syntaxe de path uniquement, pas un document) |
-| `viewBox` | `readonly [number, number, number, number]` | — | Boîte de l'espace auteur, mise à l'échelle dans la boîte du nœud |
-| `strokeWidth` | `number` | — | Non nul : trace le contour au lieu de remplir |
-| `fillRule` | `"nonzero" \| "evenodd"` | `"nonzero"` | Règle de remplissage |
-| `geometryTransform` | `readonly [number, number, number, number, number, number]` | Matrice identité | Transformation cuite dans la géométrie avant l'encodage |
+| Prop                | Type                                                        | Valeur par défaut | Description                                                                   |
+| ------------------- | ----------------------------------------------------------- | ----------------- | ----------------------------------------------------------------------------- |
+| `d`                 | `string`                                                    | —                 | Donnée de path SVG (obligatoire, syntaxe de path uniquement, pas un document) |
+| `viewBox`           | `readonly [number, number, number, number]`                 | —                 | Boîte de l'espace auteur, mise à l'échelle dans la boîte du nœud              |
+| `strokeWidth`       | `number`                                                    | —                 | Non nul : trace le contour au lieu de remplir                                 |
+| `fillRule`          | `"nonzero" \| "evenodd"`                                    | `"nonzero"`       | Règle de remplissage                                                          |
+| `geometryTransform` | `readonly [number, number, number, number, number, number]` | Matrice identité  | Transformation cuite dans la géométrie avant l'encodage                       |
 
 ## Props (Svg)
 
-| Prop | Type | Valeur par défaut | Description |
-| --- | --- | --- | --- |
-| `source` | `PingoSvg` | — | Document analysé par `createSvg` / `loadSvg` (obligatoire) |
+| Prop     | Type       | Valeur par défaut | Description                                                |
+| -------- | ---------- | ----------------- | ---------------------------------------------------------- |
+| `source` | `PingoSvg` | —                 | Document analysé par `createSvg` / `loadSvg` (obligatoire) |
 
 Les deux héritent des [CommonProps](/api) (`width`/`height`, événements, props sémantiques, etc.).
 

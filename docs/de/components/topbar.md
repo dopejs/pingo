@@ -45,12 +45,12 @@ createElement(TopBar, {
 
 ## Props
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `title` | `string` | — | Titeltext; wird er weggelassen, wird eine leere Flex-Spalte gerendert |
-| `leading` | `PingoNode` | — | Führender Slot für Logo oder Zurück-Button |
-| `actions` | `PingoNode` | — | Nachfolgender Slot, der von der Titelspalte ganz nach rechts geschoben wird |
-| `className` | `string` | — | Wird an den Komponenten-Klassennamen angehängt |
+| Prop        | Typ         | Standardwert | Beschreibung                                                                |
+| ----------- | ----------- | ------------ | --------------------------------------------------------------------------- |
+| `title`     | `string`    | —            | Titeltext; wird er weggelassen, wird eine leere Flex-Spalte gerendert       |
+| `leading`   | `PingoNode` | —            | Führender Slot für Logo oder Zurück-Button                                  |
+| `actions`   | `PingoNode` | —            | Nachfolgender Slot, der von der Titelspalte ganz nach rechts geschoben wird |
+| `className` | `string`    | —            | Wird an den Komponenten-Klassennamen angehängt                              |
 
 ## Barrierefreiheit
 

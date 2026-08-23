@@ -45,18 +45,18 @@ d'icônes, le séparateur est un glyphe texte) :
 
 ### BreadcrumbProps
 
-| Prop | Type | Valeur par défaut | Description |
-| --- | --- | --- | --- |
-| `items` | `readonly BreadcrumbItem[]` | — | Éléments du fil, le dernier étant la page courante (obligatoire) |
-| `separator` | `string` | `"/"` | Séparateur entre les éléments |
-| `className` | `string` | — | Ajouté après les classes du composant |
+| Prop        | Type                        | Valeur par défaut | Description                                                      |
+| ----------- | --------------------------- | ----------------- | ---------------------------------------------------------------- |
+| `items`     | `readonly BreadcrumbItem[]` | —                 | Éléments du fil, le dernier étant la page courante (obligatoire) |
+| `separator` | `string`                    | `"/"`             | Séparateur entre les éléments                                    |
+| `className` | `string`                    | —                 | Ajouté après les classes du composant                            |
 
 ### BreadcrumbItem
 
-| Champ | Type | Valeur par défaut | Description |
-| --- | --- | --- | --- |
-| `label` | `string` | — | Texte de l'élément (obligatoire) |
-| `onNavigate` | `() => void` | — | Callback de clic ; sans lui, l'élément n'a aucun comportement d'activation (le dernier élément, page courante par définition, n'en a pas besoin) |
+| Champ        | Type         | Valeur par défaut | Description                                                                                                                                      |
+| ------------ | ------------ | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `label`      | `string`     | —                 | Texte de l'élément (obligatoire)                                                                                                                 |
+| `onNavigate` | `() => void` | —                 | Callback de clic ; sans lui, l'élément n'a aucun comportement d'activation (le dernier élément, page courante par définition, n'en a pas besoin) |
 
 ## Accessibilité
 

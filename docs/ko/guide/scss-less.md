@@ -123,11 +123,11 @@ import {
 
 모든 진단은 단계 표시를 가집니다.
 
-| `stage`       | 출처                                                     |
-| ------------- | -------------------------------------------------------- |
-| `"scss"`      | Sass 컴파일 예외(문법 오류, 정의되지 않은 변수 등)       |
-| `"less"`      | Less 컴파일 rejection                                    |
-| `"pingo-css"` | 결과물이 CSS subset을 벗어난 `compileStyleSheet` 진단    |
+| `stage`       | 출처                                                  |
+| ------------- | ----------------------------------------------------- |
+| `"scss"`      | Sass 컴파일 예외(문법 오류, 정의되지 않은 변수 등)    |
+| `"less"`      | Less 컴파일 rejection                                 |
+| `"pingo-css"` | 결과물이 CSS subset을 벗어난 `compileStyleSheet` 진단 |
 
 두 컴파일러 모두 source map을 켜고, pingo CSS 진단의 생성 위치는 **최선을 다해 원래 SCSS/Less 파일과
 행·열로 매핑합니다**(`sourceLocation`). 매핑할 수 없을 때는 생성 위치(`generatedLocation`)와 entry 이름을

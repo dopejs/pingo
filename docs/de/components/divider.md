@@ -30,10 +30,10 @@ root.render(createElement(Divider, {}));
 
 ## Props
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `orientation` | `"horizontal" \| "vertical"` | `"horizontal"` | Ausrichtung der Trennlinie |
-| `className` | `string` | — | Wird an den Klassennamen der Komponente angehängt |
+| Prop          | Typ                          | Standardwert   | Beschreibung                                      |
+| ------------- | ---------------------------- | -------------- | ------------------------------------------------- |
+| `orientation` | `"horizontal" \| "vertical"` | `"horizontal"` | Ausrichtung der Trennlinie                        |
+| `className`   | `string`                     | —              | Wird an den Klassennamen der Komponente angehängt |
 
 Die Breite einer horizontalen Trennlinie beträgt 100 % des übergeordneten Containers und die Höhe 1px; die Höhe einer vertikalen Trennlinie beträgt 100 % des übergeordneten Containers und die Breite 1px.
 

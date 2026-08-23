@@ -45,23 +45,23 @@ root.render(
 
 ### ToggleGroup
 
-| Prop | Type | Défaut | Description |
-| --- | --- | --- | --- |
-| `type` | `"single" \| "multiple"` | `"single"` | La sélection simple efface le choix précédent ; la sélection multiple ajoute un à un |
-| `value` | `readonly string[]` | — | Ensemble des valeurs sélectionnées en mode contrôlé |
-| `defaultValue` | `readonly string[]` | `[]` | Ensemble sélectionné initial en mode non contrôlé |
-| `onValueChange` | `(value: readonly string[]) => void` | — | Rappel lors du changement de l’ensemble sélectionné |
-| `children` | `PingoNode` | — | Liste de `ToggleGroupItem` (requis) |
-| `className` | `string` | — | Ajouté après le nom de classe du composant |
+| Prop            | Type                                 | Défaut     | Description                                                                          |
+| --------------- | ------------------------------------ | ---------- | ------------------------------------------------------------------------------------ |
+| `type`          | `"single" \| "multiple"`             | `"single"` | La sélection simple efface le choix précédent ; la sélection multiple ajoute un à un |
+| `value`         | `readonly string[]`                  | —          | Ensemble des valeurs sélectionnées en mode contrôlé                                  |
+| `defaultValue`  | `readonly string[]`                  | `[]`       | Ensemble sélectionné initial en mode non contrôlé                                    |
+| `onValueChange` | `(value: readonly string[]) => void` | —          | Rappel lors du changement de l’ensemble sélectionné                                  |
+| `children`      | `PingoNode`                          | —          | Liste de `ToggleGroupItem` (requis)                                                  |
+| `className`     | `string`                             | —          | Ajouté après le nom de classe du composant                                           |
 
 ### ToggleGroupItem
 
-| Prop | Type | Défaut | Description |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Valeur de l’élément (requis) |
-| `children` | `string` | — | Texte de l’élément (requis) |
-| `disabled` | `boolean` | `false` | Désactive l’élément |
-| `className` | `string` | — | Ajouté après le nom de classe du composant |
+| Prop        | Type      | Défaut  | Description                                |
+| ----------- | --------- | ------- | ------------------------------------------ |
+| `value`     | `string`  | —       | Valeur de l’élément (requis)               |
+| `children`  | `string`  | —       | Texte de l’élément (requis)                |
+| `disabled`  | `boolean` | `false` | Désactive l’élément                        |
+| `className` | `string`  | —       | Ajouté après le nom de classe du composant |
 
 ## Accessibilité
 

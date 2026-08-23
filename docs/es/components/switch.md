@@ -39,13 +39,13 @@ Al pasar `disabled`, el interruptor deja de responder al puntero y al teclado, y
 
 ## Props
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `checked` | `boolean` | — | Estado del interruptor (obligatorio, controlado) |
-| `onCheckedChange` | `(checked: boolean) => void` | — | Callback de cambio de estado |
-| `disabled` | `boolean` | `false` | Estado deshabilitado |
-| `className` | `string` | — | Se añade después del nombre de clase del componente |
-| `semanticLabel` | `string` | — | Nombre accesible |
+| Prop              | 类型                         | 默认值  | 说明                                                |
+| ----------------- | ---------------------------- | ------- | --------------------------------------------------- |
+| `checked`         | `boolean`                    | —       | Estado del interruptor (obligatorio, controlado)    |
+| `onCheckedChange` | `(checked: boolean) => void` | —       | Callback de cambio de estado                        |
+| `disabled`        | `boolean`                    | `false` | Estado deshabilitado                                |
+| `className`       | `string`                     | —       | Se añade después del nombre de clase del componente |
+| `semanticLabel`   | `string`                     | —       | Nombre accesible                                    |
 
 ## Accesibilidad
 

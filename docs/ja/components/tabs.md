@@ -45,36 +45,36 @@ root.render(
 
 ### Tabs
 
-| Prop | 型 | デフォルト値 | 説明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 制御：現在選択中のタブの `value` |
-| `defaultValue` | `string` | — | 非制御：初期選択タブの `value` |
-| `onValueChange` | `(value: string) => void` | — | 選択変更時のコールバック |
-| `children` | `PingoNode` | — | `TabsList` と複数の `TabsContent`（必須） |
-| `className` | `string` | — | コンポーネントのクラス名の後に追加 |
+| Prop            | 型                        | デフォルト値 | 説明                                      |
+| --------------- | ------------------------- | ------------ | ----------------------------------------- |
+| `value`         | `string`                  | —            | 制御：現在選択中のタブの `value`          |
+| `defaultValue`  | `string`                  | —            | 非制御：初期選択タブの `value`            |
+| `onValueChange` | `(value: string) => void` | —            | 選択変更時のコールバック                  |
+| `children`      | `PingoNode`               | —            | `TabsList` と複数の `TabsContent`（必須） |
+| `className`     | `string`                  | —            | コンポーネントのクラス名の後に追加        |
 
 ### TabsList
 
-| Prop | 型 | デフォルト値 | 説明 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | `TabsTrigger` のリスト（必須） |
-| `className` | `string` | — | コンポーネントのクラス名の後に追加 |
+| Prop        | 型          | デフォルト値 | 説明                               |
+| ----------- | ----------- | ------------ | ---------------------------------- |
+| `children`  | `PingoNode` | —            | `TabsTrigger` のリスト（必須）     |
+| `className` | `string`    | —            | コンポーネントのクラス名の後に追加 |
 
 ### TabsTrigger
 
-| Prop | 型 | デフォルト値 | 説明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 対応する `TabsContent` と関連付ける識別子（必須） |
-| `children` | `string` | — | タブのテキスト（必須） |
-| `className` | `string` | — | コンポーネントのクラス名の後に追加 |
+| Prop        | 型       | デフォルト値 | 説明                                              |
+| ----------- | -------- | ------------ | ------------------------------------------------- |
+| `value`     | `string` | —            | 対応する `TabsContent` と関連付ける識別子（必須） |
+| `children`  | `string` | —            | タブのテキスト（必須）                            |
+| `className` | `string` | —            | コンポーネントのクラス名の後に追加                |
 
 ### TabsContent
 
-| Prop | 型 | デフォルト値 | 説明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 対応する `TabsTrigger` と関連付ける識別子（必須） |
-| `children` | `PingoNode` | — | パネルの内容（必須） |
-| `className` | `string` | — | コンポーネントのクラス名の後に追加 |
+| Prop        | 型          | デフォルト値 | 説明                                              |
+| ----------- | ----------- | ------------ | ------------------------------------------------- |
+| `value`     | `string`    | —            | 対応する `TabsTrigger` と関連付ける識別子（必須） |
+| `children`  | `PingoNode` | —            | パネルの内容（必須）                              |
+| `className` | `string`    | —            | コンポーネントのクラス名の後に追加                |
 
 ## アクセシビリティ
 

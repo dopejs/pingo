@@ -42,22 +42,22 @@ Fournir votre propre `controller` active le mode contrôlé : dans ce cas, `valu
 
 ## Props
 
-| Prop | Type | Valeur par défaut | Description |
-| --- | --- | --- | --- |
-| `value` | `string` | `""` | Valeur initiale en utilisation non contrôlée ; ignorée lorsque `controller` est défini |
-| `onValueChange` | `(value: string) => void` | — | Rappel déclenché après l’application de chaque transaction d’édition avec la dernière valeur |
-| `controller` | `TextEditingController` | — | Échappatoire avancée : contrôleur persistant détenu par l’appelant |
-| `onTransaction` | `(transaction: EditTransaction) => void` | — | Rappel brut pour chaque transaction d’édition |
-| `onSubmit` | `() => void` | — | Rappel de soumission (touche Entrée) |
-| `disabled` | `boolean` | `false` | État désactivé |
-| `readOnly` | `boolean` | `false` | État en lecture seule |
-| `password` | `boolean` | `false` | Saisie masquée |
-| `inputMode` | `"decimal" \| "email" \| "none" \| "numeric" \| "search" \| "tel" \| "text" \| "url"` | `"text"` | Indication de disposition du clavier virtuel |
-| `className` | `string` | — | Ajouté après le nom de classe du composant |
-| `width` | `number` | — | Largeur fixe (px) |
-| `semanticLabel` | `string` | — | Nom accessible |
-| `prefix` | `PingoNode` | — | Décoration avant, comme une icône ou un symbole monétaire |
-| `suffix` | `PingoNode` | — | Décoration arrière, comme une unité ou un bouton d’effacement |
+| Prop            | Type                                                                                  | Valeur par défaut | Description                                                                                  |
+| --------------- | ------------------------------------------------------------------------------------- | ----------------- | -------------------------------------------------------------------------------------------- |
+| `value`         | `string`                                                                              | `""`              | Valeur initiale en utilisation non contrôlée ; ignorée lorsque `controller` est défini       |
+| `onValueChange` | `(value: string) => void`                                                             | —                 | Rappel déclenché après l’application de chaque transaction d’édition avec la dernière valeur |
+| `controller`    | `TextEditingController`                                                               | —                 | Échappatoire avancée : contrôleur persistant détenu par l’appelant                           |
+| `onTransaction` | `(transaction: EditTransaction) => void`                                              | —                 | Rappel brut pour chaque transaction d’édition                                                |
+| `onSubmit`      | `() => void`                                                                          | —                 | Rappel de soumission (touche Entrée)                                                         |
+| `disabled`      | `boolean`                                                                             | `false`           | État désactivé                                                                               |
+| `readOnly`      | `boolean`                                                                             | `false`           | État en lecture seule                                                                        |
+| `password`      | `boolean`                                                                             | `false`           | Saisie masquée                                                                               |
+| `inputMode`     | `"decimal" \| "email" \| "none" \| "numeric" \| "search" \| "tel" \| "text" \| "url"` | `"text"`          | Indication de disposition du clavier virtuel                                                 |
+| `className`     | `string`                                                                              | —                 | Ajouté après le nom de classe du composant                                                   |
+| `width`         | `number`                                                                              | —                 | Largeur fixe (px)                                                                            |
+| `semanticLabel` | `string`                                                                              | —                 | Nom accessible                                                                               |
+| `prefix`        | `PingoNode`                                                                           | —                 | Décoration avant, comme une icône ou un symbole monétaire                                    |
+| `suffix`        | `PingoNode`                                                                           | —                 | Décoration arrière, comme une unité ou un bouton d’effacement                                |
 
 ## Accessibilité
 

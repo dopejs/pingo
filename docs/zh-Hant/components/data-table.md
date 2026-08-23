@@ -53,33 +53,33 @@ function MemberTable(): PingoNode {
 
 繼承 `TableProps<Row>` 的全部欄位（`columns` 換為可排序版本）：
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `columns` | `readonly DataTableColumn<Row>[]` | — | 列定義（必填），比 `TableColumn` 多一個 `sortable` |
-| `sort` | `SortState` | — | 當前排序狀態；省略表示未排序 |
-| `onSortChange` | `(sort: SortState \| undefined) => void` | — | 排序變化回調；`undefined` 表示取消排序。未傳入時表頭不可點選 |
-| `rowCount` | `number` | — | 總行數（必填） |
-| `getRow` | `(index: number) => Row` | — | 按行號取行資料（必填） |
-| `estimatedRowHeight` | `number` | `44` | 估算行高 |
-| `onRowPress` | `(index: number) => void` | — | 行點選回調 |
-| `emptyLabel` | `string` | `"暂无数据"` | 空狀態文案 |
-| `renderHeaderCell` | `(column, index) => PingoNode` | — | 型別上存在，但元件內部用它實作可排序表頭，傳入會被覆蓋 |
-| `className` | `string` | — | 追加在元件類名之後 |
+| Prop                 | 型別                                     | 預設值       | 說明                                                         |
+| -------------------- | ---------------------------------------- | ------------ | ------------------------------------------------------------ |
+| `columns`            | `readonly DataTableColumn<Row>[]`        | —            | 列定義（必填），比 `TableColumn` 多一個 `sortable`           |
+| `sort`               | `SortState`                              | —            | 當前排序狀態；省略表示未排序                                 |
+| `onSortChange`       | `(sort: SortState \| undefined) => void` | —            | 排序變化回調；`undefined` 表示取消排序。未傳入時表頭不可點選 |
+| `rowCount`           | `number`                                 | —            | 總行數（必填）                                               |
+| `getRow`             | `(index: number) => Row`                 | —            | 按行號取行資料（必填）                                       |
+| `estimatedRowHeight` | `number`                                 | `44`         | 估算行高                                                     |
+| `onRowPress`         | `(index: number) => void`                | —            | 行點選回調                                                   |
+| `emptyLabel`         | `string`                                 | `"暂无数据"` | 空狀態文案                                                   |
+| `renderHeaderCell`   | `(column, index) => PingoNode`           | —            | 型別上存在，但元件內部用它實作可排序表頭，傳入會被覆蓋       |
+| `className`          | `string`                                 | —            | 追加在元件類名之後                                           |
 
 ### DataTableColumn\<Row\>
 
 `TableColumn<Row>` 的擴充套件，新增：
 
-| 欄位 | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
+| 欄位       | 型別      | 預設值  | 說明               |
+| ---------- | --------- | ------- | ------------------ |
 | `sortable` | `boolean` | `false` | 表頭是否可點選排序 |
 
 ### SortState
 
-| 欄位 | 型別 | 說明 |
-| --- | --- | --- |
-| `key` | `string` | 排序列的 `key` |
-| `direction` | `"ascending" \| "descending"` | 排序方向 |
+| 欄位        | 型別                          | 說明           |
+| ----------- | ----------------------------- | -------------- |
+| `key`       | `string`                      | 排序列的 `key` |
+| `direction` | `"ascending" \| "descending"` | 排序方向       |
 
 當前排序列的表頭會帶上 `▲` / `▼` 指示符。
 

@@ -28,11 +28,11 @@ Tooltip 由指针进出驱动（`pointerenter` / `pointerleave`），无受控 p
 
 ## Props
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `content` | `string` | — | 气泡文字（必填） |
-| `children` | `PingoNode` | — | 触发元素（必填） |
-| `className` | `string` | — | 追加在锚点容器类名之后 |
+| Prop        | 类型        | 默认值 | 说明                   |
+| ----------- | ----------- | ------ | ---------------------- |
+| `content`   | `string`    | —      | 气泡文字（必填）       |
+| `children`  | `PingoNode` | —      | 触发元素（必填）       |
+| `className` | `string`    | —      | 追加在锚点容器类名之后 |
 
 ## 无障碍
 

@@ -135,11 +135,11 @@ Le `StylePreprocessResult` renvoyé contient `cssText`, `styleSheet`, `diagnosti
 
 Chaque diagnostic porte un marqueur d'étape :
 
-| `stage`       | Origine                                                                 |
-| ------------- | ----------------------------------------------------------------------- |
+| `stage`       | Origine                                                                  |
+| ------------- | ------------------------------------------------------------------------ |
 | `"scss"`      | Exception de compilation Sass (erreur de syntaxe, variable non définie…) |
-| `"less"`      | Rejection de compilation Less                                           |
-| `"pingo-css"` | Diagnostic `compileStyleSheet` quand le produit dépasse le subset CSS   |
+| `"less"`      | Rejection de compilation Less                                            |
+| `"pingo-css"` | Diagnostic `compileStyleSheet` quand le produit dépasse le subset CSS    |
 
 Les deux compilateurs activent les source maps, et la position générée d'un diagnostic pingo CSS
 est **mappée au mieux vers le fichier SCSS/Less d'origine, ligne et colonne comprises**

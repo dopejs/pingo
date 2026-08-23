@@ -39,14 +39,14 @@ Al pasar `disabled`, la casilla deja de responder al puntero y al teclado, y su 
 
 ## Props
 
-| Prop | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `checked` | `boolean` | — | Estado de selección (obligatorio, controlado) |
-| `onCheckedChange` | `(checked: boolean) => void` | — | Devuelve la llamada al cambiar el estado |
-| `disabled` | `boolean` | `false` | Estado deshabilitado |
-| `label` | `string` | — | Etiqueta de texto a la derecha de la casilla |
-| `className` | `string` | — | Se añade después del nombre de clase del componente |
-| `semanticLabel` | `string` | — | Nombre accesible |
+| Prop              | Tipo                         | Valor predeterminado | Descripción                                         |
+| ----------------- | ---------------------------- | -------------------- | --------------------------------------------------- |
+| `checked`         | `boolean`                    | —                    | Estado de selección (obligatorio, controlado)       |
+| `onCheckedChange` | `(checked: boolean) => void` | —                    | Devuelve la llamada al cambiar el estado            |
+| `disabled`        | `boolean`                    | `false`              | Estado deshabilitado                                |
+| `label`           | `string`                     | —                    | Etiqueta de texto a la derecha de la casilla        |
+| `className`       | `string`                     | —                    | Se añade después del nombre de clase del componente |
+| `semanticLabel`   | `string`                     | —                    | Nombre accesible                                    |
 
 ## Accesibilidad
 

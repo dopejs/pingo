@@ -37,21 +37,21 @@ root.render(
 
 ## Props
 
-| Prop | 型 | デフォルト | 説明 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | トリガー領域のコンテンツ（必須） |
-| `items` | `readonly ContextMenuEntry[]` | — | メニュー項目（必須） |
-| `onSelect` | `(value: string) => void` | — | メニュー項目選択時のコールバック |
-| `onOpenChange` | `(open: boolean) => void` | — | 開閉変化時のコールバック |
-| `className` | `string` | — | 追加するクラス名 |
+| Prop           | 型                            | デフォルト | 説明                             |
+| -------------- | ----------------------------- | ---------- | -------------------------------- |
+| `children`     | `PingoNode`                   | —          | トリガー領域のコンテンツ（必須） |
+| `items`        | `readonly ContextMenuEntry[]` | —          | メニュー項目（必須）             |
+| `onSelect`     | `(value: string) => void`     | —          | メニュー項目選択時のコールバック |
+| `onOpenChange` | `(open: boolean) => void`     | —          | 開閉変化時のコールバック         |
+| `className`    | `string`                      | —          | 追加するクラス名                 |
 
 ### ContextMenuEntry
 
-| フィールド | 型 | デフォルト | 説明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | メニュー項目の値（必須） |
-| `label` | `string` | — | 表示テキスト（必須） |
-| `disabled` | `boolean` | `false` | 無効状態 |
+| フィールド | 型        | デフォルト | 説明                     |
+| ---------- | --------- | ---------- | ------------------------ |
+| `value`    | `string`  | —          | メニュー項目の値（必須） |
+| `label`    | `string`  | —          | 表示テキスト（必須）     |
+| `disabled` | `boolean` | `false`    | 無効状態                 |
 
 ## アクセシビリティ
 

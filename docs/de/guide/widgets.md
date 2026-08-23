@@ -17,12 +17,12 @@ eingabefähig.
 
 ## Exporte und Benennung
 
-| Export | Beschreibung |
-| --- | --- |
+| Export      | Beschreibung                                                                                                  |
+| ----------- | ------------------------------------------------------------------------------------------------------------- |
 | `TextField` | Einzeilige Eingabe: Rahmen- und Fehlerzustands-Dekoration, intern nur die `editableText`-Primitive kombiniert |
-| `TextArea` | Mehrzeilige Variante; Enter erzeugt einen Zeilenumbruch, Submit bleibt dem Host-Formular überlassen |
-| `Pressable` | Fokussierbare Aktivierungsfläche: View + Fokus + natives click/tap |
-| `Button` | Convenience-Kombination aus `Pressable` + `Text` für Textbuttons |
+| `TextArea`  | Mehrzeilige Variante; Enter erzeugt einen Zeilenumbruch, Submit bleibt dem Host-Formular überlassen           |
+| `Pressable` | Fokussierbare Aktivierungsfläche: View + Fokus + natives click/tap                                            |
+| `Button`    | Convenience-Kombination aus `Pressable` + `Text` für Textbuttons                                              |
 
 Hinweis zur Benennung: `TextArea` in `@dopejs/pingo` bezeichnet dieses dekorierte Widget; die
 mehrzeilige **Primitive** wird als `UnstyledTextArea` exportiert (entsprechend heißt der Alias für
@@ -51,27 +51,27 @@ createElement(TextField, {
 
 ### Props (TextField)
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `value` | `string` | `""` | Kontrollierter Text |
-| `revision` | `number \| bigint` | `0n` | Autoritative Revision des kontrollierten Werts |
-| `controller` | `TextEditingController` | — | Lokaler Controller; schließt `value`/`revision` aus |
-| `readOnly` | `boolean` | — | Nur lesen |
-| `password` | `boolean` | — | Passwortmodus (Klartext gelangt weder in DisplayList noch in Barrierefreiheitswerte) |
-| `maxGraphemes` | `number` | — | Obergrenze für Grapheme |
-| `inputMode` | `EditableInputMode` | — | Layout-Hinweis für die Bildschirmtastatur |
-| `width` | `number` | `240` | Gesamtbreite inklusive Rahmen |
-| `height` | `number` | `lineHeight × rows + 16` | Gesamthöhe inklusive Rahmen |
-| `fontSize` | `number` | `14` | Schriftgröße |
-| `lineHeight` | `number` | `round(fontSize × 1.5)` | Zeilenhöhe |
-| `color` | `Color` | `#1f2329ff` | Textfarbe |
-| `backgroundColor` | `Color` | `#ffffffff` | Feldhintergrund |
-| `borderColor` | `Color` | `#c0c4ccff` | Rahmenfarbe |
-| `errorColor` | `Color` | `#d03050ff` | Farbe für Fehlerrahmen und Fehlertext |
-| `error` | `string` | — | Nicht leer = Fehlerzustand: Rahmen in Fehlerfarbe + Fehlertext darunter |
-| `onTransaction` | `(t: EditTransaction) => void` | — | Callback für Core-Bearbeitungstransaktionen |
-| `onSubmit` | `() => void` | — | Einzeiliges Enter-Submit |
-| `semanticLabel` | `string` | — | Barrierefreiheitsname (Rolle ist immer `textbox`) |
+| Prop              | Typ                            | Standardwert             | Beschreibung                                                                         |
+| ----------------- | ------------------------------ | ------------------------ | ------------------------------------------------------------------------------------ |
+| `value`           | `string`                       | `""`                     | Kontrollierter Text                                                                  |
+| `revision`        | `number \| bigint`             | `0n`                     | Autoritative Revision des kontrollierten Werts                                       |
+| `controller`      | `TextEditingController`        | —                        | Lokaler Controller; schließt `value`/`revision` aus                                  |
+| `readOnly`        | `boolean`                      | —                        | Nur lesen                                                                            |
+| `password`        | `boolean`                      | —                        | Passwortmodus (Klartext gelangt weder in DisplayList noch in Barrierefreiheitswerte) |
+| `maxGraphemes`    | `number`                       | —                        | Obergrenze für Grapheme                                                              |
+| `inputMode`       | `EditableInputMode`            | —                        | Layout-Hinweis für die Bildschirmtastatur                                            |
+| `width`           | `number`                       | `240`                    | Gesamtbreite inklusive Rahmen                                                        |
+| `height`          | `number`                       | `lineHeight × rows + 16` | Gesamthöhe inklusive Rahmen                                                          |
+| `fontSize`        | `number`                       | `14`                     | Schriftgröße                                                                         |
+| `lineHeight`      | `number`                       | `round(fontSize × 1.5)`  | Zeilenhöhe                                                                           |
+| `color`           | `Color`                        | `#1f2329ff`              | Textfarbe                                                                            |
+| `backgroundColor` | `Color`                        | `#ffffffff`              | Feldhintergrund                                                                      |
+| `borderColor`     | `Color`                        | `#c0c4ccff`              | Rahmenfarbe                                                                          |
+| `errorColor`      | `Color`                        | `#d03050ff`              | Farbe für Fehlerrahmen und Fehlertext                                                |
+| `error`           | `string`                       | —                        | Nicht leer = Fehlerzustand: Rahmen in Fehlerfarbe + Fehlertext darunter              |
+| `onTransaction`   | `(t: EditTransaction) => void` | —                        | Callback für Core-Bearbeitungstransaktionen                                          |
+| `onSubmit`        | `() => void`                   | —                        | Einzeiliges Enter-Submit                                                             |
+| `semanticLabel`   | `string`                       | —                        | Barrierefreiheitsname (Rolle ist immer `textbox`)                                    |
 
 `TextArea` ergänzt hier um `rows` (Standard `3`) zur Berechnung der Standardhöhe.
 
@@ -82,15 +82,15 @@ createElement(TextField, {
 `onPress` abbildet. Das Styling bestimmen vollständig `style` und `children`; bei `disabled` wird
 die Deckkraft reduziert und die Events werden abgehängt.
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Inhalt (bei Button `string \| number`, Pflicht) |
-| `disabled` | `boolean` | `false` | Deaktivierter Zustand |
-| `onPress` | `() => void` | — | Aktivierungs-Callback |
-| `className` | `string` | — | Klassenname (ans Stylesheet anschließen) |
-| `style` | `PingoStyle` | — | Inline-Stile |
-| `width` / `height` | `number` | — | Größe |
-| `semanticLabel` | `string` | `Button` übernimmt `children` | Barrierefreiheitsname |
+| Prop               | Typ          | Standardwert                  | Beschreibung                                    |
+| ------------------ | ------------ | ----------------------------- | ----------------------------------------------- |
+| `children`         | `PingoNode`  | —                             | Inhalt (bei Button `string \| number`, Pflicht) |
+| `disabled`         | `boolean`    | `false`                       | Deaktivierter Zustand                           |
+| `onPress`          | `() => void` | —                             | Aktivierungs-Callback                           |
+| `className`        | `string`     | —                             | Klassenname (ans Stylesheet anschließen)        |
+| `style`            | `PingoStyle` | —                             | Inline-Stile                                    |
+| `width` / `height` | `number`     | —                             | Größe                                           |
+| `semanticLabel`    | `string`     | `Button` übernimmt `children` | Barrierefreiheitsname                           |
 
 `Button` akzeptiert zusätzlich `color` und `fontSize` (werden an den internen Text weitergereicht).
 

@@ -43,18 +43,18 @@ Tanto `value` / `onValueChange` como `open` / `onOpenChange` pueden ser controla
 
 ## Props
 
-| Prop | Tipo | Valor por defecto | Descripción |
-| --- | --- | --- | --- |
-| `items` | `readonly { value: string; label: string }[]` | — | Lista de opciones (obligatoria) |
-| `value` | `string` | — | Valor seleccionado controlado |
-| `defaultValue` | `string` | — | Valor inicial seleccionado no controlado |
-| `onValueChange` | `(value: string) => void` | — | Callback de cambio de selección (se cierra automáticamente tras seleccionar) |
-| `open` | `boolean` | — | Apertura controlada |
-| `defaultOpen` | `boolean` | `false` | Apertura inicial no controlada |
-| `onOpenChange` | `(open: boolean) => void` | — | Callback de apertura/cierre |
-| `placeholder` | `string` | `"请选择"` | Texto de marcador de posición en el disparador cuando no hay selección |
-| `emptyLabel` | `string` | — | Aviso cuando el filtrado no devuelve resultados |
-| `className` | `string` | — | Se agrega después de la clase del componente |
+| Prop            | Tipo                                          | Valor por defecto | Descripción                                                                  |
+| --------------- | --------------------------------------------- | ----------------- | ---------------------------------------------------------------------------- |
+| `items`         | `readonly { value: string; label: string }[]` | —                 | Lista de opciones (obligatoria)                                              |
+| `value`         | `string`                                      | —                 | Valor seleccionado controlado                                                |
+| `defaultValue`  | `string`                                      | —                 | Valor inicial seleccionado no controlado                                     |
+| `onValueChange` | `(value: string) => void`                     | —                 | Callback de cambio de selección (se cierra automáticamente tras seleccionar) |
+| `open`          | `boolean`                                     | —                 | Apertura controlada                                                          |
+| `defaultOpen`   | `boolean`                                     | `false`           | Apertura inicial no controlada                                               |
+| `onOpenChange`  | `(open: boolean) => void`                     | —                 | Callback de apertura/cierre                                                  |
+| `placeholder`   | `string`                                      | `"请选择"`        | Texto de marcador de posición en el disparador cuando no hay selección       |
+| `emptyLabel`    | `string`                                      | —                 | Aviso cuando el filtrado no devuelve resultados                              |
+| `className`     | `string`                                      | —                 | Se agrega después de la clase del componente                                 |
 
 ## Accesibilidad
 

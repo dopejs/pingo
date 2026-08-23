@@ -38,15 +38,15 @@ root.render(
 
 ## Props
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `trigger` | `string` | — | 觸發器文字（必填） |
-| `children` | `PingoNode` | — | 展開後顯示的內容（必填） |
-| `open` | `boolean` | — | 受控：當前展開狀態 |
-| `defaultOpen` | `boolean` | `false` | 非受控：初始展開狀態 |
-| `onOpenChange` | `(open: boolean) => void` | — | 展開狀態變化回調 |
-| `disabled` | `boolean` | `false` | 禁用觸發器 |
-| `className` | `string` | — | 追加在元件類名之後 |
+| Prop           | 型別                      | 預設值  | 說明                     |
+| -------------- | ------------------------- | ------- | ------------------------ |
+| `trigger`      | `string`                  | —       | 觸發器文字（必填）       |
+| `children`     | `PingoNode`               | —       | 展開後顯示的內容（必填） |
+| `open`         | `boolean`                 | —       | 受控：當前展開狀態       |
+| `defaultOpen`  | `boolean`                 | `false` | 非受控：初始展開狀態     |
+| `onOpenChange` | `(open: boolean) => void` | —       | 展開狀態變化回調         |
+| `disabled`     | `boolean`                 | `false` | 禁用觸發器               |
+| `className`    | `string`                  | —       | 追加在元件類名之後       |
 
 ## 無障礙
 

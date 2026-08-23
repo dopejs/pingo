@@ -43,18 +43,18 @@ root.render(
 
 ## Props
 
-| Prop | Type | Défaut | Description |
-| --- | --- | --- | --- |
-| `items` | `readonly { value: string; label: string }[]` | — | Liste d’options (obligatoire) |
-| `value` | `string` | — | Valeur sélectionnée contrôlée |
-| `defaultValue` | `string` | — | Valeur sélectionnée initiale non contrôlée |
-| `onValueChange` | `(value: string) => void` | — | Rappel au changement de sélection (la liste se referme automatiquement après la sélection) |
-| `open` | `boolean` | — | Ouverture contrôlée |
-| `defaultOpen` | `boolean` | `false` | Ouverture initiale non contrôlée |
-| `onOpenChange` | `(open: boolean) => void` | — | Rappel d’ouverture ou de fermeture |
-| `placeholder` | `string` | `"请选择"` | Texte indicatif sur le déclencheur lorsqu’aucune valeur n’est sélectionnée |
-| `emptyLabel` | `string` | — | Message affiché lorsque le filtrage ne renvoie aucun résultat |
-| `className` | `string` | — | Ajouté après le nom de classe du composant |
+| Prop            | Type                                          | Défaut     | Description                                                                                |
+| --------------- | --------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------ |
+| `items`         | `readonly { value: string; label: string }[]` | —          | Liste d’options (obligatoire)                                                              |
+| `value`         | `string`                                      | —          | Valeur sélectionnée contrôlée                                                              |
+| `defaultValue`  | `string`                                      | —          | Valeur sélectionnée initiale non contrôlée                                                 |
+| `onValueChange` | `(value: string) => void`                     | —          | Rappel au changement de sélection (la liste se referme automatiquement après la sélection) |
+| `open`          | `boolean`                                     | —          | Ouverture contrôlée                                                                        |
+| `defaultOpen`   | `boolean`                                     | `false`    | Ouverture initiale non contrôlée                                                           |
+| `onOpenChange`  | `(open: boolean) => void`                     | —          | Rappel d’ouverture ou de fermeture                                                         |
+| `placeholder`   | `string`                                      | `"请选择"` | Texte indicatif sur le déclencheur lorsqu’aucune valeur n’est sélectionnée                 |
+| `emptyLabel`    | `string`                                      | —          | Message affiché lorsque le filtrage ne renvoie aucun résultat                              |
+| `className`     | `string`                                      | —          | Ajouté après le nom de classe du composant                                                 |
 
 ## Accessibilité
 

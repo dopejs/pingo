@@ -49,15 +49,15 @@ Dialog와 마찬가지로 오버레이는 자신의 부모 컨테이너를 가�
 
 `DialogProps`(`open`, `onOpenChange`, `children`, `className`)를 상속하며, 추가로:
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `title` | `string` | — | 제목(필수) |
-| `description` | `string` | — | 보충 설명 |
-| `cancelLabel` | `string` | `"취소"` | 취소 버튼 문구 |
-| `actionLabel` | `string` | `"확인"` | 확인 버튼 문구 |
-| `onCancel` | `() => void` | — | 취소 콜백(이후 닫힘) |
-| `onAction` | `() => void` | — | 확인 콜백(이후 닫힘) |
-| `destructive` | `boolean` | `false` | 확인 버튼에 위험 색 사용 |
+| Prop          | 타입         | 기본값   | 설명                     |
+| ------------- | ------------ | -------- | ------------------------ |
+| `title`       | `string`     | —        | 제목(필수)               |
+| `description` | `string`     | —        | 보충 설명                |
+| `cancelLabel` | `string`     | `"취소"` | 취소 버튼 문구           |
+| `actionLabel` | `string`     | `"확인"` | 확인 버튼 문구           |
+| `onCancel`    | `() => void` | —        | 취소 콜백(이후 닫힘)     |
+| `onAction`    | `() => void` | —        | 확인 콜백(이후 닫힘)     |
+| `destructive` | `boolean`    | `false`  | 확인 버튼에 위험 색 사용 |
 
 ## 접근성
 

@@ -35,14 +35,14 @@ root.render(
 
 ## Props
 
-| Prop | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `children` | `string` | — | نص الزر (مطلوب) |
-| `pressed` | `boolean` | — | حالة الضغط المُتحكَّم بها |
-| `defaultPressed` | `boolean` | `false` | حالة الضغط الأولية غير المُتحكَّم بها |
-| `onPressedChange` | `(pressed: boolean) => void` | — | استدعاء عند تبديل الحالة |
-| `disabled` | `boolean` | `false` | حالة التعطيل |
-| `className` | `string` | — | يُضاف بعد اسم فئة المكوّن |
+| Prop              | 类型                         | 默认值  | 说明                                  |
+| ----------------- | ---------------------------- | ------- | ------------------------------------- |
+| `children`        | `string`                     | —       | نص الزر (مطلوب)                       |
+| `pressed`         | `boolean`                    | —       | حالة الضغط المُتحكَّم بها             |
+| `defaultPressed`  | `boolean`                    | `false` | حالة الضغط الأولية غير المُتحكَّم بها |
+| `onPressedChange` | `(pressed: boolean) => void` | —       | استدعاء عند تبديل الحالة              |
+| `disabled`        | `boolean`                    | `false` | حالة التعطيل                          |
+| `className`       | `string`                     | —       | يُضاف بعد اسم فئة المكوّن             |
 
 ## إمكانية الوصول
 

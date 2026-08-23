@@ -41,22 +41,22 @@ root.render(
 
 ### Accordion
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `openValue` | `string` | — | 受控：當前展開項的 `value` |
-| `defaultOpenValue` | `string` | — | 非受控：初始展開項的 `value` |
-| `onValueChange` | `(value: string \| undefined) => void` | — | 展開項變化回調；全部收起時為 `undefined` |
-| `children` | `PingoNode` | — | `AccordionItem` 列表（必填） |
-| `className` | `string` | — | 追加在元件類名之後 |
+| Prop               | 型別                                   | 預設值 | 說明                                     |
+| ------------------ | -------------------------------------- | ------ | ---------------------------------------- |
+| `openValue`        | `string`                               | —      | 受控：當前展開項的 `value`               |
+| `defaultOpenValue` | `string`                               | —      | 非受控：初始展開項的 `value`             |
+| `onValueChange`    | `(value: string \| undefined) => void` | —      | 展開項變化回調；全部收起時為 `undefined` |
+| `children`         | `PingoNode`                            | —      | `AccordionItem` 列表（必填）             |
+| `className`        | `string`                               | —      | 追加在元件類名之後                       |
 
 ### AccordionItem
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 項的唯一標識（必填） |
-| `title` | `string` | — | 觸發器標題（必填） |
-| `children` | `PingoNode` | — | 展開後顯示的內容（必填） |
-| `className` | `string` | — | 追加在元件類名之後 |
+| Prop        | 型別        | 預設值 | 說明                     |
+| ----------- | ----------- | ------ | ------------------------ |
+| `value`     | `string`    | —      | 項的唯一標識（必填）     |
+| `title`     | `string`    | —      | 觸發器標題（必填）       |
+| `children`  | `PingoNode` | —      | 展開後顯示的內容（必填） |
+| `className` | `string`    | —      | 追加在元件類名之後       |
 
 ## 無障礙
 

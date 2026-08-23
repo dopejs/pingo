@@ -54,26 +54,26 @@ Dialog의 오버레이는 **자신의 부모 컨테이너**(뷰포트가 아님)
 
 ### Dialog
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `open` | `boolean` | — | 열림 여부(필수, 제어) |
-| `onOpenChange` | `(open: boolean) => void` | — | 닫기/열기를 요청할 때 호출되는 콜백 |
-| `children` | `PingoNode` | — | 패널 콘텐츠(필수) |
-| `className` | `string` | — | 오버레이 클래스 이름 뒤에 추가 |
+| Prop           | 타입                      | 기본값 | 설명                                |
+| -------------- | ------------------------- | ------ | ----------------------------------- |
+| `open`         | `boolean`                 | —      | 열림 여부(필수, 제어)               |
+| `onOpenChange` | `(open: boolean) => void` | —      | 닫기/열기를 요청할 때 호출되는 콜백 |
+| `children`     | `PingoNode`               | —      | 패널 콘텐츠(필수)                   |
+| `className`    | `string`                  | —      | 오버레이 클래스 이름 뒤에 추가      |
 
 ### DialogHeader / DialogFooter
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | 블록 콘텐츠(필수) |
-| `className` | `string` | — | 추가 클래스 이름 |
+| Prop        | 타입        | 기본값 | 설명              |
+| ----------- | ----------- | ------ | ----------------- |
+| `children`  | `PingoNode` | —      | 블록 콘텐츠(필수) |
+| `className` | `string`    | —      | 추가 클래스 이름  |
 
 ### DialogTitle / DialogDescription
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `children` | `string` | — | 텍스트 콘텐츠(필수) |
-| `className` | `string` | — | 추가 클래스 이름 |
+| Prop        | 타입     | 기본값 | 설명                |
+| ----------- | -------- | ------ | ------------------- |
+| `children`  | `string` | —      | 텍스트 콘텐츠(필수) |
+| `className` | `string` | —      | 추가 클래스 이름    |
 
 ## 접근성
 

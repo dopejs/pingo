@@ -42,17 +42,17 @@ root.render(
 
 ## Props
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `value` | `number` | — | 제어되는 현재 값 |
-| `defaultValue` | `number` | `min` | 비제어 초기 값 |
-| `onValueChange` | `(value: number) => void` | — | 값 변경 콜백 |
-| `min` | `number` | `0` | 최솟값 |
-| `max` | `number` | `100` | 최댓값 |
-| `step` | `number` | `1` | 키보드 스텝 |
-| `disabled` | `boolean` | `false` | 비활성화 상태 |
-| `semanticLabel` | `string` | — | 접근성 이름 |
-| `className` | `string` | — | 컴포넌트 클래스 이름 뒤에 추가 |
+| Prop            | 타입                      | 기본값  | 설명                           |
+| --------------- | ------------------------- | ------- | ------------------------------ |
+| `value`         | `number`                  | —       | 제어되는 현재 값               |
+| `defaultValue`  | `number`                  | `min`   | 비제어 초기 값                 |
+| `onValueChange` | `(value: number) => void` | —       | 값 변경 콜백                   |
+| `min`           | `number`                  | `0`     | 최솟값                         |
+| `max`           | `number`                  | `100`   | 최댓값                         |
+| `step`          | `number`                  | `1`     | 키보드 스텝                    |
+| `disabled`      | `boolean`                 | `false` | 비활성화 상태                  |
+| `semanticLabel` | `string`                  | —       | 접근성 이름                    |
+| `className`     | `string`                  | —       | 컴포넌트 클래스 이름 뒤에 추가 |
 
 ## 접근성
 

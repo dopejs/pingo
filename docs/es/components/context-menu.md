@@ -33,21 +33,21 @@ El menú se posiciona en el punto donde se pulsa el puntero y no en la esquina d
 
 ## Props
 
-| Prop | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Contenido del área de activación (obligatorio) |
-| `items` | `readonly ContextMenuEntry[]` | — | Elementos del menú (obligatorio) |
-| `onSelect` | `(value: string) => void` | — | Callback al seleccionar un elemento del menú |
-| `onOpenChange` | `(open: boolean) => void` | — | Callback al cambiar el estado de apertura |
-| `className` | `string` | — | Clase adicional |
+| Prop           | Tipo                          | Valor predeterminado | Descripción                                    |
+| -------------- | ----------------------------- | -------------------- | ---------------------------------------------- |
+| `children`     | `PingoNode`                   | —                    | Contenido del área de activación (obligatorio) |
+| `items`        | `readonly ContextMenuEntry[]` | —                    | Elementos del menú (obligatorio)               |
+| `onSelect`     | `(value: string) => void`     | —                    | Callback al seleccionar un elemento del menú   |
+| `onOpenChange` | `(open: boolean) => void`     | —                    | Callback al cambiar el estado de apertura      |
+| `className`    | `string`                      | —                    | Clase adicional                                |
 
 ### ContextMenuEntry
 
-| Campo | Tipo | Valor predeterminado | Descripción |
-| --- | --- | --- | --- |
-| `value` | `string` | — | Valor del elemento del menú (obligatorio) |
-| `label` | `string` | — | Texto visible (obligatorio) |
-| `disabled` | `boolean` | `false` | Estado deshabilitado |
+| Campo      | Tipo      | Valor predeterminado | Descripción                               |
+| ---------- | --------- | -------------------- | ----------------------------------------- |
+| `value`    | `string`  | —                    | Valor del elemento del menú (obligatorio) |
+| `label`    | `string`  | —                    | Texto visible (obligatorio)               |
+| `disabled` | `boolean` | `false`              | Estado deshabilitado                      |
 
 ## Accesibilidad
 

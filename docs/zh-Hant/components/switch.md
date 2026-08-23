@@ -39,13 +39,13 @@ root.render(createElement(AirplaneMode));
 
 ## Props
 
-| Prop | 型別 | 預設值 | 說明 |
-| --- | --- | --- | --- |
-| `checked` | `boolean` | — | 開關狀態（必填，受控） |
-| `onCheckedChange` | `(checked: boolean) => void` | — | 狀態切換回調 |
-| `disabled` | `boolean` | `false` | 禁用態 |
-| `className` | `string` | — | 追加在元件類名之後 |
-| `semanticLabel` | `string` | — | 無障礙名稱 |
+| Prop              | 型別                         | 預設值  | 說明                   |
+| ----------------- | ---------------------------- | ------- | ---------------------- |
+| `checked`         | `boolean`                    | —       | 開關狀態（必填，受控） |
+| `onCheckedChange` | `(checked: boolean) => void` | —       | 狀態切換回調           |
+| `disabled`        | `boolean`                    | `false` | 禁用態                 |
+| `className`       | `string`                     | —       | 追加在元件類名之後     |
+| `semanticLabel`   | `string`                     | —       | 無障礙名稱             |
 
 ## 無障礙
 

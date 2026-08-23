@@ -36,19 +36,19 @@ Nach Übergabe von `disabled` nimmt das Feld keine Eingaben mehr entgegen und er
 
 ## Props
 
-| Prop | Typ | Standard | Beschreibung |
-| --- | --- | --- | --- |
-| `value` | `string` | `""` | Anfangswert bei unkontrollierter Verwendung; wird ignoriert, wenn `controller` gesetzt ist |
-| `onValueChange` | `(value: string) => void` | — | Wird nach jeder angewendeten Bearbeitungstransaktion mit dem aktuellen Wert aufgerufen |
-| `controller` | `TextEditingController` | — | Erweiterte Ausweichmöglichkeit: ein vom Aufrufer gehaltener, persistenter Controller |
-| `onTransaction` | `(transaction: EditTransaction) => void` | — | Roher Rückruf für jede Bearbeitungstransaktion |
-| `onSubmit` | `() => void` | — | Rückruf beim Absenden |
-| `disabled` | `boolean` | `false` | Deaktivierter Zustand |
-| `readOnly` | `boolean` | `false` | Schreibgeschützter Zustand |
-| `rows` | `number` | — | Anzahl der sichtbaren Zeilen; bestimmt die minimale Höhe der Hülle |
-| `className` | `string` | — | Wird an den Komponenten-Klassennamen angehängt |
-| `width` | `number` | — | Feste Breite (px) |
-| `semanticLabel` | `string` | — | Barrierefreier Name |
+| Prop            | Typ                                      | Standard | Beschreibung                                                                               |
+| --------------- | ---------------------------------------- | -------- | ------------------------------------------------------------------------------------------ |
+| `value`         | `string`                                 | `""`     | Anfangswert bei unkontrollierter Verwendung; wird ignoriert, wenn `controller` gesetzt ist |
+| `onValueChange` | `(value: string) => void`                | —        | Wird nach jeder angewendeten Bearbeitungstransaktion mit dem aktuellen Wert aufgerufen     |
+| `controller`    | `TextEditingController`                  | —        | Erweiterte Ausweichmöglichkeit: ein vom Aufrufer gehaltener, persistenter Controller       |
+| `onTransaction` | `(transaction: EditTransaction) => void` | —        | Roher Rückruf für jede Bearbeitungstransaktion                                             |
+| `onSubmit`      | `() => void`                             | —        | Rückruf beim Absenden                                                                      |
+| `disabled`      | `boolean`                                | `false`  | Deaktivierter Zustand                                                                      |
+| `readOnly`      | `boolean`                                | `false`  | Schreibgeschützter Zustand                                                                 |
+| `rows`          | `number`                                 | —        | Anzahl der sichtbaren Zeilen; bestimmt die minimale Höhe der Hülle                         |
+| `className`     | `string`                                 | —        | Wird an den Komponenten-Klassennamen angehängt                                             |
+| `width`         | `number`                                 | —        | Feste Breite (px)                                                                          |
+| `semanticLabel` | `string`                                 | —        | Barrierefreier Name                                                                        |
 
 ## Barrierefreiheit
 

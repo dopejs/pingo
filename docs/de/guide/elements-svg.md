@@ -83,19 +83,19 @@ Füllung/Stroke und `fillRule`; `shapeData(name, attributes)` wandelt ein einzel
 
 ## Props (Path)
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `d` | `string` | — | SVG-Pfaddaten (Pflicht, nur Pfadsyntax, kein Dokument) |
-| `viewBox` | `readonly [number, number, number, number]` | — | Box im Autorenraum, wird in die Knotenbox skaliert |
-| `strokeWidth` | `number` | — | Ungleich null: Stroke statt Füllung |
-| `fillRule` | `"nonzero" \| "evenodd"` | `"nonzero"` | Füllregel |
+| Prop                | Typ                                                         | Standardwert   | Beschreibung                                                           |
+| ------------------- | ----------------------------------------------------------- | -------------- | ---------------------------------------------------------------------- |
+| `d`                 | `string`                                                    | —              | SVG-Pfaddaten (Pflicht, nur Pfadsyntax, kein Dokument)                 |
+| `viewBox`           | `readonly [number, number, number, number]`                 | —              | Box im Autorenraum, wird in die Knotenbox skaliert                     |
+| `strokeWidth`       | `number`                                                    | —              | Ungleich null: Stroke statt Füllung                                    |
+| `fillRule`          | `"nonzero" \| "evenodd"`                                    | `"nonzero"`    | Füllregel                                                              |
 | `geometryTransform` | `readonly [number, number, number, number, number, number]` | Einheitsmatrix | Transformation, die vor dem Kodieren in die Geometrie eingebrannt wird |
 
 ## Props (Svg)
 
-| Prop | Typ | Standardwert | Beschreibung |
-| --- | --- | --- | --- |
-| `source` | `PingoSvg` | — | Das mit `createSvg` / `loadSvg` geparste Dokument (Pflicht) |
+| Prop     | Typ        | Standardwert | Beschreibung                                                |
+| -------- | ---------- | ------------ | ----------------------------------------------------------- |
+| `source` | `PingoSvg` | —            | Das mit `createSvg` / `loadSvg` geparste Dokument (Pflicht) |
 
 Beide erben [CommonProps](/api) (`width`/`height`, Events, Semantik-Props usw.).
 

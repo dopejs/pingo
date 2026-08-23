@@ -30,15 +30,15 @@ Nach dem Öffnen schließt sich die Karte auch dann nicht, wenn der Zeiger über
 
 ## Props
 
-| Prop | Typ | Standard | Beschreibung |
-| --- | --- | --- | --- |
-| `children` | `PingoNode` | — | Trigger-Element (erforderlich) |
-| `content` | `PingoNode` | — | Karteninhalt (erforderlich) |
-| `open` | `boolean` | — | Kontrollierter Öffnungs-/Schließzustand |
-| `onOpenChange` | `(open: boolean) => void` | — | Callback bei Änderung des Öffnungszustands |
-| `openDelayMs` | `number` | `300` | Verzögerung beim Öffnen (Millisekunden) |
-| `closeDelayMs` | `number` | `200` | Verzögerung beim Schließen (Millisekunden) |
-| `className` | `string` | — | Wird nach dem Klassennamen des Anker-Containers angehängt |
+| Prop           | Typ                       | Standard | Beschreibung                                              |
+| -------------- | ------------------------- | -------- | --------------------------------------------------------- |
+| `children`     | `PingoNode`               | —        | Trigger-Element (erforderlich)                            |
+| `content`      | `PingoNode`               | —        | Karteninhalt (erforderlich)                               |
+| `open`         | `boolean`                 | —        | Kontrollierter Öffnungs-/Schließzustand                   |
+| `onOpenChange` | `(open: boolean) => void` | —        | Callback bei Änderung des Öffnungszustands                |
+| `openDelayMs`  | `number`                  | `300`    | Verzögerung beim Öffnen (Millisekunden)                   |
+| `closeDelayMs` | `number`                  | `200`    | Verzögerung beim Schließen (Millisekunden)                |
+| `className`    | `string`                  | —        | Wird nach dem Klassennamen des Anker-Containers angehängt |
 
 ## Barrierefreiheit
 

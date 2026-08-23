@@ -41,22 +41,22 @@ root.render(
 
 ### RadioGroup
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 제어되는 선택 값 |
-| `defaultValue` | `string` | — | 비제어 초기 선택 값 |
-| `onValueChange` | `(value: string) => void` | — | 선택 변경 콜백 |
-| `disabled` | `boolean` | `false` | 그룹 전체 비활성화 |
-| `children` | `PingoNode` | — | `RadioGroupItem` 목록 (필수) |
-| `className` | `string` | — | 컴포넌트 클래스 이름 뒤에 추가 |
+| Prop            | 타입                      | 기본값  | 설명                           |
+| --------------- | ------------------------- | ------- | ------------------------------ |
+| `value`         | `string`                  | —       | 제어되는 선택 값               |
+| `defaultValue`  | `string`                  | —       | 비제어 초기 선택 값            |
+| `onValueChange` | `(value: string) => void` | —       | 선택 변경 콜백                 |
+| `disabled`      | `boolean`                 | `false` | 그룹 전체 비활성화             |
+| `children`      | `PingoNode`               | —       | `RadioGroupItem` 목록 (필수)   |
+| `className`     | `string`                  | —       | 컴포넌트 클래스 이름 뒤에 추가 |
 
 ### RadioGroupItem
 
-| Prop | 타입 | 기본값 | 설명 |
-| --- | --- | --- | --- |
-| `value` | `string` | — | 옵션 값 (필수) |
-| `label` | `string` | — | 옵션 텍스트 |
-| `className` | `string` | — | 컴포넌트 클래스 이름 뒤에 추가 |
+| Prop        | 타입     | 기본값 | 설명                           |
+| ----------- | -------- | ------ | ------------------------------ |
+| `value`     | `string` | —      | 옵션 값 (필수)                 |
+| `label`     | `string` | —      | 옵션 텍스트                    |
+| `className` | `string` | —      | 컴포넌트 클래스 이름 뒤에 추가 |
 
 ## 접근성
 
