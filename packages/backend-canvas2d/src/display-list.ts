@@ -16,6 +16,14 @@ import {
 
 const utf8Decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
 
+/** Stroke tail shared by the stroked path opcodes, in ABI field order. */
+export interface StrokeTail {
+  readonly width: number;
+  readonly cap: number;
+  readonly join: number;
+  readonly miterLimit: number;
+}
+
 /** A decoded drawing command used by diagnostics and contract tests. */
 export type DisplayCommand =
   | { readonly type: "save" }
@@ -54,6 +62,19 @@ export type DisplayCommand =
       readonly paintId: number;
     }
   | { readonly type: "fillPath"; readonly pathId: number; readonly paintId: number }
+  | {
+      readonly type: "strokePath";
+      readonly pathId: number;
+      readonly paintId: number;
+      readonly stroke: StrokeTail;
+    }
+  | { readonly type: "fillColorPath"; readonly pathId: number; readonly rgba: number }
+  | {
+      readonly type: "strokeColorPath";
+      readonly pathId: number;
+      readonly rgba: number;
+      readonly stroke: StrokeTail;
+    }
   | {
       readonly type: "drawGlyphRun";
       readonly fontId: number;
@@ -160,6 +181,18 @@ export function readDisplayListHeader(input: Uint8Array): {
   return { reader, declaredCount };
 }
 
+function decodeStrokeTail(reader: DisplayListReader): StrokeTail {
+  const width = reader.f32();
+  if (!(width >= 0)) return fail("stroke width is negative");
+  const cap = reader.u8();
+  const join = reader.u8();
+  reader.u16();
+  const miterLimit = reader.f32();
+  if (cap > 2 || join > 2) return fail("stroke cap or join is out of range");
+  if (!(miterLimit >= 1)) return fail("stroke miter limit is below one");
+  return { width, cap, join, miterLimit };
+}
+
 function decodeCommand(reader: DisplayListReader, opcode: DisplayOpcode): DisplayCommand {
   switch (opcode) {
     case DisplayOpcode.Save:
@@ -234,6 +267,20 @@ function decodeCommand(reader: DisplayListReader, opcode: DisplayOpcode): Displa
       };
     case DisplayOpcode.FillPath:
       return { type: "fillPath", pathId: reader.u32(), paintId: reader.u32() };
+    case DisplayOpcode.StrokePath: {
+      const pathId = reader.u32();
+      const paintId = reader.u32();
+      const stroke = decodeStrokeTail(reader);
+      return { type: "strokePath", pathId, paintId, stroke };
+    }
+    case DisplayOpcode.FillColorPath:
+      return { type: "fillColorPath", pathId: reader.u32(), rgba: reader.u32() };
+    case DisplayOpcode.StrokeColorPath: {
+      const pathId = reader.u32();
+      const rgba = reader.u32();
+      const stroke = decodeStrokeTail(reader);
+      return { type: "strokeColorPath", pathId, rgba, stroke };
+    }
     case DisplayOpcode.DrawGlyphRun:
       return {
         type: "drawGlyphRun",
