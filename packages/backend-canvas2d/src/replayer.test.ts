@@ -266,6 +266,30 @@ describe("Canvas2DReplayer", () => {
       expect(calls).toEqual([]);
     }
   });
+
+  it("fills a uniform border with one even-odd pass, not overlapping wedges", () => {
+    const calls: unknown[][] = [];
+    const resources = new Canvas2DResourceRegistry();
+    const uniform = command(DisplayOpcode.FillColorBorder, 64, (view) => {
+      writeF32s(view, 4, [0, 0, 40, 30, 5, 5, 5, 5, 1, 1, 1, 1]);
+      for (let index = 0; index < 4; index += 1) view.setUint32(52 + index * 4, 0xff00_00ff, true);
+    });
+    const mixed = command(DisplayOpcode.FillColorBorder, 64, (view) => {
+      writeF32s(view, 4, [0, 0, 40, 30, 5, 5, 5, 5, 1, 1, 1, 1]);
+      view.setUint32(52, 0xff00_00ff, true);
+      view.setUint32(56, 0x00ff_00ff, true);
+      view.setUint32(60, 0xff00_00ff, true);
+      view.setUint32(64, 0xff00_00ff, true);
+    });
+
+    new Canvas2DReplayer().replay(fakeContext(calls), displayList([uniform]), resources);
+    expect(calls).toContainEqual(["fill", "evenodd", "rgba(255, 0, 0, 1)"]);
+    expect(calls.some((call) => call[0] === "fillPath")).toBe(false);
+
+    const mixedCalls: unknown[][] = [];
+    new Canvas2DReplayer().replay(fakeContext(mixedCalls), displayList([mixed]), resources);
+    expect(mixedCalls.filter((call) => call[0] === "fill")).toHaveLength(4);
+  });
 });
 
 function displayList(commands: readonly Uint8Array[]): Uint8Array {
@@ -414,8 +438,14 @@ function fakeContext(calls: unknown[][]): Canvas2DContext {
     transform: (...values: number[]) => calls.push(["transform", ...values]),
     roundRect: (x: number, y: number, width: number, height: number, radii: unknown) =>
       calls.push(["roundRect", x, y, width, height, radii]),
-    fill: (path?: Path2D) =>
-      calls.push(path === undefined ? ["fill"] : ["fillPath", path, state.fillStyle]),
+    fill: (path?: Path2D | CanvasFillRule) =>
+      calls.push(
+        typeof path === "string"
+          ? ["fill", path, state.fillStyle]
+          : path === undefined
+            ? ["fill"]
+            : ["fillPath", path, state.fillStyle],
+      ),
     fillText: (text: string, x: number, y: number) =>
       calls.push([
         "fillText",

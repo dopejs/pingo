@@ -107,8 +107,14 @@ export type CodePointContraction = readonly [
 
 /** Immutable string/style resource pair requiring browser system-font metrics. */
 export interface CanvasSystemTextPair {
-  /** Whether Core needs per-code-point advances for this pair. */
+  /** Whether Core needs the per-code-point advance table for this pair. */
   readonly measureAdvances?: boolean;
+  /**
+   * Whether Core also needs the in-context editing metrics: positional
+   * advances and contractions. They cost a `measureText` per prefix, so only
+   * an editable run asks for them.
+   */
+  readonly measureEditingAdvances?: boolean;
   /** Code points to measure beyond the string's own, such as IME preedit text. */
   readonly extraCodePoints?: readonly number[];
   readonly stringId: number;
@@ -127,8 +133,10 @@ export interface CanvasSystemTextMetric extends CanvasSystemTextPair {
    * live editing value, which during IME composition contains preedit text that
    * is in no Scene string. The Host measures that text into the same table.
    *
-   * They cost one `measureText` call per distinct code point, which is why only
-   * editable runs request them.
+   * They cost one `measureText` call per distinct code point. Every fallback
+   * pair asks for them: Core breaks lines from these advances, and a per-script
+   * estimate is not close enough to decide where a line ends -- a full-width
+   * CJK run measured at a Latin ratio never reaches the wrap width at all.
    */
   readonly advances: readonly CodePointAdvance[];
   /**
@@ -178,6 +186,15 @@ export class Canvas2DResourceRegistry implements Canvas2DResources {
   readonly #glyphRasters = new Map<number, PreparedGlyphSpan>();
   readonly #pictures = new Map<number, Uint8Array>();
   readonly #encodedKinds = new Map<number, ResourceKind>();
+  /**
+   * Isolated code-point advances already measured, keyed by CSS font.
+   *
+   * An advance depends only on the font, so measuring one again for every
+   * string that contains it is pure waste -- and on a virtual list that waste
+   * lands on the frame that materializes the row. Bounded, and dropped whole
+   * when browser font availability changes.
+   */
+  readonly #advanceMemo = new Map<string, Map<number, number>>();
 
   /** Shaped-glyph renderer when the environment can create raster surfaces. */
   public drawGlyphRun: Canvas2DResources["drawGlyphRun"];
@@ -542,10 +559,13 @@ export class Canvas2DResourceRegistry implements Canvas2DResources {
         }
         context.font = style.font;
         const measured = measureHardLines(context, text);
-        const wantAdvances = pair.measureAdvances === true;
-        const advances = wantAdvances ? measureAdvances(context, text, pair.extraCodePoints) : [];
-        const contractions = wantAdvances ? measureContractions(context, advances) : [];
-        const positionalAdvances = wantAdvances
+        const wantEditing = pair.measureEditingAdvances === true;
+        const wantAdvances = pair.measureAdvances === true || wantEditing;
+        const advances = wantAdvances
+          ? measureAdvances(context, text, pair.extraCodePoints, this.advanceMemo(style.font))
+          : [];
+        const contractions = wantEditing ? measureContractions(context, advances) : [];
+        const positionalAdvances = wantEditing
           ? measurePositionalAdvances(context, text, contractions)
           : [];
         metrics.push(
@@ -562,6 +582,29 @@ export class Canvas2DResourceRegistry implements Canvas2DResources {
       context.restore();
     }
     return metrics;
+  }
+
+  /**
+   * Drops every memoized measurement.
+   *
+   * Browser font availability changes what `measureText` returns for the same
+   * font string, so a remeasure pass has to start from nothing.
+   */
+  public clearMeasurementMemo(): void {
+    this.#advanceMemo.clear();
+  }
+
+  /** Per-font advance table, bounded across the whole registry. */
+  private advanceMemo(font: string): Map<number, number> {
+    let total = 0;
+    for (const table of this.#advanceMemo.values()) total += table.size;
+    if (total >= MAXIMUM_MEMOIZED_ADVANCES) this.clearMeasurementMemo();
+    let memo = this.#advanceMemo.get(font);
+    if (memo === undefined) {
+      memo = new Map<number, number>();
+      this.#advanceMemo.set(font, memo);
+    }
+    return memo;
   }
 
   public getFont(id: number): CanvasFontResource | undefined {
@@ -913,6 +956,9 @@ function textAlignFromKeyword(keyword: number): CanvasTextAlign {
 /**
  * Measures every distinct code point once, in ascending code-point order.
  *
+ * `memo` carries advances already measured for this font, so a code point costs
+ * one `measureText` call for the whole session rather than one per string.
+ *
  * Measuring prefixes instead would capture kerning, but Core looks these up by
  * code point so it can keep placing the caret while the live editing value runs
  * ahead of the Scene string. Positional fidelity would be discarded anyway, and
@@ -925,6 +971,7 @@ function measureAdvances(
   context: Canvas2DContext,
   text: string,
   extra: readonly number[] | undefined,
+  memo: Map<number, number>,
 ): CodePointAdvance[] {
   const advances = new Map<number, number>();
   const measure = (codePoint: number): void => {
@@ -934,10 +981,16 @@ function measureAdvances(
       advances.set(codePoint, 0);
       return;
     }
+    const remembered = memo.get(codePoint);
+    if (remembered !== undefined) {
+      advances.set(codePoint, remembered);
+      return;
+    }
     const advance = context.measureText(String.fromCodePoint(codePoint)).width;
     if (!Number.isFinite(advance) || advance < 0) {
       throw new Error("Canvas measureText returned an invalid advance");
     }
+    memo.set(codePoint, advance);
     advances.set(codePoint, advance);
   };
   for (const character of text) measure(character.codePointAt(0) ?? 0);
@@ -945,6 +998,15 @@ function measureAdvances(
   // Ascending so the encoded table is canonical whatever order they arrived in.
   return [...advances.entries()].sort(([left], [right]) => left - right);
 }
+
+/**
+ * Memoized code-point advances kept across all fonts.
+ *
+ * Roughly a hundred kilobytes at the limit. A session that walks through a
+ * larger character set than this drops the whole memo and measures again rather
+ * than growing without bound.
+ */
+const MAXIMUM_MEMOIZED_ADVANCES = 8192;
 
 /** CSS generic family keywords, which must never be quoted. */
 const GENERIC_FONT_FAMILIES = new Set([

@@ -114,7 +114,9 @@ describe("CanvasFrameSink", () => {
       ]),
     );
 
-    expect(events).toEqual(["core", "canvas", "canvas", "report"]);
+    // Core, then the save/restore that drops the presented frame, then the
+    // save/restore around the replay, then the report.
+    expect(events).toEqual(["core", "canvas", "canvas", "canvas", "canvas", "report"]);
     expect(calls).toContainEqual(["fillRect", 1, 2, 30, 40, "#123456ff"]);
     expect(onFrame.mock.calls[0]?.[0]).toMatchObject({
       commands: 1,
@@ -287,9 +289,32 @@ describe("CanvasFrameSink", () => {
     expect(calls).toContainEqual(["scale", 2, 2]);
     expect(calls).toContainEqual(["fillRect", 1, 2, 30, 40, "#123456ff"]);
     const scaleIndex = calls.findIndex(([operation]) => operation === "scale");
-    const restoreIndex = calls.findIndex(([operation]) => operation === "restore");
+    const restoreIndex = calls.findIndex(
+      ([operation], index) => operation === "restore" && index > scaleIndex,
+    );
     expect(scaleIndex).toBeGreaterThan(-1);
     expect(restoreIndex).toBeGreaterThan(scaleIndex);
+  });
+
+  it("drops the presented frame before replaying the next one", () => {
+    const calls: unknown[][] = [];
+    const sink = new CanvasFrameSink(fakeContext(calls, []), {
+      commit: () => fillRectDisplayList(7),
+    });
+    sink.commit(
+      mutationFrame([
+        { type: "defineResource", resourceId: 7, kind: ResourceKind.Paint, bytes: solidPaint() },
+      ]),
+    );
+
+    // Device pixels, and before the first draw: Core emits no damage rectangles
+    // and the DisplayList has no clear command, so whatever the previous frame
+    // left behind would otherwise show through wherever this one draws nothing.
+    const clearIndex = calls.findIndex(([operation]) => operation === "clearRect");
+    const drawIndex = calls.findIndex(([operation]) => operation === "fillRect");
+    expect(calls[clearIndex]).toEqual(["clearRect", 0, 0, 64, 64]);
+    expect(calls[clearIndex - 1]).toEqual(["resetTransform"]);
+    expect(clearIndex).toBeLessThan(drawIndex);
   });
 
   it("reuses bounded raster tiles for an immutable picture and exposes metrics", () => {
@@ -787,15 +812,25 @@ describe("CanvasFrameSink", () => {
     expect(decodeSystemTextMetricBatch(initialMetrics)).toEqual([
       {
         type: "upsert",
-        // No node is editable, so Core gets dimensions without per-code-point
-        // advances: measuring those for every run would put one measureText call
-        // per distinct code point on the scroll hot path.
+        // Every fallback pair carries per-code-point advances: Core wraps lines
+        // from them, and no estimate is close enough to decide where a line
+        // ends. The in-context editing metrics below stay editable-only, and
+        // repeated code points are memoized per font, so the cost stays one
+        // measureText per code point per font rather than per string.
         metric: {
           stringId: 2,
           styleId: 3,
           maxLineWidth: 40,
           lineCount: 2,
-          advances: [],
+          advances: [
+            [0x0a, 0],
+            [0x61, 10],
+            [0x62, 10],
+            [0x63, 10],
+            [0x64, 10],
+            [0x78, 10],
+            [0x79, 10],
+          ],
           positionalAdvances: [],
           contractions: [],
         },
@@ -857,7 +892,12 @@ describe("CanvasFrameSink", () => {
           styleId: 3,
           maxLineWidth: 40,
           lineCount: 1,
-          advances: [],
+          advances: [
+            [0x66, 10],
+            [0x6e, 10],
+            [0x6f, 10],
+            [0x74, 10],
+          ],
           positionalAdvances: [],
           contractions: [],
         },
@@ -865,7 +905,7 @@ describe("CanvasFrameSink", () => {
     ]);
   });
 
-  it("measures per-code-point advances once a node becomes editable", () => {
+  it("measures the in-context editing metrics once a node becomes editable", () => {
     const commit = vi.fn((_mutations: Uint8Array, _metrics?: Uint8Array) => emptyDisplayList());
     const sink = new CanvasFrameSink(fakeContext([], []), { commit });
     const textNode = 0x0010_0001;
@@ -896,7 +936,12 @@ describe("CanvasFrameSink", () => {
           styleId: 3,
           maxLineWidth: 20,
           lineCount: 1,
-          advances: [],
+          // Wrapping needs the isolated advances; the caret needs the in-context
+          // positional ones, which only an editable node pays for.
+          advances: [
+            [97, 10],
+            [98, 10],
+          ],
           positionalAdvances: [],
           contractions: [],
         },
@@ -904,7 +949,8 @@ describe("CanvasFrameSink", () => {
     ]);
 
     // The pair is unchanged, so nothing new is defined; only the node turning
-    // editable makes Core need advances, and that alone must force a remeasure.
+    // editable makes Core need the positional advances, and that alone must
+    // force a remeasure.
     sink.commit(
       mutationFrame([
         {

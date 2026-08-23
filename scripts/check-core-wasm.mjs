@@ -23,6 +23,7 @@ const bundler = await createServer({
 const calls = [];
 const state = { fillStyle: "", font: "", globalAlpha: 1 };
 const context = {
+  canvas: { width: 320, height: 240 },
   get fillStyle() {
     return state.fillStyle;
   },
@@ -45,6 +46,15 @@ const context = {
   restore() {},
   transform(...values) {
     calls.push(["transform", ...values]);
+  },
+  resetTransform() {
+    calls.push(["resetTransform"]);
+  },
+  clearRect(...values) {
+    calls.push(["clearRect", ...values]);
+  },
+  scale(...values) {
+    calls.push(["scale", ...values]);
   },
   translate(...values) {
     calls.push(["translate", ...values]);

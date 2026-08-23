@@ -3364,6 +3364,158 @@ mod tests {
         batch.encode().expect("encode")
     }
 
+    /// Root, a container of a fixed width, and one non-editable text run in it.
+    fn wrapping_tree(text: &str, width: f32) -> Vec<u8> {
+        frame(
+            1,
+            vec![
+                Mutation::CreateNode {
+                    node_id: id(0),
+                    kind: NodeKind::Root,
+                    parent: NULL_NODE_ID,
+                    before_sibling: NULL_NODE_ID,
+                },
+                Mutation::CreateNode {
+                    node_id: id(1),
+                    kind: NodeKind::Container,
+                    parent: id(0),
+                    before_sibling: NULL_NODE_ID,
+                },
+                Mutation::SetF32 {
+                    node_id: id(1),
+                    prop: Prop::Width,
+                    value: width,
+                },
+                Mutation::CreateNode {
+                    node_id: id(2),
+                    kind: NodeKind::Text,
+                    parent: id(1),
+                    before_sibling: NULL_NODE_ID,
+                },
+                Mutation::DefineResource {
+                    resource_id: 1,
+                    kind: ResourceKind::Paint,
+                    bytes: SolidPaint {
+                        red: 0,
+                        green: 0,
+                        blue: 0,
+                        alpha: 255,
+                    }
+                    .encode()
+                    .to_vec(),
+                },
+                Mutation::DefineResource {
+                    resource_id: 2,
+                    kind: ResourceKind::TextStyle,
+                    bytes: TextStyleResource {
+                        paint_id: 1,
+                        font_size: 16.0,
+                        line_height: 20.0,
+                        weight: 400,
+                        family: "sans-serif".to_owned(),
+                        font_style: StyleKeyword::Normal,
+                        text_align: StyleKeyword::Start,
+                        // What the Shell sends for a text element with no CSS.
+                        white_space: StyleKeyword::PreWrap,
+                        overflow_wrap: StyleKeyword::Anywhere,
+                        text_overflow: StyleKeyword::Clip,
+                    }
+                    .encode()
+                    .expect("text style"),
+                },
+                Mutation::DefineResource {
+                    resource_id: 3,
+                    kind: ResourceKind::Utf8String,
+                    bytes: text.as_bytes().to_vec(),
+                },
+                Mutation::SetTextRun {
+                    node_id: id(2),
+                    string_id: 3,
+                    style_id: 2,
+                },
+            ],
+        )
+    }
+
+    /// Browser metrics for a run whose code points all advance one em.
+    fn full_width_metrics(text: &str, max_line_width: f32) -> Vec<u8> {
+        let mut advances = text
+            .chars()
+            .map(|character| (character, 16.0_f32))
+            .collect::<Vec<_>>();
+        advances.sort_by(|left, right| left.0.cmp(&right.0));
+        advances.dedup_by(|left, right| left.0 == right.0);
+        system_metrics(SystemTextMetricCommand::Upsert(SystemTextMetric {
+            string_id: 3,
+            style_id: 2,
+            max_line_width,
+            line_count: 1,
+            advances,
+            positional_advances: Vec::new(),
+            contractions: Vec::new(),
+        }))
+    }
+
+    /// Laid-out size of the text node in [`wrapping_tree`].
+    fn text_size(engine: &CoreEngine) -> pingo_layout::Size {
+        let node = NodeId::from_raw(id(2)).expect("node");
+        engine
+            .layout
+            .snapshot()
+            .geometry(node)
+            .expect("text geometry")
+            .1
+    }
+
+    #[test]
+    fn a_full_width_run_wraps_inside_its_container() {
+        // The recorded failure. Every fallback code point was assumed to advance
+        // 0.6em, so a 21-character CJK paragraph was thought to be 201px wide
+        // where the browser measures 336px: it never reached the wrap width, was
+        // laid out as one line, and ran straight out of its card. Wrapping has to
+        // be decided from the advances the Host actually measured.
+        let text = "\u{5c06}\u{4f60}\u{7684}\u{66f4}\u{6539}\u{540c}\u{6b65}\u{5230}\u{6240}\u{6709}\u{8bbe}\u{5907}\u{ff0c}\u{6216}\u{4ec5}\u{4fdd}\u{5b58}\u{5728}\u{672c}\u{5730}\u{3002}";
+        let mut engine = CoreEngine::new(800.0, 240.0).expect("Core");
+        engine
+            .commit_with_system_text_metrics(
+                &wrapping_tree(text, 200.0),
+                Some(&full_width_metrics(text, 16.0 * 21.0)),
+            )
+            .expect("frame");
+
+        let size = text_size(&engine);
+        assert!(size.width <= 200.0, "stayed inside the container: {size:?}");
+        // 12 full-width characters fit in 200px, so 21 of them take two lines.
+        assert!(
+            (size.height - 40.0).abs() < 0.01,
+            "wrapped to two lines: {size:?}"
+        );
+    }
+
+    #[test]
+    fn a_run_the_browser_measured_as_fitting_is_not_wrapped() {
+        // Summed isolated advances overshoot whatever the font sets closer
+        // together, so they must not be what decides that a line overflows: the
+        // Host measured this exact string, and it fits.
+        let text = "\u{ff0c}\u{ff0c}\u{ff0c}\u{ff0c}\u{ff0c}\u{ff0c}\u{ff0c}\u{ff0c}\u{ff0c}\u{ff0c}\u{ff0c}\u{ff0c}\u{ff0c}\u{ff0c}";
+        let mut engine = CoreEngine::new(800.0, 240.0).expect("Core");
+        engine
+            .commit_with_system_text_metrics(
+                // Fourteen code points at an isolated 16px each sum to 224px,
+                // past the 200px box, but the browser draws them in 180px.
+                &wrapping_tree(text, 200.0),
+                Some(&full_width_metrics(text, 180.0)),
+            )
+            .expect("frame");
+
+        let size = text_size(&engine);
+        assert!(
+            (size.height - 20.0).abs() < 0.01,
+            "stayed on one line: {size:?}"
+        );
+        assert!((size.width - 180.0).abs() < 0.01, "measured width: {size:?}");
+    }
+
     fn editable_tree_with_text(flags: u32, text: &str) -> Vec<u8> {
         frame(
             1,

@@ -1112,12 +1112,23 @@ impl CoreTextSystem {
         } else {
             constraints.max_width
         };
-        let breaks = soft_break_offsets_with_mode(
-            &layout_text,
-            |index| advances.get(index).copied().unwrap_or(0.0),
-            wrap_width,
-            style.overflow_wrap != StyleKeyword::Normal,
-        );
+        // The Host measured this exact string with the browser's own shaping, so
+        // when its longest line already fits there is nothing to break. Deciding
+        // that from the summed advances instead would wrap a line early wherever
+        // the font sets glyphs closer together than their isolated widths.
+        let measured_fits = metric
+            .filter(|_| metric_fresh)
+            .is_some_and(|metric| metric.max_line_width <= wrap_width);
+        let breaks = if measured_fits {
+            Vec::new()
+        } else {
+            soft_break_offsets_with_mode(
+                &layout_text,
+                |index| advances.get(index).copied().unwrap_or(0.0),
+                wrap_width,
+                style.overflow_wrap != StyleKeyword::Normal,
+            )
+        };
         if matches!(
             style.white_space,
             StyleKeyword::Normal | StyleKeyword::Nowrap | StyleKeyword::PreLine

@@ -829,6 +829,7 @@ export class CanvasFrameSink implements MutationSink {
         stringId: pair.stringId,
         styleId: pair.styleId,
         measureAdvances: true,
+        measureEditingAdvances: true,
         extraCodePoints: this.mergeExtraCodePoints(key),
       })),
     );
@@ -869,11 +870,15 @@ export class CanvasFrameSink implements MutationSink {
   /** Remeasures every active fallback pair after browser font availability changes. */
   public refreshSystemTextMetrics(): ReplayStats | null {
     const update = this.#core.set_system_text_metrics?.bind(this.#core);
+    // Newly available fonts change what the same font string measures to, so
+    // the remeasure pass cannot reuse anything it learned before them.
+    this.#resources.clearMeasurementMemo();
     if (update === undefined || this.#textPairState.size === 0) return null;
     const pairs = [...this.#textPairState.entries()].map(([key, { stringId, styleId }]) => ({
       stringId,
       styleId,
-      measureAdvances: this.#advancePairs.has(key),
+      measureAdvances: true,
+      measureEditingAdvances: this.#advancePairs.has(key),
       extraCodePoints: [...(this.#pairExtraCodePoints.get(key) ?? [])],
     }));
     const metrics = this.#resources.measureSystemTextPairs(this.#context, [], pairs);
@@ -931,6 +936,13 @@ export class CanvasFrameSink implements MutationSink {
   } {
     const cache = this.#rasterCache;
     if (cache === undefined || pictureKey === undefined) {
+      // Every frame is a full repaint: Core emits no damage rectangles and the
+      // DisplayList has no clear command, so the previous frame's pixels have
+      // to go before this one replays. Without this, anything that shrinks,
+      // moves, or disappears -- a collapsed section, a scrolled row, a hover
+      // state that drops a background -- stays on the canvas underneath the new
+      // frame. The raster-cache paths below already clear their own target.
+      this.clearSurface();
       return { value: this.replayScaled(this.#context, displayList) };
     }
     const canvas = this.#context.canvas;
@@ -948,6 +960,25 @@ export class CanvasFrameSink implements MutationSink {
       rasterFrame: { bypassed: result.bypassed, hits: result.hits, misses: result.misses },
       value: result.value,
     };
+  }
+
+  /**
+   * Drops the presented frame in device pixels.
+   *
+   * `resetTransform` because the backing-store scale is applied per replay and
+   * a caller may have left one behind: the clear has to cover the whole surface
+   * regardless of what the last frame was drawn through.
+   */
+  private clearSurface(): void {
+    const context = this.#context;
+    const canvas = context.canvas;
+    context.save();
+    try {
+      context.resetTransform();
+      context.clearRect(0, 0, canvas.width, canvas.height);
+    } finally {
+      context.restore();
+    }
   }
 
   /**
@@ -1105,7 +1136,11 @@ export class CanvasFrameSink implements MutationSink {
       .map(([key, { stringId, styleId }]) => ({
         stringId,
         styleId,
-        measureAdvances: nextAdvancePairs.has(key),
+        // Every fallback pair, not just the editable ones: Core wraps text from
+        // these advances, and estimating them mis-measures any script whose
+        // glyphs are not Latin-width.
+        measureAdvances: true,
+        measureEditingAdvances: nextAdvancePairs.has(key),
         extraCodePoints: nextExtraCodePoints.get(key) ?? [],
       }));
     const releases = [...this.#textPairState.entries()]

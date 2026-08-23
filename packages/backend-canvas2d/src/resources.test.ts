@@ -158,16 +158,14 @@ describe("Canvas2DResourceRegistry", () => {
           [0x77, 7],
           [0x78, 7],
         ],
-        // In string order from prefix differences; the newline resets the line.
-        positionalAdvances: [7, 7, 7, 7, 0, 7, 7],
-        // The fake context is linear in length, so nothing contracts.
+        // The in-context editing metrics are a separate, dearer request.
+        positionalAdvances: [],
         contractions: [],
       },
     ]);
-    // Two lines, one call per distinct code point other than the newline ("x"
-    // appears twice and is measured once), and one prefix call per code point
-    // for the positional advances.
-    expect(fonts).toHaveLength(18);
+    // Two lines, plus one call per distinct code point other than the newline
+    // ("x" appears twice and is measured once).
+    expect(fonts).toHaveLength(7);
 
     fonts.length = 0;
     expect(
@@ -184,9 +182,48 @@ describe("Canvas2DResourceRegistry", () => {
       [0x78, 7],
       [0x4e2d, 7],
     ]);
-    // The extra "w" was already measured for the string, so it costs nothing
-    // beyond the prefix calls for the positional advances.
-    expect(fonts).toHaveLength(20);
+    // Two lines and the one code point never measured before: the extra "w" and
+    // the whole string are memoized against this font from the call above.
+    expect(fonts).toHaveLength(3);
+
+    fonts.length = 0;
+    expect(
+      resources.measureSystemTextPairs(context, actions, [
+        { stringId: 2, styleId: 3, measureEditingAdvances: true },
+      ]),
+    ).toEqual([
+      {
+        stringId: 2,
+        styleId: 3,
+        measureEditingAdvances: true,
+        maxLineWidth: 28,
+        lineCount: 2,
+        advances: [
+          [0x0a, 0],
+          [0x64, 7],
+          [0x65, 7],
+          [0x69, 7],
+          [0x77, 7],
+          [0x78, 7],
+        ],
+        // In string order from prefix differences; the newline resets the line.
+        positionalAdvances: [7, 7, 7, 7, 0, 7, 7],
+        // The fake context is linear in length, so nothing contracts.
+        contractions: [],
+      },
+    ]);
+    // Two lines, no isolated advance to remeasure, then the contraction probes
+    // and one prefix call per code point.
+    expect(fonts).toHaveLength(13);
+
+    fonts.length = 0;
+    resources.clearMeasurementMemo();
+    resources.measureSystemTextPairs(context, actions, [
+      { stringId: 2, styleId: 3, measureAdvances: true },
+    ]);
+    // Font availability can change what the same font string measures to, so a
+    // cleared memo has to measure every code point again.
+    expect(fonts).toHaveLength(7);
     expect(resources.getText(2)).toBeUndefined();
     expect(resources.getTextStyle(3)).toBeUndefined();
   });

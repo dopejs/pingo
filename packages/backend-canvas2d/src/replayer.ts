@@ -614,40 +614,129 @@ function drawColorBorder(
     [Math.max(0, normalized[2] - right), Math.max(0, normalized[2] - bottom)],
     [Math.max(0, normalized[3] - left), Math.max(0, normalized[3] - bottom)],
   ] as const;
-  context.save();
-  try {
+  const ring = (): void => {
     context.beginPath();
     roundedRectPath(context, x, y, width, height, normalized);
     if (innerWidth > 0 && innerHeight > 0) {
       roundedRectPath(context, innerX, innerY, innerWidth, innerHeight, inner);
     }
+  };
+  // One even-odd fill for the common uniform border: no wedge boundaries means
+  // no antialiased seam along the corner diagonals.
+  if (uniformBorder(widths, colors)) {
+    if (top <= 0 || (colors[0] & 0xff) === 0) return;
+    context.save();
+    try {
+      ring();
+      context.fillStyle = rgbaCss(colors[0]);
+      context.fill("evenodd");
+    } finally {
+      context.restore();
+    }
+    return;
+  }
+  const hinges = cornerHinges(width, height, widths, normalized);
+  context.save();
+  try {
+    ring();
     context.clip("evenodd");
-    const outerRight = x + width;
-    const outerBottom = y + height;
-    const innerRight = innerX + innerWidth;
-    const innerBottom = innerY + innerHeight;
-    const polygons = [
-      [x, y, outerRight, y, innerRight, innerY, innerX, innerY],
-      [outerRight, y, outerRight, outerBottom, innerRight, innerBottom, innerRight, innerY],
-      [outerRight, outerBottom, x, outerBottom, innerX, innerBottom, innerRight, innerBottom],
-      [x, outerBottom, x, y, innerX, innerY, innerX, innerBottom],
-    ] as const;
+    // Each side owns the ring out to the diagonals through its two corner
+    // hinges, and the wedges are unbounded outside the hinge quad so the clip
+    // alone decides where the paint lands. Stopping them at the padding-box
+    // corners instead -- which is correct only for a square corner -- left the
+    // whole rounded part of the ring unpainted.
     for (let side = 0; side < 4; side += 1) {
       if ((widths[side] ?? 0) <= 0 || ((colors[side] ?? 0) & 0xff) === 0) continue;
-      const polygon = polygons[side];
-      if (polygon === undefined) continue;
+      const near = hinges[side];
+      const far = hinges[(side + 1) % 4];
+      const normal = SIDE_NORMALS[side];
+      const previous = SIDE_NORMALS[(side + 3) % 4];
+      const next = SIDE_NORMALS[(side + 1) % 4];
+      if (near === undefined || far === undefined) continue;
+      if (normal === undefined || previous === undefined || next === undefined) continue;
+      // Two antialiased wedges that merely abut leave the background showing
+      // through a hairline along the diagonal. Each one reaches half a pixel
+      // into its neighbour instead, so the later side covers the seam.
+      const nearX = x + near[0] + (previous[0] - normal[0]) * SEAM_OVERLAP;
+      const nearY = y + near[1] + (previous[1] - normal[1]) * SEAM_OVERLAP;
+      const farX = x + far[0] + (next[0] - normal[0]) * SEAM_OVERLAP;
+      const farY = y + far[1] + (next[1] - normal[1]) * SEAM_OVERLAP;
       context.fillStyle = rgbaCss(colors[side] ?? 0);
       context.beginPath();
-      context.moveTo(polygon[0], polygon[1]);
-      context.lineTo(polygon[2], polygon[3]);
-      context.lineTo(polygon[4], polygon[5]);
-      context.lineTo(polygon[6], polygon[7]);
+      context.moveTo(nearX + near[2], nearY + near[3]);
+      context.lineTo(farX + far[2], farY + far[3]);
+      context.lineTo(farX, farY);
+      context.lineTo(nearX, nearY);
       context.closePath();
       context.fill();
     }
   } finally {
     context.restore();
   }
+}
+
+/** Outward unit normal per border side, in top/right/bottom/left order. */
+const SIDE_NORMALS = [
+  [0, -1],
+  [1, 0],
+  [0, 1],
+  [-1, 0],
+] as const;
+
+/** How far each side wedge reaches past its corner diagonal, in logical pixels. */
+const SEAM_OVERLAP = 0.5;
+
+/** Whether every side of the border draws the same paint at the same width. */
+function uniformBorder(
+  widths: readonly [number, number, number, number],
+  colors: readonly [number, number, number, number],
+): boolean {
+  return widths.every((width) => width === widths[0]) && colors.every((c) => c === colors[0]);
+}
+
+/**
+ * Where the four side wedges meet, per corner, as `[x, y, farX, farY]` offsets
+ * from the border box origin.
+ *
+ * The hinge is the padding-box corner for a square corner and the centre of the
+ * corner circle for a rounded one, so the split between two sides runs radially
+ * through both the outer and the inner arc. All four hinges sit inside the
+ * padding box, which is why the wedges anchored to them cover the whole ring.
+ */
+function cornerHinges(
+  width: number,
+  height: number,
+  widths: readonly [number, number, number, number],
+  radii: readonly [number, number, number, number],
+): readonly (readonly [number, number, number, number])[] {
+  const [top, right, bottom, left] = widths;
+  // Any point this far outside the border box is outside the clipped ring on
+  // both axes, so the wedges behave as if they were unbounded.
+  const far = width + height + 1;
+  // Borders wider than the box would cross their opposite hinge and make the
+  // wedges overlap; meeting them in proportion keeps the four disjoint.
+  const [leftTop, rightTop] = meet(Math.max(left, radii[0]), Math.max(right, radii[1]), width);
+  const [leftBottom, rightBottom] = meet(
+    Math.max(left, radii[3]),
+    Math.max(right, radii[2]),
+    width,
+  );
+  const [topLeft, bottomLeft] = meet(Math.max(top, radii[0]), Math.max(bottom, radii[3]), height);
+  const [topRight, bottomRight] = meet(Math.max(top, radii[1]), Math.max(bottom, radii[2]), height);
+  return [
+    [leftTop, topLeft, -far, -far],
+    [width - rightTop, topRight, far, -far],
+    [width - rightBottom, height - bottomRight, far, far],
+    [leftBottom, height - bottomLeft, -far, far],
+  ];
+}
+
+/** Scales two opposing inset lengths down until they fit inside `extent`. */
+function meet(near: number, opposite: number, extent: number): readonly [number, number] {
+  const total = near + opposite;
+  if (total <= extent || total <= 0) return [near, opposite];
+  const scale = Math.max(0, extent) / total;
+  return [near * scale, opposite * scale];
 }
 
 function normalizeRadii(
