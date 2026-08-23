@@ -40,6 +40,26 @@ export interface OverlayFocus {
    * alone instead of swallowing it.
    */
   readonly cycle: (backward: boolean) => boolean;
+  /**
+   * Handlers that close the overlay when focus leaves it for good.
+   *
+   * Core moves focus to whatever a pointer press lands on, and to nothing when
+   * it lands on nothing, so "the user pressed outside" is exactly "focus left
+   * the anchor". The departure and the arrival that cancels it reach the Shell
+   * as two events, and the decision waits a microtask so the arrival wins.
+   *
+   * Like `cycle`, the pending departure lives on this object rather than in the
+   * handlers: the descriptor is rebuilt on every render and the two events
+   * routinely straddle one — a press inside the panel raises the departure,
+   * something in the same transaction re-renders, and the arrival is delivered
+   * to the *next* render's handlers. Pairing them per render lost the
+   * cancellation, and the panel vanished before the press that opened it could
+   * select anything.
+   */
+  readonly dismissHandlers: (close: () => void) => {
+    readonly onFocusOut: () => void;
+    readonly onFocusIn: () => void;
+  };
 }
 
 export function useOverlayFocus(): OverlayFocus {
@@ -50,6 +70,10 @@ export function useOverlayFocus(): OverlayFocus {
 export function createOverlayFocus(): OverlayFocus {
   let trigger: NodeHandle | null = null;
   const controls = new Map<number, NodeHandle>();
+  // Whether focus has left the anchor without coming back yet, and what to run
+  // if it does not. Per overlay, not per render: see `dismissHandlers`.
+  let leaving = false;
+  let pendingClose: (() => void) | undefined;
   // Position, not handle: a control that remounts at the same order keeps its
   // place. -1 means focus is still on the panel itself.
   let cursor = -1;
@@ -89,6 +113,23 @@ export function createOverlayFocus(): OverlayFocus {
       list[cursor]?.focus();
       return true;
     },
+    dismissHandlers: (close) => ({
+      onFocusOut: () => {
+        leaving = true;
+        pendingClose = close;
+        queueMicrotask(() => {
+          if (!leaving) return;
+          leaving = false;
+          const run = pendingClose;
+          pendingClose = undefined;
+          run?.();
+        });
+      },
+      onFocusIn: () => {
+        leaving = false;
+        pendingClose = undefined;
+      },
+    }),
   };
 }
 
@@ -131,41 +172,6 @@ export function escapeHandler(close: () => void): (event: PingoEvent) => void {
     event.preventDefault();
     event.stopPropagation();
     close();
-  };
-}
-
-/**
- * Handlers that close an anchored overlay when focus leaves it.
- *
- * Core moves focus to whatever a pointer press lands on, and to nothing when it
- * lands on nothing, so "the user pressed outside" is exactly "focus left the
- * panel". Both halves of one transition -- the `focusout` from the old node and
- * the `focusin` on the new one -- arrive in the same event transaction, so the
- * decision waits a microtask: a press *inside* the panel raises `focusin` on it
- * immediately afterwards and cancels the close.
- *
- * A modal overlay does not need this; its backdrop absorbs the press. An
- * anchored one has no backdrop, which is why it stayed open until Escape.
- */
-export function dismissOnFocusLoss(close: () => void): {
-  readonly onFocusOut: () => void;
-  readonly onFocusIn: () => void;
-} {
-  // One object per descriptor build, shared by both handlers: the two events
-  // land on the same render's closures, and nothing re-renders between them.
-  const state = { leaving: false };
-  return {
-    onFocusOut: () => {
-      state.leaving = true;
-      queueMicrotask(() => {
-        if (!state.leaving) return;
-        state.leaving = false;
-        close();
-      });
-    },
-    onFocusIn: () => {
-      state.leaving = false;
-    },
   };
 }
 

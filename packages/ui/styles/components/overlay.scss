@@ -51,6 +51,11 @@
 
 .pui-anchor__content {
   @include t.border-box;
+  // The placement caps the height to the room the panel actually has, and a
+  // cap the content ignores is no cap at all: without this the list drew
+  // through the panel's own border and off the surface. Scrolling, so a list
+  // that does not fit can still be reached rather than merely truncated.
+  overflow-y: auto;
   position: absolute;
   top: t.$anchor-top;
   left: t.$zero;

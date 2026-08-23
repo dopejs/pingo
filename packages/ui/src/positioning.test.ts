@@ -46,10 +46,18 @@ describe("flip", () => {
     expect(flipSide("bottom", high, panel, viewport, 4)).toBe("bottom");
   });
 
-  it("keeps the requested side when neither fits, so overflow stays predictable", () => {
+  it("takes the roomier side when neither fits, and keeps the requested one on a tie", () => {
     const huge = { left: 0, top: 0, width: 100, height: 1000 };
-    const middle = { left: 10, top: 140, width: 80, height: 20 };
-    expect(flipSide("bottom", middle, huge, viewport, 0)).toBe("bottom");
+    // Below the anchor there are 140px and above it 140: a tie keeps `bottom`.
+    const centred = { left: 10, top: 140, width: 80, height: 20 };
+    expect(availableOn("bottom", centred, viewport, 0)).toBe(140);
+    expect(availableOn("top", centred, viewport, 0)).toBe(140);
+    expect(flipSide("bottom", centred, huge, viewport, 0)).toBe("bottom");
+
+    // Lower down, above has more room, and the panel is constrained to what it
+    // lands on -- so more room is strictly more of the panel on screen.
+    const low = { left: 10, top: 240, width: 80, height: 20 };
+    expect(flipSide("bottom", low, huge, viewport, 0)).toBe("top");
   });
 
   it("has an involutive opposite", () => {

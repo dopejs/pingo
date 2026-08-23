@@ -318,6 +318,8 @@
 }
 
 .pui-date-picker__content {
+  // See `.pui-anchor__content`: the placement caps this height too.
+  overflow-y: auto;
   position: absolute;
   top: t.$anchor-top;
   left: t.$zero;

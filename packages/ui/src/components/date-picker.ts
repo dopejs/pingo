@@ -39,6 +39,11 @@ export function datePickerDescriptor(
     readonly month: CalendarDate;
     readonly setOpen: (open: boolean) => void;
     readonly setMonth: (month: CalendarDate) => void;
+    /** Focus handlers that close it, from `OverlayFocus.dismissHandlers`. */
+    readonly dismiss?: {
+      readonly onFocusOut: () => void;
+      readonly onFocusIn: () => void;
+    };
     /**
      * Measured placement, or undefined outside a component scope.
      *
@@ -55,7 +60,7 @@ export function datePickerDescriptor(
   return anchorDescriptor({
     className: classes("pui-date-picker", props.className),
     ...(state.placement === undefined ? {} : { ref: state.placement.anchorRef }),
-    onDismiss: () => state.setOpen(false),
+    ...(state.dismiss === undefined ? {} : { dismiss: state.dismiss }),
     children: [
       View({
         className: classes("pui-date-picker__trigger", dark),
@@ -121,6 +126,10 @@ export const DatePicker = memo(function DatePickerImpl(props: DatePickerProps): 
     children: datePickerDescriptor(props, {
       open,
       placement,
+      dismiss: focus.dismissHandlers((): void => {
+        openSignal.set(false);
+        props.onOpenChange?.(false);
+      }),
       month: props.month ?? monthSignal.get(),
       setOpen: (next) => {
         openSignal.set(next);

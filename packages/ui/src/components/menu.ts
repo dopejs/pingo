@@ -99,7 +99,7 @@ function MenuRoot(props: MenuRootProps, closeOnSelect: boolean): PingoNode {
     children: anchorDescriptor({
       ...props,
       ref: placement.anchorRef,
-      onDismiss: () => value.setOpen(false),
+      dismiss: focus.dismissHandlers(() => value.setOpen(false)),
     }),
   });
 }

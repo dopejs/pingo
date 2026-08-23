@@ -51,6 +51,11 @@ export function comboboxDescriptor(
     readonly focusItem: (value: string) => void;
     readonly registerItem: (value: string, handle: NodeHandle | null) => void;
     readonly commit: (value: string) => void;
+    /** Focus handlers that close it, from `OverlayFocus.dismissHandlers`. */
+    readonly dismiss?: {
+      readonly onFocusOut: () => void;
+      readonly onFocusIn: () => void;
+    };
     /**
      * Measured placement, or undefined outside a component scope.
      *
@@ -68,7 +73,7 @@ export function comboboxDescriptor(
   return anchorDescriptor({
     className: classes("pui-combobox", props.className),
     ...(state.placement === undefined ? {} : { ref: state.placement.anchorRef }),
-    onDismiss: () => state.setOpen(false),
+    ...(state.dismiss === undefined ? {} : { dismiss: state.dismiss }),
     children: [
       View({
         className: classes("pui-combobox__trigger", dark),
@@ -147,6 +152,7 @@ export const Combobox = memo(function ComboboxImpl(props: ComboboxProps): PingoN
       open,
       value,
       placement,
+      dismiss: focus.dismissHandlers(() => setOpen(false)),
       query: querySignal.get(),
       active: activeSignal.get(),
       setOpen,

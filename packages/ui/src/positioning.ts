@@ -99,8 +99,12 @@ export function oppositeSide(side: Side): Side {
 /**
  * Chooses the side with room, preferring the requested one.
  *
- * Keeps the requested side when neither fits, rather than flipping to a side
- * that is equally bad: an unavoidable overflow should at least be predictable.
+ * When neither side fits, the one with more room wins rather than the one that
+ * was asked for. The panel is constrained to whatever it lands on, so this is
+ * the difference between a menu showing most of itself and a menu showing two
+ * items -- a trigger in the middle of a short viewport has no side that fits,
+ * and pinning it to the requested one is what made an overlay look broken.
+ * Ties keep the requested side, so the choice stays predictable.
  */
 export function flipSide(
   side: Side,
@@ -110,9 +114,12 @@ export function flipSide(
   offset: number,
 ): Side {
   const needed = HORIZONTAL.has(side) ? panel.width : panel.height;
-  if (availableOn(side, anchor, bounds, offset) >= needed) return side;
+  const room = availableOn(side, anchor, bounds, offset);
+  if (room >= needed) return side;
   const other = oppositeSide(side);
-  return availableOn(other, anchor, bounds, offset) >= needed ? other : side;
+  const otherRoom = availableOn(other, anchor, bounds, offset);
+  if (otherRoom >= needed) return other;
+  return otherRoom > room ? other : side;
 }
 
 /**

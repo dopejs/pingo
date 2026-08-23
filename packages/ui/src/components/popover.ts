@@ -11,7 +11,6 @@ import { createContext, useContext, useMemo, useSignal } from "@dopejs/pingo-run
 
 import {
   classes,
-  dismissOnFocusLoss,
   OverlayFocusContext,
   overlayKeyHandler,
   useOverlayFocus,
@@ -65,18 +64,21 @@ export function anchorDescriptor(props: {
   /** Ref used to measure the box the panel is positioned against. */
   readonly ref?: (handle: NodeHandle | null) => void;
   /**
-   * Closes the overlay when focus leaves the whole anchor.
+   * Focus handlers that close the overlay, from `OverlayFocus.dismissHandlers`.
    *
    * On the wrapper rather than on the panel: the trigger, the panel and
    * everything inside either are all within it, so opening, moving into the
    * list and coming back are all internal, and only a press that leaves counts.
    */
-  readonly onDismiss?: () => void;
+  readonly dismiss?: {
+    readonly onFocusOut: () => void;
+    readonly onFocusIn: () => void;
+  };
 }): PingoNode {
   return View({
     className: classes("pui-anchor", props.className),
     ...(props.ref === undefined ? {} : { ref: props.ref }),
-    ...(props.onDismiss === undefined ? {} : dismissOnFocusLoss(props.onDismiss)),
+    ...(props.dismiss ?? {}),
     children: props.children,
   });
 }
@@ -118,7 +120,7 @@ export const Popover = memo(function PopoverImpl(props: PopoverProps): PingoNode
       children: anchorDescriptor({
         ...props,
         ref: placement.anchorRef,
-        onDismiss: () => value.setOpen(false),
+        dismiss: focus.dismissHandlers(() => value.setOpen(false)),
       }),
     }),
   });
