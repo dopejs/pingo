@@ -19,7 +19,6 @@ const demo: PreviewDemo = {
             { value: "nuxt", label: "Nuxt" },
           ],
           defaultValue: "astro",
-          defaultOpen: true,
           placeholder: "选择框架",
           onValueChange: () => {},
         }),

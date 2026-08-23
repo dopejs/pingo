@@ -12,7 +12,6 @@ const demo: PreviewDemo = {
       // a definite one instead of leaving it to fill the whole stage.
       frame(280, [
         createElement(DatePicker, {
-          open: true,
           value: { year: 2026, month: 8, day: 23 },
           placeholder: "选择日期",
           onSelect: () => {},

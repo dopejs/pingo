@@ -12,7 +12,6 @@ const demo: PreviewDemo = {
       // a definite one instead of leaving it to fill the whole stage.
       frame(280, [
         createElement(Select, {
-          defaultOpen: true,
           value: "pingo-ui",
           onValueChange: () => {},
           children: [

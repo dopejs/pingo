@@ -15,7 +15,6 @@ const demo: PreviewDemo = {
   render: (context): PingoNode =>
     stage(context, [
       createElement(DropdownMenu, {
-        defaultOpen: true,
         onValueChange: () => {},
         children: [
           createElement(DropdownMenuTrigger, {

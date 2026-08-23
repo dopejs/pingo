@@ -1705,6 +1705,27 @@ end 下为 68/100、start 下仍为 0/32；站点浏览器测试点击 OTP 第�
 **残留**：padding 仍然不内缩节点自身的文本（design 前文已记的老问题），所以对齐基准是
 border box 而不是 content box；两者在有内边距的居中字段上会差半个 padding。
 
+### 弹出层的宽度与"永远展开"的预览（2026-08-23）
+
+**一、Select 的列表比它的触发器窄 10px**。`SelectContent` 与 `DropdownMenuContent` 共用
+`.pui-anchor__content`，那里写死了 `width: 260px`；引擎按 CSS 默认的 content-box 解析，加上
+`.pui-menu__content` 的 4px 内边距与 1px 边框，实际是 270px，而触发器是 280px。列表是从
+触发器里掉下来的，宽度对不上一眼就能看出来。修法：新增 `.pui-select__content`
+（`box-sizing: border-box` + `width: 100%`），只给 select 用——下拉菜单是自己的面板，保留
+popover 默认宽度。**这是缺少 border-box reset 的又一个实例**（前面记过 Input 因此高 50px
+而不是 36px）：pui 的尺寸令牌照 Tailwind/shadcn 的全局 `box-sizing: border-box` 设计，而
+引擎实现的是 CSS 默认值。全局补这条 reset 会改变每一个组件的尺寸，属于设计层决定，仍未做。
+
+**二、预览里的浮层全都是展开的**。`select`、`combobox`、`date-picker`、`popover`、
+`dropdown-menu`、`hover-card` 的 demo 都写了 `defaultOpen: true` / `open: true`——静态预览
+时代这是唯一能展示面板的办法，但预览现在可以交互，永远展开就成了"卡住"。这些 demo 改为
+默认关闭，由点击（hover-card 由指针移入）打开。模态类（dialog、drawer、sheet、
+alert-dialog）与 toast 保持展开：它们关闭时预览里什么都没有。
+
+**验证**：pui 单测断言只有 select 的面板带 `pui-select__content`；站点浏览器测试对七个浮层
+demo 逐个断言"初始只有触发器那一段高度、按下之后画面向下长出面板"，并断言 select 展开后
+面板的不透明左右边界与触发器完全一致。
+
 ### 富单元格暴露的能力缺口
 
 新 demo 每行约 18 个节点（此前 3 个），1280×800 视口下 20 行物化 = 357 个 Scene 节点。

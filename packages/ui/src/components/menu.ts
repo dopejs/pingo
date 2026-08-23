@@ -165,12 +165,21 @@ export type MenuContentProps = { readonly children: PingoNode; readonly classNam
 export function menuContentDescriptor(
   props: MenuContentProps,
   context: MenuContextValue | undefined,
+  select = false,
 ): PingoNode {
   if (context?.open !== true) return null;
   const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   const values = orderedValues(props.children);
   return View({
-    className: classes("pui-anchor__content", "pui-menu__content", dark, props.className),
+    className: classes(
+      "pui-anchor__content",
+      "pui-menu__content",
+      // A select's list is its trigger's, so it follows that width; a dropdown
+      // menu is its own surface and keeps the popover default.
+      select ? "pui-select__content" : undefined,
+      dark,
+      props.className,
+    ),
     semanticRole: "menu",
     ref: context.panelRef,
     // Absent when unmeasured, so the skin's static side stands and the tree is
@@ -207,7 +216,7 @@ export const DropdownMenuContent = memo(function DropdownMenuContentImpl(
 
 /** shadcn-style select surface. JSX-only: reads the root via context. */
 export const SelectContent = memo(function SelectContentImpl(props: MenuContentProps): PingoNode {
-  return menuContentDescriptor(props, useContext(MenuContext));
+  return menuContentDescriptor(props, useContext(MenuContext), true);
 });
 
 export type MenuItemProps = {

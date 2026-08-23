@@ -9,7 +9,6 @@ const demo: PreviewDemo = {
   render: (context): PingoNode =>
     stage(context, [
       createElement(HoverCard, {
-        open: true,
         onOpenChange: () => {},
         children: createElement(Button, {
           children: "@pingo",

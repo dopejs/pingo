@@ -9,7 +9,6 @@ const demo: PreviewDemo = {
   render: (context): PingoNode =>
     stage(context, [
       createElement(Popover, {
-        defaultOpen: true,
         children: [
           createElement(PopoverTrigger, {
             children: createElement(Button, {

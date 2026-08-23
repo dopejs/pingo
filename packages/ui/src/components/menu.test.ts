@@ -52,6 +52,15 @@ describe("menuContentDescriptor", () => {
     expect(menuContentDescriptor({ children: items }, context({ open: false }))).toBeNull();
   });
 
+  it("gives only a select's list the trigger's width", () => {
+    const dropdown = menuContentDescriptor({ children: items }, context({})) as unknown as Host;
+    const select = menuContentDescriptor({ children: items }, context({}), true) as unknown as Host;
+    // A select's list belongs to its trigger; a dropdown menu is its own
+    // surface and keeps the popover default.
+    expect(String(dropdown.props.className)).not.toContain("pui-select__content");
+    expect(String(select.props.className)).toContain("pui-select__content");
+  });
+
   it("moves the cursor and focus with the vertical arrows", () => {
     const setActive = vi.fn();
     const focusItem = vi.fn();

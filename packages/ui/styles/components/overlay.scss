@@ -71,6 +71,15 @@
   }
 }
 
+// A select's list belongs to its trigger, so it takes that width rather than
+// the popover default. `border-box` because the width has to be the whole box:
+// with the default content box the padding and the border land outside it and
+// the list stands wider than the control it drops out of.
+.pui-select__content {
+  box-sizing: border-box;
+  width: t.$full;
+}
+
 .pui-overlay--sheet {
   justify-content: flex-start;
   align-items: flex-start;
