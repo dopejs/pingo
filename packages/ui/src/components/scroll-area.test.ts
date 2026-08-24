@@ -44,14 +44,19 @@ describe("scrollAreaDescriptor", () => {
     expect((node.props["children"] as Node[])[1]).toBeNull();
   });
 
-  it("expresses the thumb as percentages of the track", () => {
+  it("positions the thumb along the track, not by pushing it down one", () => {
+    // The recorded failure. The offset was a `margin-top` percentage, and a
+    // percentage margin resolves against the containing block's *width* -- the
+    // bar is 8px wide, so the thumb's whole travel was eight pixels of a
+    // two-hundred pixel track and the bar read as one that did not move.
     const node = scrollAreaDescriptor({ children: null }, refs, {
       offset: 0.25,
       length: 0.5,
     }) as unknown as Node;
     const bar = (node.props["children"] as Node[])[1];
     const thumb = bar?.props["children"] as Node;
-    expect(thumb.props["style"]).toMatchObject({ height: "50%", marginTop: "25%" });
+    expect(thumb.props["style"]).toMatchObject({ height: "50%", top: "25%" });
+    expect(thumb.props["style"]).not.toHaveProperty("marginTop");
   });
 
   it("keeps scrolling when the bar is hidden", () => {

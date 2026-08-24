@@ -64,9 +64,13 @@ export function scrollAreaDescriptor(
             className: classes("pui-scroll-area__bar", dark),
             children: View({
               className: classes("pui-scroll-area__thumb", dark),
+              // `top`, not `margin-top`: a percentage margin resolves against
+              // the containing block's *width* in CSS, and this bar is 8px
+              // wide -- the thumb's whole travel was eight pixels of a
+              // two-hundred pixel track, which read as a bar that did not move.
               style: {
                 height: `${thumb.length * 100}%`,
-                marginTop: `${thumb.offset * 100}%`,
+                top: `${thumb.offset * 100}%`,
               },
             }),
           }),

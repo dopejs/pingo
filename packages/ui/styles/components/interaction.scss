@@ -379,6 +379,9 @@
 }
 
 .pui-scroll-area__thumb {
+  // Positioned along the track rather than pushed down it: see the component.
+  position: absolute;
+  left: t.$zero;
   width: t.$full;
   border-radius: t.$scrollbar-radius;
   background-color: t.$muted-foreground;
