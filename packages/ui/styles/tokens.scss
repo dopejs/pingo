@@ -93,6 +93,11 @@ $table-cell-padding-y: 8px !default;
 $table-row-height: 44px !default;
 $calendar-gap: 8px !default;
 $calendar-cell: 36px !default;
+// A text node's glyphs sit on a baseline measured from the top of its content
+// box, so a fixed height leaves the label at the top rather than centred. The
+// chips size themselves from the label plus this padding instead: 14px text
+// draws a 17px box, so 9.5px on each side lands on the 36px cell.
+$chip-padding-y: 9.5px !default;
 // Seven columns of $calendar-cell. Declared rather than left to the content so
 // the grid is definite: a shrink-to-fit calendar leaves its header shrinking to
 // the arrows and the month title instead of spanning the weeks below it.

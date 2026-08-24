@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "cssSubsetVersion": "1.6.0",
+  "cssSubsetVersion": "1.7.0",
   "propertyIdBits": 16,
   "reservedPropertyIds": [17],
   "reservedPropertyIdReasons": {
@@ -378,7 +378,7 @@
       "canonical": "length",
       "invalidation": ["layout", "paint", "hit", "scroll"],
       "animation": "number",
-      "appliesTo": ["view", "input", "textArea"],
+      "appliesTo": ["view", "text", "input", "textArea"],
       "feature": "m6-foundation",
       "affects": ["layout", "hit", "scroll"],
       "percentageReference": "containing-inline-size"
@@ -393,7 +393,7 @@
       "canonical": "length",
       "invalidation": ["layout", "paint", "hit", "scroll"],
       "animation": "number",
-      "appliesTo": ["view", "input", "textArea"],
+      "appliesTo": ["view", "text", "input", "textArea"],
       "feature": "m6-foundation",
       "affects": ["layout", "hit", "scroll"],
       "percentageReference": "containing-inline-size"
@@ -408,7 +408,7 @@
       "canonical": "length",
       "invalidation": ["layout", "paint", "hit", "scroll"],
       "animation": "number",
-      "appliesTo": ["view", "input", "textArea"],
+      "appliesTo": ["view", "text", "input", "textArea"],
       "feature": "m6-foundation",
       "affects": ["layout", "hit", "scroll"],
       "percentageReference": "containing-inline-size"
@@ -423,7 +423,7 @@
       "canonical": "length",
       "invalidation": ["layout", "paint", "hit", "scroll"],
       "animation": "number",
-      "appliesTo": ["view", "input", "textArea"],
+      "appliesTo": ["view", "text", "input", "textArea"],
       "feature": "m6-foundation",
       "affects": ["layout", "hit", "scroll"],
       "percentageReference": "containing-inline-size"
@@ -603,7 +603,7 @@
       "canonical": "length",
       "invalidation": ["layout", "paint", "hit"],
       "animation": "number",
-      "appliesTo": ["view", "input", "textArea"],
+      "appliesTo": ["view", "text", "input", "textArea"],
       "feature": "m6-foundation",
       "affects": ["layout", "paint", "hit"],
       "percentageReference": "none"
@@ -618,7 +618,7 @@
       "canonical": "length",
       "invalidation": ["layout", "paint", "hit"],
       "animation": "number",
-      "appliesTo": ["view", "input", "textArea"],
+      "appliesTo": ["view", "text", "input", "textArea"],
       "feature": "m6-foundation",
       "affects": ["layout", "paint", "hit"],
       "percentageReference": "none"
@@ -633,7 +633,7 @@
       "canonical": "length",
       "invalidation": ["layout", "paint", "hit"],
       "animation": "number",
-      "appliesTo": ["view", "input", "textArea"],
+      "appliesTo": ["view", "text", "input", "textArea"],
       "feature": "m6-foundation",
       "affects": ["layout", "paint", "hit"],
       "percentageReference": "none"
@@ -648,7 +648,7 @@
       "canonical": "length",
       "invalidation": ["layout", "paint", "hit"],
       "animation": "number",
-      "appliesTo": ["view", "input", "textArea"],
+      "appliesTo": ["view", "text", "input", "textArea"],
       "feature": "m6-foundation",
       "affects": ["layout", "paint", "hit"],
       "percentageReference": "none"
@@ -663,7 +663,7 @@
       "canonical": "rgba8",
       "invalidation": ["paint"],
       "animation": "color",
-      "appliesTo": ["view", "input", "textArea"],
+      "appliesTo": ["view", "text", "input", "textArea"],
       "feature": "m6-foundation",
       "affects": ["paint"],
       "percentageReference": "none"
@@ -678,7 +678,7 @@
       "canonical": "rgba8",
       "invalidation": ["paint"],
       "animation": "color",
-      "appliesTo": ["view", "input", "textArea"],
+      "appliesTo": ["view", "text", "input", "textArea"],
       "feature": "m6-foundation",
       "affects": ["paint"],
       "percentageReference": "none"
@@ -693,7 +693,7 @@
       "canonical": "rgba8",
       "invalidation": ["paint"],
       "animation": "color",
-      "appliesTo": ["view", "input", "textArea"],
+      "appliesTo": ["view", "text", "input", "textArea"],
       "feature": "m6-foundation",
       "affects": ["paint"],
       "percentageReference": "none"
@@ -708,7 +708,7 @@
       "canonical": "rgba8",
       "invalidation": ["paint"],
       "animation": "color",
-      "appliesTo": ["view", "input", "textArea"],
+      "appliesTo": ["view", "text", "input", "textArea"],
       "feature": "m6-foundation",
       "affects": ["paint"],
       "percentageReference": "none"
@@ -723,7 +723,7 @@
       "canonical": "keyword",
       "invalidation": ["layout", "paint", "hit"],
       "animation": "discrete",
-      "appliesTo": ["view", "input", "textArea"],
+      "appliesTo": ["view", "text", "input", "textArea"],
       "feature": "m6-foundation",
       "affects": ["layout", "paint", "hit"],
       "percentageReference": "none"
@@ -738,7 +738,7 @@
       "canonical": "keyword",
       "invalidation": ["layout", "paint", "hit"],
       "animation": "discrete",
-      "appliesTo": ["view", "input", "textArea"],
+      "appliesTo": ["view", "text", "input", "textArea"],
       "feature": "m6-foundation",
       "affects": ["layout", "paint", "hit"],
       "percentageReference": "none"
@@ -753,7 +753,7 @@
       "canonical": "keyword",
       "invalidation": ["layout", "paint", "hit"],
       "animation": "discrete",
-      "appliesTo": ["view", "input", "textArea"],
+      "appliesTo": ["view", "text", "input", "textArea"],
       "feature": "m6-foundation",
       "affects": ["layout", "paint", "hit"],
       "percentageReference": "none"
@@ -768,7 +768,7 @@
       "canonical": "keyword",
       "invalidation": ["layout", "paint", "hit"],
       "animation": "discrete",
-      "appliesTo": ["view", "input", "textArea"],
+      "appliesTo": ["view", "text", "input", "textArea"],
       "feature": "m6-foundation",
       "affects": ["layout", "paint", "hit"],
       "percentageReference": "none"
@@ -783,7 +783,7 @@
       "canonical": "length",
       "invalidation": ["paint", "hit"],
       "animation": "number",
-      "appliesTo": ["view", "image", "input", "textArea", "video"],
+      "appliesTo": ["view", "text", "image", "input", "textArea", "video"],
       "feature": "m6-foundation",
       "affects": ["paint", "hit"],
       "percentageReference": "border-box"

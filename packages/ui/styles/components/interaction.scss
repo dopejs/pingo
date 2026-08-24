@@ -243,8 +243,11 @@
 }
 
 .pui-calendar__cell {
+  @include t.border-box;
   width: t.$calendar-cell;
-  height: t.$calendar-cell;
+  // Padding rather than a height, so the day sits in the middle of its cell.
+  padding-top: t.$chip-padding-y;
+  padding-bottom: t.$chip-padding-y;
   text-align: center;
   font-size: t.$font-size-sm;
 }

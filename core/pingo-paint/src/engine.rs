@@ -1081,18 +1081,23 @@ fn build_node(
         let style = TextStyleResource::decode(text_run.style_id, style_resource)?;
         let paint_resource = typed_resource(scene, style.paint_id, ResourceKind::Paint)?;
         SolidPaint::decode(style.paint_id, paint_resource)?;
-        let fallback_x = match style.text_align {
-            StyleKeyword::End | StyleKeyword::Right | StyleKeyword::Justify => size.width,
-            StyleKeyword::Center => size.width * 0.5,
-            _ => 0.0,
-        };
+        // The content box, not the border box: alignment measures the room the
+        // text actually has, and the origin starts where that room starts.
+        let [inset_left, inset_top, inset_right, _] = text_content_insets(scene, node, size);
+        let content_width = (size.width - inset_left - inset_right).max(0.0);
+        let fallback_x = inset_left
+            + match style.text_align {
+                StyleKeyword::End | StyleKeyword::Right | StyleKeyword::Justify => content_width,
+                StyleKeyword::Center => content_width * 0.5,
+                _ => 0.0,
+            };
         if let Some(glyph_run) = text.glyph_run(node) {
             push(
                 &mut instructions,
                 DisplayCommand::DrawGlyphRun {
                     font_id: glyph_run.font_id,
                     size: glyph_run.font_size,
-                    origin: [0.0, 0.0],
+                    origin: [inset_left, inset_top],
                     glyph_span_id: glyph_run.span_id,
                 },
             );
@@ -1101,7 +1106,7 @@ fn build_node(
                 &mut instructions,
                 DisplayCommand::DrawTextInlineFallback {
                     font_description_id: text_run.style_id,
-                    origin: [fallback_x, style.font_size],
+                    origin: [fallback_x, inset_top + style.font_size],
                     text: inline.to_owned(),
                 },
             );
@@ -1111,7 +1116,7 @@ fn build_node(
                 DisplayCommand::DrawTextFallback {
                     string_id: text_run.string_id,
                     font_description_id: text_run.style_id,
-                    origin: [fallback_x, style.font_size],
+                    origin: [fallback_x, inset_top + style.font_size],
                 },
             );
         }
@@ -1315,6 +1320,35 @@ fn push_shadows(
             },
         );
     }
+}
+
+/// Padding plus border on each side, as `[left, top, right, bottom]`.
+///
+/// Text draws inside its content box like every other box in CSS. Until the
+/// style subset let a text node carry padding at all this was always zero, so
+/// the glyph run went at the node's origin; a padded chip would have drawn its
+/// label in the top-left corner and centred it against the border box.
+///
+/// Percentages resolve against this node's own box, which is what
+/// `style_border_radius` above already does. CSS resolves padding percentages
+/// against the containing block's content width, so the two disagree for a
+/// percentage padding on a text node; the subset's callers use lengths, and
+/// `docs/style-support.md` records the gap.
+fn text_content_insets(scene: &Scene, node: NodeId, size: pingo_layout::Size) -> [f32; 4] {
+    let (widths, _) = style_border(scene, node);
+    let padding = |property: StyleProperty| {
+        scene
+            .presented_style_length(node, property)
+            .map_or(0.0, |length| {
+                resolve_box_length(length, size.width).max(0.0)
+            })
+    };
+    [
+        padding(StyleProperty::PaddingLeft) + widths[3],
+        padding(StyleProperty::PaddingTop) + widths[0],
+        padding(StyleProperty::PaddingRight) + widths[1],
+        padding(StyleProperty::PaddingBottom) + widths[2],
+    ]
 }
 
 fn style_border_radius(scene: &Scene, node: NodeId, size: pingo_layout::Size) -> f32 {

@@ -7,6 +7,7 @@
 
 .pui-pagination__page,
 .pui-pagination__control {
+  @include t.border-box;
   min-width: t.$pagination-size;
   min-height: t.$pagination-size;
   align-items: center;
@@ -17,6 +18,15 @@
   &.pui-dark {
     color: t.$dark-foreground;
   }
+}
+
+// The page is a text node, whose glyphs sit on a baseline measured from the
+// top of its content box: `min-height` alone left every number at the top of
+// its box while the control beside it was centred by its own flex box.
+.pui-pagination__page,
+.pui-pagination__ellipsis {
+  padding-top: t.$chip-padding-y;
+  padding-bottom: t.$chip-padding-y;
 }
 
 .pui-pagination__page {
