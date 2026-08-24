@@ -1,7 +1,7 @@
 import { memo, View, type PingoEvent, type PingoNode, type ViewHandle } from "@dopejs/pingo-jsx";
 import { useLayoutValue, useSignal, type LayoutGeometry } from "@dopejs/pingo-runtime";
 
-import { createDrag, type DragHandlers } from "../drag";
+import { useDrag, type DragHandlers } from "../drag";
 import { classes } from "../overlay";
 import { useTheme } from "../theme";
 
@@ -103,7 +103,10 @@ export const Resizable = memo(function ResizableImpl(props: ResizableProps): Pin
   // fraction of the split. Without it the handle would move and nothing else
   // would, which is the failure this measurement exists to prevent.
   const [attach, bounds] = useLayoutValue((measured: LayoutGeometry) => measured.bounds);
-  const handlers = createDrag({
+  // `useDrag`, not `createDrag`: see Slider. The first move re-rendered this
+  // component and the replacement handlers had no origin, so the seam moved
+  // once by a few pixels and then stopped following the pointer.
+  const handlers = useDrag({
     onMove: (delta) => {
       const extent = props.direction === "column" ? bounds?.height : bounds?.width;
       if (extent === undefined || !(extent > 0)) return;

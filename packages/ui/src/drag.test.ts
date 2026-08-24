@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { createDrag, positionToValue } from "./drag";
+import { ComponentScope } from "@dopejs/pingo-runtime/internal";
+
+import { createDrag, positionToValue, useDrag, type DragHandlers } from "./drag";
 
 function target() {
   return {
@@ -68,6 +70,40 @@ describe("createDrag", () => {
     expect(onStart).toHaveBeenCalledOnce();
   });
 
+  it("still starts the drag when the platform refuses the capture", () => {
+    // `setPointerCapture` throws `NotFoundError` when there is no active
+    // pointer with that id -- a cancelled touch, a pointer released between
+    // the event and the call. The throw used to take the rest of the press
+    // handler with it, so `onStart` never ran: the press committed nothing and
+    // the gesture appeared to begin at the first move instead.
+    const onStart = vi.fn();
+    const onMove = vi.fn();
+    const onEnd = vi.fn();
+    const drag = createDrag({ onStart, onMove, onEnd });
+    const refusing = {
+      setPointerCapture: vi.fn(() => {
+        throw new DOMException("no pointer", "NotFoundError");
+      }),
+      releasePointerCapture: vi.fn(() => {
+        throw new DOMException("no pointer", "NotFoundError");
+      }),
+      focus: vi.fn(),
+    };
+    drag.onPointerDown(event(10, 10, 1, refusing));
+    expect(onStart).toHaveBeenCalledWith([10, 10]);
+    expect(refusing.focus).toHaveBeenCalled();
+
+    // And the drag runs to its end, which is the point of surviving at all.
+    drag.onPointerMove(event(30, 10, 1, refusing));
+    expect(onMove).toHaveBeenCalledWith([20, 0], [30, 10]);
+    drag.onPointerUp(event(30, 10, 1, refusing));
+    expect(onEnd).toHaveBeenCalledWith(false);
+
+    // A second gesture starts cleanly: the failed release still cleared state.
+    drag.onPointerDown(event(50, 10, 1, refusing));
+    expect(onStart).toHaveBeenCalledWith([50, 10]);
+  });
+
   it("distinguishes a cancel from a release", () => {
     const onEnd = vi.fn();
     const drag = createDrag({ onMove: vi.fn(), onEnd });
@@ -78,6 +114,39 @@ describe("createDrag", () => {
     drag.onPointerDown(event(0, 0));
     drag.onPointerUp(event(0, 0));
     expect(onEnd).toHaveBeenLastCalledWith(false);
+  });
+});
+
+describe("useDrag", () => {
+  it("survives the re-render that the press itself causes", () => {
+    // The recorded failure. `createDrag` keeps the press position in its
+    // closure, and Slider and Resizable each built a fresh one every render.
+    // The press committed a value, that re-rendered the component, and the
+    // node was handed handlers that had never seen a press -- so every move
+    // after it fell through the `origin === undefined` guard. The thumb jumped
+    // to where the pointer went down and then stopped following it.
+    const onMove = vi.fn();
+    const scope = new ComponentScope(() => undefined);
+    let renders = 0;
+    const render = (): DragHandlers =>
+      scope.render((): DragHandlers => {
+        renders += 1;
+        // A fresh callbacks object each render, as a real component has.
+        return useDrag({
+          onMove: (delta, position) => {
+            onMove(delta, position, renders);
+          },
+        });
+      });
+
+    const first = render();
+    first.onPointerDown(event(10, 10));
+    // The commit re-renders; the node keeps the handlers it was given.
+    const second = render();
+    expect(second).toBe(first);
+    second.onPointerMove(event(40, 10));
+    // Relative to the press, not to nothing -- and through the latest closure.
+    expect(onMove).toHaveBeenCalledWith([30, 0], [40, 10], 2);
   });
 });
 

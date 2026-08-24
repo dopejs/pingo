@@ -30,11 +30,30 @@ export interface DragCallbacks {
 export function createDrag(callbacks: DragCallbacks): DragHandlers {
   let origin: readonly [number, number] | undefined;
   let pointerId: number | undefined;
+  /**
+   * Capture is an enhancement, not a precondition.
+   *
+   * `setPointerCapture` throws `NotFoundError` when the platform has no active
+   * pointer with that id -- a touch already cancelled, a pointer released
+   * between the event and this call, a synthesised event in a test. It threw
+   * from inside the press handler and took the rest of it with it, so the
+   * gesture never started: the press committed nothing and the caller saw a
+   * drag that began at the first move instead of at the press.
+   */
+  const capture = (event: PingoEvent, take: boolean): void => {
+    try {
+      if (take) event.currentTarget.setPointerCapture(event.pointerId);
+      else event.currentTarget.releasePointerCapture(event.pointerId);
+    } catch {
+      // Without capture the drag ends when the pointer leaves the node, which
+      // is worse than holding it but far better than not starting at all.
+    }
+  };
   const finish = (event: PingoEvent, cancelled: boolean): void => {
     // Ignore a second pointer's release: only the one that started the drag
     // can end it, or a stray touch would drop the capture mid-gesture.
     if (pointerId !== event.pointerId) return;
-    event.currentTarget.releasePointerCapture(event.pointerId);
+    capture(event, false);
     origin = undefined;
     pointerId = undefined;
     callbacks.onEnd?.(cancelled);
@@ -44,7 +63,7 @@ export function createDrag(callbacks: DragCallbacks): DragHandlers {
       if (origin !== undefined) return;
       origin = [event.x, event.y];
       pointerId = event.pointerId;
-      event.currentTarget.setPointerCapture(event.pointerId);
+      capture(event, true);
       event.currentTarget.focus();
       callbacks.onStart?.(origin);
     },

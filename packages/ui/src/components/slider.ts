@@ -1,7 +1,7 @@
 import { memo, View, type PingoEvent, type PingoNode, type ViewHandle } from "@dopejs/pingo-jsx";
 import { useLayoutValue, useSignal, type LayoutGeometry } from "@dopejs/pingo-runtime";
 
-import { createDrag, positionToValue, type DragHandlers } from "../drag";
+import { positionToValue, useDrag, type DragHandlers } from "../drag";
 import { classes } from "../overlay";
 import { useTheme } from "../theme";
 
@@ -11,6 +11,7 @@ export type SliderProps = {
   readonly onValueChange?: (value: number) => void;
   readonly min?: number;
   readonly max?: number;
+  /** Grid the value snaps to. Defaults to 1, as shadcn does; 0 is continuous. */
   readonly step?: number;
   readonly disabled?: boolean;
   readonly semanticLabel?: string;
@@ -97,13 +98,20 @@ export const Slider = memo(function SliderImpl(props: SliderProps): PingoNode {
     const next = positionToValue(
       position,
       { start: geometry.left, length: geometry.width },
-      { min, max, ...(props.step === undefined ? {} : { step: props.step }) },
+      // The keyboard already stepped by 1 when the caller named no step, so a
+      // drag that emitted 47.685 was the odd one out.
+      { min, max, step: props.step ?? 1 },
     );
     if (next === value) return;
     internal.set(next);
     props.onValueChange?.(next);
   };
-  const handlers = createDrag({
+  // `useDrag`, not `createDrag`: the drag's origin lives in the closure, and
+  // a fresh one per render loses it. Committing on press re-rendered this
+  // component, the node was handed a handler set that had never seen a press,
+  // and every move after it was dropped -- the thumb jumped to where the
+  // pointer went down and then never followed it.
+  const handlers = useDrag({
     onStart: (position) => commit(position[0]),
     onMove: (_delta, position) => commit(position[0]),
   });
