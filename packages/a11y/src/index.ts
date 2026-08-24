@@ -23,6 +23,137 @@ export interface SemanticTreeMirrorOptions {
 }
 
 /**
+ * The semantic value vocabulary the widgets emit, by the state it stands for.
+ *
+ * The engine carries one opaque string per node. Nothing downstream turned it
+ * into an ARIA state, so a screen reader met `role="checkbox"` with no
+ * `aria-checked` on it and announced every box as unticked -- and read the
+ * word "checked" as the box's name, because the string was written into the
+ * element's text.
+ */
+const CHECKED_VALUES = new Map<string, string>([
+  ["checked", "true"],
+  ["on", "true"],
+  ["unchecked", "false"],
+  ["off", "false"],
+  ["mixed", "mixed"],
+]);
+
+const SELECTED_VALUES = new Map<string, string>([
+  ["selected", "true"],
+  ["active", "true"],
+  ["unselected", "false"],
+  ["inactive", "false"],
+]);
+
+const EXPANDED_VALUES = new Map<string, string>([
+  ["expanded", "true"],
+  ["open", "true"],
+  ["collapsed", "false"],
+  ["closed", "false"],
+]);
+
+const SORT_VALUES = new Set(["ascending", "descending", "none", "other"]);
+
+/** Roles whose state this mirror publishes; cleared when a node has none. */
+const STATE_ATTRIBUTES = [
+  "aria-checked",
+  "aria-expanded",
+  "aria-selected",
+  "aria-pressed",
+  "aria-current",
+  "aria-sort",
+  "aria-valuenow",
+] as const;
+
+/** Roles that share one Tab stop per group, per WAI-ARIA. */
+const ROVING_ROLES = new Set([
+  "menuitem",
+  "menuitemcheckbox",
+  "menuitemradio",
+  "option",
+  "radio",
+  "tab",
+  "treeitem",
+]);
+
+/** The ARIA state a role/value pair stands for, or undefined for plain text. */
+function ariaState(role: string, value: string): { name: string; value: string } | undefined {
+  if (value === "" || value === "disabled") return undefined;
+  if (value === "current") return { name: "aria-current", value: "true" };
+  switch (role) {
+    case "checkbox":
+    case "radio":
+    case "switch":
+    case "menuitemcheckbox":
+    case "menuitemradio": {
+      const checked = CHECKED_VALUES.get(value);
+      return checked === undefined ? undefined : { name: "aria-checked", value: checked };
+    }
+    case "option":
+    case "tab":
+    case "treeitem": {
+      const selected = SELECTED_VALUES.get(value);
+      return selected === undefined ? undefined : { name: "aria-selected", value: selected };
+    }
+    case "button":
+    case "menuitem":
+    case "combobox": {
+      const expanded = EXPANDED_VALUES.get(value);
+      if (expanded !== undefined) return { name: "aria-expanded", value: expanded };
+      // A toggle button reports pressed, not checked: `on`/`off` is what the
+      // Toggle and its group emit.
+      const pressed = CHECKED_VALUES.get(value);
+      return pressed === undefined ? undefined : { name: "aria-pressed", value: pressed };
+    }
+    case "slider":
+    case "progressbar":
+    case "spinbutton":
+      return Number.isFinite(Number(value)) ? { name: "aria-valuenow", value } : undefined;
+    case "columnheader":
+      return SORT_VALUES.has(value) ? { name: "aria-sort", value } : undefined;
+    default:
+      return undefined;
+  }
+}
+
+/**
+ * The one node per roving group that keeps a Tab stop.
+ *
+ * A group is a run of adjacent nodes sharing a role, which is how the engine
+ * publishes them: the snapshot is in topology order, so a menu's items arrive
+ * together. The selected one takes the stop, and a group with no selection
+ * gives it to the first, so the group is always reachable.
+ */
+function rovingTabStops(nodes: readonly SemanticMirrorNode[]): ReadonlySet<number> {
+  const stops = new Set<number>();
+  let index = 0;
+  while (index < nodes.length) {
+    const role = nodes[index]?.role ?? "";
+    if (!ROVING_ROLES.has(role)) {
+      index += 1;
+      continue;
+    }
+    let end = index;
+    while (end + 1 < nodes.length && nodes[end + 1]?.role === role) end += 1;
+    let chosen = index;
+    for (let scan = index; scan <= end; scan += 1) {
+      const node = nodes[scan];
+      if (node === undefined) continue;
+      const state = ariaState(role, node.value);
+      if (state?.value === "true") {
+        chosen = scan;
+        break;
+      }
+    }
+    const node = nodes[chosen];
+    if (node !== undefined) stops.add(node.nodeId);
+    index = end + 1;
+  }
+  return stops;
+}
+
+/**
  * Absolute-positioned DOM shadow tree kept beside the canvas for screen
  * readers and semantic E2E selectors. Elements are visually transparent but
  * present in the accessibility tree and focus order.
@@ -57,6 +188,7 @@ export class SemanticTreeMirror {
   /** Applies one full semantic snapshot with per-node incremental DOM updates. */
   public update(nodes: readonly SemanticMirrorNode[]): void {
     if (this.#disposed) return;
+    const rovingStops = rovingTabStops(nodes);
     const seen = new Set<number>();
     for (const node of nodes) {
       seen.add(node.nodeId);
@@ -99,12 +231,26 @@ export class SemanticTreeMirror {
       if (node.label === "") element.removeAttribute("aria-label");
       else element.setAttribute("aria-label", node.label);
       const value = node.password ? "" : node.value;
-      if (element.textContent !== value) element.textContent = value;
+      const state = ariaState(node.role, value);
+      // A state is an attribute, never text: written as text content it became
+      // the element's accessible name, so a ticked box announced itself as
+      // "checked" and said nothing about being ticked.
+      const text = state === undefined ? value : "";
+      if (element.textContent !== text) element.textContent = text;
+      for (const name of STATE_ATTRIBUTES) {
+        if (state?.name === name) element.setAttribute(name, state.value);
+        else element.removeAttribute(name);
+      }
       if (node.password) element.setAttribute("aria-invalid", "false");
-      const disabled = node.role === "button" && value === "disabled";
+      const disabled = value === "disabled";
       if (disabled) element.setAttribute("aria-disabled", "true");
       else element.removeAttribute("aria-disabled");
-      element.tabIndex = node.focusable && !disabled ? 0 : -1;
+      // Roving tabindex: one stop per group, as WAI-ARIA specifies for radios,
+      // tabs, options and menu items. Without it a menu of twenty entries put
+      // twenty stops in the page's Tab order.
+      const roving = ROVING_ROLES.has(node.role);
+      const tabbable = !roving || rovingStops.has(node.nodeId);
+      element.tabIndex = node.focusable && !disabled && tabbable ? 0 : -1;
       if (node.focusable && !disabled) {
         element.style.pointerEvents = "none";
       }

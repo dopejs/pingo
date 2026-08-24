@@ -2130,7 +2130,7 @@ impl CoreEngine {
                 continue;
             };
             let role = role.or(if editable { Some("textbox") } else { None });
-            let focusable = editable || role == Some("button");
+            let focusable = editable || role.is_some_and(is_focusable_role);
             let focused = editing_focused == Some(node)
                 || self.scene.interaction_state(node) & pingo_abi::STYLE_INTERACTION_FOCUS != 0;
             if editable && value.is_none() {
@@ -2741,6 +2741,36 @@ fn viewport_constraints(width: f32, height: f32) -> Result<BoxConstraints, CoreE
         .map_err(|_| CoreError::InvalidViewport { width, height })
 }
 
+/// Whether a WAI-ARIA role takes focus.
+///
+/// It used to be `button` and nothing else, so every checkbox, switch, radio,
+/// slider, tab, option and menu item in the library was unreachable from the
+/// keyboard: the mirror gives an element `tabindex=0` only when Core calls it
+/// focusable, and it called none of them that. These are the widget roles the
+/// specification puts in the focus order; a container role such as `menubar`
+/// or `radiogroup` stays out, because focus belongs to the item inside it.
+fn is_focusable_role(role: &str) -> bool {
+    matches!(
+        role,
+        "button"
+            | "checkbox"
+            | "combobox"
+            | "link"
+            | "menuitem"
+            | "menuitemcheckbox"
+            | "menuitemradio"
+            | "option"
+            | "radio"
+            | "searchbox"
+            | "slider"
+            | "spinbutton"
+            | "switch"
+            | "tab"
+            | "textbox"
+            | "treeitem"
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use std::{fs, path::PathBuf};
@@ -2767,7 +2797,7 @@ mod tests {
     use pingo_paint::{AffineResource, SolidPaint, TextStyleResource};
     use pingo_scene::NodeId;
 
-    use super::CoreEngine;
+    use super::{CoreEngine, is_focusable_role};
     use crate::CoreError;
 
     fn id(index: u32) -> u32 {
@@ -5565,6 +5595,31 @@ mod tests {
         let strings = &bytes[11 * 4..11 * 4 + role_len + label_len];
         assert_eq!(&strings[..role_len], b"textbox");
         assert_eq!(&strings[role_len..], b"Secret");
+    }
+
+    #[test]
+    fn every_widget_role_takes_focus_and_a_container_role_does_not() {
+        // The recorded failure. `focusable` was `editable || role == "button"`,
+        // and the mirror hands an element a tab stop only when Core calls it
+        // focusable -- so every checkbox, switch, radio, slider, tab, option
+        // and menu item in the library was unreachable from the keyboard. A
+        // container keeps its own exclusion: focus belongs to the item inside.
+        for (role, expected) in [
+            ("checkbox", true),
+            ("switch", true),
+            ("radio", true),
+            ("slider", true),
+            ("tab", true),
+            ("option", true),
+            ("menuitem", true),
+            ("button", true),
+            ("radiogroup", false),
+            ("menubar", false),
+            ("tablist", false),
+            ("status", false),
+        ] {
+            assert_eq!(is_focusable_role(role), expected, "{role}");
+        }
     }
 
     #[test]
