@@ -210,29 +210,45 @@ fn layout_node(
             measurer,
             out,
         )?;
-        let offset = out_of_flow_offset(scene, &container, item);
+        // The container's own size, not the constraint it was measured under:
+        // a column relaxes its block axis to infinity, so a slider 20px tall
+        // placed its children against infinity. See `engine::arrange_children`.
+        let content = Size::new(
+            (size.width - container.insets.horizontal()).max(0.0),
+            (size.height - container.insets.vertical()).max(0.0),
+        );
+        let offset = out_of_flow_offset(scene, &container, item, content);
         out.geometry.insert(item.node, (offset, item.size));
     }
     Ok(size)
 }
 
 /// Where an out-of-flow child sits inside its container's padding box.
-fn out_of_flow_offset(scene: &Scene, container: &Box2, item: &Item) -> Point {
+fn out_of_flow_offset(scene: &Scene, container: &Box2, item: &Item, content: Size) -> Point {
+    // Both insets auto means the static position: where the child would sit as
+    // the container's only flex item. See `engine::out_of_flow_offset`.
+    let (horizontal, vertical) = if container.row {
+        (container.justify, container.align)
+    } else {
+        (container.align, container.justify)
+    };
     let x = axis_offset(
         scene,
         item.node,
-        container.percent.width,
+        content.width,
         item.size.width + item.margin.horizontal(),
         StyleProperty::Left,
         StyleProperty::Right,
+        horizontal,
     ) + item.margin.left;
     let y = axis_offset(
         scene,
         item.node,
-        container.percent.height,
+        content.height,
         item.size.height + item.margin.vertical(),
         StyleProperty::Top,
         StyleProperty::Bottom,
+        vertical,
     ) + item.margin.top;
     Point::new(container.insets.left + x, container.insets.top + y)
 }
@@ -244,6 +260,7 @@ fn axis_offset(
     outer: f32,
     start: StyleProperty,
     end: StyleProperty,
+    alignment: StyleKeyword,
 ) -> f32 {
     if let Some(value) = resolve_style_length(scene.style_length(node, start, 0), available)
         && value.is_finite()
@@ -256,7 +273,15 @@ fn axis_offset(
     {
         return available - value - outer;
     }
-    0.0
+    if !available.is_finite() {
+        return 0.0;
+    }
+    let free = (available - outer).max(0.0);
+    match alignment {
+        StyleKeyword::Center => free / 2.0,
+        StyleKeyword::FlexEnd | StyleKeyword::End | StyleKeyword::Right => free,
+        _ => 0.0,
+    }
 }
 
 /// Distributes main-axis free space and tightens the affected constraints.

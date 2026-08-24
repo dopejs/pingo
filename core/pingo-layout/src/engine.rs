@@ -894,10 +894,10 @@ fn compute_subtree(
                 };
                 parent.cross = parent.cross.max(cross);
             } else if scene.out_of_flow(frame.node) {
-                // Out of flow: placed against the parent's padding box, and
-                // deliberately absent from the flow totals so it cannot grow
-                // the container or consume a gap.
-                output.offsets[frame.index] = out_of_flow_offset(scene, parent, frame.node, size)?;
+                // Out of flow: deliberately absent from the flow totals so it
+                // cannot grow the container or consume a gap. Its offset waits
+                // for `arrange_children`, which is the first point at which the
+                // container's own size is known.
             } else {
                 if !parent.flex_pass {
                     record_flex_item(scene, parent, &frame, size, &mut flex.items);
@@ -1708,31 +1708,62 @@ fn inset_span(
 /// `left` wins over `right` when both are given, matching CSS for a
 /// left-to-right box. With neither, the child sits at the content-box origin;
 /// CSS would use its static position, which this subset does not model.
+/// Places one out-of-flow child inside a container of a now-known size.
+///
+/// `content` is the container's content box. It is passed rather than read off
+/// the frame because the frame's percentage basis comes from the constraint the
+/// container was measured under, which for a column's block axis is infinite:
+/// a slider is 20px tall and its children were placed against infinity.
 fn out_of_flow_offset(
     scene: &Scene,
     frame: &Frame,
     child: NodeId,
     size: Size,
+    content: Size,
 ) -> Result<Point, LayoutError> {
     let insets = frame.padding.add(frame.border);
     let margin = style_margin(scene, child, child_margin_basis(frame))?.values;
+    // With both insets auto the child takes its static position, which CSS
+    // defines as where it would sit if it were the container's only flex item:
+    // `justify-content` along the main axis, `align-items` across it. Reading
+    // that as the content box's corner left a slider's thumb hanging below the
+    // track it is meant to sit on, in a box that centres everything it holds.
+    let (horizontal, vertical) = if frame.row {
+        (frame.justify, frame.align)
+    } else {
+        (frame.align, frame.justify)
+    };
     let x = out_of_flow_axis(
         scene,
         child,
-        frame.percent.width,
+        content.width,
         size.width + margin.horizontal(),
         StyleProperty::Left,
         StyleProperty::Right,
+        horizontal,
     ) + margin.left;
     let y = out_of_flow_axis(
         scene,
         child,
-        frame.percent.height,
+        content.height,
         size.height + margin.vertical(),
         StyleProperty::Top,
         StyleProperty::Bottom,
+        vertical,
     ) + margin.top;
     Ok(Point::new(insets.left + x, insets.top + y))
+}
+
+/// Where a sole flex item sits on one axis under `alignment`.
+///
+/// `stretch` and `baseline` fall to the start: an out-of-flow child is never
+/// stretched, and it has no line to share a baseline with.
+fn static_position(alignment: StyleKeyword, free: f32) -> f32 {
+    match alignment {
+        StyleKeyword::Center => free / 2.0,
+        StyleKeyword::FlexEnd | StyleKeyword::End | StyleKeyword::Right => free,
+        _ => 0.0,
+    }
 }
 
 fn out_of_flow_axis(
@@ -1742,6 +1773,7 @@ fn out_of_flow_axis(
     outer: f32,
     start: StyleProperty,
     end: StyleProperty,
+    alignment: StyleKeyword,
 ) -> f32 {
     if let Some(value) = resolve_style_length(scene.style_length(node, start, 0), available)
         && value.is_finite()
@@ -1754,7 +1786,10 @@ fn out_of_flow_axis(
     {
         return available - value - outer;
     }
-    0.0
+    if !available.is_finite() {
+        return 0.0;
+    }
+    static_position(alignment, (available - outer).max(0.0))
 }
 
 /// Inline basis every direct child of `parent` uses for percentage margins.
@@ -1773,10 +1808,31 @@ fn arrange_children(
     size: Size,
     output: &mut LayoutSnapshot,
 ) -> Result<(), LayoutError> {
+    let insets = frame.padding.add(frame.border);
+    // Out-of-flow children first, and whatever kind of container this is: a
+    // virtual list takes its flow from Core's index but still holds a panel or
+    // an overlay the same way.
+    let content = Size::new(
+        (size.width - insets.horizontal()).max(0.0),
+        (size.height - insets.vertical()).max(0.0),
+    );
+    let mut out_of_flow = scene.first_child(frame.node);
+    while let Some(node) = out_of_flow {
+        out_of_flow = scene.next_sibling(node);
+        if scene.display_none(node) || !scene.out_of_flow(node) {
+            continue;
+        }
+        let index = scene.resolve(node).ok_or(LayoutError::SceneInvariant(
+            "layout child disappeared during arrangement",
+        ))?;
+        let child_size = *output.sizes.get(index).ok_or(LayoutError::SceneInvariant(
+            "layout child has no computed size",
+        ))?;
+        output.offsets[index] = out_of_flow_offset(scene, frame, node, child_size, content)?;
+    }
     if scene.virtual_list(frame.node).is_some() {
         return Ok(());
     }
-    let insets = frame.padding.add(frame.border);
     let content_main = if frame.row {
         (size.width - insets.horizontal()).max(0.0)
     } else {
@@ -2727,6 +2783,108 @@ mod tests {
         assert_eq!(
             engine.snapshot().geometry(filler),
             Some((Point::new(0.0, 20.0), Size::new(200.0, 10.0)))
+        );
+    }
+
+    #[test]
+    fn an_out_of_flow_child_with_auto_insets_takes_its_static_position() {
+        // The recorded failure. A slider draws its track, its filled range and
+        // its thumb as absolutely positioned children of a box that centres
+        // what it holds, and gives none of them a `top`. Reading auto insets as
+        // the content box's corner stacked all three at the top edge, so the
+        // 16px thumb hung 5px below the 6px track it is meant to sit on. CSS
+        // puts such a child where it would sit as the container's only flex
+        // item: `justify-content` along the main axis, `align-items` across it.
+        let mut scene = Scene::new();
+        let root = id(0);
+        let box_node = id(1);
+        let track = id(2);
+        let thumb = id(3);
+        commit(
+            &mut scene,
+            1,
+            vec![
+                Mutation::DefineResource {
+                    resource_id: 1,
+                    kind: ResourceKind::ComputedStyle,
+                    bytes: computed_style(&[
+                        (StyleProperty::Width, STYLE_VALUE_LENGTH, px(200.0)),
+                        (StyleProperty::Height, STYLE_VALUE_LENGTH, px(20.0)),
+                        (
+                            StyleProperty::JustifyContent,
+                            STYLE_VALUE_KEYWORD,
+                            keyword(StyleKeyword::Center),
+                        ),
+                    ]),
+                },
+                // Absolutely positioned, `left: 0`, and no `top` at all.
+                Mutation::DefineResource {
+                    resource_id: 2,
+                    kind: ResourceKind::ComputedStyle,
+                    bytes: computed_style(&[
+                        (
+                            StyleProperty::Position,
+                            STYLE_VALUE_KEYWORD,
+                            keyword(StyleKeyword::Absolute),
+                        ),
+                        (StyleProperty::Left, STYLE_VALUE_LENGTH, px(0.0)),
+                        (StyleProperty::Width, STYLE_VALUE_LENGTH, px(200.0)),
+                        (StyleProperty::Height, STYLE_VALUE_LENGTH, px(6.0)),
+                    ]),
+                },
+                Mutation::DefineResource {
+                    resource_id: 3,
+                    kind: ResourceKind::ComputedStyle,
+                    bytes: computed_style(&[
+                        (
+                            StyleProperty::Position,
+                            STYLE_VALUE_KEYWORD,
+                            keyword(StyleKeyword::Absolute),
+                        ),
+                        (StyleProperty::Left, STYLE_VALUE_LENGTH, percent(40.0)),
+                        (StyleProperty::Width, STYLE_VALUE_LENGTH, px(16.0)),
+                        (StyleProperty::Height, STYLE_VALUE_LENGTH, px(16.0)),
+                    ]),
+                },
+                create(root, NodeKind::Root, None),
+                create(box_node, NodeKind::Container, Some(root)),
+                create(track, NodeKind::Container, Some(box_node)),
+                create(thumb, NodeKind::Container, Some(box_node)),
+                Mutation::SetRef {
+                    node_id: box_node.raw(),
+                    prop: Prop::ComputedStyle,
+                    resource_id: 1,
+                },
+                Mutation::SetRef {
+                    node_id: track.raw(),
+                    prop: Prop::ComputedStyle,
+                    resource_id: 2,
+                },
+                Mutation::SetRef {
+                    node_id: thumb.raw(),
+                    prop: Prop::ComputedStyle,
+                    resource_id: 3,
+                },
+            ],
+        );
+        let mut engine = LayoutEngine::new();
+        engine
+            .layout(
+                &scene,
+                BoxConstraints::tight(Size::new(200.0, 40.0)).expect("viewport"),
+                &mut ZeroIntrinsicMeasurer,
+            )
+            .expect("layout");
+
+        // Both are centred in the 20px box, so their middles coincide at 10:
+        // the track spans 7..13 and the thumb 2..18. Both sat at 0 before.
+        assert_eq!(
+            engine.snapshot().geometry(track),
+            Some((Point::new(0.0, 7.0), Size::new(200.0, 6.0)))
+        );
+        assert_eq!(
+            engine.snapshot().geometry(thumb),
+            Some((Point::new(80.0, 2.0), Size::new(16.0, 16.0)))
         );
     }
 

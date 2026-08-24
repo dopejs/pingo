@@ -3,9 +3,13 @@
 // No `position: relative`: in this engine every element is the containing
 // block for its own absolutely positioned children, so the track, range and
 // thumb are already placed against the slider. See docs/style-support.md.
+// `align-items`, not `justify-content`: the row's main axis is horizontal, so
+// centring on it centred nothing -- every part is absolutely positioned. The
+// cross axis is what stacks the 6px track and the 16px thumb on one line, and
+// it is what shadcn's `items-center` sets here too.
 .pui-slider {
   min-height: t.$slider-height;
-  justify-content: center;
+  align-items: center;
   cursor: pointer;
 }
 
