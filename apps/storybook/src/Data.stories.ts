@@ -15,7 +15,7 @@ import {
 } from "@dopejs/pingo-ui";
 import type { Meta, StoryObj } from "@storybook/html-vite";
 
-import { frameBox } from "./layout";
+import { frame, frameBox, stateful } from "./layout";
 import { mountStory } from "./mount";
 
 // Story export names must equal component names, so the components are
@@ -248,15 +248,17 @@ export const Calendar: StoryObj<CalendarArgs> = {
       () =>
         // Calendar has no intrinsic width (its 7×36px cells do not size the
         // root), so a fixed-width column wrapper keeps it from collapsing.
-        createElement("container", {
-          width: 280,
-          style: { flexDirection: "column" },
-          children: createElement(CalendarComponent, {
-            defaultMonth: { year: 2026, month: 8, day: 1 },
-            value: { year: 2026, month: 8, day: args.selectedDay },
-            ...(args.disableWeekends ? { isDisabled: isWeekend } : {}),
-          }),
-        }),
+        frame(
+          280,
+          stateful({ year: 2026, month: 8, day: args.selectedDay }, (value, set) =>
+            createElement(CalendarComponent, {
+              defaultMonth: { year: 2026, month: 8, day: 1 },
+              value: value,
+              onSelect: set,
+              ...(args.disableWeekends ? { isDisabled: isWeekend } : {}),
+            }),
+          ),
+        ),
       { width: 300, height: 360, styleSheets: [createPingoUiStyleSheet()] },
     );
   },
@@ -288,11 +290,16 @@ export const Pagination: StoryObj<PaginationArgs> = {
     setTheme(args.theme);
     return mountStory(
       () =>
-        createElement(PaginationComponent, {
-          page: args.page,
-          pageCount: args.pageCount,
-          siblingCount: args.siblingCount,
-        }),
+        // Pagination reports the page it was asked for and renders the one it
+        // was given: with nowhere to put it, pressing a number did nothing.
+        stateful(args.page, (page, set) =>
+          createElement(PaginationComponent, {
+            page: page,
+            pageCount: args.pageCount,
+            siblingCount: args.siblingCount,
+            onPageChange: set,
+          }),
+        ),
       { width: 560, height: 100, styleSheets: [createPingoUiStyleSheet()] },
     );
   },

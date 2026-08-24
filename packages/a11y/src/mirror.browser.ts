@@ -64,6 +64,17 @@ describe("semantic mirror state", () => {
     mirror.dispose();
   });
 
+  it("reports a selected calendar day as a pressed button", () => {
+    const { mirror } = mount();
+    mirror.update([
+      node({ nodeId: 1, role: "button", value: "selected", label: "2026-08-22" }),
+      node({ nodeId: 2, role: "button", value: "", label: "2026-08-23" }),
+    ]);
+    expect(element(mirror, 1).getAttribute("aria-pressed")).toBe("true");
+    expect(element(mirror, 2).getAttribute("aria-pressed")).toBeNull();
+    mirror.dispose();
+  });
+
   it("keeps a value the role has no state for as the element's text", () => {
     const { mirror } = mount();
     mirror.update([node({ nodeId: 1, role: "textbox", value: "hello", label: "邮箱" })]);

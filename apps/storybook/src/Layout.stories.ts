@@ -72,8 +72,7 @@ export const Accordion: StoryObj<AccordionArgs> = {
           frame(
             360,
             createElement(UI.Accordion, {
-              openValue: args.openValue,
-              onValueChange: () => {},
+              defaultOpenValue: args.openValue,
               children: [
                 createElement(UI.AccordionItem, {
                   value: "intro",
@@ -186,8 +185,7 @@ export const Tabs: StoryObj<TabsArgs> = {
           frame(
             360,
             createElement(UI.Tabs, {
-              value: args.value,
-              onValueChange: () => {},
+              defaultValue: args.value,
               children: [
                 createElement(UI.TabsList, {
                   children: [
@@ -302,9 +300,8 @@ export const Resizable: StoryObj<ResizableArgs> = {
             160,
             createElement(UI.Resizable, {
               direction: args.direction,
-              split: args.split,
+              defaultSplit: args.split,
               disabled: args.disabled,
-              onSplitChange: () => {},
               first: pane("左侧栏", "#3b82f6ff"),
               second: pane("主内容", "#6366f1ff"),
             }),
@@ -446,9 +443,8 @@ export const Collapsible: StoryObj<CollapsibleArgs> = {
             340,
             createElement(UI.Collapsible, {
               trigger: args.trigger,
-              open: args.open,
+              defaultOpen: args.open,
               disabled: args.disabled,
-              onOpenChange: () => {},
               children: createElement(UI.Label, {
                 children: "这里的设置会应用到当前工作区的所有项目。",
               }),
@@ -484,8 +480,7 @@ export const Sidebar: StoryObj<SidebarArgs> = {
           300,
           340,
           createElement(UI.Sidebar, {
-            value: args.value,
-            onValueChange: () => {},
+            defaultValue: args.value,
             children: [
               createElement(UI.SidebarSection, {
                 title: "工作区",

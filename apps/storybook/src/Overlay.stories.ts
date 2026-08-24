@@ -2,6 +2,7 @@ import { createElement, type PingoNode } from "@dopejs/pingo";
 import * as UI from "@dopejs/pingo-ui";
 import type { Meta, StoryObj } from "@storybook/html-vite";
 
+import { stateful } from "./layout";
 import { mountStory } from "./mount";
 
 // Story export names must equal the component names (Dialog/AlertDialog/...),
@@ -85,32 +86,38 @@ export const Dialog: StoryObj<DialogArgs> = {
           args.theme,
           480,
           320,
-          createElement(UI.Dialog, {
-            open: true,
-            onOpenChange: () => {},
-            children: column(
-              [
-                createElement(UI.DialogHeader, {
-                  children: column([
-                    createElement(UI.DialogTitle, { children: args.title }),
-                    createElement(UI.DialogDescription, { children: args.description }),
-                  ]),
-                }),
-                createElement("text", { value: "对话框内容放在这里。" }),
-                createElement(UI.DialogFooter, {
-                  children: row([
-                    createElement(UI.Button, {
-                      children: "取消",
-                      variant: "outline",
-                      onPress: () => {},
-                    }),
-                    createElement(UI.Button, { children: "保存", onPress: () => {} }),
-                  ]),
-                }),
-              ],
-              12,
-            ),
-          }),
+          // Open to start with, so the story shows the dialog, and the
+          // trigger behind it reopens one that has been dismissed. Dialog is
+          // controlled by design; the story is what has to hold the state.
+          stateful(true, (open, set) => [
+            createElement(UI.Button, { children: "打开对话框", onPress: () => set(true) }),
+            createElement(UI.Dialog, {
+              open,
+              onOpenChange: set,
+              children: column(
+                [
+                  createElement(UI.DialogHeader, {
+                    children: column([
+                      createElement(UI.DialogTitle, { children: args.title }),
+                      createElement(UI.DialogDescription, { children: args.description }),
+                    ]),
+                  }),
+                  createElement("text", { value: "对话框内容放在这里。" }),
+                  createElement(UI.DialogFooter, {
+                    children: row([
+                      createElement(UI.Button, {
+                        children: "取消",
+                        variant: "outline",
+                        onPress: () => set(false),
+                      }),
+                      createElement(UI.Button, { children: "保存", onPress: () => set(false) }),
+                    ]),
+                  }),
+                ],
+                12,
+              ),
+            }),
+          ]),
         ),
       { width: 480, height: 320, styleSheets: [UI.createPingoUiStyleSheet()] },
     );
@@ -140,16 +147,19 @@ export const AlertDialog: StoryObj<AlertDialogArgs> = {
           args.theme,
           480,
           300,
-          createElement(UI.AlertDialog, {
-            open: true,
-            onOpenChange: () => {},
-            title: args.title,
-            description: args.description,
-            cancelLabel: args.cancelLabel,
-            actionLabel: args.actionLabel,
-            destructive: args.destructive,
-            children: null,
-          }),
+          stateful(true, (open, set) => [
+            createElement(UI.Button, { children: "打开确认框", onPress: () => set(true) }),
+            createElement(UI.AlertDialog, {
+              open,
+              onOpenChange: set,
+              title: args.title,
+              description: args.description,
+              cancelLabel: args.cancelLabel,
+              actionLabel: args.actionLabel,
+              destructive: args.destructive,
+              children: null,
+            }),
+          ]),
         ),
       { width: 480, height: 300, styleSheets: [UI.createPingoUiStyleSheet()] },
     );
@@ -186,25 +196,28 @@ export const Drawer: StoryObj<DrawerArgs> = {
           args.theme,
           480,
           320,
-          createElement(UI.Drawer, {
-            open: true,
-            side: args.side,
-            onOpenChange: () => {},
-            children: column(
-              [
-                createElement(UI.DialogHeader, {
-                  children: column([
-                    createElement(UI.DialogTitle, { children: args.title }),
-                    createElement(UI.DialogDescription, {
-                      children: "选择一个目标位置。",
-                    }),
-                  ]),
-                }),
-                createElement(UI.Button, { children: "完成", onPress: () => {} }),
-              ],
-              12,
-            ),
-          }),
+          stateful(true, (open, set) => [
+            createElement(UI.Button, { children: "打开抽屉", onPress: () => set(true) }),
+            createElement(UI.Drawer, {
+              open,
+              side: args.side,
+              onOpenChange: set,
+              children: column(
+                [
+                  createElement(UI.DialogHeader, {
+                    children: column([
+                      createElement(UI.DialogTitle, { children: args.title }),
+                      createElement(UI.DialogDescription, {
+                        children: "选择一个目标位置。",
+                      }),
+                    ]),
+                  }),
+                  createElement(UI.Button, { children: "完成", onPress: () => set(false) }),
+                ],
+                12,
+              ),
+            }),
+          ]),
         ),
       { width: 480, height: 320, styleSheets: [UI.createPingoUiStyleSheet()] },
     );
@@ -231,25 +244,28 @@ export const Sheet: StoryObj<SheetArgs> = {
           args.theme,
           480,
           320,
-          createElement(UI.Sheet, {
-            open: true,
-            side: args.side,
-            onOpenChange: () => {},
-            children: column(
-              [
-                createElement(UI.DialogHeader, {
-                  children: column([
-                    createElement(UI.DialogTitle, { children: args.title }),
-                    createElement(UI.DialogDescription, {
-                      children: "按条件缩小结果范围。",
-                    }),
-                  ]),
-                }),
-                createElement(UI.Button, { children: "应用", onPress: () => {} }),
-              ],
-              12,
-            ),
-          }),
+          stateful(true, (open, set) => [
+            createElement(UI.Button, { children: "打开侧栏", onPress: () => set(true) }),
+            createElement(UI.Sheet, {
+              open,
+              side: args.side,
+              onOpenChange: set,
+              children: column(
+                [
+                  createElement(UI.DialogHeader, {
+                    children: column([
+                      createElement(UI.DialogTitle, { children: args.title }),
+                      createElement(UI.DialogDescription, {
+                        children: "按条件缩小结果范围。",
+                      }),
+                    ]),
+                  }),
+                  createElement(UI.Button, { children: "应用", onPress: () => set(false) }),
+                ],
+                12,
+              ),
+            }),
+          ]),
         ),
       { width: 480, height: 320, styleSheets: [UI.createPingoUiStyleSheet()] },
     );
@@ -277,8 +293,7 @@ export const Popover: StoryObj<PopoverArgs> = {
           480,
           240,
           createElement(UI.Popover, {
-            open: args.open,
-            onOpenChange: () => {},
+            defaultOpen: args.open,
             children: [
               createElement(UI.PopoverTrigger, {
                 children: createElement(UI.Button, {
@@ -347,7 +362,6 @@ export const Tooltip: StoryObj<TooltipArgs> = {
 
 interface HoverCardArgs {
   theme: PingoUiTheme;
-  open: boolean;
   openDelayMs: number;
   closeDelayMs: number;
 }
@@ -361,8 +375,6 @@ export const HoverCard: StoryObj<HoverCardArgs> = {
           480,
           260,
           createElement(UI.HoverCard, {
-            open: args.open,
-            onOpenChange: () => {},
             openDelayMs: args.openDelayMs,
             closeDelayMs: args.closeDelayMs,
             children: createElement(UI.Button, {
@@ -380,10 +392,9 @@ export const HoverCard: StoryObj<HoverCardArgs> = {
       { width: 480, height: 260, styleSheets: [UI.createPingoUiStyleSheet()] },
     );
   },
-  args: { theme: "light", open: true, openDelayMs: 300, closeDelayMs: 200 },
+  args: { theme: "light", openDelayMs: 300, closeDelayMs: 200 },
   argTypes: {
     theme: { control: "radio", options: THEMES },
-    open: { control: "boolean" },
     openDelayMs: { control: { type: "range", min: 0, max: 1000, step: 50 } },
     closeDelayMs: { control: { type: "range", min: 0, max: 1000, step: 50 } },
   },
@@ -477,7 +488,6 @@ export const DropdownMenu: StoryObj<DropdownMenuArgs> = {
 
 interface MenubarArgs {
   theme: PingoUiTheme;
-  value: string;
 }
 export const Menubar: StoryObj<MenubarArgs> = {
   render: (args) => {
@@ -489,8 +499,6 @@ export const Menubar: StoryObj<MenubarArgs> = {
           480,
           220,
           createElement(UI.Menubar, {
-            value: args.value,
-            onValueChange: () => {},
             children: [
               createElement(UI.MenubarMenu, {
                 value: "file",
@@ -517,15 +525,14 @@ export const Menubar: StoryObj<MenubarArgs> = {
       { width: 480, height: 220, styleSheets: [UI.createPingoUiStyleSheet()] },
     );
   },
-  args: { theme: "light", value: "file" },
+  args: { theme: "light" },
   argTypes: {
     theme: { control: "radio", options: THEMES },
-    value: { control: "text" },
   },
   parameters: {
     docs: {
       description: {
-        story: "value 控制当前展开的菜单（file / edit / view）；留空则收起全部。",
+        story: "按一个菜单名展开它，再按一次收起；左右方向键在菜单之间移动。",
       },
     },
   },
@@ -533,7 +540,6 @@ export const Menubar: StoryObj<MenubarArgs> = {
 
 interface NavigationMenuArgs {
   theme: PingoUiTheme;
-  value: string;
 }
 export const NavigationMenu: StoryObj<NavigationMenuArgs> = {
   render: (args) => {
@@ -545,8 +551,6 @@ export const NavigationMenu: StoryObj<NavigationMenuArgs> = {
           480,
           220,
           createElement(UI.NavigationMenu, {
-            value: args.value,
-            onValueChange: () => {},
             children: [
               createElement(UI.MenubarMenu, {
                 value: "products",
@@ -575,15 +579,14 @@ export const NavigationMenu: StoryObj<NavigationMenuArgs> = {
       { width: 480, height: 220, styleSheets: [UI.createPingoUiStyleSheet()] },
     );
   },
-  args: { theme: "light", value: "docs" },
+  args: { theme: "light" },
   argTypes: {
     theme: { control: "radio", options: THEMES },
-    value: { control: "text" },
   },
   parameters: {
     docs: {
       description: {
-        story: "value 控制当前展开的菜单（products / docs / community）；留空则收起全部。",
+        story: "按一个条目展开它的菜单，再按一次收起；左右方向键在条目之间移动。",
       },
     },
   },

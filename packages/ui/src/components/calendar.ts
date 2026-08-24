@@ -34,6 +34,12 @@ export type CalendarProps = {
 
 const WEEKDAYS = ["日", "一", "二", "三", "四", "五", "六"] as const;
 
+/** Zero-padded and time-zone free, so a day names itself the same everywhere. */
+function isoDate(date: CalendarDate): string {
+  const pad = (value: number): string => String(value).padStart(2, "0");
+  return `${String(date.year)}-${pad(date.month)}-${pad(date.day)}`;
+}
+
 /** Days in a month, Gregorian, with the leap rule spelled out. */
 export function daysInMonth(year: number, month: number): number {
   if (month === 2) {
@@ -104,6 +110,9 @@ export function calendarDescriptor(props: CalendarProps, month: CalendarDate): P
       ),
       value: String(day),
       semanticRole: "button",
+      // Same as a pagination page: the digits are painted, not mirrored, so
+      // the day needs to say which date it is.
+      semanticLabel: isoDate(date),
       ...(selected ? { semanticValue: "selected" } : {}),
       ...(disabled
         ? {}

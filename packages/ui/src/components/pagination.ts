@@ -108,6 +108,9 @@ export function paginationDescriptor(props: PaginationProps): PingoNode {
             value: String(value),
             key: String(value),
             semanticRole: "button",
+            // The number is painted on the canvas, so the mirror carries no
+            // text of its own: without a label the button had no name at all.
+            semanticLabel: `第 ${String(value)} 页`,
             ...(value === props.page ? { semanticValue: "current" } : {}),
             onPointerDown: (event: PingoEvent): void => event.currentTarget.focus(),
             onTap: () => go(value),

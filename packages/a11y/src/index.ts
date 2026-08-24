@@ -102,8 +102,9 @@ function ariaState(role: string, value: string): { name: string; value: string }
       const expanded = EXPANDED_VALUES.get(value);
       if (expanded !== undefined) return { name: "aria-expanded", value: expanded };
       // A toggle button reports pressed, not checked: `on`/`off` is what the
-      // Toggle and its group emit.
-      const pressed = CHECKED_VALUES.get(value);
+      // Toggle and its group emit, and a selected calendar day is the same
+      // two-state button by another name.
+      const pressed = CHECKED_VALUES.get(value) ?? SELECTED_VALUES.get(value);
       return pressed === undefined ? undefined : { name: "aria-pressed", value: pressed };
     }
     case "slider":

@@ -2,6 +2,7 @@ import { createElement, type PingoNode } from "@dopejs/pingo";
 import * as UI from "@dopejs/pingo-ui";
 import type { Meta, StoryObj } from "@storybook/html-vite";
 
+import { stateful } from "./layout";
 import { mountStory } from "./mount";
 
 // Story export names must equal the component names (Button/Input/...), so the
@@ -211,7 +212,7 @@ export const Checkbox: StoryObj<CheckboxArgs> = {
         stage(
           args.theme,
           createElement(UI.Checkbox, {
-            checked: args.checked,
+            defaultChecked: args.checked,
             disabled: args.disabled,
             label: args.label,
           }),
@@ -241,7 +242,7 @@ export const RadioGroup: StoryObj<RadioGroupArgs> = {
         stage(
           args.theme,
           createElement(UI.RadioGroup, {
-            value: args.value,
+            defaultValue: args.value,
             disabled: args.disabled,
             children: column([
               createElement(UI.RadioGroupItem, { value: "a", label: "选项 A" }),
@@ -276,7 +277,7 @@ export const Switch: StoryObj<SwitchArgs> = {
         stage(
           args.theme,
           createElement(UI.Switch, {
-            checked: args.checked,
+            defaultChecked: args.checked,
             disabled: args.disabled,
             semanticLabel: "通知开关",
           }),
@@ -307,7 +308,7 @@ export const Select: StoryObj<SelectArgs> = {
           args.theme,
           createElement(UI.Select, {
             defaultOpen: args.defaultOpen,
-            value: args.value,
+            defaultValue: args.value,
             children: [
               createElement(UI.SelectTrigger, { placeholder: args.placeholder }),
               createElement(UI.SelectContent, {
@@ -345,7 +346,7 @@ export const Slider: StoryObj<SliderArgs> = {
         stage(
           args.theme,
           createElement(UI.Slider, {
-            value: args.value,
+            defaultValue: args.value,
             disabled: args.disabled,
             semanticLabel: "音量",
           }),
@@ -417,7 +418,7 @@ export const InputOTP: StoryObj<InputOTPArgs> = {
         stage(
           args.theme,
           createElement(UI.InputOTP, {
-            value: args.value,
+            defaultValue: args.value,
             length: args.length,
             disabled: args.disabled,
             semanticLabel: "验证码",
@@ -456,7 +457,6 @@ export const Label: StoryObj<LabelArgs> = {
 
 interface DatePickerArgs {
   theme: PingoUiTheme;
-  open: boolean;
   placeholder: string;
 }
 export const DatePicker: StoryObj<DatePickerArgs> = {
@@ -466,19 +466,23 @@ export const DatePicker: StoryObj<DatePickerArgs> = {
       () =>
         stage(
           args.theme,
-          createElement(UI.DatePicker, {
-            open: args.open,
-            placeholder: args.placeholder,
-            value: { year: 2026, month: 8, day: 22 },
-          }),
+          // DatePicker opens and pages on its own, but the chosen date is
+          // controlled: without somewhere to put it, pressing a day did
+          // nothing at all.
+          stateful({ year: 2026, month: 8, day: 22 }, (value, set) =>
+            createElement(UI.DatePicker, {
+              placeholder: args.placeholder,
+              value,
+              onSelect: set,
+            }),
+          ),
         ),
       { width: 480, height: 420, styleSheets: [UI.createPingoUiStyleSheet()] },
     );
   },
-  args: { theme: "light", open: true, placeholder: "选择日期" },
+  args: { theme: "light", placeholder: "选择日期" },
   argTypes: {
     theme: { control: "radio", options: THEMES },
-    open: { control: "boolean" },
     placeholder: { control: "text" },
   },
 };
@@ -502,7 +506,7 @@ export const Combobox: StoryObj<ComboboxArgs> = {
               { value: "remix", label: "Remix" },
               { value: "astro", label: "Astro" },
             ],
-            value: args.value,
+            defaultValue: args.value,
             defaultOpen: args.defaultOpen,
             placeholder: args.placeholder,
           }),
@@ -534,7 +538,7 @@ export const Toggle: StoryObj<ToggleArgs> = {
           args.theme,
           createElement(UI.Toggle, {
             children: args.label,
-            pressed: args.pressed,
+            defaultPressed: args.pressed,
             disabled: args.disabled,
           }),
         ),
@@ -564,7 +568,7 @@ export const ToggleGroup: StoryObj<ToggleGroupArgs> = {
           args.theme,
           createElement(UI.ToggleGroup, {
             type: args.type,
-            value: args.type === "single" ? ["center"] : ["left", "center"],
+            defaultValue: args.type === "single" ? ["center"] : ["left", "center"],
             children: [
               createElement(UI.ToggleGroupItem, { value: "left", children: "左" }),
               createElement(UI.ToggleGroupItem, { value: "center", children: "中" }),
