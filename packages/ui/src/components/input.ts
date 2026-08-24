@@ -30,6 +30,14 @@ export type InputProps = {
   readonly className?: string;
   readonly width?: number;
   readonly semanticLabel?: string;
+  /**
+   * Receives the editable inside the decoration, so a caller can focus it.
+   *
+   * InputOTP needs this to move the caret to the next cell as digits arrive:
+   * it was already passing a `ref`, but `InputProps` had no such member, so
+   * the handle never arrived and the caret never advanced.
+   */
+  readonly ref?: (handle: NodeHandle | null) => void;
   /** Leading adornment, for example an icon or a currency symbol. */
   readonly prefix?: PingoNode;
   /** Trailing adornment, for example a unit or a clear affordance. */
@@ -64,6 +72,7 @@ export function inputDescriptor(
   props: InputProps,
   controller: TextEditingController,
   field?: RefObject<NodeHandle | null>,
+  attach?: (handle: NodeHandle | null) => void,
 ): PingoNode {
   const theme = useTheme();
   const disabled = props.disabled === true;
@@ -88,7 +97,9 @@ export function inputDescriptor(
         : View({ className: slotClass("pui-input__prefix"), children: props.prefix }),
       EngineInput({
         className: "pui-input__field",
-        ...(field === undefined ? {} : { ref: field }),
+        // `attach` when the component supplied one: it records the handle for
+        // `focusField` and hands it to the caller's `ref` in the same call.
+        ...(attach !== undefined ? { ref: attach } : field === undefined ? {} : { ref: field }),
         controller,
         readOnly,
         // Not the same as readOnly: a disabled field takes no focus and shows
@@ -132,5 +143,14 @@ export const Input = memo(function InputImpl(props: InputProps): PingoNode {
     [],
   );
   const field = useRef<NodeHandle | null>(null);
-  return inputDescriptor(props, controller, field);
+  // Memoized on the caller's ref: a fresh closure every render would make the
+  // reconciler detach and re-attach the editable on each one.
+  const attach = useMemo(
+    () => (handle: NodeHandle | null) => {
+      field.current = handle;
+      props.ref?.(handle);
+    },
+    [props.ref],
+  );
+  return inputDescriptor(props, controller, field, attach);
 });

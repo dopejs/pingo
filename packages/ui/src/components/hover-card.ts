@@ -3,8 +3,9 @@ import { useMemo, useSignal } from "@dopejs/pingo-runtime";
 
 import { classes } from "../overlay";
 import { useTheme } from "../theme";
+import { useAnchoredPlacement, type AnchoredPlacement } from "../use-anchored";
 
-import { anchorDescriptor } from "./popover";
+import { ANCHOR_OFFSET, anchorDescriptor } from "./popover";
 
 export type HoverCardProps = {
   readonly children: PingoNode;
@@ -18,15 +19,25 @@ export type HoverCardProps = {
   readonly className?: string;
 };
 
-/** Pure builder: safe to call without a component scope (tests use this). */
+/**
+ * Pure builder: safe to call without a component scope (tests use this).
+ *
+ * `placement` is undefined outside a component scope, and then the skin's
+ * static side stands. Measuring is what puts the card under its trigger: the
+ * skin says `top: 100%`, and an out-of-flow child resolves that against the
+ * parent's constraint rather than its used height, so an unmeasured card
+ * landed a stage-height below the trigger and off the surface entirely.
+ */
 export function hoverCardDescriptor(
   props: HoverCardProps,
   open: boolean,
   schedule: (open: boolean) => void,
+  placement?: AnchoredPlacement,
 ): PingoNode {
   const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   return anchorDescriptor({
     className: classes("pui-hover-card", props.className),
+    ...(placement === undefined ? {} : { ref: placement.anchorRef }),
     children: [
       View({
         className: "pui-hover-card__trigger",
@@ -42,6 +53,8 @@ export function hoverCardDescriptor(
       open
         ? View({
             className: classes("pui-hover-card__content", dark),
+            ...(placement === undefined ? {} : { ref: placement.panelRef }),
+            ...(placement?.style === undefined ? {} : { style: placement.style }),
             // The card keeps itself open while the pointer is over it, which is
             // what makes the close delay usable rather than merely generous.
             onPointerEnter: (): void => schedule(true),
@@ -62,6 +75,7 @@ export const HoverCard = memo(function HoverCardImpl(props: HoverCardProps): Pin
   );
   // .get() (not .peek()): the delayed open must re-render this component.
   const open = props.open ?? openSignal.get();
+  const placement = useAnchoredPlacement(open, "bottom", ANCHOR_OFFSET);
   const schedule = (next: boolean): void => {
     if (timer.handle !== undefined) clearTimeout(timer.handle);
     const delay = next ? (props.openDelayMs ?? 300) : (props.closeDelayMs ?? 200);
@@ -71,5 +85,5 @@ export const HoverCard = memo(function HoverCardImpl(props: HoverCardProps): Pin
       props.onOpenChange?.(next);
     }, delay);
   };
-  return hoverCardDescriptor(props, open, schedule);
+  return hoverCardDescriptor(props, open, schedule, placement);
 });

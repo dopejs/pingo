@@ -12,6 +12,9 @@ import { createContext, useContext, useMemo, useSignal } from "@dopejs/pingo-run
 import { orderedValues, step } from "../keyboard";
 import { classes } from "../overlay";
 import { useTheme } from "../theme";
+import { useAnchoredPlacement, type AnchoredPlacement } from "../use-anchored";
+
+import { ANCHOR_OFFSET } from "./popover";
 
 export type MenubarContextValue = {
   /** Value of the open menu, or undefined when the bar is idle. */
@@ -100,16 +103,26 @@ export type MenubarMenuProps = {
   readonly className?: string;
 };
 
-/** Pure builder: safe to call without a component scope (tests use this). */
+/**
+ * Pure builder: safe to call without a component scope (tests use this).
+ *
+ * `placement` is undefined outside a component scope, and then the skin's
+ * static side stands. Measuring is what puts the list under its trigger: the
+ * skin says `top: 100%`, and an out-of-flow child resolves that against the
+ * parent's constraint rather than its used height, so an unmeasured list
+ * dropped a stage-height below the bar and off the surface entirely.
+ */
 export function menubarMenuDescriptor(
   props: MenubarMenuProps,
   context: MenubarContextValue | undefined,
+  placement?: AnchoredPlacement,
 ): PingoNode {
   const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   const open = context?.open === props.value;
   const toggle = (): void => context?.setOpen(open ? undefined : props.value);
   return View({
     className: classes("pui-menubar__menu", props.className),
+    ...(placement === undefined ? {} : { ref: placement.anchorRef }),
     children: [
       Text({
         className: classes(
@@ -135,6 +148,8 @@ export function menubarMenuDescriptor(
       open
         ? View({
             className: classes("pui-menubar__content", dark),
+            ...(placement === undefined ? {} : { ref: placement.panelRef }),
+            ...(placement?.style === undefined ? {} : { style: placement.style }),
             semanticRole: "menu",
             children: props.children,
           })
@@ -145,5 +160,7 @@ export function menubarMenuDescriptor(
 
 /** shadcn-style menubar entry. JSX-only: reads the bar via context. */
 export const MenubarMenu = memo(function MenubarMenuImpl(props: MenubarMenuProps): PingoNode {
-  return menubarMenuDescriptor(props, useContext(MenubarContext));
+  const context = useContext(MenubarContext);
+  const placement = useAnchoredPlacement(context?.open === props.value, "bottom", ANCHOR_OFFSET);
+  return menubarMenuDescriptor(props, context, placement);
 });
