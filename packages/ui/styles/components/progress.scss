@@ -7,12 +7,15 @@
 // Safe without it: the indicator is clamped to 0–100% and shares the
 // track's border-radius, so it can never paint outside.
 
+// The track is `primary / 20%`, as shadcn has it. `$secondary` (#f4f4f5) is a
+// 4% grey: on a white surface the track was invisible and the bar showed a
+// fill with nothing to measure it against.
 .pui-progress {
   height: t.$progress-height;
   border-radius: t.$progress-radius;
-  background-color: t.$secondary;
+  background-color: t.$progress-track;
   &.pui-dark {
-    background-color: t.$dark-secondary;
+    background-color: t.$dark-progress-track;
   }
 }
 

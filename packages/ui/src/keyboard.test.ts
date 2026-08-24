@@ -1,9 +1,12 @@
 import { createElement } from "@dopejs/pingo-jsx";
 import { describe, expect, it } from "vitest";
 
-import { orderedValues, step } from "./keyboard";
+import { labelledValues, orderedValues, step } from "./keyboard";
 
 const Item = (props: { readonly value: string }): string => props.value;
+const Labelled = (props: { readonly value: string; readonly children: string }): string =>
+  props.children;
+const Group = (props: { readonly children: unknown }): unknown => props.children;
 
 describe("orderedValues", () => {
   it("reads declared values from children in document order", () => {
@@ -60,5 +63,36 @@ describe("step", () => {
     expect(step([], "a", "ArrowRight", "both")).toBeUndefined();
     expect(step(values, "a", "Enter", "both")).toBeUndefined();
     expect(step(values, "a", "x", "both")).toBeUndefined();
+  });
+});
+
+describe("labelledValues", () => {
+  it("finds an item's own text through the element that wraps it", () => {
+    // The items are inside the content element, not handed to the root, so a
+    // non-recursive walk found nothing and a Select's trigger showed the raw
+    // value: `pingo-ui` where the option said `@dopejs/pingo-ui`.
+    const labels = labelledValues([
+      createElement(Group, {
+        children: [
+          createElement(Labelled, { value: "pingo", children: "@dopejs/pingo" }),
+          createElement(Labelled, { value: "pingo-ui", children: "@dopejs/pingo-ui" }),
+        ],
+      }),
+    ]);
+    expect(labels.get("pingo-ui")).toBe("@dopejs/pingo-ui");
+    expect(labels.size).toBe(2);
+  });
+
+  it("ignores an item whose children are not a plain label", () => {
+    const labels = labelledValues([
+      createElement(Group, {
+        children: createElement(Group, {
+          value: "composite",
+          children: [createElement(Labelled, { value: "inner", children: "内层" })],
+        }),
+      }),
+    ]);
+    expect(labels.get("composite")).toBeUndefined();
+    expect(labels.get("inner")).toBe("内层");
   });
 });

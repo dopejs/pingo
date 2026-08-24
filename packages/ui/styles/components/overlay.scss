@@ -253,6 +253,23 @@
   }
 }
 
+// Trailing, pushed to the far edge, as shadcn's Combobox draws it. Hidden by
+// opacity rather than by omission so a checked row and an unchecked one lay
+// their labels out identically.
+.pui-command__check {
+  width: t.$icon-size;
+  height: t.$icon-size;
+  margin-left: auto;
+  color: t.$foreground;
+  &.pui-dark {
+    color: t.$dark-foreground;
+  }
+}
+
+.pui-command__check--hidden {
+  opacity: 0;
+}
+
 .pui-command__empty {
   padding: t.$popover-padding;
   font-size: t.$font-size-sm;
@@ -304,6 +321,45 @@
 .pui-toast__title {
   font-size: t.$font-size-sm;
   font-weight: t.$font-weight-medium;
+}
+
+// Top-right, out of the text column's flow, as shadcn places it.
+.pui-toast__close {
+  position: absolute;
+  top: t.$toast-close-inset;
+  right: t.$toast-close-inset;
+  width: t.$toast-close-size;
+  height: t.$toast-close-size;
+  align-items: center;
+  justify-content: center;
+  border-radius: t.$radius-md;
+  cursor: pointer;
+}
+
+.pui-toast__close:hover {
+  background-color: t.$accent;
+}
+
+.pui-toast__close.pui-dark:hover {
+  background-color: t.$dark-accent;
+}
+
+.pui-toast__close-icon {
+  width: t.$icon-size-sm;
+  height: t.$icon-size-sm;
+  color: t.$muted-foreground;
+  &.pui-dark {
+    color: t.$dark-muted-foreground;
+  }
+}
+
+// A destructive toast inverts its foreground, so the glyph follows it rather
+// than staying the muted grey that would disappear into the red.
+.pui-toast__close-icon--destructive {
+  color: t.$destructive-foreground;
+  &.pui-dark {
+    color: t.$dark-destructive-foreground;
+  }
 }
 
 .pui-toast__description {

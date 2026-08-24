@@ -15,6 +15,7 @@ import {
 } from "@dopejs/pingo-ui";
 import type { Meta, StoryObj } from "@storybook/html-vite";
 
+import { frameBox } from "./layout";
 import { mountStory } from "./mount";
 
 // Story export names must equal component names, so the components are
@@ -76,19 +77,19 @@ export const Table: StoryObj<TableArgs> = {
     setTheme(args.theme);
     return mountStory(
       () =>
-        createElement("container", {
-          width: 520,
-          height: 300,
+        frameBox(
+          520,
+          300,
           // Table is a pure builder, not a memo component: it is invoked
           // directly inside the render scope rather than via createElement.
-          children: TableComponent<FileRow>({
+          TableComponent<FileRow>({
             columns: FILE_COLUMNS,
             rowCount: args.empty ? 0 : FILES.length,
             getRow: (index) => FILES[index]!,
             estimatedRowHeight: args.estimatedRowHeight,
             emptyLabel: args.emptyLabel,
           }),
-        }),
+        ),
       { width: 520, height: 340, styleSheets: [createPingoUiStyleSheet()] },
     );
   },
@@ -205,13 +206,13 @@ export const DataTable: StoryObj<DataTableArgs> = {
     setTheme(args.theme);
     return mountStory(
       () =>
-        createElement("container", {
-          width: 520,
-          height: 300,
-          children: createElement(SortableDataTable, {
+        frameBox(
+          520,
+          300,
+          createElement(SortableDataTable, {
             estimatedRowHeight: args.estimatedRowHeight,
           }),
-        }),
+        ),
       { width: 520, height: 340, styleSheets: [createPingoUiStyleSheet()] },
     );
   },

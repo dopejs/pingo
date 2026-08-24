@@ -16,6 +16,36 @@
   }
 }
 
+// The icon column and the text column. `align-items: flex-start` so a
+// one-line alert keeps the icon on the title rather than centring it against
+// a description that may run to several lines.
+.pui-alert__row {
+  flex-direction: row;
+  align-items: flex-start;
+  column-gap: t.$alert-icon-gap;
+}
+
+.pui-alert__body {
+  flex-direction: column;
+}
+
+.pui-alert__icon {
+  width: t.$icon-size;
+  height: t.$icon-size;
+  margin-top: t.$alert-icon-offset;
+  color: t.$foreground;
+  &.pui-dark {
+    color: t.$dark-foreground;
+  }
+}
+
+.pui-alert__icon--destructive {
+  color: t.$destructive;
+  &.pui-dark {
+    color: t.$dark-destructive;
+  }
+}
+
 .pui-alert--destructive {
   border-color: t.$destructive;
   &.pui-dark {

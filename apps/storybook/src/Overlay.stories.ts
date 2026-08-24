@@ -55,7 +55,17 @@ function stage(
       children,
     });
   }
-  return createElement("container", { width, height, backgroundColor: background, children });
+  // A `style` prop even with nothing but the direction: without one the
+  // container is on the legacy direct-prop path, where `align-items` is
+  // `flex-start` rather than the CSS initial `stretch`, and a bar that should
+  // span the surface (Menubar, NavigationMenu) shrank to its own labels.
+  return createElement("container", {
+    width,
+    height,
+    backgroundColor: background,
+    style: { flexDirection: "column" },
+    children,
+  });
 }
 
 const meta: Meta = { title: "Overlay" };

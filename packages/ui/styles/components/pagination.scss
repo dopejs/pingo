@@ -19,14 +19,26 @@
   }
 }
 
-// The page number is still text; only the arrows became drawn outlines, and
-// giving both the same box would shrink the numbers to icon size.
 .pui-pagination__page {
   font-size: t.$font-size-sm;
   text-align: center;
 }
 
-.pui-pagination__control {
+// shadcn's non-current pages are ghost buttons: they answer the pointer.
+.pui-pagination__page:hover,
+.pui-pagination__control:hover {
+  background-color: t.$accent;
+  color: t.$accent-foreground;
+}
+
+.pui-pagination__page.pui-dark:hover,
+.pui-pagination__control.pui-dark:hover {
+  background-color: t.$dark-accent;
+  color: t.$dark-accent-foreground;
+}
+
+// The glyph inside the control box, at icon size rather than hit-target size.
+.pui-pagination__control-icon {
   width: t.$icon-size;
   height: t.$icon-size;
 }
@@ -44,6 +56,11 @@
 .pui-pagination__control--disabled {
   opacity: t.$disabled-opacity;
   cursor: default;
+}
+
+// A disabled control is not a target, so it keeps its surface on hover.
+.pui-pagination__control--disabled:hover {
+  background-color: transparent;
 }
 
 .pui-pagination__ellipsis {

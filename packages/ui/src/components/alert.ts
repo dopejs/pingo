@@ -1,4 +1,4 @@
-import { memo, Text, View, type PingoNode } from "@dopejs/pingo-jsx";
+import { memo, Svg, Text, View, type PingoNode, type PingoSvg } from "@dopejs/pingo-jsx";
 
 import { useTheme } from "../theme";
 
@@ -10,6 +10,8 @@ export type AlertProps = {
   readonly title: string;
   readonly children: string;
   readonly variant?: AlertVariant;
+  /** Leading icon, as shadcn's `[&>svg]` slot. Omit for a text-only callout. */
+  readonly icon?: PingoSvg;
   readonly className?: string;
 };
 
@@ -21,6 +23,17 @@ function AlertImpl(props: AlertProps): PingoNode {
   const theme = useTheme();
   const dark = theme === "dark" ? "pui-dark" : undefined;
   const destructive = props.variant === "destructive";
+  const body = [
+    Text({
+      className: join(
+        "pui-alert__title",
+        destructive ? "pui-alert__title--destructive" : undefined,
+        dark,
+      ),
+      value: props.title,
+    }),
+    Text({ className: join("pui-alert__description", dark), value: props.children }),
+  ];
   return View({
     className: join(
       "pui-alert",
@@ -28,17 +41,26 @@ function AlertImpl(props: AlertProps): PingoNode {
       dark,
       props.className,
     ),
-    children: [
-      Text({
-        className: join(
-          "pui-alert__title",
-          destructive ? "pui-alert__title--destructive" : undefined,
-          dark,
-        ),
-        value: props.title,
-      }),
-      Text({ className: join("pui-alert__description", dark), value: props.children }),
-    ],
+    // With an icon the callout is a row of icon plus text column, as shadcn
+    // lays it out; without one it stays the plain column it always was, so
+    // every existing caller renders byte-identically.
+    children:
+      props.icon === undefined
+        ? body
+        : View({
+            className: "pui-alert__row",
+            children: [
+              Svg({
+                className: join(
+                  "pui-alert__icon",
+                  destructive ? "pui-alert__icon--destructive" : undefined,
+                  dark,
+                ),
+                source: props.icon,
+              }),
+              View({ className: "pui-alert__body", children: body }),
+            ],
+          }),
   });
 }
 

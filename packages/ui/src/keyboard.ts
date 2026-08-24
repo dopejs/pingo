@@ -24,6 +24,36 @@ function collect(node: PingoNode, values: string[]): void {
   if (typeof value === "string") values.push(value);
 }
 
+/**
+ * Value-to-label map for a menu's items, read from the descriptor tree.
+ *
+ * A Select's trigger renders the chosen value, but the value is an id: a list
+ * of package names showed `pingo-ui` where the option said `@dopejs/pingo-ui`.
+ * The labels live on the items, and the items are inside the content element
+ * the trigger cannot see, so this walks the root's own children to find them.
+ * Unlike `orderedValues` it descends through elements, because the items are
+ * nested inside the content element rather than handed over directly.
+ */
+export function labelledValues(children: PingoNode): ReadonlyMap<string, string> {
+  const labels = new Map<string, string>();
+  collectLabels(children, labels);
+  return labels;
+}
+
+function collectLabels(node: PingoNode, labels: Map<string, string>): void {
+  if (Array.isArray(node)) {
+    for (const child of node) collectLabels(child as PingoNode, labels);
+    return;
+  }
+  if (!isPingoElement(node)) return;
+  const props = node.props as { readonly value?: unknown; readonly children?: unknown };
+  if (typeof props.value === "string" && typeof props.children === "string") {
+    labels.set(props.value, props.children);
+    return;
+  }
+  if (props.children !== undefined) collectLabels(props.children as PingoNode, labels);
+}
+
 /** Which arrow keys move along a group's axis. */
 export type NavigationAxis = "horizontal" | "vertical" | "both";
 

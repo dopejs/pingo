@@ -138,6 +138,10 @@ $grow-1: 1 1 0px !default;
 $divider-length: 100% !default;
 $alert-padding: 16px !default;
 $alert-title-gap: 4px !default;
+// shadcn's track is `bg-primary/20`; a literal 20% of $primary over the
+// surface, so it reads as a track rather than as another background.
+$progress-track: #18181b33 !default;
+$dark-progress-track: #fafafa33 !default;
 $progress-height: 8px !default;
 $progress-radius: 4px !default;
 $avatar-size: 40px !default;
@@ -150,6 +154,12 @@ $switch-thumb-radius: 10px !default;
 $switch-thumb-offset: 2px !default;
 $switch-thumb-offset-checked: 22px !default;
 $checkbox-size: 16px !default;
+// The gap between an alert's icon and its text, and the nudge that puts the
+// icon on the title's cap height rather than its box top.
+$toast-close-inset: 6px !default;
+$toast-close-size: 20px !default;
+$alert-icon-gap: 12px !default;
+$alert-icon-offset: 2px !default;
 $icon-size: 16px !default;
 $icon-size-sm: 12px !default;
 $checkbox-radius: 4px !default;

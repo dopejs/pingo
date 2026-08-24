@@ -1,5 +1,6 @@
-import { memo, Text, View, type PingoNode } from "@dopejs/pingo-jsx";
+import { memo, Svg, Text, View, type PingoEvent, type PingoNode } from "@dopejs/pingo-jsx";
 
+import { CloseIcon } from "../icons";
 import { classes } from "../overlay";
 import { useTheme } from "../theme";
 
@@ -10,6 +11,8 @@ export type ToastProps = {
   readonly title: string;
   readonly description?: string;
   readonly variant?: ToastVariant;
+  /** Dismiss affordance. Omit for a toast the caller retires on a timer. */
+  readonly onClose?: () => void;
   readonly className?: string;
 };
 
@@ -39,6 +42,28 @@ export function toastDescriptor(props: ToastProps): PingoNode {
                 destructive ? undefined : dark,
               ),
               value: props.description,
+            }),
+          ]),
+      // shadcn's ToastClose, and the only way to retire a toast by hand. It is
+      // absolutely positioned so it does not join the text column's flow.
+      ...(props.onClose === undefined
+        ? []
+        : [
+            View({
+              className: classes("pui-toast__close", dark),
+              semanticRole: "button",
+              semanticLabel: "关闭",
+              onPointerDown: (event: PingoEvent): void => event.currentTarget.focus(),
+              onTap: () => props.onClose?.(),
+              onClick: () => props.onClose?.(),
+              children: Svg({
+                className: classes(
+                  "pui-toast__close-icon",
+                  destructive ? "pui-toast__close-icon--destructive" : undefined,
+                  dark,
+                ),
+                source: CloseIcon,
+              }),
             }),
           ]),
     ],

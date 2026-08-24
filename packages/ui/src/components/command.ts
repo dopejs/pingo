@@ -1,6 +1,7 @@
 import {
   createElement,
   memo,
+  Svg,
   Text,
   View,
   type NodeHandle,
@@ -9,6 +10,7 @@ import {
 } from "@dopejs/pingo-jsx";
 import { useMemo, useSignal } from "@dopejs/pingo-runtime";
 
+import { CheckIcon } from "../icons";
 import { step } from "../keyboard";
 import { classes, escapeHandler } from "../overlay";
 import { useTheme } from "../theme";
@@ -21,6 +23,8 @@ export type CommandItem = {
 
 export type CommandProps = {
   readonly items: readonly CommandItem[];
+  /** The chosen value, marked with a check as shadcn's Combobox does. */
+  readonly value?: string;
   readonly onSelect?: (value: string) => void;
   readonly onDismiss?: () => void;
   readonly placeholder?: string;
@@ -95,15 +99,19 @@ export function commandDescriptor(
               value: props.emptyLabel ?? "无结果",
             }),
           ]
-        : visible.map((item) =>
-            View({
+        : visible.map((item) => {
+            const chosen = props.value === item.value;
+            return View({
               className: classes(
                 "pui-menu__item",
                 active === item.value ? "pui-menu__item--active" : undefined,
                 dark,
               ),
               semanticRole: "option",
-              semanticValue: active === item.value ? "selected" : "unselected",
+              // The chosen value, not the keyboard cursor. Reporting the cursor
+              // here left every option `unselected` on open, so nothing in the
+              // list said which one the trigger was already showing.
+              semanticValue: chosen ? "selected" : "unselected",
               ref: (handle: NodeHandle | null) => actions.registerItem(item.value, handle),
               onPointerDown: (event: PingoEvent): void => {
                 actions.setActive(item.value);
@@ -111,9 +119,22 @@ export function commandDescriptor(
               },
               onTap: () => commit(item.value),
               onClick: () => commit(item.value),
-              children: Text({ value: item.label }),
-            }),
-          )),
+              children: [
+                Text({ value: item.label }),
+                // shadcn's Combobox marks the chosen row with a trailing check.
+                // The slot is always in the tree so a checked row and an
+                // unchecked one lay their labels out identically.
+                Svg({
+                  className: classes(
+                    "pui-command__check",
+                    chosen ? undefined : "pui-command__check--hidden",
+                    dark,
+                  ),
+                  source: CheckIcon,
+                }),
+              ],
+            });
+          })),
     ],
   });
 }

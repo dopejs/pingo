@@ -145,8 +145,13 @@ export function accordionItemDescriptor(
         children: [
           Text({ value: props.title }),
           // Rotated rather than swapped for a second glyph, so the chevron
-          // turns rather than jumping once transitions exist.
+          // turns rather than jumping once transitions exist. The class is what
+          // gives it a box: an Svg with no size collapses to 0x0 and the
+          // trigger's `space-between` has nothing to push apart.
           Svg({
+            className: ["pui-accordion__indicator", dark ? "pui-dark" : undefined]
+              .filter((part) => part !== undefined)
+              .join(" "),
             source: ChevronDownIcon,
             ...(open ? { style: { transform: "rotate(180deg)" } } : {}),
           }),

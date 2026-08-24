@@ -64,15 +64,18 @@ export function paginationDescriptor(props: PaginationProps): PingoNode {
     if (page < 1 || page > props.pageCount || page === props.page) return;
     props.onPageChange?.(page);
   };
+  // A box around the glyph, not the glyph itself: the shared page/control rule
+  // sets `min-width`/`min-height` to the 36px hit target, so an Svg wearing the
+  // control class was inflated to 36px of chevron beside 14px digits. The box
+  // takes the hit target and the ghost shape; the glyph keeps its icon size.
   const control = (label: PingoSvg, target: number, name: string): PingoNode => {
     const enabled = target >= 1 && target <= props.pageCount;
-    return Svg({
+    return View({
       className: classes(
         "pui-pagination__control",
         enabled ? undefined : "pui-pagination__control--disabled",
         dark,
       ),
-      source: label,
       semanticRole: "button",
       semanticLabel: name,
       ...(enabled
@@ -82,6 +85,10 @@ export function paginationDescriptor(props: PaginationProps): PingoNode {
             onClick: () => go(target),
           }
         : {}),
+      children: Svg({
+        className: classes("pui-pagination__control-icon", dark),
+        source: label,
+      }),
     });
   };
   const entries = paginationRange(props.page, props.pageCount, props.siblingCount).map(

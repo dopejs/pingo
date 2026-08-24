@@ -31,6 +31,15 @@
   }
 }
 
+.pui-accordion__indicator {
+  width: t.$icon-size;
+  height: t.$icon-size;
+  color: t.$muted-foreground;
+  &.pui-dark {
+    color: t.$dark-muted-foreground;
+  }
+}
+
 .pui-accordion__content {
   flex-direction: column;
   padding-bottom: t.$accordion-content-padding-bottom;

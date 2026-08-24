@@ -27,6 +27,7 @@ function context(overrides: Partial<MenuContextValue> = {}): MenuContextValue {
     focus: createOverlayFocus(),
     registerItem: () => {},
     focusItem: () => {},
+    labelFor: () => undefined,
     panelRef: () => {},
     ...overrides,
   };
@@ -119,6 +120,20 @@ describe("menu trigger and items", () => {
       true,
     ) as unknown as { props: { children: readonly Host[] } };
     expect(chosen.props.children[0]?.props.value).toBe("乙");
+
+    // The value is an id; the trigger names it with the item's own text. A
+    // list of package names read `pingo-ui` where the option said
+    // `@dopejs/pingo-ui` until the trigger asked the root for the label.
+    const labelled = menuTriggerDescriptor(
+      { placeholder: "选择…" },
+      context({
+        open: false,
+        value: "pingo-ui",
+        labelFor: (value) => (value === "pingo-ui" ? "@dopejs/pingo-ui" : undefined),
+      }),
+      true,
+    ) as unknown as { props: { children: readonly Host[] } };
+    expect(labelled.props.children[0]?.props.value).toBe("@dopejs/pingo-ui");
   });
 
   it("leaves a dropdown trigger to its caller", () => {

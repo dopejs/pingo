@@ -107,6 +107,7 @@ export function comboboxDescriptor(
             children: commandDescriptor(
               {
                 items: props.items,
+                ...(state.value === undefined ? {} : { value: state.value }),
                 onSelect: state.commit,
                 onDismiss: () => state.setOpen(false),
                 ...(props.emptyLabel === undefined ? {} : { emptyLabel: props.emptyLabel }),

@@ -11,7 +11,7 @@ import {
 import { createContext, useContext, useMemo, useSignal } from "@dopejs/pingo-runtime";
 
 import { ChevronDownIcon } from "../icons";
-import { orderedValues, step } from "../keyboard";
+import { labelledValues, orderedValues, step } from "../keyboard";
 import { classes, escapeHandler, useOverlayFocus, type OverlayFocus } from "../overlay";
 import { useTheme } from "../theme";
 import { anchorDescriptor } from "./popover";
@@ -32,6 +32,8 @@ export type MenuContextValue = {
   readonly focus: OverlayFocus;
   readonly registerItem: (value: string, handle: NodeHandle | null) => void;
   readonly focusItem: (value: string) => void;
+  /** The item's own text for a value, so the trigger shows it and not the id. */
+  readonly labelFor: (value: string) => string | undefined;
   /**
    * Stable fan-out ref for the panel: focus handoff plus measurement,
    * memoized so the reconciler does not re-focus the panel every render.
@@ -45,6 +47,14 @@ const MenuContext = createContext<MenuContextValue | undefined>(undefined);
 
 export type MenuRootProps = {
   readonly value?: string;
+  /**
+   * Initial selection when the caller does not hold `value`.
+   *
+   * A Select had no uncontrolled mode at all: `value` was the only way in, so
+   * a caller who just wanted a working select had to wire state for it. shadcn
+   * takes `defaultValue` here and so does every other control in this library.
+   */
+  readonly defaultValue?: string;
   readonly defaultOpen?: boolean;
   readonly onValueChange?: (value: string) => void;
   readonly onOpenChange?: (open: boolean) => void;
@@ -54,6 +64,7 @@ export type MenuRootProps = {
 
 function MenuRoot(props: MenuRootProps, closeOnSelect: boolean): PingoNode {
   const openSignal = useSignal(props.defaultOpen === true);
+  const valueSignal = useSignal<string | undefined>(props.defaultValue);
   const activeSignal = useSignal<string | undefined>(undefined);
   const focus = useOverlayFocus();
   const handles = useMemo(() => new Map<string, NodeHandle>(), []);
@@ -67,6 +78,10 @@ function MenuRoot(props: MenuRootProps, closeOnSelect: boolean): PingoNode {
     },
     [focus, placement.panelRef],
   );
+  // Read from the descriptor tree rather than from mounted items: a closed
+  // Select renders no content at all, so nothing has registered itself yet
+  // when the trigger first has to name the selected value.
+  const labels = labelledValues(props.children);
   const value: MenuContextValue = {
     open,
     setOpen: (next) => {
@@ -74,8 +89,11 @@ function MenuRoot(props: MenuRootProps, closeOnSelect: boolean): PingoNode {
       if (!next) activeSignal.set(undefined);
       props.onOpenChange?.(next);
     },
-    value: props.value,
+    // .get() (not .peek()): an uncontrolled choice must re-render the root so
+    // the trigger and the checked item both follow it.
+    value: props.value ?? valueSignal.get(),
     onSelect: (selected) => {
+      valueSignal.set(selected);
       props.onValueChange?.(selected);
       if (closeOnSelect) {
         openSignal.set(false);
@@ -91,6 +109,7 @@ function MenuRoot(props: MenuRootProps, closeOnSelect: boolean): PingoNode {
       else handles.set(item, handle);
     },
     focusItem: (item) => handles.get(item)?.focus(),
+    labelFor: (item) => labels.get(item),
     panelRef,
     placement,
   };
@@ -128,7 +147,9 @@ export function menuTriggerDescriptor(
 ): PingoNode {
   const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   const toggle = (): void => context?.setOpen(context.open !== true);
-  const label = context?.value ?? props.placeholder;
+  const selected = context?.value;
+  const label =
+    selected === undefined ? props.placeholder : (context?.labelFor(selected) ?? selected);
   return View({
     className: classes(
       select ? "pui-select__trigger" : "pui-anchor__trigger",

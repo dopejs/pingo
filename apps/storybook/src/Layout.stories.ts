@@ -2,6 +2,7 @@ import { createElement, type PingoNode } from "@dopejs/pingo";
 import * as UI from "@dopejs/pingo-ui";
 import type { Meta, StoryObj } from "@storybook/html-vite";
 
+import { frame, frameBox } from "./layout";
 import { mountStory } from "./mount";
 
 // Every pingo-ui component is a memo-wrapped object (and Accordion/Tabs/
@@ -68,9 +69,9 @@ export const Accordion: StoryObj<AccordionArgs> = {
           args.theme,
           400,
           340,
-          createElement("container", {
-            width: 360,
-            children: createElement(UI.Accordion, {
+          frame(
+            360,
+            createElement(UI.Accordion, {
               openValue: args.openValue,
               onValueChange: () => {},
               children: [
@@ -97,7 +98,7 @@ export const Accordion: StoryObj<AccordionArgs> = {
                 }),
               ],
             }),
-          }),
+          ),
         ),
       { width: 400, height: 340, styleSheets: [UI.createPingoUiStyleSheet()] },
     );
@@ -126,9 +127,9 @@ export const Card: StoryObj<CardArgs> = {
           args.theme,
           400,
           300,
-          createElement("container", {
-            width: 340,
-            children: createElement(UI.Card, {
+          frame(
+            340,
+            createElement(UI.Card, {
               children: [
                 createElement(UI.CardHeader, {
                   children: [
@@ -153,7 +154,7 @@ export const Card: StoryObj<CardArgs> = {
                 }),
               ],
             }),
-          }),
+          ),
         ),
       { width: 400, height: 300, styleSheets: [UI.createPingoUiStyleSheet()] },
     );
@@ -182,9 +183,9 @@ export const Tabs: StoryObj<TabsArgs> = {
           args.theme,
           400,
           220,
-          createElement("container", {
-            width: 360,
-            children: createElement(UI.Tabs, {
+          frame(
+            360,
+            createElement(UI.Tabs, {
               value: args.value,
               onValueChange: () => {},
               children: [
@@ -212,7 +213,7 @@ export const Tabs: StoryObj<TabsArgs> = {
                 }),
               ],
             }),
-          }),
+          ),
         ),
       { width: 400, height: 220, styleSheets: [UI.createPingoUiStyleSheet()] },
     );
@@ -296,10 +297,10 @@ export const Resizable: StoryObj<ResizableArgs> = {
           args.theme,
           480,
           280,
-          createElement("container", {
-            width: 420,
-            height: 160,
-            children: createElement(UI.Resizable, {
+          frameBox(
+            420,
+            160,
+            createElement(UI.Resizable, {
               direction: args.direction,
               split: args.split,
               disabled: args.disabled,
@@ -307,7 +308,7 @@ export const Resizable: StoryObj<ResizableArgs> = {
               first: pane("左侧栏", "#3b82f6ff"),
               second: pane("主内容", "#6366f1ff"),
             }),
-          }),
+          ),
         ),
       { width: 480, height: 280, styleSheets: [UI.createPingoUiStyleSheet()] },
     );
@@ -352,10 +353,10 @@ export const ScrollArea: StoryObj<ScrollAreaArgs> = {
           args.theme,
           320,
           260,
-          createElement("container", {
-            width: 280,
-            height: 200,
-            children: createElement(UI.ScrollArea, {
+          frameBox(
+            280,
+            200,
+            createElement(UI.ScrollArea, {
               hideScrollbar: args.hideScrollbar,
               children: SCROLL_ITEMS.map((name) =>
                 createElement("container", {
@@ -364,7 +365,7 @@ export const ScrollArea: StoryObj<ScrollAreaArgs> = {
                 }),
               ),
             }),
-          }),
+          ),
         ),
       { width: 320, height: 260, styleSheets: [UI.createPingoUiStyleSheet()] },
     );
@@ -392,9 +393,9 @@ export const AspectRatio: StoryObj<AspectRatioArgs> = {
           args.theme,
           400,
           260,
-          createElement("container", {
-            width: 320,
-            children: createElement(UI.AspectRatio, {
+          frame(
+            320,
+            createElement(UI.AspectRatio, {
               ratio: args.ratio,
               children: createElement("container", {
                 backgroundColor: "#3b82f6ff",
@@ -411,7 +412,7 @@ export const AspectRatio: StoryObj<AspectRatioArgs> = {
                 }),
               }),
             }),
-          }),
+          ),
         ),
       { width: 400, height: 260, styleSheets: [UI.createPingoUiStyleSheet()] },
     );
@@ -441,9 +442,9 @@ export const Collapsible: StoryObj<CollapsibleArgs> = {
           args.theme,
           400,
           200,
-          createElement("container", {
-            width: 340,
-            children: createElement(UI.Collapsible, {
+          frame(
+            340,
+            createElement(UI.Collapsible, {
               trigger: args.trigger,
               open: args.open,
               disabled: args.disabled,
@@ -452,7 +453,7 @@ export const Collapsible: StoryObj<CollapsibleArgs> = {
                 children: "这里的设置会应用到当前工作区的所有项目。",
               }),
             }),
-          }),
+          ),
         ),
       { width: 400, height: 200, styleSheets: [UI.createPingoUiStyleSheet()] },
     );

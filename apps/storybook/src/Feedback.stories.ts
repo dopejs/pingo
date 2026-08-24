@@ -14,6 +14,7 @@ import {
 } from "@dopejs/pingo-ui";
 import type { Meta, StoryObj } from "@storybook/html-vite";
 
+import { frame } from "./layout";
 import { mountStory } from "./mount";
 
 // flexDirection/alignItems/justifyContent are not direct props on the
@@ -55,11 +56,6 @@ function surface(
   });
 }
 
-/** Fixed-width wrapper so intrinsic-width components stretch like a real layout. */
-function framed(width: number, node: PingoNode): PingoNode {
-  return createElement("container", { width, children: node });
-}
-
 const meta: Meta = { title: "Feedback" };
 export default meta;
 
@@ -79,11 +75,11 @@ export const Alert: StoryObj<AlertArgs> = {
         surface(args.theme, 520, 210, [
           column(
             [
-              framed(
+              frame(
                 440,
                 createElement(AlertComponent, { title: args.title, children: args.description }),
               ),
-              framed(
+              frame(
                 440,
                 createElement(AlertComponent, {
                   title: "操作失败",
@@ -130,6 +126,7 @@ export const Toast: StoryObj<ToastArgs> = {
               title: args.title,
               ...(args.description === "" ? {} : { description: args.description }),
               variant: args.variant,
+              onClose: () => undefined,
             }),
           }),
         }),
@@ -157,7 +154,7 @@ export const Progress: StoryObj<ProgressArgs> = {
   render: (args) => {
     setTheme(args.theme);
     const bar = (value: number): PingoNode =>
-      framed(440, createElement(ProgressComponent, { value, max: args.max }));
+      frame(440, createElement(ProgressComponent, { value, max: args.max }));
     return mountStory(
       () => surface(args.theme, 520, 200, [column([bar(args.value), bar(30), bar(75)], 16)]),
       { width: 520, height: 200, styleSheets: [createPingoUiStyleSheet()] },
