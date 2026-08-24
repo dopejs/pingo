@@ -1,4 +1,4 @@
-import { createElement } from "@dopejs/pingo-jsx";
+import { createElement, type PingoNode } from "@dopejs/pingo-jsx";
 import { describe, expect, it } from "vitest";
 
 import { labelledValues, orderedValues, step } from "./keyboard";
@@ -6,7 +6,7 @@ import { labelledValues, orderedValues, step } from "./keyboard";
 const Item = (props: { readonly value: string }): string => props.value;
 const Labelled = (props: { readonly value: string; readonly children: string }): string =>
   props.children;
-const Group = (props: { readonly children: unknown }): unknown => props.children;
+const Group = (props: { readonly children: PingoNode }): PingoNode => props.children;
 
 describe("orderedValues", () => {
   it("reads declared values from children in document order", () => {
