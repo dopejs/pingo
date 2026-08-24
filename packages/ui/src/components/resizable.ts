@@ -1,5 +1,5 @@
 import { memo, View, type PingoEvent, type PingoNode, type ViewHandle } from "@dopejs/pingo-jsx";
-import { useLayoutValue, useSignal, type LayoutGeometry } from "@dopejs/pingo-runtime";
+import { useLayoutValue, useMemo, useSignal, type LayoutGeometry } from "@dopejs/pingo-runtime";
 
 import { useDrag, type DragHandlers } from "../drag";
 import { classes } from "../overlay";
@@ -32,6 +32,26 @@ export function clampSplit(split: number, minimum = 0.1, maximum = 0.9): number 
   // an infinity clamps to the bound it is heading for like any other number.
   if (Number.isNaN(split)) return low;
   return Math.min(Math.max(split, low), high);
+}
+
+/**
+ * The split a drag has reached, from where it started.
+ *
+ * `delta` is measured from the press, not from the last move, so it has to be
+ * applied to the split the press began at. Adding it to the *current* split
+ * re-applied the whole accumulated offset on every move: a pointer 60px along
+ * had already carried the seam 100px, and the further the drag went the
+ * further ahead of the pointer the seam ran.
+ */
+export function splitFromDrag(
+  startSplit: number,
+  delta: number,
+  extent: number,
+  minimum?: number,
+  maximum?: number,
+): number {
+  if (!(extent > 0)) return clampSplit(startSplit, minimum, maximum);
+  return clampSplit(startSplit + delta / extent, minimum, maximum);
 }
 
 /** Pure builder: safe to call without a component scope (tests use this). */
@@ -103,15 +123,26 @@ export const Resizable = memo(function ResizableImpl(props: ResizableProps): Pin
   // fraction of the split. Without it the handle would move and nothing else
   // would, which is the failure this measurement exists to prevent.
   const [attach, bounds] = useLayoutValue((measured: LayoutGeometry) => measured.bounds);
+  // Where the gesture began, so a delta measured from the press is applied to
+  // the split it started from rather than to the one it has already produced.
+  const gesture = useMemo(() => ({ split }), []);
   // `useDrag`, not `createDrag`: see Slider. The first move re-rendered this
   // component and the replacement handlers had no origin, so the seam moved
   // once by a few pixels and then stopped following the pointer.
   const handlers = useDrag({
+    onStart: () => {
+      gesture.split = split;
+    },
     onMove: (delta) => {
       const extent = props.direction === "column" ? bounds?.height : bounds?.width;
       if (extent === undefined || !(extent > 0)) return;
-      const moved = (props.direction === "column" ? delta[1] : delta[0]) / extent;
-      const next = clampSplit(split + moved, props.minSplit, props.maxSplit);
+      const next = splitFromDrag(
+        gesture.split,
+        props.direction === "column" ? delta[1] : delta[0],
+        extent,
+        props.minSplit,
+        props.maxSplit,
+      );
       if (next === split) return;
       internal.set(next);
       props.onSplitChange?.(next);

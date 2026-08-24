@@ -87,7 +87,7 @@ export { applyOtpEdit, InputOTP } from "./components/input-otp";
 export type { InputOTPProps } from "./components/input-otp";
 export { Carousel, carouselStep } from "./components/carousel";
 export type { CarouselProps } from "./components/carousel";
-export { clampSplit, Resizable } from "./components/resizable";
+export { clampSplit, Resizable, splitFromDrag } from "./components/resizable";
 export type { ResizableProps } from "./components/resizable";
 export { Slider, sliderRatio } from "./components/slider";
 export type { SliderProps } from "./components/slider";

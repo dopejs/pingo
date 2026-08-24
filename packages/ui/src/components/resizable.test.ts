@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { clampSplit, resizableDescriptor } from "./resizable";
+import { clampSplit, resizableDescriptor, splitFromDrag } from "./resizable";
 
 type Node = { readonly props: Record<string, unknown> };
 
@@ -71,5 +71,39 @@ describe("resizableDescriptor", () => {
     const [, handle] = parts(0.42);
     expect(handle?.props["semanticRole"]).toBe("separator");
     expect(handle?.props["semanticValue"]).toBe("42");
+  });
+});
+
+describe("splitFromDrag", () => {
+  const EXTENT = 400;
+
+  it("measures every move from where the drag began, not from the last one", () => {
+    // The recorded failure. `delta` is the offset from the press, and it was
+    // added to the split the drag had already produced -- so each move
+    // re-applied the whole accumulated offset and the seam ran ahead of the
+    // pointer, further with every move. A pointer 60px along had carried the
+    // seam 100px.
+    const start = 0.4;
+    expect(splitFromDrag(start, 10, EXTENT)).toBeCloseTo(0.425, 5);
+    expect(splitFromDrag(start, 30, EXTENT)).toBeCloseTo(0.475, 5);
+    expect(splitFromDrag(start, 60, EXTENT)).toBeCloseTo(0.55, 5);
+    // Which is to say: the seam moves exactly as far as the pointer does.
+    for (const delta of [10, 30, 60, 120]) {
+      expect((splitFromDrag(start, delta, EXTENT) - start) * EXTENT).toBeCloseTo(delta, 5);
+    }
+  });
+
+  it("moves back the way it came", () => {
+    expect(splitFromDrag(0.5, -80, EXTENT)).toBeCloseTo(0.3, 5);
+  });
+
+  it("clamps at the bounds instead of collapsing a pane", () => {
+    expect(splitFromDrag(0.5, 10_000, EXTENT)).toBe(0.9);
+    expect(splitFromDrag(0.5, -10_000, EXTENT)).toBe(0.1);
+    expect(splitFromDrag(0.5, 10_000, EXTENT, 0.2, 0.6)).toBe(0.6);
+  });
+
+  it("keeps the split it started from when the container has no extent", () => {
+    expect(splitFromDrag(0.4, 50, 0)).toBeCloseTo(0.4, 5);
   });
 });
