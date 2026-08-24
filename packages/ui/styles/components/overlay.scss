@@ -270,6 +270,14 @@
   opacity: 0;
 }
 
+// A combobox's list is its trigger's width, not the palette default. Clamping
+// the declared width to a narrower panel instead of declaring the narrower
+// width left the search field wider than the surface it sits on and clipped at
+// its edge; the same shape as `.pui-select__content`.
+.pui-command--fill {
+  width: t.$full;
+}
+
 .pui-command__empty {
   padding: t.$popover-padding;
   font-size: t.$font-size-sm;

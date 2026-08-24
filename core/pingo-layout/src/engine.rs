@@ -2731,6 +2731,92 @@ mod tests {
     }
 
     #[test]
+    fn a_clamped_width_still_bounds_the_content_box_it_hands_down() {
+        // The recorded failure. A combobox's list declares the palette's width
+        // and is dropped into a panel as wide as the trigger, so the declared
+        // width is clamped. The children were stretched against the width that
+        // was asked for rather than the one that was used, so the search field
+        // ran past the surface it sits on and was clipped at its edge.
+        let mut scene = Scene::new();
+        let root = id(0);
+        let outer = id(1);
+        let panel = id(2);
+        let child = id(3);
+        commit(
+            &mut scene,
+            1,
+            vec![
+                Mutation::DefineResource {
+                    resource_id: 1,
+                    kind: ResourceKind::ComputedStyle,
+                    bytes: computed_style(&[
+                        // Asks for 420 inside a 280 box, border-box, with the
+                        // 1px border and 4px padding the popover surface has.
+                        (StyleProperty::Width, STYLE_VALUE_LENGTH, px(420.0)),
+                        (
+                            StyleProperty::BoxSizing,
+                            STYLE_VALUE_KEYWORD,
+                            keyword(StyleKeyword::BorderBox),
+                        ),
+                        (StyleProperty::PaddingLeft, STYLE_VALUE_LENGTH, px(4.0)),
+                        (StyleProperty::PaddingRight, STYLE_VALUE_LENGTH, px(4.0)),
+                        (StyleProperty::BorderLeftWidth, STYLE_VALUE_LENGTH, px(1.0)),
+                        (StyleProperty::BorderRightWidth, STYLE_VALUE_LENGTH, px(1.0)),
+                        (
+                            StyleProperty::BorderLeftStyle,
+                            STYLE_VALUE_KEYWORD,
+                            keyword(StyleKeyword::Solid),
+                        ),
+                        (
+                            StyleProperty::BorderRightStyle,
+                            STYLE_VALUE_KEYWORD,
+                            keyword(StyleKeyword::Solid),
+                        ),
+                        (
+                            StyleProperty::AlignItems,
+                            STYLE_VALUE_KEYWORD,
+                            keyword(StyleKeyword::Stretch),
+                        ),
+                    ]),
+                },
+                create(root, NodeKind::Root, None),
+                create(outer, NodeKind::Container, Some(root)),
+                create(panel, NodeKind::Container, Some(outer)),
+                create(child, NodeKind::Container, Some(panel)),
+                set_f32(outer, Prop::Width, 280.0),
+                Mutation::SetRef {
+                    node_id: panel.raw(),
+                    prop: Prop::ComputedStyle,
+                    resource_id: 1,
+                },
+                set_f32(child, Prop::Height, 20.0),
+            ],
+        );
+        let mut engine = LayoutEngine::new();
+        engine
+            .layout(
+                &scene,
+                BoxConstraints::tight(Size::new(280.0, 200.0)).expect("viewport"),
+                &mut ZeroIntrinsicMeasurer,
+            )
+            .expect("layout");
+
+        // The panel is the 280 it was given, and its child fills the content
+        // box of that -- 280 less a 1px border and 4px of padding each side.
+        assert_eq!(
+            engine
+                .snapshot()
+                .geometry(panel)
+                .map(|(_, size)| size.width),
+            Some(280.0)
+        );
+        assert_eq!(
+            engine.snapshot().geometry(child),
+            Some((Point::new(5.0, 0.0), Size::new(270.0, 20.0)))
+        );
+    }
+
+    #[test]
     fn a_scrolling_container_still_stretches_its_children_across_the_line() {
         // The recorded failure. A scrollable axis relaxes the child constraint
         // to infinity so content may overflow, and `stretch` read the cross

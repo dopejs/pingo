@@ -106,6 +106,9 @@ export function comboboxDescriptor(
             ...(state.placement?.style === undefined ? {} : { style: state.placement.style }),
             children: commandDescriptor(
               {
+                // The list follows the trigger's width rather than the
+                // palette's own, which is what shadcn's `w-full` does here.
+                className: "pui-command--fill",
                 items: props.items,
                 ...(state.value === undefined ? {} : { value: state.value }),
                 onSelect: state.commit,
