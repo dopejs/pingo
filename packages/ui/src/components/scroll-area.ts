@@ -1,104 +1,60 @@
-import {
-  memo,
-  Scroll,
-  View,
-  type NodeHandle,
-  type PingoNode,
-  type ViewHandle,
-} from "@dopejs/pingo-jsx";
-import { useLayoutValue, type LayoutGeometry } from "@dopejs/pingo-runtime";
+import { memo, View, type PingoNode, type VirtualViewProps } from "@dopejs/pingo-jsx";
 
 import { classes } from "../overlay";
 import { useTheme } from "../theme";
 
 export type ScrollAreaProps = {
-  readonly children: PingoNode;
-  /** Hides the drawn scrollbar; Core still scrolls. */
+  /** Items to scroll. Mutually exclusive with `virtual`. */
+  readonly children?: PingoNode;
+  /**
+   * Bounded data window, for a list too long to materialize.
+   *
+   * Virtualization is a View-level contract in this engine, not a component:
+   * the viewport takes the window and Core plans it, so a scroll area does not
+   * have to become a different component to hold a million rows. It is never
+   * inferred -- overflow alone scrolls, it does not virtualize.
+   */
+  readonly virtual?: VirtualViewProps;
+  /** Hides the scrollbar; Core still scrolls. Maps to `scrollbar-width: none`. */
   readonly hideScrollbar?: boolean;
+  /** Draws the narrow bar instead of the default one. */
+  readonly thinScrollbar?: boolean;
   readonly className?: string;
 };
 
-/** Thumb geometry as fractions of the track, or `undefined` when unneeded. */
-export function scrollbarThumb(
-  viewportTop: number,
-  viewportHeight: number,
-  contentTop: number,
-  contentHeight: number,
-): { readonly offset: number; readonly length: number } | undefined {
-  if (!(viewportHeight > 0) || !(contentHeight > viewportHeight)) return undefined;
-  const length = Math.min(viewportHeight / contentHeight, 1);
-  // The content is translated upwards as it scrolls, so the offset is how far
-  // its top has moved above the viewport's — there is no scroll position to
-  // read, only the two boxes.
-  const scrolled = viewportTop - contentTop;
-  const range = contentHeight - viewportHeight;
-  const offset = Math.min(Math.max(scrolled / range, 0), 1) * (1 - length);
-  return { offset, length };
-}
-
 /** Pure builder: safe to call without a component scope (tests use this). */
-export function scrollAreaDescriptor(
-  props: ScrollAreaProps,
-  refs: {
-    readonly viewport: (handle: NodeHandle | null) => void;
-    readonly content: (handle: ViewHandle | null) => void;
-  },
-  thumb: { readonly offset: number; readonly length: number } | undefined,
-): PingoNode {
+export function scrollAreaDescriptor(props: ScrollAreaProps): PingoNode {
   const dark = useTheme() === "dark" ? "pui-dark" : undefined;
+  const viewport = classes(
+    "pui-scroll-area__viewport",
+    props.hideScrollbar === true ? "pui-scroll-area__viewport--bare" : undefined,
+    props.thinScrollbar === true ? "pui-scroll-area__viewport--thin" : undefined,
+  );
   return View({
-    className: classes("pui-scroll-area", props.className),
-    children: [
-      Scroll({
-        className: "pui-scroll-area__viewport",
-        ref: refs.viewport,
-        children: View({
-          className: "pui-scroll-area__content",
-          ref: refs.content,
-          children: props.children,
-        }),
-      }),
-      thumb === undefined || props.hideScrollbar === true
-        ? null
-        : View({
-            className: classes("pui-scroll-area__bar", dark),
-            children: View({
-              className: classes("pui-scroll-area__thumb", dark),
-              // `top`, not `margin-top`: a percentage margin resolves against
-              // the containing block's *width* in CSS, and this bar is 8px
-              // wide -- the thumb's whole travel was eight pixels of a
-              // two-hundred pixel track, which read as a bar that did not move.
-              style: {
-                height: `${thumb.length * 100}%`,
-                top: `${thumb.offset * 100}%`,
-              },
-            }),
-          }),
-    ],
+    className: classes("pui-scroll-area", dark, props.className),
+    children:
+      props.virtual === undefined
+        ? View({
+            className: viewport,
+            children: View({ className: "pui-scroll-area__content", children: props.children }),
+          })
+        : // The window goes on the viewport itself: Core plans it against the
+          // box that scrolls, and an inner wrapper would not be that box.
+          View({ className: viewport, virtual: props.virtual }),
   });
 }
 
 /**
- * shadcn-style scroll area with a drawn scrollbar. JSX-only: uses hooks.
+ * shadcn-style scroll area. Core owns the scrolling and the scrollbar.
  *
- * Core owns the scrolling; the bar is derived from the measured boxes of the
- * viewport and its content, because the engine exposes no scroll position.
- *
- * **The thumb lags by one frame.** Measurement arrives a frame after the layout
- * it describes, which is visible during a fling. Fixing it properly means
- * Core-rendered scrollbars; see docs/pingo-ui-shadcn-parity-plan.md D2.
+ * The bar used to be Shell-drawn: the component observed the scrolled content's
+ * box, derived the thumb from it and re-rendered. That made every scroll frame
+ * a Shell render and a commit -- two presented frames per scroll step, the
+ * content moving in one and the thumb catching up in the next -- and it put a
+ * measurement that is a frame late in the middle of a gesture. Core draws the
+ * bar from the scroll state it already owns, so a scroll frame costs the Shell
+ * nothing at all.
  */
 export const ScrollArea = memo(function ScrollAreaImpl(props: ScrollAreaProps): PingoNode {
-  const [viewport, viewportBounds] = useLayoutValue((measured: LayoutGeometry) => measured.bounds);
-  const [content, contentBounds] = useLayoutValue((measured: LayoutGeometry) => measured.bounds);
-  const thumb =
-    viewportBounds === undefined || contentBounds === undefined
-      ? undefined
-      : scrollbarThumb(
-          viewportBounds.top,
-          viewportBounds.height,
-          contentBounds.top,
-          contentBounds.height,
-        );
-  return scrollAreaDescriptor(props, { viewport, content }, thumb);
+  return scrollAreaDescriptor(props);
 });

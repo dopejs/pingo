@@ -415,6 +415,18 @@ impl VirtualPaintResolver for ScrollController {
     fn placeholders(&self, node: NodeId) -> &[PlaceholderRect] {
         Self::placeholders(self, node)
     }
+
+    fn scroll_content(&self, node: NodeId) -> Option<[f32; 2]> {
+        let state = self.states.get(&node)?;
+        // The physics carries f64 for the integration; paint draws in f32,
+        // and a content extent large enough to lose precision here is orders
+        // beyond anything a thumb could distinguish.
+        #[expect(clippy::cast_possible_truncation, reason = "paint geometry is f32")]
+        Some([
+            state.x.physics().content_extent() as f32,
+            state.y.physics().content_extent() as f32,
+        ])
+    }
 }
 
 fn create_virtual_axis(

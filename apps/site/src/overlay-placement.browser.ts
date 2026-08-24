@@ -251,12 +251,17 @@ describe("anchored placement", () => {
 
     const context = canvas.getContext("2d");
     if (context === null) throw new Error("Chromium did not provide Canvas2D");
+    // Text, not the scrollbar: Core draws the panel's bar down its right edge
+    // from the first row, and it is a faded foreground rather than the near
+    // black a glyph is. Anything above the glyphs would answer "did the list
+    // move" with the bar's own position, which moves the other way.
+    const GLYPH_INK = 60;
     const firstDarkRow = (): number => {
       const data = context.getImageData(0, 0, WIDTH, HEIGHT).data;
       for (let y = closed.bottom + 12; y <= opened.bottom; y += 1) {
         for (let x = 0; x < WIDTH; x += 1) {
           const index = (y * WIDTH + x) * 4;
-          if ((data[index + 3] ?? 0) > 40 && (data[index] ?? 255) < 120) return y;
+          if ((data[index + 3] ?? 0) > 40 && (data[index] ?? 255) < GLYPH_INK) return y;
         }
       }
       return -1;

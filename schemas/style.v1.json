@@ -53,6 +53,7 @@
     { "id": 1, "name": "anywhere" },
     { "id": 51, "name": "absolute" },
     { "id": 52, "name": "static" },
+    { "id": 53, "name": "thin" },
     { "id": 2, "name": "auto" },
     { "id": 3, "name": "baseline" },
     { "id": 4, "name": "border-box" },
@@ -104,6 +105,7 @@
     { "id": 50, "name": "visible" }
   ],
   "keywordGrammars": {
+    "scrollbar-width": ["auto", "none", "thin"],
     "align-items": ["baseline", "center", "flex-end", "flex-start", "stretch"],
     "border-style": ["none", "solid"],
     "box-sizing": ["border-box", "content-box"],
@@ -185,7 +187,8 @@
     { "name": "flex-sizing", "bit": 1 },
     { "name": "box-shadow", "bit": 2 },
     { "name": "z-index", "bit": 3 },
-    { "name": "positioning", "bit": 4 }
+    { "name": "positioning", "bit": 4 },
+    { "name": "scrollbar", "bit": 5 }
   ],
   "properties": [
     {
@@ -1192,6 +1195,21 @@
       "feature": "positioning",
       "affects": ["layout", "hit", "scroll"],
       "percentageReference": "containing-inline-size"
+    },
+    {
+      "id": 69,
+      "cssName": "scrollbar-width",
+      "jsName": "scrollbarWidth",
+      "initial": "auto",
+      "inherited": false,
+      "grammar": "scrollbar-width",
+      "canonical": "keyword",
+      "invalidation": ["paint", "paintSelf"],
+      "animation": "discrete",
+      "appliesTo": ["view", "textArea"],
+      "feature": "scrollbar",
+      "affects": ["paint"],
+      "percentageReference": "none"
     }
   ],
   "shorthands": [

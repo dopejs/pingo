@@ -106,7 +106,7 @@ export type {
 } from "./components/data-table";
 export { DatePicker, formatDate } from "./components/date-picker";
 export type { DatePickerProps } from "./components/date-picker";
-export { ScrollArea, scrollbarThumb } from "./components/scroll-area";
+export { ScrollArea } from "./components/scroll-area";
 export type { ScrollAreaProps } from "./components/scroll-area";
 export { alignClass, columnStyle, Table, tableDescriptor } from "./components/table";
 export type { TableAlign, TableColumn, TableProps } from "./components/table";

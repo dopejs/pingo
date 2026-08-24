@@ -368,26 +368,14 @@
   width: t.$full;
 }
 
-.pui-scroll-area__bar {
-  width: t.$scrollbar-width;
-  height: t.$full;
-  background-color: t.$secondary;
-  border-radius: t.$scrollbar-radius;
-  &.pui-dark {
-    background-color: t.$dark-secondary;
-  }
+// Core draws the bar from the scroll state it owns; the skin only says whether
+// and how wide. Its colour is the user-agent default, which follows `color`.
+.pui-scroll-area__viewport--bare {
+  scrollbar-width: none;
 }
 
-.pui-scroll-area__thumb {
-  // Positioned along the track rather than pushed down it: see the component.
-  position: absolute;
-  left: t.$zero;
-  width: t.$full;
-  border-radius: t.$scrollbar-radius;
-  background-color: t.$muted-foreground;
-  &.pui-dark {
-    background-color: t.$dark-muted-foreground;
-  }
+.pui-scroll-area__viewport--thin {
+  scrollbar-width: thin;
 }
 
 .pui-context-menu {

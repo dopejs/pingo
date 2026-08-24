@@ -1,72 +1,60 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
-import { scrollAreaDescriptor, scrollbarThumb } from "./scroll-area";
+import { setTheme } from "../theme";
+import { scrollAreaDescriptor } from "./scroll-area";
 
 type Node = { readonly props: Record<string, unknown> };
 
-describe("scrollbarThumb", () => {
-  it("is absent when the content fits", () => {
-    // No bar rather than a full-length one: a scrollbar that cannot move is
-    // just noise beside the content.
-    expect(scrollbarThumb(0, 100, 0, 100)).toBeUndefined();
-    expect(scrollbarThumb(0, 100, 0, 50)).toBeUndefined();
-  });
-
-  it("sizes the thumb by the visible fraction", () => {
-    expect(scrollbarThumb(0, 100, 0, 400)?.length).toBe(0.25);
-  });
-
-  it("derives the offset from the two boxes, since there is no scroll position", () => {
-    // Scrolling translates the content upwards, so its top moves above the
-    // viewport's by exactly the scrolled distance.
-    expect(scrollbarThumb(0, 100, 0, 400)?.offset).toBe(0);
-    expect(scrollbarThumb(0, 100, -300, 400)?.offset).toBeCloseTo(0.75);
-    expect(scrollbarThumb(0, 100, -150, 400)?.offset).toBeCloseTo(0.375);
-  });
-
-  it("clamps an over-scrolled position rather than running off the track", () => {
-    expect(scrollbarThumb(0, 100, -9999, 400)?.offset).toBeCloseTo(0.75);
-    expect(scrollbarThumb(0, 100, 50, 400)?.offset).toBe(0);
-  });
-
-  it("survives a zero-height viewport", () => {
-    expect(scrollbarThumb(0, 0, 0, 400)).toBeUndefined();
-  });
-});
-
 describe("scrollAreaDescriptor", () => {
-  const refs = { viewport: vi.fn(), content: vi.fn() };
-
-  it("draws no bar until a measurement arrives", () => {
-    // The first frame has no geometry, and guessing would put the thumb in the
-    // wrong place before correcting it.
-    const node = scrollAreaDescriptor({ children: null }, refs, undefined) as unknown as Node;
-    expect((node.props["children"] as Node[])[1]).toBeNull();
+  it("wraps its children in a scrolling viewport", () => {
+    const node = scrollAreaDescriptor({ children: null }) as unknown as Node;
+    expect(node.props["className"]).toBe("pui-scroll-area");
+    const viewport = node.props["children"] as Node;
+    expect(viewport.props["className"]).toBe("pui-scroll-area__viewport");
+    const content = viewport.props["children"] as Node;
+    expect(content.props["className"]).toBe("pui-scroll-area__content");
   });
 
-  it("positions the thumb along the track, not by pushing it down one", () => {
-    // The recorded failure. The offset was a `margin-top` percentage, and a
-    // percentage margin resolves against the containing block's *width* -- the
-    // bar is 8px wide, so the thumb's whole travel was eight pixels of a
-    // two-hundred pixel track and the bar read as one that did not move.
-    const node = scrollAreaDescriptor({ children: null }, refs, {
-      offset: 0.25,
-      length: 0.5,
-    }) as unknown as Node;
-    const bar = (node.props["children"] as Node[])[1];
-    const thumb = bar?.props["children"] as Node;
-    expect(thumb.props["style"]).toMatchObject({ height: "50%", top: "25%" });
-    expect(thumb.props["style"]).not.toHaveProperty("marginTop");
+  it("asks Core for no bar rather than drawing one itself", () => {
+    // Hiding the bar is a paint decision that belongs to Core: the Shell used
+    // to derive the thumb from the scrolled content's box, which made every
+    // scroll frame a Shell render and a commit.
+    const node = scrollAreaDescriptor({ children: null, hideScrollbar: true }) as unknown as Node;
+    const viewport = node.props["children"] as Node;
+    expect(viewport.props["className"]).toBe(
+      "pui-scroll-area__viewport pui-scroll-area__viewport--bare",
+    );
   });
 
-  it("keeps scrolling when the bar is hidden", () => {
-    // Core owns the scrolling; hiding the bar is a paint decision only.
-    const node = scrollAreaDescriptor({ children: null, hideScrollbar: true }, refs, {
-      offset: 0,
-      length: 0.5,
-    }) as unknown as Node;
-    const [viewport, bar] = node.props["children"] as Node[];
-    expect(bar).toBeNull();
-    expect(viewport?.props["ref"]).toBe(refs.viewport);
+  it("asks for the narrow bar when told to", () => {
+    const node = scrollAreaDescriptor({ children: null, thinScrollbar: true }) as unknown as Node;
+    const viewport = node.props["children"] as Node;
+    expect(viewport.props["className"]).toBe(
+      "pui-scroll-area__viewport pui-scroll-area__viewport--thin",
+    );
+  });
+
+  it("puts a virtual window on the viewport rather than inside it", () => {
+    // Virtualization is a View-level contract, so a scroll area holds a
+    // million rows without becoming a different component. Core plans the
+    // window against the box that scrolls, which is the viewport itself.
+    const virtualWindow = {
+      itemCount: 100_000,
+      estimatedItemSize: 30,
+      renderItem: () => null,
+    };
+    const node = scrollAreaDescriptor({ virtual: virtualWindow }) as unknown as Node;
+    const viewport = node.props["children"] as Node;
+    expect(viewport.props["className"]).toBe("pui-scroll-area__viewport");
+    expect(viewport.props["virtual"]).toBe(virtualWindow);
+    // No content wrapper: the items are the viewport's own children.
+    expect(viewport.props["children"] ?? null).toBeNull();
+  });
+
+  it("carries the dark marker on its own root", () => {
+    setTheme("dark");
+    const node = scrollAreaDescriptor({ children: null }) as unknown as Node;
+    expect(node.props["className"]).toBe("pui-scroll-area pui-dark");
+    setTheme("light");
   });
 });

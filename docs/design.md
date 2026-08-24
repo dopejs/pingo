@@ -1978,6 +1978,40 @@ Slider 和 Resizable 是库里仅有的两个拖拽控件，两个都不跟手�
 **验证**：真实浏览器里 Slider 从 40 拖到 94，指针移到组件外仍然跟随（捕获生效），松开落在
 22；Resizable 的分隔条一路跟到指针，移到组件下方 100px 仍然跟随。
 
+### 滚动条交给 Core 画（2026-08-24）
+
+上一条把抖动定性成"Shell 画滚动条的固有代价"，这一条把它修掉。
+
+**测到的代价**：滚动条可见时，53 次滚轮产生 107 帧（53 个 input 帧 + 54 个 mutation 帧）；
+`hideScrollbar` 打开后同样 53 次滚轮只产生 54 帧。也就是**每个滚动步被呈现了两次**——一帧里
+内容动了、滑块没动，下一帧滑块才追上来。两次呈现之间没有丢帧（`late(>24ms)=0`），所以不是
+预算问题，是同一段位移被拆成了两帧。
+
+**修法**：Core 画。它本来就持有滚动位置、视口尺寸和内容尺寸，画一条 bar 不需要任何往返。
+
+- 子集新增 `scrollbar-width: auto | thin | none`（真 CSS 属性，初始值 `auto`），自己一个
+  feature bit `scrollbar`，整块能力一个开关。颜色暂时是 UA 默认值——`scrollbar-color` 的
+  初始值就是 `auto`，"UA 自己定"是合规的——取节点自己的 `color` 降到 45% 不透明度，因此明暗
+  两套主题自动跟随。显式配色留给以后的 `scrollbar-color`。
+- 绘制侧不需要新 opcode：`FillColorRRect` 早就在 ABI 里，Canvas2D 后端也早就支持。
+- Paint 的缓存子树新增一段 `post` 指令，在子节点之后、`Restore` 之前发出：bar 属于容器，但
+  必须盖在它滚动的东西上面。它先发一条反向 `Transform` 抵消滚动偏移，因为 bar 属于视口而不
+  属于内容。
+- 内容尺寸经 `VirtualPaintResolver::scroll_content` 从滚动子系统取——虚拟列表的内容长度是个
+  估算值，只有那一侧知道。
+
+**结果**：10 次滚轮产生 10 个 input 帧、**0 个 mutation 帧**，与"滚动帧不回调 Shell"的不变量
+一致。ScrollArea 因此不再观察内容盒、不再自己画 bar，`hideScrollbar` 变成
+`scrollbar-width: none`，另加 `thinScrollbar`。
+
+**顺带**：虚拟化本来就是 View 级的契约（`<View virtual={...}>`），`VirtualList` 只是兼容
+intrinsic。ScrollArea 现在直接接受 `virtual`，窗口挂在**视口自己**身上（Core 是按滚动的那个
+盒子做规划的）。实测十万行只物化 18 行，滑块按估算长度画出来。
+
+**验证**：`pingo-paint` 单测断言一个内容两倍于视口的滚动容器，静止时滑块占轨道上半、滚到底
+时占下半；`scrollbar-travel.browser.ts` 断言滑块跑满轨道、滚动期间 mutation 帧数不变、
+`hideScrollbar` 下不画任何东西、十万行的虚拟窗口只物化一屏。
+
 ### 滚动条不动，以及滚动为什么会抖（2026-08-24）
 
 **一、滚动条的滑块几乎不动**。滑块的位置写成了 `margin-top: N%`，而 CSS 里百分比外边距是按

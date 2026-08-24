@@ -3,17 +3,19 @@ import { Label, ScrollArea, createPingoUiStyleSheet } from "@dopejs/pingo-ui";
 import { afterEach, describe, expect, it } from "vitest";
 
 /**
- * The scrollbar's thumb travels the whole track.
+ * Core draws the scrollbar, so scrolling costs the Shell nothing.
  *
- * The thumb's offset was a `margin-top` percentage, and a percentage margin
- * resolves against the containing block's *width* in CSS. The bar is 8px wide
- * and its track 200px tall, so a thumb that should have run the length of the
- * track moved eight pixels in total -- a scrollbar that looked stuck while the
- * content beside it moved.
+ * The bar used to be Shell-drawn: the component observed the scrolled content's
+ * box, derived the thumb from it and re-rendered. Every scroll frame therefore
+ * became a Shell render and a commit -- two presented frames per scroll step,
+ * the content moving in one and the thumb catching up in the next -- which is
+ * what made a scroll look unsteady. Its offset was a `margin-top` percentage
+ * too, and those resolve against the containing block's *width*: the bar is
+ * 8px wide, so the thumb's whole travel was eight pixels of a 200px track.
  */
 const pause = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
-describe("scrollbar travel", () => {
+describe("scrollbar", () => {
   const roots: Array<{ close: () => Promise<void> }> = [];
 
   afterEach(async () => {
@@ -25,7 +27,9 @@ describe("scrollbar travel", () => {
   const HEIGHT = 240;
   const AREA = 200;
 
-  it("moves the thumb from the top of the track to the bottom", async () => {
+  async function mount(
+    props: Record<string, unknown>,
+  ): Promise<{ canvas: HTMLCanvasElement; frames: FrameReport[] }> {
     const canvas = document.createElement("canvas");
     canvas.width = WIDTH;
     canvas.height = HEIGHT;
@@ -49,6 +53,7 @@ describe("scrollbar travel", () => {
           height: AREA,
           style: { flexDirection: "column" },
           children: createElement(ScrollArea, {
+            ...props,
             children: Array.from({ length: 20 }, (_, index) =>
               createElement("container", {
                 key: String(index),
@@ -62,41 +67,37 @@ describe("scrollbar travel", () => {
     );
     while (!frames.some((frame) => frame.cause === "mutation")) await pause(16);
     await pause(400);
+    return { canvas, frames };
+  }
 
+  /** Top and bottom of the drawn thumb, in the rightmost column that has one. */
+  function thumb(canvas: HTMLCanvasElement): { top: number; bottom: number } | undefined {
     const context = canvas.getContext("2d");
     if (context === null) throw new Error("Chromium did not provide Canvas2D");
-    /** Top and bottom of the thumb, found by its own grey in the bar column. */
-    const thumb = (): { top: number; bottom: number } => {
-      const data = context.getImageData(0, 0, WIDTH, HEIGHT).data;
-      let best: { top: number; bottom: number; count: number } | undefined;
-      for (let x = WIDTH - 1; x >= WIDTH * 0.7; x -= 1) {
-        let top = -1;
-        let bottom = -1;
-        let count = 0;
-        for (let y = 0; y < HEIGHT; y += 1) {
-          const index = (y * WIDTH + x) * 4;
-          const red = data[index] ?? 255;
-          const blue = data[index + 2] ?? 255;
-          if (red > 80 && red < 150 && Math.abs(red - blue) < 25 && (data[index + 3] ?? 0) > 200) {
-            if (top < 0) top = y;
-            bottom = y;
-            count += 1;
-          }
+    const data = context.getImageData(0, 0, WIDTH, HEIGHT).data;
+    let best: { top: number; bottom: number; count: number } | undefined;
+    for (let x = WIDTH - 1; x >= WIDTH * 0.7; x -= 1) {
+      let top = -1;
+      let bottom = -1;
+      let count = 0;
+      for (let y = 0; y < HEIGHT; y += 1) {
+        const index = (y * WIDTH + x) * 4;
+        const red = data[index] ?? 255;
+        const blue = data[index + 2] ?? 255;
+        if (red > 60 && red < 200 && Math.abs(red - blue) < 30 && (data[index + 3] ?? 0) > 200) {
+          if (top < 0) top = y;
+          bottom = y;
+          count += 1;
         }
-        if (count > 20 && (best === undefined || count > best.count)) best = { top, bottom, count };
       }
-      if (best === undefined) throw new Error("no thumb drawn");
-      return { top: best.top, bottom: best.bottom };
-    };
+      if (count > 15 && (best === undefined || count > best.count)) best = { top, bottom, count };
+    }
+    return best;
+  }
 
-    const rest = thumb();
-    // Twenty rows of ~33px against a 200px viewport: the thumb is a third of
-    // the track and starts at its top.
-    expect(rest.bottom - rest.top).toBeGreaterThan(20);
-    expect(rest.bottom - rest.top).toBeLessThan(AREA - 20);
-
+  function wheel(canvas: HTMLCanvasElement, times: number): void {
     const rect = canvas.getBoundingClientRect();
-    for (let step = 0; step < 12; step += 1) {
+    for (let step = 0; step < times; step += 1) {
       canvas.dispatchEvent(
         new WheelEvent("wheel", {
           bubbles: true,
@@ -107,15 +108,100 @@ describe("scrollbar travel", () => {
           deltaMode: 0,
         }),
       );
-      await pause(60);
+    }
+  }
+
+  it("runs the thumb the length of the track", async () => {
+    const { canvas } = await mount({});
+    const rest = thumb(canvas);
+    expect(rest).toBeDefined();
+    expect((rest?.bottom ?? 0) - (rest?.top ?? 0)).toBeGreaterThan(20);
+
+    for (let burst = 0; burst < 12; burst += 1) {
+      wheel(canvas, 1);
+      await pause(50);
     }
     await pause(400);
+    const end = thumb(canvas);
+    expect(end).toBeDefined();
+    // Same length, far down the track: it travelled eight pixels before.
+    expect((end?.bottom ?? 0) - (end?.top ?? 0)).toBe((rest?.bottom ?? 0) - (rest?.top ?? 0));
+    expect((end?.top ?? 0) - (rest?.top ?? 0)).toBeGreaterThan(AREA / 3);
+  }, 60_000);
 
-    const end = thumb();
-    // It kept its length and ran to the far end of the track: before the fix
-    // it travelled the bar's own 8px width and stopped.
-    expect(end.bottom - end.top).toBe(rest.bottom - rest.top);
-    expect(end.top - rest.top).toBeGreaterThan(AREA / 3);
-    expect(end.bottom).toBeGreaterThan(rest.bottom + AREA / 3);
+  it("costs the shell nothing to scroll", async () => {
+    const { canvas, frames } = await mount({});
+    const before = frames.length;
+    const mutationsBefore = frames.filter((frame) => frame.cause === "mutation").length;
+    for (let step = 0; step < 10; step += 1) {
+      wheel(canvas, 1);
+      await pause(40);
+    }
+    await pause(300);
+    const during = frames.slice(before);
+    // Input frames only: a Shell-drawn bar produced a mutation frame for every
+    // one of them, so each scroll step was presented twice.
+    expect(during.filter((frame) => frame.cause === "input").length).toBeGreaterThan(5);
+    expect(frames.filter((frame) => frame.cause === "mutation").length).toBe(mutationsBefore);
+  }, 60_000);
+
+  it("draws no bar when the caller asks for none", async () => {
+    const { canvas } = await mount({ hideScrollbar: true });
+    expect(thumb(canvas)).toBeUndefined();
+  }, 60_000);
+
+  it("scrolls a virtual window without materializing it", async () => {
+    // Virtualization is a View-level contract, so this is the same component
+    // with a data window instead of children -- a hundred thousand rows and a
+    // bar sized from the estimate, with only a screenful ever mounted.
+    const rendered = new Set<number>();
+    const canvas = document.createElement("canvas");
+    canvas.width = WIDTH;
+    canvas.height = HEIGHT;
+    canvas.style.cssText = `display:block;width:${String(WIDTH)}px;height:${String(HEIGHT)}px`;
+    document.body.append(canvas);
+    const frames: FrameReport[] = [];
+    const root = await createHostedCanvasRoot(canvas, {
+      styleSheets: [createPingoUiStyleSheet()],
+      onFrame: (report) => frames.push(report),
+      transport: { preference: "main-thread", strict: true },
+    });
+    roots.push(root);
+    root.render(
+      createElement("container", {
+        width: WIDTH,
+        height: HEIGHT,
+        backgroundColor: "#ffffffff",
+        style: { flexDirection: "column", padding: "20px" },
+        children: createElement("container", {
+          width: 260,
+          height: AREA,
+          style: { flexDirection: "column" },
+          children: createElement(ScrollArea, {
+            virtual: {
+              itemCount: 100_000,
+              estimatedItemSize: 30,
+              renderItem: (index: number) => {
+                rendered.add(index);
+                return createElement("container", {
+                  style: { height: "30px", flexDirection: "column" },
+                  children: createElement(Label, { children: `row ${String(index)}` }),
+                });
+              },
+            },
+          }),
+        }),
+      }),
+    );
+    while (!frames.some((frame) => frame.cause === "mutation")) await pause(16);
+    await pause(400);
+    // A screenful, not a hundred thousand.
+    expect(rendered.size).toBeLessThan(40);
+    // And the thumb is the visible fraction of three million pixels: tiny, but
+    // never smaller than the minimum a thumb is allowed to be.
+    const rest = thumb(canvas);
+    expect(rest).toBeDefined();
+    expect((rest?.bottom ?? 0) - (rest?.top ?? 0)).toBeGreaterThan(8);
+    expect((rest?.bottom ?? 0) - (rest?.top ?? 0)).toBeLessThan(40);
   }, 60_000);
 });

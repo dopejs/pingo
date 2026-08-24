@@ -313,6 +313,16 @@ impl ScrollPhysics {
         self.viewport_extent
     }
 
+    /// Returns the current content extent.
+    ///
+    /// Paint needs it to size a scrollbar's thumb: the thumb is the visible
+    /// fraction of the content, and only this side knows what the content is
+    /// once a virtual list is estimating the part nobody has rendered.
+    #[must_use]
+    pub const fn content_extent(&self) -> f64 {
+        self.content_extent
+    }
+
     /// Returns the current logical pixels per second.
     #[must_use]
     pub fn velocity(&self) -> f64 {

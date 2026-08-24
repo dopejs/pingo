@@ -127,6 +127,15 @@ pub struct PlaceholderRect {
 pub trait VirtualPaintResolver {
     /// Returns skeletons for visible items the Shell has not materialized yet.
     fn placeholders(&self, node: NodeId) -> &[PlaceholderRect];
+
+    /// Returns a scroll container's content extent per axis, `[x, y]`.
+    ///
+    /// The thumb is the visible fraction of the content, so paint has to know
+    /// what the content is -- and with a virtual list that is an estimate only
+    /// this side holds. `None` leaves the container without a drawn bar.
+    fn scroll_content(&self, _node: NodeId) -> Option<[f32; 2]> {
+        None
+    }
 }
 
 struct NoPlaceholders;
@@ -176,6 +185,9 @@ struct CachedSubtree {
     child_ids: Arc<[NodeId]>,
     command_count: usize,
     local: Arc<[DisplayInstruction]>,
+    /// Painted after the children and inside the same `Save`, for a scrollbar:
+    /// it belongs to the container but has to sit above what it scrolls.
+    post: Arc<[DisplayInstruction]>,
     picture_id: Option<u32>,
     picture_bytes: Arc<[u8]>,
 }
@@ -588,6 +600,8 @@ fn build_display_list(
             }
             Arc::from(ids)
         };
+        let post = scrollbar_overlay(scene, layout, index, node, virtual_items)?;
+        command_count = command_count.checked_add(post.len()).ok_or_else(overflow)?;
         updates.insert(
             node,
             Arc::new(CachedSubtree {
@@ -595,6 +609,7 @@ fn build_display_list(
                 children: Arc::from(children),
                 command_count,
                 local,
+                post: Arc::from(post),
                 picture_id: None,
                 picture_bytes: Arc::from([]),
             }),
@@ -632,10 +647,14 @@ fn build_display_list(
                 }
                 instructions.extend_from_slice(&subtree.local);
                 stack.push(FlattenItem::Restore);
+                if !subtree.post.is_empty() {
+                    stack.push(FlattenItem::Post(subtree));
+                }
                 for child in subtree.children.iter().rev() {
                     stack.push(FlattenItem::Subtree(child));
                 }
             }
+            FlattenItem::Post(subtree) => instructions.extend_from_slice(&subtree.post),
             FlattenItem::Restore => push(&mut instructions, DisplayCommand::Restore),
         }
     }
@@ -744,6 +763,9 @@ fn build_picture_graph(
             walk = scene.next_sibling(child_id);
         }
         if !hidden {
+            let post = scrollbar_overlay(scene, layout, index, node, virtual_items)?;
+            command_count = command_count.checked_add(post.len()).ok_or_else(overflow)?;
+            instructions.extend_from_slice(&post);
             push(&mut instructions, DisplayCommand::Restore);
         }
         let (picture_id, picture_bytes) = if hidden {
@@ -770,6 +792,8 @@ fn build_picture_graph(
                 child_ids: Arc::from(child_ids),
                 command_count,
                 local,
+                // Already inlined into this subtree's own picture.
+                post: Arc::from([]),
                 picture_id,
                 picture_bytes,
             }),
@@ -821,6 +845,40 @@ fn build_picture_graph(
     })
 }
 
+/// A scroll container's own bar, in its box's space rather than its content's.
+///
+/// The node's instructions already translated into the box and then by the
+/// scroll offset, so this undoes the second one: the bar belongs to the
+/// viewport and must not move with what it scrolls.
+fn scrollbar_overlay(
+    scene: &Scene,
+    layout: &LayoutSnapshot,
+    index: usize,
+    node: NodeId,
+    virtual_items: &impl VirtualPaintResolver,
+) -> Result<Vec<DisplayInstruction>, PaintError> {
+    if !scene.visible(node) || !scene.is_scroll_container(node) {
+        return Ok(Vec::new());
+    }
+    let (_, size) = layout
+        .geometry_at(index)
+        .ok_or(PaintError::MissingGeometry { node })?;
+    let bar = scrollbar_instructions(scene, node, size, virtual_items);
+    if bar.is_empty() {
+        return Ok(bar);
+    }
+    let [offset_x, offset_y] = scene.scroll_position(node).unwrap_or([0.0, 0.0]);
+    let mut instructions = Vec::with_capacity(bar.len() + 1);
+    if offset_x.abs() > f32::EPSILON || offset_y.abs() > f32::EPSILON {
+        push(
+            &mut instructions,
+            DisplayCommand::Transform([1.0, 0.0, 0.0, 1.0, offset_x, offset_y]),
+        );
+    }
+    instructions.extend_from_slice(&bar);
+    Ok(instructions)
+}
+
 fn allocate_picture_id(next_picture_id: &mut u32) -> Result<u32, PaintError> {
     let id = *next_picture_id;
     if id == 0 {
@@ -831,6 +889,7 @@ fn allocate_picture_id(next_picture_id: &mut u32) -> Result<u32, PaintError> {
 }
 
 enum FlattenItem<'a> {
+    Post(&'a CachedSubtree),
     Restore,
     Subtree(&'a CachedSubtree),
 }
@@ -1351,6 +1410,99 @@ fn text_content_insets(scene: &Scene, node: NodeId, size: pingo_layout::Size) ->
     ]
 }
 
+/// Width of a drawn scrollbar, by `scrollbar-width`.
+///
+/// CSS leaves the exact widths to the user agent; these match the overlay bars
+/// the platforms draw and the token the skin used while it drew its own.
+const SCROLLBAR_WIDTH_AUTO: f32 = 8.0;
+const SCROLLBAR_WIDTH_THIN: f32 = 4.0;
+/// A thumb never shrinks below this, however long the content is.
+const SCROLLBAR_MINIMUM_THUMB: f32 = 16.0;
+/// The user-agent thumb colour: the node's own text colour, faded.
+const SCROLLBAR_THUMB_ALPHA: f32 = 0.45;
+
+/// The track and thumb a scroll container draws over its own content.
+///
+/// Core draws these rather than the Shell because the position changes every
+/// scroll frame: a Shell-drawn bar has to read the scrolled box back, re-render
+/// and commit for each one, which turned every scroll step into two presented
+/// frames -- the content moving in one and the thumb catching up in the next.
+fn scrollbar_instructions(
+    scene: &Scene,
+    node: NodeId,
+    size: pingo_layout::Size,
+    virtual_items: &impl VirtualPaintResolver,
+) -> Vec<DisplayInstruction> {
+    let mut instructions = Vec::new();
+    if !scene.is_scroll_container(node) {
+        return instructions;
+    }
+    let thickness = match scene.presented_style_keyword(node, StyleProperty::ScrollbarWidth) {
+        Some(StyleKeyword::None) => return instructions,
+        Some(StyleKeyword::Thin) => SCROLLBAR_WIDTH_THIN,
+        _ => SCROLLBAR_WIDTH_AUTO,
+    };
+    let Some(content) = virtual_items.scroll_content(node) else {
+        return instructions;
+    };
+    let [offset_x, offset_y] = scene.scroll_position(node).unwrap_or([0.0, 0.0]);
+    let rgba = scene
+        .presented_style_rgba(node, StyleProperty::Color)
+        .unwrap_or(0x0000_00ff);
+    // Straight RGBA, so the alpha is the last byte.
+    let alpha = ((rgba & 0xff) as f32 * SCROLLBAR_THUMB_ALPHA) as u32;
+    let thumb_rgba = (rgba & 0xffff_ff00) | alpha.min(0xff);
+    let radius = thickness / 2.0;
+    // An axis draws a bar when it scrolls and its content is longer than the
+    // box. Both are decided before either is placed, because a bar shortens
+    // its track by the corner the other one occupies -- and only if there is
+    // another one.
+    let draws_horizontal = scene.scrollable_axis(node, true) && content[0] > size.width;
+    let draws_vertical = scene.scrollable_axis(node, false) && content[1] > size.height;
+    for horizontal in [false, true] {
+        if !(if horizontal {
+            draws_horizontal
+        } else {
+            draws_vertical
+        }) {
+            continue;
+        }
+        let (viewport, total, position) = if horizontal {
+            (size.width, content[0], offset_x)
+        } else {
+            (size.height, content[1], offset_y)
+        };
+        let track = if horizontal && draws_vertical || !horizontal && draws_horizontal {
+            viewport - thickness
+        } else {
+            viewport
+        };
+        if track <= 0.0 {
+            continue;
+        }
+        let length = (track * viewport / total)
+            .max(SCROLLBAR_MINIMUM_THUMB)
+            .min(track);
+        let range = total - viewport;
+        let travel = (track - length).max(0.0);
+        let start = (position / range).clamp(0.0, 1.0) * travel;
+        let rect = if horizontal {
+            [start, size.height - thickness, length, thickness]
+        } else {
+            [size.width - thickness, start, thickness, length]
+        };
+        push(
+            &mut instructions,
+            DisplayCommand::FillColorRRect {
+                rect,
+                radii: [radius; 4],
+                rgba: thumb_rgba,
+            },
+        );
+    }
+    instructions
+}
+
 fn style_border_radius(scene: &Scene, node: NodeId, size: pingo_layout::Size) -> f32 {
     let Some(length) = scene.presented_style_length(node, StyleProperty::BorderRadius) else {
         return 0.0;
@@ -1624,6 +1776,95 @@ mod tests {
             bytes.extend_from_slice(&rgba.to_le_bytes());
         }
         bytes
+    }
+
+    #[test]
+    fn a_scroll_container_draws_its_own_thumb_from_the_scroll_state() {
+        // Core draws the bar because the Shell cannot: reading the scrolled box
+        // back to place a thumb made every scroll frame a render and a commit,
+        // so each step was presented twice -- the content moving in one and the
+        // thumb catching up in the next.
+        struct Content;
+
+        impl VirtualPaintResolver for Content {
+            fn placeholders(&self, _node: NodeId) -> &[PlaceholderRect] {
+                &[]
+            }
+
+            fn scroll_content(&self, _node: NodeId) -> Option<[f32; 2]> {
+                Some([0.0, 400.0])
+            }
+        }
+
+        let root = id(0);
+        let viewport = id(1);
+        let mut scene = Scene::new();
+        commit(
+            &mut scene,
+            1,
+            vec![
+                Mutation::DefineResource {
+                    resource_id: 5,
+                    kind: ResourceKind::ComputedStyle,
+                    bytes: computed_style(&[
+                        (
+                            pingo_abi::StyleProperty::OverflowY,
+                            pingo_abi::STYLE_VALUE_KEYWORD,
+                            (StyleKeyword::Auto as u16)
+                                .to_le_bytes()
+                                .into_iter()
+                                .chain(0_u16.to_le_bytes())
+                                .collect(),
+                        ),
+                        (
+                            pingo_abi::StyleProperty::Color,
+                            pingo_abi::STYLE_VALUE_RGBA8,
+                            0x0000_00ff_u32.to_le_bytes().to_vec(),
+                        ),
+                    ]),
+                },
+                create(root, NodeKind::Root, None),
+                create(viewport, NodeKind::Scroll, Some(root)),
+                Mutation::SetRef {
+                    node_id: viewport.raw(),
+                    prop: Prop::ComputedStyle,
+                    resource_id: 5,
+                },
+                set_f32(viewport, Prop::Width, 100.0),
+                set_f32(viewport, Prop::Height, 200.0),
+            ],
+        );
+        let size = Size::new(100.0, 200.0);
+
+        // At rest the thumb is the visible half of the content, at the top.
+        let top = scrollbar_instructions(&scene, viewport, size, &Content);
+        assert_eq!(
+            top.iter()
+                .map(|entry| entry.command.clone())
+                .collect::<Vec<_>>(),
+            vec![DisplayCommand::FillColorRRect {
+                rect: [92.0, 0.0, 8.0, 100.0],
+                radii: [4.0; 4],
+                rgba: 0x0000_0072,
+            }]
+        );
+
+        // Scrolled to the end it sits at the end of the track, same length.
+        scene
+            .apply_scroll_position(viewport, [0.0, 200.0])
+            .expect("scroll");
+        let bottom = scrollbar_instructions(&scene, viewport, size, &Content);
+        assert_eq!(
+            bottom
+                .iter()
+                .map(|entry| entry.command.clone())
+                .collect::<Vec<_>>(),
+            vec![DisplayCommand::FillColorRRect {
+                rect: [92.0, 100.0, 8.0, 100.0],
+                radii: [4.0; 4],
+                rgba: 0x0000_0072,
+            }]
+        );
     }
 
     #[test]

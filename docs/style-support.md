@@ -76,6 +76,7 @@ typed values. CSS text and selector matching remain outside Core.
 | `right`               | `right`              | `length-auto`                | no        | layout, paint, hit, scroll            | number    | M6 Core       |
 | `bottom`              | `bottom`             | `length-auto`                | no        | layout, paint, hit, scroll            | number    | M6 Core       |
 | `left`                | `left`               | `length-auto`                | no        | layout, paint, hit, scroll            | number    | M6 Core       |
+| `scrollbar-width`     | `scrollbarWidth`     | `scrollbar-width`            | no        | paint, paintSelf                      | discrete  | M6 Core       |
 
 ## Shorthands
 
