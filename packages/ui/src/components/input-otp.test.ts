@@ -43,3 +43,22 @@ describe("applyOtpEdit", () => {
     expect(applyOtpEdit("123456", 0, "9", 6)).toEqual({ value: "923456", focus: 1 });
   });
 });
+
+describe("typing over a filled slot", () => {
+  it("replaces the character and moves on one place", () => {
+    // The recorded failure. The Input inside a slot reports its whole text,
+    // so pressing 8 in a slot holding 1 arrives as "18". Read as a paste it
+    // wrote two slots and moved the caret two places: a six-digit code took
+    // three keystrokes and landed in slots one, three and five.
+    expect(applyOtpEdit("123456", 0, "18", 6)).toEqual({ value: "823456", focus: 1 });
+    expect(applyOtpEdit("123456", 2, "93", 6)).toEqual({ value: "129456", focus: 3 });
+  });
+
+  it("still treats a longer run as a paste that starts at this slot", () => {
+    expect(applyOtpEdit("1     ", 0, "987654", 6)).toEqual({ value: "987654", focus: 5 });
+  });
+
+  it("keeps a repeated character rather than reading it as its own old one", () => {
+    expect(applyOtpEdit("123456", 0, "11", 6)).toEqual({ value: "123456", focus: 1 });
+  });
+});

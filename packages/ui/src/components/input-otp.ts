@@ -1,3 +1,4 @@
+import { TextEditingController } from "@dopejs/pingo-editing";
 import { createElement, memo, View, type NodeHandle, type PingoNode } from "@dopejs/pingo-jsx";
 import { useMemo, useSignal } from "@dopejs/pingo-runtime";
 
@@ -42,11 +43,19 @@ export function applyOtpEdit(
   length: number,
 ): { readonly value: string; readonly focus: number } {
   const slots = Array.from({ length }, (_, slot) => current[slot] ?? EMPTY_SLOT);
-  // Anything that is not a single character is treated as a paste starting
-  // here, which is what a browser autofill or a clipboard drop looks like.
-  const incoming = [...edited]
-    .filter((character) => character !== EMPTY_SLOT)
-    .slice(0, length - index);
+  const typed = [...edited].filter((character) => character !== EMPTY_SLOT);
+  const previous = current[index] ?? EMPTY_SLOT;
+  // Typing over a filled slot arrives as the character that was there plus the
+  // one just pressed, and only the new one belongs to this slot. Reading both
+  // as a paste wrote two slots and moved the caret two places, so a six-digit
+  // code took three keystrokes and landed in slots one, three and five.
+  const replacement =
+    typed.length === 2 && previous !== EMPTY_SLOT && typed.includes(previous)
+      ? [typed.find((character) => character !== previous) ?? typed[1] ?? previous]
+      : typed;
+  // Anything longer is a paste starting here, which is what a browser autofill
+  // or a clipboard drop looks like.
+  const incoming = replacement.slice(0, length - index);
   if (incoming.length === 0) {
     slots[index] = EMPTY_SLOT;
     return { value: slots.join(""), focus: index };
@@ -67,6 +76,15 @@ export function inputOtpDescriptor(
   actions: {
     readonly onSlotChange: (index: number, edited: string) => void;
     readonly registerSlot: (index: number, handle: NodeHandle | null) => void;
+    /**
+     * The slot's editing controller, owned by the field rather than the slot.
+     *
+     * `Input` captures its controller once and ignores a later `value`, so a
+     * slot that had been typed into kept every character it had ever held and
+     * reported "18" where the user meant 8. Holding the controllers here lets
+     * the field write the code back into them after each edit.
+     */
+    readonly controllerFor?: (index: number) => TextEditingController;
   },
 ): PingoNode {
   const dark = useTheme() === "dark" ? "pui-dark" : undefined;
@@ -83,6 +101,9 @@ export function inputOtpDescriptor(
       createElement(Input, {
         key: String(index),
         className: classes("pui-input-otp__slot", dark),
+        ...(actions.controllerFor === undefined
+          ? {}
+          : { controller: actions.controllerFor(index) }),
         // A padded slot renders empty rather than as a literal space.
         value: (value[index] ?? EMPTY_SLOT) === EMPTY_SLOT ? "" : (value[index] ?? ""),
         onValueChange: (edited: string) => actions.onSlotChange(index, edited),
@@ -100,13 +121,29 @@ export const InputOTP = memo(function InputOTPImpl(props: InputOTPProps): PingoN
   const length = props.length ?? 6;
   const internal = useSignal(props.defaultValue ?? "");
   const handles = useMemo(() => new Map<number, NodeHandle>(), []);
+  // One controller per slot, owned here so the field can write the code back
+  // into them: a slot's own Input keeps whatever it was given for its lifetime.
+  const controllers = useMemo(
+    () =>
+      Array.from({ length }, (_, index) => {
+        const initial = (props.value ?? props.defaultValue ?? "")[index] ?? EMPTY_SLOT;
+        return new TextEditingController({ value: initial === EMPTY_SLOT ? "" : initial });
+      }),
+    [length],
+  );
   // .get() (not .peek()): an uncontrolled edit must re-render this component.
   const value = props.value ?? internal.get();
   return inputOtpDescriptor(props, value, {
+    controllerFor: (index) => controllers[index] ?? controllers[0]!,
     onSlotChange: (index, edited) => {
       const next = applyOtpEdit(value, index, edited, length);
       internal.set(next.value);
       props.onValueChange?.(next.value);
+      // Every slot, not just the edited one: a paste writes several at once.
+      controllers.forEach((controller, slot) => {
+        const character = next.value[slot] ?? EMPTY_SLOT;
+        controller.synchronize({ value: character === EMPTY_SLOT ? "" : character });
+      });
       handles.get(next.focus)?.focus();
       // Completion is reported once the code is full, not once the last slot is
       // touched: a correction in slot one still completes the code.

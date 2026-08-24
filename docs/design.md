@@ -1906,6 +1906,13 @@ pressed，slider → valuenow，可排序表头 → sort，当前页 → current
 装饰区按压交给编辑器的那个内部 ref 一起扇出，并按调用方的 ref 记忆化，免得 reconciler 每次
 渲染都把编辑器摘下来重挂。
 
+补上 ref 之后又暴露出两层：格子里的 Input 报的是它自己的**整段文本**，所以在已填的格子里按
+8 到达的是 "18"，被当成两个字符的粘贴写了两格、光标跳了两位 —— 六位验证码三次按键就落在
+第一、三、五格。`applyOtpEdit` 现在把"旧字符 + 新字符"识别成替换，更长的才当粘贴。而
+`Input` 的编辑控制器是挂载时捕获一次、之后忽略 `value` 的，所以被打过字的格子会一直累积
+字符；改为由 InputOTP 自己持有每格的 `TextEditingController`，每次编辑后把整串码写回去。
+**残留**：点击某一格之后的第一次按键仍然会丢失，之后每次按键都正确落格并前进一位；尚未定位。
+
 **六、Select 的触发器显示 value 而不是 label**（`pingo-ui` 而不是 `@dopejs/pingo-ui`）。
 label 在条目上，条目在触发器看不见的 content 元素里，所以根节点改为从自己的 descriptor 树上
 读 —— 读树而不是读已挂载的条目，因为收起的 Select 根本不渲染 content。Select 同时补上
