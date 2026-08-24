@@ -48,6 +48,11 @@ const FILE_COLUMNS: readonly TableColumn<FileRow>[] = [
   {
     key: "name",
     header: "名称",
+    // Explicit, not flexible: a body row is a virtual item and is not
+    // stretched across its list, so a `flex` column has no remainder to take
+    // there and collapses while the header's keeps its share. See
+    // `columnStyle` and docs/design.md.
+    width: 288,
     cell: (row) => createElement("text", { value: row.name }),
   },
   {

@@ -140,6 +140,11 @@ $dark-trend-up: #4ade80 !default;
 $dark-trend-down: #f87171 !default;
 // Structural token: the skin lint wants a token, not a literal.
 $grow-1: 1 1 0px !default;
+// Grow into free space, but fall back to the content's own size when the
+// container has no definite main extent to leave any. `flex: 1 1 0` collapses
+// to nothing there, which is how a virtualised table body ended up 0 tall in
+// an auto-height column and drew its header over an empty page.
+$grow-auto: 1 1 auto !default;
 $divider-length: 100% !default;
 $alert-padding: 16px !default;
 $alert-title-gap: 4px !default;

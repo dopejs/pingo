@@ -143,6 +143,9 @@
 
 .pui-table__head,
 .pui-table__cell {
+  // The column spec's width is the whole cell, padding included, so the
+  // columns add up to the table rather than overflowing it by the padding.
+  @include t.border-box;
   padding-left: t.$table-cell-padding-x;
   padding-right: t.$table-cell-padding-x;
   padding-top: t.$table-cell-padding-y;
@@ -181,7 +184,9 @@
 
 .pui-table__body {
   width: t.$full;
-  flex: t.$grow-1;
+  // `auto` basis, not zero: the body fills a table that was given a height and
+  // falls back to its own virtual content height when the table was not.
+  flex: t.$grow-auto;
 }
 
 .pui-table__row {

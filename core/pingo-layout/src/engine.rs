@@ -3045,6 +3045,148 @@ mod tests {
     }
 
     #[test]
+    fn a_stretch_virtual_list_fills_its_items_across_the_line() {
+        // The recorded failure. A table's rows are virtual items, and they
+        // carry no width of their own: they fill the list because a flex
+        // column stretches its children. They were never stretched, so every
+        // row shrank to its widest cell and the body sat narrower than the
+        // header above it.
+        struct VirtualGeometry;
+
+        impl VirtualLayoutProvider for VirtualGeometry {
+            fn item_offset(&self, list: NodeId, item_index: u32) -> Option<f32> {
+                (list == id(1)).then_some(item_index as f32 * 30.0)
+            }
+
+            fn content_extent(&self, list: NodeId) -> Option<f32> {
+                (list == id(1)).then_some(300.0)
+            }
+        }
+
+        let root = id(0);
+        let list = id(1);
+        let item = id(2);
+        let mut scene = Scene::new();
+        commit(
+            &mut scene,
+            1,
+            vec![
+                Mutation::DefineResource {
+                    resource_id: 1,
+                    kind: ResourceKind::ComputedStyle,
+                    bytes: computed_style(&[
+                        (StyleProperty::Width, STYLE_VALUE_LENGTH, px(100.0)),
+                        (StyleProperty::Height, STYLE_VALUE_LENGTH, px(80.0)),
+                        (
+                            StyleProperty::AlignItems,
+                            STYLE_VALUE_KEYWORD,
+                            keyword(StyleKeyword::Stretch),
+                        ),
+                        // A list scrolls, which relaxes the child constraint
+                        // on both axes: this is the shape a real one has.
+                        (
+                            StyleProperty::OverflowX,
+                            STYLE_VALUE_KEYWORD,
+                            keyword(StyleKeyword::Auto),
+                        ),
+                        (
+                            StyleProperty::OverflowY,
+                            STYLE_VALUE_KEYWORD,
+                            keyword(StyleKeyword::Auto),
+                        ),
+                    ]),
+                },
+                create(root, NodeKind::Root, None),
+                create(list, NodeKind::Scroll, Some(root)),
+                create(item, NodeKind::Container, Some(list)),
+                Mutation::DefineResource {
+                    resource_id: 2,
+                    kind: ResourceKind::ComputedStyle,
+                    bytes: computed_style(&[
+                        (StyleProperty::Height, STYLE_VALUE_LENGTH, px(30.0)),
+                        (
+                            StyleProperty::FlexDirection,
+                            STYLE_VALUE_KEYWORD,
+                            keyword(StyleKeyword::Row),
+                        ),
+                    ]),
+                },
+                Mutation::SetRef {
+                    node_id: list.raw(),
+                    prop: Prop::ComputedStyle,
+                    resource_id: 1,
+                },
+                Mutation::SetRef {
+                    node_id: item.raw(),
+                    prop: Prop::ComputedStyle,
+                    resource_id: 2,
+                },
+                Mutation::ConfigureVirtualList {
+                    node_id: list.raw(),
+                    item_count: 10,
+                    estimated_item_size: 20.0,
+                    base_overscan_viewports: 1.0,
+                    velocity_horizon_seconds: 0.25,
+                    maximum_ahead_viewports: 4.0,
+                    axis: pingo_abi::VirtualAxis::Y,
+                },
+                Mutation::SetVirtualItem {
+                    node_id: item.raw(),
+                    item_index: 2,
+                },
+            ],
+        );
+        let mut engine = LayoutEngine::new();
+        engine
+            .layout_with_virtual(
+                &scene,
+                BoxConstraints::tight(Size::new(100.0, 80.0)).expect("viewport"),
+                &mut ZeroIntrinsicMeasurer,
+                &VirtualGeometry,
+            )
+            .expect("layout");
+
+        // The item fills the list's content box; it was 0 wide before.
+        assert_eq!(
+            engine.snapshot().geometry(item),
+            Some((Point::new(0.0, 60.0), Size::new(100.0, 30.0)))
+        );
+
+        // And an item that arrives later, which is how every real window
+        // works: Core plans the range and the Shell materialises it on a
+        // following frame, so this is the path a table's rows actually take.
+        let later = id(3);
+        commit(
+            &mut scene,
+            2,
+            vec![
+                create(later, NodeKind::Container, Some(list)),
+                Mutation::SetRef {
+                    node_id: later.raw(),
+                    prop: Prop::ComputedStyle,
+                    resource_id: 2,
+                },
+                Mutation::SetVirtualItem {
+                    node_id: later.raw(),
+                    item_index: 3,
+                },
+            ],
+        );
+        engine
+            .layout_with_virtual(
+                &scene,
+                BoxConstraints::tight(Size::new(100.0, 80.0)).expect("viewport"),
+                &mut ZeroIntrinsicMeasurer,
+                &VirtualGeometry,
+            )
+            .expect("layout");
+        assert_eq!(
+            engine.snapshot().geometry(later),
+            Some((Point::new(0.0, 90.0), Size::new(100.0, 30.0)))
+        );
+    }
+
+    #[test]
     fn horizontal_virtual_items_share_the_axis_neutral_offset_oracle() {
         struct VirtualGeometry;
 

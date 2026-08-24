@@ -1863,6 +1863,82 @@ FocusIn 是否到达、不依赖传输、也不依赖中间是否重渲染。
 **回滚**：单点回滚，把 `basis.width/height` 换回 `constraints.max_width/height` 即可，两个
 实现各一处。
 
+### 逐个组件对照 shadcn 的验收（2026-08-24）
+
+把 62 个 storybook story 全部在真实 Chromium 里跑了一遍：读无障碍镜像的
+role/aria/tabindex/bounds，用 `createImageBitmap` 回读 worker canvas 做像素比较判断
+"点了有没有反应"，角像素采样判断圆角。以下是查出并修掉的问题，以及仍然留着的一个。
+
+**一、文本节点不能戴 padding、border 和圆角**。皮肤里所有"药丸"都是 text 节点：分页的
+页码、日历的日期、菜单栏的标题、右键菜单的条目。子集把 `padding-*` / `border-*` /
+`border-radius` 的 `appliesTo` 写成只有 view，Shell 于是把它们从这四类节点上全部丢掉 ——
+页码和日期的底色画成贴着字形的直角方块，写了 12px padding 的菜单栏标题实测 28x17，正好是
+两个汉字。Core 这边本来就不需要这条限制：布局给叶子节点的自然尺寸加 insets 时不看 kind，
+绘制读圆角和描边时也不看。所以修的是子集表本身，版本升到 1.7.0。
+
+要一起改的是字形的落点。文本从节点自己的原点开始画、按 border box 对齐，在 padding 不可能
+存在时这两者是同一件事；有了 padding 就会把标签画到药丸的左上角。两者都改成从 content box
+起算。百分比 padding 按节点自己的盒子解析，与旁边的圆角一致，`docs/style-support.md` 记了
+这条偏差。皮肤里的药丸也改成由"标签 + padding"定尺寸而不是固定高度：文本节点的基线是从
+content box 顶端往下量的，只给 `min-height` 会把页码留在盒子顶部。
+
+**二、除了按钮以外没有任何控件能被键盘够到**。Core 的 `focusable` 是
+`editable || role == "button"`，而镜像只在 Core 说 focusable 时才给元素 tab stop —— 于是
+库里每一个 checkbox、switch、radio、slider、tab、option、menuitem 都进不了 Tab 顺序。改成
+规范列出的 widget role 集合；`menubar` / `radiogroup` 这类容器角色仍然排除在外，焦点属于
+里面的条目。
+
+**三、镜像不输出任何 ARIA 状态**。引擎每个节点带一个不透明的 semantic value，镜像直接把它
+写进 `textContent`：屏幕阅读器看到的是没有 `aria-checked` 的 `role="checkbox"`（无论勾没勾
+都念成未勾选），而且会把 "checked" 这个词当成这个框的名字念出来。现在按角色映射到它该报的
+属性：checkbox/switch/radio → checked，option/tab → selected，button → expanded 或
+pressed，slider → valuenow，可排序表头 → sort，当前页 → current；角色没有对应状态的值仍然
+留作文本，textbox 需要它。Tab stop 按 WAI-ARIA 轮转：一组里只有选中的那个是 0，二十条菜单
+不再往页面里塞二十个 tab stop；一组都没选中时给第一个，保证这组还够得到。
+
+**四、四个浮层用 CSS 给自己定位**。Combobox / DatePicker / Popover / 菜单会测量触发器再放
+面板；Menubar、NavigationMenu、HoverCard 没有，它们靠皮肤里的 `top: 100%`，而 out-of-flow
+子节点的百分比 inset 是按父级**约束**而不是**已用尺寸**解析的。菜单栏的列表因此掉到整个舞台
+高度以下 —— 220px 的 story 里实测落在 y=333，完全在画面外。三者都改用已有的测量定位。
+
+**五、InputOTP 的光标不会跳格**。它本来就在给每个格子传 `ref`，但 `InputProps` 上没有这个
+成员，句柄从来没到过 `registerSlot`，句柄表始终是空的。Input 现在转发 ref，与它自己用来把
+装饰区按压交给编辑器的那个内部 ref 一起扇出，并按调用方的 ref 记忆化，免得 reconciler 每次
+渲染都把编辑器摘下来重挂。
+
+**六、Select 的触发器显示 value 而不是 label**（`pingo-ui` 而不是 `@dopejs/pingo-ui`）。
+label 在条目上，条目在触发器看不见的 content 元素里，所以根节点改为从自己的 descriptor 树上
+读 —— 读树而不是读已挂载的条目，因为收起的 Select 根本不渲染 content。Select 同时补上
+`defaultValue`：此前它只能受控，想要一个能用的下拉框必须自己接状态。
+
+**七、Combobox 的列表不标记当前值**：选项的 semantic value 报的是键盘游标而不是选中项，也
+没有 shadcn 那个勾。两者都补上，勾的位置始终占位，选中与未选中的行排版一致。
+
+**八、Accordion 的箭头从来没画出来**（Svg 没有 className 因而没有盒子，塌成 0x0）；
+**Progress 没有轨道**（用了 `$secondary` = #f4f4f5，白底上是 4% 灰，改成 shadcn 的
+`primary/20`）；**Pagination 的箭头有 36px**（Svg 戴着 control 类，而它与页码共用的规则把
+`min-width`/`min-height` 设成 36 的点击区，赢过了图标尺寸 —— 盒子和字形拆成两个节点）。
+Alert 补上 shadcn 的图标槽，Toast 补上关闭按钮，两者都是纯增量。
+
+**九、storybook 自己是"组件全都不能用"的主因**。几乎每个 story 都把受控 prop 直接绑到
+Storybook arg 再传一个空回调，组件把每次按压报进虚空、重新渲染同一个值，于是点了完全没反应：
+Checkbox、Switch、RadioGroup、Slider、Toggle、ToggleGroup、Accordion、Tabs、Collapsible、
+Sidebar、Resizable、Menubar、NavigationMenu、HoverCard、DatePicker、Pagination、Calendar
+全部如此。组件本身没问题，只是没人拿着它们的状态。有非受控模式的改用非受控，天生受控的
+（Dialog/AlertDialog/Drawer/Sheet 以及日期、页码）由一个小的 `stateful` 宿主拿着。另有若干
+story 用直传 prop 的容器给组件定宽（走遗留路径，`align-items` 是 flex-start 而不是 CSS 初始
+值 stretch），组件因此收缩包裹而不是填满 —— Progress 的轨道塌到自己的指示条上、Accordion 的
+分隔线只有标题那么宽、Menubar 变成 102px 竖条、Table 里 `flex: 1 1 0` 的列解析成 0 并把表头
+画到下一列上。统一走 `frame` 助手。
+
+**仍然留着：虚拟条目不会被拉伸，百分比也解析成 0**。表格的行是虚拟条目，它们自己不带宽度，
+本该靠列容器的 stretch 填满列表。实测：一个 120px 宽、显式 `align-items: stretch` 的
+virtualList，里面的条目仍然是内容宽（38px）；给条目写 `width: 100%` 得到 0。`pingo-layout`
+层面写的单测（`a_stretch_virtual_list_fills_its_items_across_the_line`，含"条目在后一帧才
+出现"的增量路径）是通过的，所以差异出在 Core 装配这一层，尚未定位。影响面：任何没有显式宽度
+的虚拟条目内容。绕行办法是给每一列显式宽度，`columnStyle` 的注释和 Data story 都记了这一点。
+表头行不是虚拟条目，所以它一直是对的 —— 这正是修好收缩包裹之后表头与表体对不齐的原因。
+
 ### 富单元格暴露的能力缺口
 
 新 demo 每行约 18 个节点（此前 3 个），1280×800 视口下 20 行物化 = 357 个 Scene 节点。
