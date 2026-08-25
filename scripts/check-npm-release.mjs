@@ -24,6 +24,10 @@ export const RELEASE_PACKAGES = [
   "widgets",
   "facade",
   "compat",
+  // The component library is not part of the engine's dependency closure, so
+  // it publishes last. It rides the same version: the check below rejects any
+  // package whose version differs from ENGINE_VERSION.
+  "ui",
 ];
 
 /**

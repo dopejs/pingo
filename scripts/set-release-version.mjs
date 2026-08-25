@@ -11,7 +11,7 @@ if (version === undefined || !/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/u.test(versio
   throw new Error("usage: node scripts/set-release-version.mjs <semver>");
 }
 
-// One command keeps the ten package manifests and ENGINE_VERSION aligned; the
+// One command keeps every published manifest and ENGINE_VERSION aligned; the
 // release check fails on any drift.
 for (const directory of RELEASE_PACKAGES) {
   const manifestPath = path.join(repositoryRoot, "packages", directory, "package.json");

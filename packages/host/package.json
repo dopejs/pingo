@@ -1,6 +1,6 @@
 {
   "name": "@dopejs/pingo-host",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "pingo internal: canvas host, worker transports, and product WASM core (use @dopejs/pingo)",
   "license": "Apache-2.0",
   "repository": {

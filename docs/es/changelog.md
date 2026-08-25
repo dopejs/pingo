@@ -7,6 +7,14 @@ title: Registro de cambios
 El criterio de versionado está en `docs/release.md`: los 12 paquetes se publican de forma atómica con
 la misma versión, y el semver de npm y la versión del ABI binario se gestionan por separado.
 
+## 0.3.1 - 2026-08-25
+
+- `@dopejs/pingo-ui` ya se publica en npm, con la misma versión que el motor. Hasta ahora solo
+  existía en el repositorio y en la documentación, no en el conjunto de publicación: 46
+  componentes documentados que no se podían instalar. Al incluirlo se activa además su
+  verificación de tarball: archivos obligatorios, archivos legales, reescritura de los rangos
+  del workspace y cierre de dependencias.
+
 ## 0.3.0 - 2026-08-25
 
 - Los elementos de una lista virtual ahora se estiran a lo ancho de la lista, de modo que

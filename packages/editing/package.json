@@ -1,6 +1,6 @@
 {
   "name": "@dopejs/pingo-editing",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "pingo internal: editing transactions and native input bridge (use @dopejs/pingo)",
   "license": "Apache-2.0",
   "repository": {

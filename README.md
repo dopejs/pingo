@@ -95,12 +95,14 @@ function OrderRow({ index }: { index: number }) {
 ## 组件库
 
 `@dopejs/pingo-ui` 提供 46 个与 shadcn/ui 对齐的组件，明暗主题、键盘导航与语义角色都
-已接好，其中 `Table` / `DataTable` 自带虚拟滚动。每个组件的用法、可用属性与已知缺口见
-[组件文档](https://pingo.dopejs.com/components/button)。
+已接好，其中 `Table` / `DataTable` 自带虚拟滚动：
 
-它**还没有发布到 npm**：包在仓库里（`packages/ui`）并随每次门禁验证，但公开发布集目前
-只有引擎的 12 个包。要用它先从源码构建，或在
-[组件文档](https://pingo.dopejs.com/components/button)里看它现在的样子。
+```sh
+pnpm add @dopejs/pingo-ui
+```
+
+它与引擎同版本发布。每个组件的用法、可用属性与已知缺口见
+[组件文档](https://pingo.dopejs.com/components/button)。
 
 ## 能力与边界
 

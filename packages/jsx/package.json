@@ -1,6 +1,6 @@
 {
   "name": "@dopejs/pingo-jsx",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "pingo internal: JSX runtime and host element types (use @dopejs/pingo)",
   "license": "Apache-2.0",
   "repository": {

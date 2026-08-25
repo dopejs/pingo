@@ -7,6 +7,14 @@ title: Journal des modifications
 La politique de versions figure dans `docs/release.md` : les 12 paquets sont publiés atomiquement dans
 la même version, et le semver npm et la version de l'ABI binaire sont gérés séparément.
 
+## 0.3.1 - 2026-08-25
+
+- `@dopejs/pingo-ui` est désormais publié sur npm, dans la même version que le moteur. Il
+  n'existait jusqu'ici que dans le dépôt et la documentation, pas dans l'ensemble publié : 46
+  composants documentés mais impossibles à installer. Son inclusion active aussi sa
+  vérification d'archive : fichiers requis, fichiers juridiques, réécriture des plages de
+  workspace et clôture des dépendances.
+
 ## 0.3.0 - 2026-08-25
 
 - Les éléments d'une liste virtuelle s'étirent désormais sur la largeur de la liste : les

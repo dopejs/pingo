@@ -7,6 +7,14 @@ title: Änderungsprotokoll
 Die Versionspolitik steht in `docs/release.md`: Alle 12 Pakete werden atomar in derselben Version
 veröffentlicht, npm-Semver und die Version des binären ABI werden getrennt verwaltet.
 
+## 0.3.1 - 2026-08-25
+
+- `@dopejs/pingo-ui` wird jetzt auf npm veröffentlicht, in derselben Version wie die Engine.
+  Bisher gab es das Paket nur im Repository und in der Dokumentation, nicht aber in der
+  Veröffentlichungsmenge: 46 Komponenten waren dokumentiert, aber nicht installierbar. Mit der
+  Aufnahme greift auch seine Tarball-Prüfung -- Pflichtdateien, Lizenzdateien, das Umschreiben
+  der Workspace-Bereiche und die Abhängigkeitshülle.
+
 ## 0.3.0 - 2026-08-25
 
 - Elemente einer virtuellen Liste werden jetzt über die Liste gestreckt, sodass die Zeilen

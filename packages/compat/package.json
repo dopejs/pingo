@@ -1,6 +1,6 @@
 {
   "name": "@dopejs/pingo-compat",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "pingo migration boundary: page-granular mount with legacy fallback",
   "license": "Apache-2.0",
   "repository": {
