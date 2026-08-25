@@ -3,7 +3,7 @@ import { useSignal } from "@dopejs/pingo-runtime";
 
 import { ChevronDownIcon, ChevronRightIcon } from "../icons";
 import { classes } from "../overlay";
-import { useTheme } from "../theme";
+import { skin } from "../theme";
 
 // Type aliases (not interfaces) so the implicit index signature satisfies
 // memo's Props extends Record<string, unknown> constraint.
@@ -25,17 +25,17 @@ export type CollapsibleProps = {
  * inside, and re-mounting is the more expensive of the two.
  */
 export function collapsibleDescriptor(props: CollapsibleProps, open: boolean): PingoNode {
-  const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   const disabled = props.disabled === true;
   const toggle = (): void => props.onOpenChange?.(!open);
   return View({
     className: classes("pui-collapsible", props.className),
     children: [
       View({
-        className: classes(
-          "pui-collapsible__trigger",
-          disabled ? "pui-collapsible__trigger--disabled" : undefined,
-          dark,
+        className: skin(
+          classes(
+            "pui-collapsible__trigger",
+            disabled ? "pui-collapsible__trigger--disabled" : undefined,
+          ),
         ),
         direction: "row",
         semanticRole: "button",
@@ -55,15 +55,15 @@ export function collapsibleDescriptor(props: CollapsibleProps, open: boolean): P
               },
             }),
         children: [
-          Text({ className: classes("pui-collapsible__label", dark), value: props.trigger }),
+          Text({ className: skin("pui-collapsible__label"), value: props.trigger }),
           Svg({
-            className: classes("pui-collapsible__indicator", dark),
+            className: skin("pui-collapsible__indicator"),
             source: open ? ChevronDownIcon : ChevronRightIcon,
           }),
         ],
       }),
       View({
-        className: classes("pui-collapsible__content", dark),
+        className: skin("pui-collapsible__content"),
         style: { display: open ? "flex" : "none" },
         children: props.children,
       }),

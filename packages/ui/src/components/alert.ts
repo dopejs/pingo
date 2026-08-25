@@ -1,6 +1,6 @@
 import { memo, Svg, Text, View, type PingoNode, type PingoSvg } from "@dopejs/pingo-jsx";
 
-import { useTheme } from "../theme";
+import { classes, skin } from "../theme";
 
 export type AlertVariant = "default" | "destructive";
 
@@ -15,30 +15,20 @@ export type AlertProps = {
   readonly className?: string;
 };
 
-function join(...parts: readonly (string | undefined)[]): string {
-  return parts.filter((part) => part !== undefined && part !== "").join(" ");
-}
-
 function AlertImpl(props: AlertProps): PingoNode {
-  const theme = useTheme();
-  const dark = theme === "dark" ? "pui-dark" : undefined;
   const destructive = props.variant === "destructive";
   const body = [
     Text({
-      className: join(
-        "pui-alert__title",
-        destructive ? "pui-alert__title--destructive" : undefined,
-        dark,
+      className: skin(
+        classes("pui-alert__title", destructive ? "pui-alert__title--destructive" : undefined),
       ),
       value: props.title,
     }),
-    Text({ className: join("pui-alert__description", dark), value: props.children }),
+    Text({ className: skin("pui-alert__description"), value: props.children }),
   ];
   return View({
-    className: join(
-      "pui-alert",
-      destructive ? "pui-alert--destructive" : undefined,
-      dark,
+    className: skin(
+      classes("pui-alert", destructive ? "pui-alert--destructive" : undefined),
       props.className,
     ),
     // With an icon the callout is a row of icon plus text column, as shadcn
@@ -51,10 +41,11 @@ function AlertImpl(props: AlertProps): PingoNode {
             className: "pui-alert__row",
             children: [
               Svg({
-                className: join(
-                  "pui-alert__icon",
-                  destructive ? "pui-alert__icon--destructive" : undefined,
-                  dark,
+                className: skin(
+                  classes(
+                    "pui-alert__icon",
+                    destructive ? "pui-alert__icon--destructive" : undefined,
+                  ),
                 ),
                 source: props.icon,
               }),

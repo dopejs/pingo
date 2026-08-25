@@ -1,7 +1,7 @@
 import { memo, Text, View, type PingoNode } from "@dopejs/pingo-jsx";
 
 import { classes } from "../overlay";
-import { useTheme } from "../theme";
+import { skin } from "../theme";
 
 export type StatTrend = "up" | "down" | "flat";
 
@@ -24,14 +24,13 @@ export type StatCardProps = {
  * picking a direction, because a flat metric is neither good nor bad.
  */
 export function statCardDescriptor(props: StatCardProps): PingoNode {
-  const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   const trend = props.trend ?? "flat";
   return View({
-    className: classes("pui-statcard", dark, props.className),
+    className: skin("pui-statcard", props.className),
     semanticRole: "group",
     semanticLabel: props.label,
     children: [
-      Text({ className: classes("pui-statcard__label", dark), value: props.label }),
+      Text({ className: skin("pui-statcard__label"), value: props.label }),
       View({
         className: "pui-statcard__row",
         children: [
@@ -40,10 +39,11 @@ export function statCardDescriptor(props: StatCardProps): PingoNode {
             ? []
             : [
                 Text({
-                  className: classes(
-                    "pui-statcard__delta",
-                    trend === "flat" ? undefined : `pui-statcard__delta--${trend}`,
-                    dark,
+                  className: skin(
+                    classes(
+                      "pui-statcard__delta",
+                      trend === "flat" ? undefined : `pui-statcard__delta--${trend}`,
+                    ),
                   ),
                   value: props.delta,
                 }),
@@ -54,7 +54,7 @@ export function statCardDescriptor(props: StatCardProps): PingoNode {
         ? []
         : [
             Text({
-              className: classes("pui-statcard__description", dark),
+              className: skin("pui-statcard__description"),
               value: props.description,
             }),
           ]),

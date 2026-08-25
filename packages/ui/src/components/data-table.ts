@@ -1,7 +1,7 @@
 import { Text, type PingoEvent, type PingoNode } from "@dopejs/pingo-jsx";
 
 import { classes } from "../overlay";
-import { useTheme } from "../theme";
+import { skin } from "../theme";
 
 import {
   alignClass,
@@ -43,7 +43,6 @@ export function nextSort(current: SortState | undefined, key: string): SortState
 
 /** Pure builder: safe to call without a component scope (tests use this). */
 export function dataTableDescriptor<Row>(props: DataTableProps<Row>): PingoNode {
-  const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   const sort = props.sort;
   const onSortChange = props.onSortChange;
   return tableDescriptor({
@@ -58,11 +57,12 @@ export function dataTableDescriptor<Row>(props: DataTableProps<Row>): PingoNode 
       const indicator = !active ? "" : sort?.direction === "ascending" ? " ▲" : " ▼";
       return Text({
         key: column.key,
-        className: classes(
-          "pui-table__head",
-          alignClass(column.align),
-          sortable ? "pui-table__head--sortable" : undefined,
-          dark,
+        className: skin(
+          classes(
+            "pui-table__head",
+            alignClass(column.align),
+            sortable ? "pui-table__head--sortable" : undefined,
+          ),
         ),
         style: columnStyle(column),
         value: `${column.header}${indicator}`,

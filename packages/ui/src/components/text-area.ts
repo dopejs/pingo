@@ -8,7 +8,7 @@ import {
 } from "@dopejs/pingo-jsx";
 import { useMemo, useRef, type RefObject } from "@dopejs/pingo-runtime";
 
-import { useTheme } from "../theme";
+import { classes, skin } from "../theme";
 import { focusField } from "./input";
 
 // Type alias (not interface) so the implicit index signature satisfies
@@ -45,19 +45,13 @@ export function textAreaDescriptor(
   controller: TextEditingController,
   field?: RefObject<NodeHandle | null>,
 ): PingoNode {
-  const theme = useTheme();
   const disabled = props.disabled === true;
   const readOnly = disabled || props.readOnly === true;
   return View({
-    className: [
-      "pui-input",
-      "pui-textarea",
-      disabled ? "pui-input--disabled" : undefined,
-      theme === "dark" ? "pui-dark" : undefined,
+    className: skin(
+      classes("pui-input", "pui-textarea", disabled ? "pui-input--disabled" : undefined),
       props.className,
-    ]
-      .filter((part) => part !== undefined && part !== "")
-      .join(" "),
+    ),
     ...(props.width === undefined ? {} : { width: props.width }),
     // Lockstep: rows * line-height-sm (20) + 2 * input-padding-y (6).
     ...(props.rows === undefined ? {} : { style: { minHeight: props.rows * 20 + 12 } }),

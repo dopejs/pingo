@@ -11,7 +11,7 @@ import { useSignal } from "@dopejs/pingo-runtime";
 
 import { ChevronDownIcon } from "../icons";
 import { classes, OverlayFocusContext, useOverlayFocus } from "../overlay";
-import { useTheme } from "../theme";
+import { skin } from "../theme";
 import { useAnchoredPlacement, type AnchoredPlacement } from "../use-anchored";
 
 import { calendarDescriptor, type CalendarDate, type CalendarProps } from "./calendar";
@@ -56,7 +56,6 @@ export function datePickerDescriptor(
     readonly placement?: AnchoredPlacement;
   },
 ): PingoNode {
-  const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   const toggle = (): void => state.setOpen(!state.open);
   return anchorDescriptor({
     className: classes("pui-date-picker", props.className),
@@ -64,7 +63,7 @@ export function datePickerDescriptor(
     ...(state.dismiss === undefined ? {} : { dismiss: state.dismiss }),
     children: [
       View({
-        className: classes("pui-date-picker__trigger", dark),
+        className: skin("pui-date-picker__trigger"),
         direction: "row",
         semanticRole: "button",
         semanticValue: state.open ? "expanded" : "collapsed",
@@ -73,10 +72,11 @@ export function datePickerDescriptor(
         onClick: toggle,
         children: [
           Text({
-            className: classes(
-              "pui-date-picker__value",
-              props.value === undefined ? "pui-date-picker__value--placeholder" : undefined,
-              dark,
+            className: skin(
+              classes(
+                "pui-date-picker__value",
+                props.value === undefined ? "pui-date-picker__value--placeholder" : undefined,
+              ),
             ),
             value:
               props.value === undefined
@@ -85,12 +85,12 @@ export function datePickerDescriptor(
           }),
           // Says the trigger opens something, the way the select and combobox
           // triggers do.
-          Svg({ className: classes("pui-date-picker__indicator", dark), source: ChevronDownIcon }),
+          Svg({ className: skin("pui-date-picker__indicator"), source: ChevronDownIcon }),
         ],
       }),
       state.open
         ? View({
-            className: classes("pui-date-picker__content", dark),
+            className: skin("pui-date-picker__content"),
             ...(state.placement === undefined ? {} : { ref: state.placement.panelRef }),
             ...(state.placement?.style === undefined ? {} : { style: state.placement.style }),
             children: calendarDescriptor(

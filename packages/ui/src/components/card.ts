@@ -1,6 +1,6 @@
 import { memo, Text, View, type PingoNode } from "@dopejs/pingo-jsx";
 
-import { useTheme } from "../theme";
+import { classes, skin } from "../theme";
 
 // Type aliases (not interfaces) so the implicit index signature satisfies
 // memo's Props extends Record<string, unknown> constraint.
@@ -14,22 +14,19 @@ export type CardTextProps = {
   readonly className?: string;
 };
 
-function join(...parts: readonly (string | undefined)[]): string {
-  return parts.filter((part) => part !== undefined && part !== "").join(" ");
-}
-
+// `themed` is false for the slots that carry no colour of their own: header,
+// footer and content sit on the card's surface, so marking them would add a
+// class no rule matches.
 function section(base: string, props: CardSectionProps, themed: boolean): PingoNode {
-  const dark = themed && useTheme() === "dark";
   return View({
-    className: join(base, dark ? "pui-dark" : undefined, props.className),
+    className: themed ? skin(base, props.className) : classes(base, props.className),
     children: props.children,
   });
 }
 
 function text(base: string, props: CardTextProps, themed: boolean): PingoNode {
-  const dark = themed && useTheme() === "dark";
   return Text({
-    className: join(base, dark ? "pui-dark" : undefined, props.className),
+    className: themed ? skin(base, props.className) : classes(base, props.className),
     value: props.children,
   });
 }

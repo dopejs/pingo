@@ -11,7 +11,7 @@ import { createContext, useContext, useMemo, useSignal } from "@dopejs/pingo-run
 
 import { orderedValues, step } from "../keyboard";
 import { classes } from "../overlay";
-import { useTheme } from "../theme";
+import { skin } from "../theme";
 
 export type SidebarContextValue = {
   readonly value: string | undefined;
@@ -64,7 +64,6 @@ export function sidebarDescriptor(
 
 /** Product navigation column (compositional). JSX-only: uses hooks. */
 export const Sidebar = memo(function SidebarImpl(props: SidebarProps): PingoNode {
-  const theme = useTheme();
   const internal = useSignal<string | undefined>(props.defaultValue);
   // .get() (not .peek()): the root subscribes to its own signal so an
   // uncontrolled selection re-renders it and republishes the context value.
@@ -84,11 +83,7 @@ export const Sidebar = memo(function SidebarImpl(props: SidebarProps): PingoNode
   };
   return createElement(SidebarContext.Provider, {
     value: context,
-    children: sidebarDescriptor(
-      props,
-      context,
-      classes("pui-sidebar", theme === "dark" ? "pui-dark" : undefined, props.className),
-    ),
+    children: sidebarDescriptor(props, context, skin("pui-sidebar", props.className)),
   });
 });
 
@@ -100,7 +95,6 @@ export type SidebarSectionProps = {
 
 /** Pure builder: safe to call without a component scope (tests use this). */
 export function sidebarSectionDescriptor(props: SidebarSectionProps): PingoNode {
-  const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   return View({
     className: classes("pui-sidebar__section", props.className),
     children: [
@@ -108,7 +102,7 @@ export function sidebarSectionDescriptor(props: SidebarSectionProps): PingoNode 
         ? []
         : [
             Text({
-              className: classes("pui-sidebar__section-title", dark),
+              className: skin("pui-sidebar__section-title"),
               value: props.title,
             }),
           ]),
@@ -133,14 +127,11 @@ export function sidebarItemDescriptor(
   props: SidebarItemProps,
   context: SidebarContextValue | undefined,
 ): PingoNode {
-  const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   const active = context?.value === props.value;
   const select = (): void => context?.onSelect(props.value);
   return View({
-    className: classes(
-      "pui-sidebar__item",
-      active ? "pui-sidebar__item--active" : undefined,
-      dark,
+    className: skin(
+      classes("pui-sidebar__item", active ? "pui-sidebar__item--active" : undefined),
       props.className,
     ),
     semanticRole: "link",

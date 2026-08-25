@@ -13,7 +13,7 @@ import { createContext, useContext, useMemo, useSignal } from "@dopejs/pingo-run
 import { ChevronDownIcon } from "../icons";
 import { labelledValues, orderedValues, step } from "../keyboard";
 import { classes, escapeHandler, useOverlayFocus, type OverlayFocus } from "../overlay";
-import { useTheme } from "../theme";
+import { skin, useTheme } from "../theme";
 import { anchorDescriptor } from "./popover";
 import { useAnchoredPlacement, type AnchoredPlacement } from "../use-anchored";
 
@@ -173,9 +173,7 @@ export function menuTriggerDescriptor(
           ),
           value: label ?? "",
         }),
-        select
-          ? Svg({ className: classes("pui-select__indicator", dark), source: ChevronDownIcon })
-          : null,
+        select ? Svg({ className: skin("pui-select__indicator"), source: ChevronDownIcon }) : null,
       ],
   });
 }
@@ -263,14 +261,11 @@ export function menuItemDescriptor(
   props: MenuItemProps,
   context: MenuContextValue | undefined,
 ): PingoNode {
-  const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   const active = context?.active === props.value || context?.value === props.value;
   const select = (): void => context?.onSelect(props.value);
   return View({
-    className: classes(
-      "pui-menu__item",
-      active ? "pui-menu__item--active" : undefined,
-      dark,
+    className: skin(
+      classes("pui-menu__item", active ? "pui-menu__item--active" : undefined),
       props.className,
     ),
     semanticRole: "menuitem",

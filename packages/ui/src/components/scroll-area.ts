@@ -1,7 +1,7 @@
 import { memo, View, type PingoNode, type VirtualViewProps } from "@dopejs/pingo-jsx";
 
 import { classes } from "../overlay";
-import { useTheme } from "../theme";
+import { skin } from "../theme";
 
 export type ScrollAreaProps = {
   /** Items to scroll. Mutually exclusive with `virtual`. */
@@ -24,14 +24,13 @@ export type ScrollAreaProps = {
 
 /** Pure builder: safe to call without a component scope (tests use this). */
 export function scrollAreaDescriptor(props: ScrollAreaProps): PingoNode {
-  const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   const viewport = classes(
     "pui-scroll-area__viewport",
     props.hideScrollbar === true ? "pui-scroll-area__viewport--bare" : undefined,
     props.thinScrollbar === true ? "pui-scroll-area__viewport--thin" : undefined,
   );
   return View({
-    className: classes("pui-scroll-area", dark, props.className),
+    className: skin("pui-scroll-area", props.className),
     children:
       props.virtual === undefined
         ? View({

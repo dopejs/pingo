@@ -12,7 +12,7 @@ import { useMemo, useSignal } from "@dopejs/pingo-runtime";
 
 import { ChevronDownIcon } from "../icons";
 import { classes, OverlayFocusContext, useOverlayFocus } from "../overlay";
-import { useTheme } from "../theme";
+import { skin } from "../theme";
 import { useAnchoredPlacement, type AnchoredPlacement } from "../use-anchored";
 
 import { commandDescriptor, type CommandItem } from "./command";
@@ -68,7 +68,6 @@ export function comboboxDescriptor(
     readonly placement?: AnchoredPlacement;
   },
 ): PingoNode {
-  const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   const selected = props.items.find((item) => item.value === state.value);
   const toggle = (): void => state.setOpen(!state.open);
   return anchorDescriptor({
@@ -78,7 +77,7 @@ export function comboboxDescriptor(
 
     children: [
       View({
-        className: classes("pui-combobox__trigger", dark),
+        className: skin("pui-combobox__trigger"),
         direction: "row",
         semanticRole: "button",
         semanticValue: state.open ? "expanded" : "collapsed",
@@ -87,21 +86,22 @@ export function comboboxDescriptor(
         onClick: toggle,
         children: [
           Text({
-            className: classes(
-              "pui-combobox__value",
-              selected === undefined ? "pui-combobox__value--placeholder" : undefined,
-              dark,
+            className: skin(
+              classes(
+                "pui-combobox__value",
+                selected === undefined ? "pui-combobox__value--placeholder" : undefined,
+              ),
             ),
             // The placeholder is the trigger's own, not the search field's:
             // one says what to pick, the other says how to search.
             value: selected?.label ?? props.placeholder ?? "请选择",
           }),
-          Svg({ className: classes("pui-combobox__indicator", dark), source: ChevronDownIcon }),
+          Svg({ className: skin("pui-combobox__indicator"), source: ChevronDownIcon }),
         ],
       }),
       state.open
         ? View({
-            className: classes("pui-combobox__content", dark),
+            className: skin("pui-combobox__content"),
             ...(state.placement === undefined ? {} : { ref: state.placement.panelRef }),
             ...(state.placement?.style === undefined ? {} : { style: state.placement.style }),
             children: commandDescriptor(

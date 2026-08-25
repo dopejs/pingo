@@ -2,7 +2,7 @@ import { memo, Svg, Text, View, type PingoEvent, type PingoNode } from "@dopejs/
 import { useSignal } from "@dopejs/pingo-runtime";
 
 import { CheckIcon } from "../icons";
-import { useTheme } from "../theme";
+import { classes, skin, useTheme } from "../theme";
 
 // Type alias (not interface) so the implicit index signature satisfies
 // memo's Props extends Record<string, unknown> constraint.
@@ -28,14 +28,10 @@ export function checkboxDescriptor(
   const dark = theme === "dark";
   const disabled = props.disabled === true;
   return View({
-    className: [
-      "pui-checkbox",
-      disabled ? "pui-checkbox--disabled" : undefined,
-      dark ? "pui-dark" : undefined,
+    className: skin(
+      classes("pui-checkbox", disabled ? "pui-checkbox--disabled" : undefined),
       props.className,
-    ]
-      .filter((part) => part !== undefined && part !== "")
-      .join(" "),
+    ),
     direction: "row",
     semanticRole: "checkbox",
     semanticValue: disabled ? "disabled" : checked ? "checked" : "unchecked",

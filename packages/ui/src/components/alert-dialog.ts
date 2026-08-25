@@ -1,7 +1,7 @@
 import { memo, Text, View, type PingoNode } from "@dopejs/pingo-jsx";
 
 import { classes, useOverlayFocus } from "../overlay";
-import { useTheme } from "../theme";
+import { skin } from "../theme";
 
 import { dialogDescriptor, type DialogProps } from "./dialog";
 
@@ -21,7 +21,6 @@ export function alertDialogDescriptor(
   props: AlertDialogProps,
   focus: ReturnType<typeof useOverlayFocus>,
 ): PingoNode {
-  const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   const close = (): void => props.onOpenChange?.(false);
   const cancel = (): void => {
     props.onCancel?.();
@@ -38,13 +37,14 @@ export function alertDialogDescriptor(
     order: number,
   ): PingoNode =>
     View({
-      className: classes(
-        "pui-alert-dialog__button",
-        `pui-alert-dialog__button--${variant}`,
-        variant === "action" && props.destructive === true
-          ? "pui-alert-dialog__button--destructive"
-          : undefined,
-        dark,
+      className: skin(
+        classes(
+          "pui-alert-dialog__button",
+          `pui-alert-dialog__button--${variant}`,
+          variant === "action" && props.destructive === true
+            ? "pui-alert-dialog__button--destructive"
+            : undefined,
+        ),
       ),
       semanticRole: "button",
       ref: focus.focusable(order),
@@ -56,11 +56,11 @@ export function alertDialogDescriptor(
     {
       ...props,
       children: [
-        Text({ className: classes("pui-overlay__title", dark), value: props.title }),
+        Text({ className: skin("pui-overlay__title"), value: props.title }),
         props.description === undefined
           ? null
           : Text({
-              className: classes("pui-overlay__description", dark),
+              className: skin("pui-overlay__description"),
               value: props.description,
             }),
         View({

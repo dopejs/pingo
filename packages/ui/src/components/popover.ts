@@ -17,7 +17,7 @@ import {
   type OverlayFocus,
 } from "../overlay";
 import { useAnchoredPlacement, type AnchoredPlacement } from "../use-anchored";
-import { useTheme } from "../theme";
+import { skin } from "../theme";
 
 /** Gap between an anchored panel and its trigger, matching `$popover-offset`. */
 export const ANCHOR_OFFSET = 4;
@@ -166,10 +166,9 @@ export function anchorContentDescriptor(
   extra?: string,
 ): PingoNode {
   if (context?.open !== true) return null;
-  const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   const placement = context.placement;
   return View({
-    className: classes("pui-anchor__content", extra, dark, props.className),
+    className: skin(classes("pui-anchor__content", extra), props.className),
     // One stable ref for focus handoff and measurement: the root memoizes it
     // so an identity change does not re-focus the panel every render.
     ref: context.panelRef,
@@ -201,7 +200,6 @@ export function tooltipDescriptor(
   setVisible: (visible: boolean) => void,
   placement?: AnchoredPlacement,
 ): PingoNode {
-  const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   return View({
     className: classes("pui-anchor", props.className),
     ...(placement === undefined ? {} : { ref: placement.anchorRef }),
@@ -211,7 +209,7 @@ export function tooltipDescriptor(
       props.children,
       visible
         ? View({
-            className: classes("pui-anchor__content", "pui-tooltip__content", dark),
+            className: skin(classes("pui-anchor__content", "pui-tooltip__content")),
             semanticRole: "tooltip",
             ...(placement === undefined ? {} : { ref: placement.panelRef }),
             ...(placement?.style === undefined ? {} : { style: placement.style }),

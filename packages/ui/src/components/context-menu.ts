@@ -10,7 +10,7 @@ import { useSignal } from "@dopejs/pingo-runtime";
 
 import { step } from "../keyboard";
 import { classes, OverlayFocusContext, useOverlayFocus } from "../overlay";
-import { useTheme } from "../theme";
+import { skin } from "../theme";
 
 export type ContextMenuEntry = {
   readonly value: string;
@@ -40,7 +40,6 @@ export function contextMenuDescriptor(
     readonly setActive: (value: string | undefined) => void;
   },
 ): PingoNode {
-  const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   const origin = state.origin;
   const values = props.items.filter((item) => item.disabled !== true).map((item) => item.value);
   return View({
@@ -57,7 +56,7 @@ export function contextMenuDescriptor(
       origin === undefined
         ? null
         : View({
-            className: classes("pui-context-menu__content", dark),
+            className: skin("pui-context-menu__content"),
             semanticRole: "menu",
             // Positioned at the press, not at the trigger's corner: a context
             // menu that ignores where the pointer was is a dropdown.
@@ -82,11 +81,12 @@ export function contextMenuDescriptor(
               };
               return Text({
                 key: item.value,
-                className: classes(
-                  "pui-context-menu__item",
-                  state.active === item.value ? "pui-context-menu__item--active" : undefined,
-                  disabled ? "pui-context-menu__item--disabled" : undefined,
-                  dark,
+                className: skin(
+                  classes(
+                    "pui-context-menu__item",
+                    state.active === item.value ? "pui-context-menu__item--active" : undefined,
+                    disabled ? "pui-context-menu__item--disabled" : undefined,
+                  ),
                 ),
                 value: item.label,
                 semanticRole: "menuitem",

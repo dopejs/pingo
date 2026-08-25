@@ -1,6 +1,6 @@
 import { Image, memo, Text, View, type PingoImage, type PingoNode } from "@dopejs/pingo-jsx";
 
-import { useTheme } from "../theme";
+import { skin, useTheme } from "../theme";
 
 // Type alias (not interface) so the implicit index signature satisfies
 // memo's Props extends Record<string, unknown> constraint.
@@ -17,9 +17,7 @@ function AvatarImpl(props: AvatarProps): PingoNode {
   const theme = useTheme();
   const size = props.size;
   const dark = theme === "dark" ? "pui-dark" : undefined;
-  const className = ["pui-avatar", dark, props.className]
-    .filter((part) => part !== undefined && part !== "")
-    .join(" ");
+  const className = skin("pui-avatar", props.className);
   const child =
     props.image === undefined
       ? Text({

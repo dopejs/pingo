@@ -11,7 +11,7 @@ import { useSignal } from "@dopejs/pingo-runtime";
 
 import { ChevronLeftIcon, ChevronRightIcon } from "../icons";
 import { classes } from "../overlay";
-import { useTheme } from "../theme";
+import { skin } from "../theme";
 
 /** A calendar day, kept as parts so no time zone can shift it. */
 export type CalendarDate = {
@@ -78,13 +78,12 @@ export function sameDate(left: CalendarDate | undefined, right: CalendarDate): b
 
 /** Pure builder: safe to call without a component scope (tests use this). */
 export function calendarDescriptor(props: CalendarProps, month: CalendarDate): PingoNode {
-  const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   const labels = props.weekdayLabels ?? WEEKDAYS;
   const grid = monthGrid(month.year, month.month);
   const page = (delta: number): void => props.onMonthChange?.(shiftMonth(month, delta));
   const control = (label: PingoSvg, delta: number, name: string): PingoNode =>
     Svg({
-      className: classes("pui-calendar__control", dark),
+      className: skin("pui-calendar__control"),
       source: label,
       semanticRole: "button",
       semanticLabel: name,
@@ -101,12 +100,13 @@ export function calendarDescriptor(props: CalendarProps, month: CalendarDate): P
     const selected = sameDate(props.value, date);
     return Text({
       key: String(day),
-      className: classes(
-        "pui-calendar__cell",
-        "pui-calendar__day",
-        selected ? "pui-calendar__day--selected" : undefined,
-        disabled ? "pui-calendar__day--disabled" : undefined,
-        dark,
+      className: skin(
+        classes(
+          "pui-calendar__cell",
+          "pui-calendar__day",
+          selected ? "pui-calendar__day--selected" : undefined,
+          disabled ? "pui-calendar__day--disabled" : undefined,
+        ),
       ),
       value: String(day),
       semanticRole: "button",
@@ -154,7 +154,7 @@ export function calendarDescriptor(props: CalendarProps, month: CalendarDate): P
         children: [
           control(ChevronLeftIcon, -1, "previous month"),
           Text({
-            className: classes("pui-calendar__title", dark),
+            className: skin("pui-calendar__title"),
             value:
               props.monthLabel?.(month) ?? `${String(month.year)} 年 ${String(month.month)} 月`,
           }),
@@ -167,7 +167,7 @@ export function calendarDescriptor(props: CalendarProps, month: CalendarDate): P
         children: labels.map((label, index) =>
           Text({
             key: String(index),
-            className: classes("pui-calendar__cell", "pui-calendar__weekday", dark),
+            className: skin(classes("pui-calendar__cell", "pui-calendar__weekday")),
             value: label,
           }),
         ),

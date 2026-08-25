@@ -206,10 +206,9 @@ export function escapeHandler(close: () => void): (event: PingoEvent) => void {
   };
 }
 
-/** Joins class names, dropping the empty ones. */
-export function classes(...parts: readonly (string | undefined)[]): string {
-  return parts.filter((part) => part !== undefined && part !== "").join(" ");
-}
+// Re-exported from its home in theme.ts, where it sits next to `skin`, the
+// themed variant every component reaches for instead.
+export { classes } from "./theme";
 
 /**
  * Publishes the enclosing overlay's focus registry to its content.

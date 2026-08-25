@@ -1,6 +1,6 @@
 import { memo, Text, type PingoNode } from "@dopejs/pingo-jsx";
 
-import { useTheme } from "../theme";
+import { skin } from "../theme";
 
 // Type alias (not interface) so the implicit index signature satisfies
 // memo's Props extends Record<string, unknown> constraint.
@@ -11,10 +11,7 @@ export type LabelProps = {
 };
 
 function LabelImpl(props: LabelProps): PingoNode {
-  const theme = useTheme();
-  const className = ["pui-label", theme === "dark" ? "pui-dark" : undefined, props.className]
-    .filter((part) => part !== undefined && part !== "")
-    .join(" ");
+  const className = skin("pui-label", props.className);
   return Text({
     className,
     value: props.children,

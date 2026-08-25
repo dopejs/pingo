@@ -11,7 +11,7 @@ import { createContext, useContext, useMemo, useSignal } from "@dopejs/pingo-run
 
 import { orderedValues, step } from "../keyboard";
 
-import { useTheme } from "../theme";
+import { classes, skin } from "../theme";
 
 export type TabsContextValue = {
   readonly value: string | undefined;
@@ -41,7 +41,6 @@ export type TabsProps = {
 };
 
 function TabsImpl(props: TabsProps): PingoNode {
-  const theme = useTheme();
   const internal = useSignal<string | undefined>(props.defaultValue);
   // .get() (not .peek()): the root must subscribe to its own signal so an
   // uncontrolled selection re-renders it and republishes the context value.
@@ -61,9 +60,7 @@ function TabsImpl(props: TabsProps): PingoNode {
     },
     focusTrigger: (value) => handles.get(value)?.focus(),
   };
-  const className = ["pui-tabs", theme === "dark" ? "pui-dark" : undefined, props.className]
-    .filter((part) => part !== undefined && part !== "")
-    .join(" ");
+  const className = skin("pui-tabs", props.className);
   return createElement(TabsContext.Provider, {
     value: contextValue,
     children: View({ className, children: props.children }),
@@ -87,14 +84,11 @@ export function tabsListDescriptor(
   props: TabsListProps,
   context: TabsContextValue | undefined,
 ): PingoNode {
-  const theme = useTheme();
   // Document order comes from the caller's own children, so it needs no
   // registration pass and cannot drift from what is rendered.
   const values = orderedValues(props.children);
   return View({
-    className: ["pui-tabs__list", theme === "dark" ? "pui-dark" : undefined, props.className]
-      .filter((part) => part !== undefined && part !== "")
-      .join(" "),
+    className: skin("pui-tabs__list", props.className),
     direction: "row",
     semanticRole: "tablist",
     // The handler sits on the list rather than on each trigger: a key event
@@ -127,18 +121,13 @@ export function tabsTriggerDescriptor(
   props: TabsTriggerProps,
   context: TabsContextValue | undefined,
 ): PingoNode {
-  const theme = useTheme();
   const active = context?.value === props.value;
   const select = (): void => context?.onSelect(props.value);
   return View({
-    className: [
-      "pui-tabs__trigger",
-      active ? "pui-tabs__trigger--active" : undefined,
-      theme === "dark" ? "pui-dark" : undefined,
+    className: skin(
+      classes("pui-tabs__trigger", active ? "pui-tabs__trigger--active" : undefined),
       props.className,
-    ]
-      .filter((part) => part !== undefined && part !== "")
-      .join(" "),
+    ),
     semanticRole: "tab",
     semanticValue: active ? "active" : "inactive",
     ref: (handle: NodeHandle | null) => context?.registerTrigger(props.value, handle),
@@ -165,12 +154,9 @@ export function tabsContentDescriptor(
   props: TabsContentProps,
   context: TabsContextValue | undefined,
 ): PingoNode {
-  const theme = useTheme();
   const active = context?.value === props.value;
   return View({
-    className: ["pui-tabs__content", theme === "dark" ? "pui-dark" : undefined, props.className]
-      .filter((part) => part !== undefined && part !== "")
-      .join(" "),
+    className: skin("pui-tabs__content", props.className),
     // display:none preserves panel state instead of unmounting it.
     style: { display: active ? "flex" : "none" },
     children: props.children,

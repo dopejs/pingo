@@ -13,7 +13,7 @@ import { useMemo, useSignal } from "@dopejs/pingo-runtime";
 import { CheckIcon } from "../icons";
 import { step } from "../keyboard";
 import { classes, escapeHandler } from "../overlay";
-import { useTheme } from "../theme";
+import { skin } from "../theme";
 import { Input } from "./input";
 
 export type CommandItem = {
@@ -59,12 +59,11 @@ export function commandDescriptor(
     readonly registerItem: (value: string, handle: NodeHandle | null) => void;
   },
 ): PingoNode {
-  const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   const visible = filterCommandItems(props.items, query);
   const values = visible.map((item) => item.value);
   const commit = (value: string): void => props.onSelect?.(value);
   return View({
-    className: classes("pui-command", dark, props.className),
+    className: skin("pui-command", props.className),
     semanticRole: "search",
     onKeyDown: (event: PingoEvent): void => {
       if (event.key === "Enter") {
@@ -95,17 +94,18 @@ export function commandDescriptor(
       ...(visible.length === 0
         ? [
             Text({
-              className: classes("pui-command__empty", dark),
+              className: skin("pui-command__empty"),
               value: props.emptyLabel ?? "无结果",
             }),
           ]
         : visible.map((item) => {
             const chosen = props.value === item.value;
             return View({
-              className: classes(
-                "pui-menu__item",
-                active === item.value ? "pui-menu__item--active" : undefined,
-                dark,
+              className: skin(
+                classes(
+                  "pui-menu__item",
+                  active === item.value ? "pui-menu__item--active" : undefined,
+                ),
               ),
               semanticRole: "option",
               // The chosen value, not the keyboard cursor. Reporting the cursor
@@ -125,10 +125,11 @@ export function commandDescriptor(
                 // The slot is always in the tree so a checked row and an
                 // unchecked one lay their labels out identically.
                 Svg({
-                  className: classes(
-                    "pui-command__check",
-                    chosen ? undefined : "pui-command__check--hidden",
-                    dark,
+                  className: skin(
+                    classes(
+                      "pui-command__check",
+                      chosen ? undefined : "pui-command__check--hidden",
+                    ),
                   ),
                   source: CheckIcon,
                 }),

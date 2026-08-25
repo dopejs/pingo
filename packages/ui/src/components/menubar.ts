@@ -13,7 +13,7 @@ import { createContext, useContext, useMemo, useSignal } from "@dopejs/pingo-run
 import { ChevronDownIcon } from "../icons";
 import { orderedValues, step } from "../keyboard";
 import { classes } from "../overlay";
-import { useTheme } from "../theme";
+import { skin } from "../theme";
 import { useAnchoredPlacement, type AnchoredPlacement } from "../use-anchored";
 
 import { ANCHOR_OFFSET } from "./popover";
@@ -47,7 +47,6 @@ export type MenubarProps = {
 };
 
 function MenubarImpl(props: MenubarProps): PingoNode {
-  const theme = useTheme();
   const openSignal = useSignal<string | undefined>(undefined);
   const handles = useMemo(() => new Map<string, NodeHandle>(), []);
   // .get() (not .peek()): opening a menu must re-render and republish context.
@@ -68,9 +67,8 @@ function MenubarImpl(props: MenubarProps): PingoNode {
   return createElement(MenubarContext.Provider, {
     value: context,
     children: View({
-      className: classes(
+      className: skin(
         props.navigation === true ? "pui-navigation-menu" : "pui-menubar",
-        theme === "dark" ? "pui-dark" : undefined,
         props.className,
       ),
       direction: "row",
@@ -129,7 +127,6 @@ export function menubarMenuDescriptor(
   context: MenubarContextValue | undefined,
   placement?: AnchoredPlacement,
 ): PingoNode {
-  const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   const open = context?.open === props.value;
   const toggle = (): void => context?.setOpen(open ? undefined : props.value);
   // A navigation menu's trigger carries a chevron, so it is a row with a label
@@ -137,11 +134,12 @@ export function menubarMenuDescriptor(
   // keep the role, the ref and every handler on the node the user presses.
   const navigation = context?.navigation === true;
   const triggerProps = {
-    className: classes(
-      "pui-menubar__trigger",
-      navigation ? "pui-menubar__trigger--navigation" : undefined,
-      open ? "pui-menubar__trigger--open" : undefined,
-      dark,
+    className: skin(
+      classes(
+        "pui-menubar__trigger",
+        navigation ? "pui-menubar__trigger--navigation" : undefined,
+        open ? "pui-menubar__trigger--open" : undefined,
+      ),
     ),
     semanticRole: "menuitem",
     semanticValue: open ? "expanded" : "collapsed",
@@ -170,7 +168,7 @@ export function menubarMenuDescriptor(
               // Accordion's is. The class is what gives it a box: an Svg with
               // no size collapses to 0x0.
               Svg({
-                className: classes("pui-menubar__indicator", dark),
+                className: skin("pui-menubar__indicator"),
                 source: ChevronDownIcon,
                 ...(open ? { style: { transform: "rotate(180deg)" } } : {}),
               }),
@@ -179,7 +177,7 @@ export function menubarMenuDescriptor(
         : Text({ ...triggerProps, value: props.label }),
       open
         ? View({
-            className: classes("pui-menubar__content", dark),
+            className: skin("pui-menubar__content"),
             ...(placement === undefined ? {} : { ref: placement.panelRef }),
             ...(placement?.style === undefined ? {} : { style: placement.style }),
             semanticRole: "menu",

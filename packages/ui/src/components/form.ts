@@ -1,7 +1,7 @@
 import { memo, Text, View, type PingoNode } from "@dopejs/pingo-jsx";
 
 import { classes } from "../overlay";
-import { useTheme } from "../theme";
+import { skin } from "../theme";
 
 export type FormFieldProps = {
   readonly label: string;
@@ -22,7 +22,6 @@ export type FormFieldProps = {
  * this owns the layout, the semantics and the message slot.
  */
 export function formFieldDescriptor(props: FormFieldProps): PingoNode {
-  const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   const invalid = props.error !== undefined && props.error !== "";
   return View({
     className: classes("pui-form-field", props.className),
@@ -33,18 +32,18 @@ export function formFieldDescriptor(props: FormFieldProps): PingoNode {
     ...(invalid ? { semanticValue: "invalid" } : {}),
     children: [
       Text({
-        className: classes("pui-form-field__label", dark),
+        className: skin("pui-form-field__label"),
         value: props.required === true ? `${props.label} *` : props.label,
       }),
       props.children,
       // Error replaces description rather than stacking under it: two lines of
       // guidance where one is a failure buries the one that matters.
       invalid
-        ? Text({ className: classes("pui-form-field__error", dark), value: props.error ?? "" })
+        ? Text({ className: skin("pui-form-field__error"), value: props.error ?? "" })
         : props.description === undefined
           ? null
           : Text({
-              className: classes("pui-form-field__description", dark),
+              className: skin("pui-form-field__description"),
               value: props.description,
             }),
     ],

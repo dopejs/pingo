@@ -1,6 +1,6 @@
 import { memo, View, type KeyframeAnimationSpec, type PingoNode } from "@dopejs/pingo-jsx";
 
-import { useTheme } from "../theme";
+import { skin } from "../theme";
 
 // Type alias (not interface) so the implicit index signature satisfies
 // memo's Props extends Record<string, unknown> constraint.
@@ -38,10 +38,7 @@ const PULSE: KeyframeAnimationSpec = {
 };
 
 function SkeletonImpl(props: SkeletonProps): PingoNode {
-  const theme = useTheme();
-  const className = ["pui-skeleton", theme === "dark" ? "pui-dark" : undefined, props.className]
-    .filter((part) => part !== undefined && part !== "")
-    .join(" ");
+  const className = skin("pui-skeleton", props.className);
   return View({
     className,
     ...(props.width === undefined ? {} : { width: props.width }),

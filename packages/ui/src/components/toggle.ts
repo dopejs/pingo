@@ -11,7 +11,7 @@ import { createContext, useContext, useMemo, useSignal } from "@dopejs/pingo-run
 
 import { orderedValues, step } from "../keyboard";
 import { classes } from "../overlay";
-import { useTheme } from "../theme";
+import { skin } from "../theme";
 
 export type ToggleProps = {
   readonly children: string;
@@ -27,15 +27,15 @@ export function toggleDescriptor(
   props: Omit<ToggleProps, "pressed" | "defaultPressed">,
   pressed: boolean,
 ): PingoNode {
-  const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   const disabled = props.disabled === true;
   const press = (): void => props.onPressedChange?.(!pressed);
   return View({
-    className: classes(
-      "pui-toggle",
-      pressed ? "pui-toggle--on" : undefined,
-      disabled ? "pui-toggle--disabled" : undefined,
-      dark,
+    className: skin(
+      classes(
+        "pui-toggle",
+        pressed ? "pui-toggle--on" : undefined,
+        disabled ? "pui-toggle--disabled" : undefined,
+      ),
       props.className,
     ),
     semanticRole: "button",
@@ -93,7 +93,6 @@ export type ToggleGroupProps = {
 };
 
 function ToggleGroupImpl(props: ToggleGroupProps): PingoNode {
-  const theme = useTheme();
   const internal = useSignal<readonly string[]>(props.defaultValue ?? []);
   // .get() (not .peek()): the root subscribes to its own signal so an
   // uncontrolled change re-renders it and republishes the context value.
@@ -120,11 +119,7 @@ function ToggleGroupImpl(props: ToggleGroupProps): PingoNode {
   return createElement(ToggleGroupContext.Provider, {
     value: context,
     children: View({
-      className: classes(
-        "pui-toggle-group",
-        theme === "dark" ? "pui-dark" : undefined,
-        props.className,
-      ),
+      className: skin("pui-toggle-group", props.className),
       direction: "row",
       semanticRole: "group",
       // One handler on the group rather than per item: a key event routes to

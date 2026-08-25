@@ -3,7 +3,7 @@ import { useSignal } from "@dopejs/pingo-runtime";
 
 import { ChevronLeftIcon, ChevronRightIcon } from "../icons";
 import { classes } from "../overlay";
-import { useTheme } from "../theme";
+import { skin } from "../theme";
 
 export type CarouselProps = {
   readonly items: readonly PingoNode[];
@@ -30,7 +30,6 @@ export function carouselStep(index: number, delta: number, count: number, loop: 
 
 /** Pure builder: safe to call without a component scope (tests use this). */
 export function carouselDescriptor(props: CarouselProps, index: number): PingoNode {
-  const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   const count = props.items.length;
   const loop = props.loop === true;
   const go = (delta: number): void => {
@@ -40,10 +39,8 @@ export function carouselDescriptor(props: CarouselProps, index: number): PingoNo
   const control = (label: PingoSvg, delta: number, name: string): PingoNode => {
     const enabled = count > 0 && (loop || carouselStep(index, delta, count, loop) !== index);
     return Svg({
-      className: classes(
-        "pui-carousel__control",
-        enabled ? undefined : "pui-carousel__control--disabled",
-        dark,
+      className: skin(
+        classes("pui-carousel__control", enabled ? undefined : "pui-carousel__control--disabled"),
       ),
       source: label,
       semanticRole: "button",

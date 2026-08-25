@@ -1,7 +1,7 @@
 import { Text, View, VirtualList, type PingoEvent, type PingoNode } from "@dopejs/pingo-jsx";
 
 import { classes } from "../overlay";
-import { useTheme } from "../theme";
+import { skin } from "../theme";
 
 export type TableAlign = "start" | "center" | "end";
 
@@ -60,9 +60,8 @@ export function alignClass(align: TableAlign | undefined): string {
 
 /** Pure builder: safe to call without a component scope (tests use this). */
 export function tableDescriptor<Row>(props: TableProps<Row>): PingoNode {
-  const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   const header = View({
-    className: classes("pui-table__header", dark),
+    className: skin("pui-table__header"),
     direction: "row",
     semanticRole: "row",
     children: props.columns.map(
@@ -70,7 +69,7 @@ export function tableDescriptor<Row>(props: TableProps<Row>): PingoNode {
         props.renderHeaderCell?.(column, index) ??
         Text({
           key: column.key,
-          className: classes("pui-table__head", alignClass(column.align), dark),
+          className: skin(classes("pui-table__head", alignClass(column.align))),
           style: columnStyle(column),
           value: column.header,
           semanticRole: "columnheader",
@@ -81,7 +80,7 @@ export function tableDescriptor<Row>(props: TableProps<Row>): PingoNode {
     const value = props.getRow(index);
     const press = props.onRowPress;
     return View({
-      className: classes("pui-table__row", dark),
+      className: skin("pui-table__row"),
       direction: "row",
       semanticRole: "row",
       ...(press === undefined
@@ -94,7 +93,7 @@ export function tableDescriptor<Row>(props: TableProps<Row>): PingoNode {
       children: props.columns.map((column) =>
         View({
           key: column.key,
-          className: classes("pui-table__cell", alignClass(column.align), dark),
+          className: skin(classes("pui-table__cell", alignClass(column.align))),
           style: columnStyle(column),
           children: column.cell(value, index),
         }),
@@ -108,7 +107,7 @@ export function tableDescriptor<Row>(props: TableProps<Row>): PingoNode {
       header,
       props.rowCount === 0
         ? Text({
-            className: classes("pui-table__empty", dark),
+            className: skin("pui-table__empty"),
             value: props.emptyLabel ?? "暂无数据",
           })
         : // Core plans the window and calls renderItem only for the range it

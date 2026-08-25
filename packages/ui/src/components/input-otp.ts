@@ -3,7 +3,7 @@ import { createElement, memo, View, type NodeHandle, type PingoNode } from "@dop
 import { useMemo, useSignal } from "@dopejs/pingo-runtime";
 
 import { classes } from "../overlay";
-import { useTheme } from "../theme";
+import { skin } from "../theme";
 
 import { Input } from "./input";
 
@@ -87,7 +87,6 @@ export function inputOtpDescriptor(
     readonly controllerFor?: (index: number) => TextEditingController;
   },
 ): PingoNode {
-  const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   const length = props.length ?? 6;
   return View({
     className: classes("pui-input-otp", props.className),
@@ -100,7 +99,7 @@ export function inputOtpDescriptor(
     children: Array.from({ length }, (_, index) =>
       createElement(Input, {
         key: String(index),
-        className: classes("pui-input-otp__slot", dark),
+        className: skin("pui-input-otp__slot"),
         ...(actions.controllerFor === undefined
           ? {}
           : { controller: actions.controllerFor(index) }),

@@ -10,7 +10,7 @@ import {
 import { createContext, useContext, useMemo, useSignal } from "@dopejs/pingo-runtime";
 
 import { orderedValues, step } from "../keyboard";
-import { useTheme } from "../theme";
+import { classes, skin, useTheme } from "../theme";
 
 export type RadioGroupContextValue = {
   readonly value: string | undefined;
@@ -36,7 +36,6 @@ export type RadioGroupProps = {
 };
 
 function RadioGroupImpl(props: RadioGroupProps): PingoNode {
-  const theme = useTheme();
   const internal = useSignal<string | undefined>(props.defaultValue);
   // .get() (not .peek()): the group must subscribe to its own signal so an
   // uncontrolled selection re-renders it and republishes the context value.
@@ -56,9 +55,7 @@ function RadioGroupImpl(props: RadioGroupProps): PingoNode {
     },
     focusItem: (value) => handles.get(value)?.focus(),
   };
-  const className = ["pui-radiogroup", theme === "dark" ? "pui-dark" : undefined, props.className]
-    .filter((part) => part !== undefined && part !== "")
-    .join(" ");
+  const className = skin("pui-radiogroup", props.className);
   return createElement(RadioGroupContext.Provider, {
     value: contextValue,
     children: radioGroupDescriptor(props, contextValue, className),
@@ -119,14 +116,10 @@ export function radioGroupItemDescriptor(
   const disabled = context?.disabled === true;
   const select = (): void => context?.onSelect(props.value);
   return View({
-    className: [
-      "pui-radio",
-      disabled ? "pui-radio--disabled" : undefined,
-      dark ? "pui-dark" : undefined,
+    className: skin(
+      classes("pui-radio", disabled ? "pui-radio--disabled" : undefined),
       props.className,
-    ]
-      .filter((part) => part !== undefined && part !== "")
-      .join(" "),
+    ),
     direction: "row",
     semanticRole: "radio",
     semanticValue: disabled ? "disabled" : checked ? "checked" : "unchecked",

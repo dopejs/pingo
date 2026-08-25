@@ -3,7 +3,7 @@ import { useLayoutValue, useMemo, useSignal, type LayoutGeometry } from "@dopejs
 
 import { useDrag, type DragHandlers } from "../drag";
 import { classes } from "../overlay";
-import { useTheme } from "../theme";
+import { skin } from "../theme";
 
 export type ResizableProps = {
   readonly first: PingoNode;
@@ -61,7 +61,6 @@ export function resizableDescriptor(
   handlers: DragHandlers | undefined,
   attach?: (handle: ViewHandle | null) => void,
 ): PingoNode {
-  const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   const column = props.direction === "column";
   const disabled = props.disabled === true;
   const clamped = clampSplit(split, props.minSplit, props.maxSplit);
@@ -81,11 +80,12 @@ export function resizableDescriptor(
         children: props.first,
       }),
       View({
-        className: classes(
-          "pui-resizable__handle",
-          column ? "pui-resizable__handle--column" : "pui-resizable__handle--row",
-          disabled ? "pui-resizable__handle--disabled" : undefined,
-          dark,
+        className: skin(
+          classes(
+            "pui-resizable__handle",
+            column ? "pui-resizable__handle--column" : "pui-resizable__handle--row",
+            disabled ? "pui-resizable__handle--disabled" : undefined,
+          ),
         ),
         semanticRole: "separator",
         semanticValue: String(Math.round(clamped * 100)),

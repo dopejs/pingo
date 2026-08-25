@@ -12,7 +12,7 @@ import { createContext, useContext, useMemo, useSignal } from "@dopejs/pingo-run
 
 import { ChevronDownIcon } from "../icons";
 import { orderedValues, step } from "../keyboard";
-import { useTheme } from "../theme";
+import { skin, useTheme } from "../theme";
 
 export type AccordionContextValue = {
   readonly openValue: string | undefined;
@@ -36,7 +36,6 @@ export type AccordionProps = {
 };
 
 function AccordionImpl(props: AccordionProps): PingoNode {
-  const theme = useTheme();
   const internal = useSignal<string | undefined>(props.defaultOpenValue);
   // .get() (not .peek()): the root must subscribe to its own signal so an
   // uncontrolled toggle re-renders it and republishes the context value.
@@ -55,9 +54,7 @@ function AccordionImpl(props: AccordionProps): PingoNode {
     },
     focusTrigger: (value) => handles.get(value)?.focus(),
   };
-  const className = ["pui-accordion", theme === "dark" ? "pui-dark" : undefined, props.className]
-    .filter((part) => part !== undefined && part !== "")
-    .join(" ");
+  const className = skin("pui-accordion", props.className);
   const focused = useSignal<string | undefined>(undefined);
   return createElement(AccordionContext.Provider, {
     value: contextValue,
@@ -122,9 +119,7 @@ export function accordionItemDescriptor(
   const open = context?.openValue === props.value;
   const toggle = (): void => context?.onToggle(props.value);
   return View({
-    className: ["pui-accordion__item", dark ? "pui-dark" : undefined, props.className]
-      .filter((part) => part !== undefined && part !== "")
-      .join(" "),
+    className: skin("pui-accordion__item", props.className),
     children: [
       View({
         className: ["pui-accordion__trigger", dark ? "pui-dark" : undefined]

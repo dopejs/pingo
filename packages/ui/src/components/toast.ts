@@ -2,7 +2,7 @@ import { memo, Svg, Text, View, type PingoEvent, type PingoNode } from "@dopejs/
 
 import { CloseIcon } from "../icons";
 import { classes } from "../overlay";
-import { useTheme } from "../theme";
+import { skin, useTheme } from "../theme";
 
 export type ToastVariant = "default" | "destructive";
 
@@ -22,10 +22,8 @@ export function toastDescriptor(props: ToastProps): PingoNode {
   const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   const destructive = props.variant === "destructive";
   return View({
-    className: classes(
-      "pui-toast",
-      destructive ? "pui-toast--destructive" : undefined,
-      dark,
+    className: skin(
+      classes("pui-toast", destructive ? "pui-toast--destructive" : undefined),
       props.className,
     ),
     semanticRole: "status",
@@ -50,17 +48,18 @@ export function toastDescriptor(props: ToastProps): PingoNode {
         ? []
         : [
             View({
-              className: classes("pui-toast__close", dark),
+              className: skin("pui-toast__close"),
               semanticRole: "button",
               semanticLabel: "关闭",
               onPointerDown: (event: PingoEvent): void => event.currentTarget.focus(),
               onTap: () => props.onClose?.(),
               onClick: () => props.onClose?.(),
               children: Svg({
-                className: classes(
-                  "pui-toast__close-icon",
-                  destructive ? "pui-toast__close-icon--destructive" : undefined,
-                  dark,
+                className: skin(
+                  classes(
+                    "pui-toast__close-icon",
+                    destructive ? "pui-toast__close-icon--destructive" : undefined,
+                  ),
                 ),
                 source: CloseIcon,
               }),

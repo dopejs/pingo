@@ -1,7 +1,7 @@
 import { memo, View, type PingoEvent, type PingoNode } from "@dopejs/pingo-jsx";
 import { useSignal } from "@dopejs/pingo-runtime";
 
-import { useTheme } from "../theme";
+import { classes, skin, useTheme } from "../theme";
 
 // Type alias (not interface) so the implicit index signature satisfies
 // memo's Props extends Record<string, unknown> constraint.
@@ -26,15 +26,14 @@ export function switchDescriptor(
   const dark = theme === "dark";
   const disabled = props.disabled === true;
   return View({
-    className: [
-      "pui-switch",
-      checked ? "pui-switch--checked" : undefined,
-      disabled ? "pui-switch--disabled" : undefined,
-      dark ? "pui-dark" : undefined,
+    className: skin(
+      classes(
+        "pui-switch",
+        checked ? "pui-switch--checked" : undefined,
+        disabled ? "pui-switch--disabled" : undefined,
+      ),
       props.className,
-    ]
-      .filter((part) => part !== undefined && part !== "")
-      .join(" "),
+    ),
     semanticRole: "switch",
     semanticValue: disabled ? "disabled" : checked ? "on" : "off",
     ...(props.semanticLabel === undefined ? {} : { semanticLabel: props.semanticLabel }),

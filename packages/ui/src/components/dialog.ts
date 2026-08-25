@@ -14,7 +14,7 @@ import {
   useOverlayFocus,
   type OverlayFocus,
 } from "../overlay";
-import { useTheme } from "../theme";
+import { skin, useTheme } from "../theme";
 
 // Type aliases (not interfaces) so the implicit index signature satisfies
 // memo's Props extends Record<string, unknown> constraint.
@@ -154,9 +154,8 @@ export const DialogTitle = memo(function DialogTitleImpl(props: DialogTextProps)
 export const DialogDescription = memo(function DialogDescriptionImpl(
   props: DialogTextProps,
 ): PingoNode {
-  const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   return Text({
-    className: classes("pui-overlay__description", dark, props.className),
+    className: skin("pui-overlay__description", props.className),
     value: props.children,
   });
 });

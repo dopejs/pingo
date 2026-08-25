@@ -10,7 +10,7 @@ import {
 
 import { ChevronLeftIcon, ChevronRightIcon } from "../icons";
 import { classes } from "../overlay";
-import { useTheme } from "../theme";
+import { skin } from "../theme";
 
 export type PaginationProps = {
   /** One-based current page. */
@@ -59,7 +59,6 @@ export function paginationRange(
 
 /** Pure builder: safe to call without a component scope (tests use this). */
 export function paginationDescriptor(props: PaginationProps): PingoNode {
-  const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   const go = (page: number): void => {
     if (page < 1 || page > props.pageCount || page === props.page) return;
     props.onPageChange?.(page);
@@ -71,10 +70,11 @@ export function paginationDescriptor(props: PaginationProps): PingoNode {
   const control = (label: PingoSvg, target: number, name: string): PingoNode => {
     const enabled = target >= 1 && target <= props.pageCount;
     return View({
-      className: classes(
-        "pui-pagination__control",
-        enabled ? undefined : "pui-pagination__control--disabled",
-        dark,
+      className: skin(
+        classes(
+          "pui-pagination__control",
+          enabled ? undefined : "pui-pagination__control--disabled",
+        ),
       ),
       semanticRole: "button",
       semanticLabel: name,
@@ -86,7 +86,7 @@ export function paginationDescriptor(props: PaginationProps): PingoNode {
           }
         : {}),
       children: Svg({
-        className: classes("pui-pagination__control-icon", dark),
+        className: skin("pui-pagination__control-icon"),
         source: label,
       }),
     });
@@ -95,15 +95,16 @@ export function paginationDescriptor(props: PaginationProps): PingoNode {
     (value, index) =>
       value === null
         ? Text({
-            className: classes("pui-pagination__ellipsis", dark),
+            className: skin("pui-pagination__ellipsis"),
             value: "…",
             key: `gap-${String(index)}`,
           })
         : Text({
-            className: classes(
-              "pui-pagination__page",
-              value === props.page ? "pui-pagination__page--active" : undefined,
-              dark,
+            className: skin(
+              classes(
+                "pui-pagination__page",
+                value === props.page ? "pui-pagination__page--active" : undefined,
+              ),
             ),
             value: String(value),
             key: String(value),

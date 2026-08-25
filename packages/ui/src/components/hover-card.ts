@@ -2,7 +2,7 @@ import { memo, View, type PingoEvent, type PingoNode } from "@dopejs/pingo-jsx";
 import { useMemo, useSignal } from "@dopejs/pingo-runtime";
 
 import { classes } from "../overlay";
-import { useTheme } from "../theme";
+import { skin } from "../theme";
 import { useAnchoredPlacement, type AnchoredPlacement } from "../use-anchored";
 
 import { ANCHOR_OFFSET, anchorDescriptor } from "./popover";
@@ -34,7 +34,6 @@ export function hoverCardDescriptor(
   schedule: (open: boolean) => void,
   placement?: AnchoredPlacement,
 ): PingoNode {
-  const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   return anchorDescriptor({
     className: classes("pui-hover-card", props.className),
     ...(placement === undefined ? {} : { ref: placement.anchorRef }),
@@ -52,7 +51,7 @@ export function hoverCardDescriptor(
       }),
       open
         ? View({
-            className: classes("pui-hover-card__content", dark),
+            className: skin("pui-hover-card__content"),
             ...(placement === undefined ? {} : { ref: placement.panelRef }),
             ...(placement?.style === undefined ? {} : { style: placement.style }),
             // The card keeps itself open while the pointer is over it, which is

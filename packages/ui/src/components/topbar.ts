@@ -1,7 +1,6 @@
 import { memo, Text, View, type PingoNode } from "@dopejs/pingo-jsx";
 
-import { classes } from "../overlay";
-import { useTheme } from "../theme";
+import { skin } from "../theme";
 
 // Type alias (not interface) so the implicit index signature satisfies
 // memo's Props extends Record<string, unknown> constraint.
@@ -16,9 +15,8 @@ export type TopBarProps = {
 
 /** Pure builder: safe to call without a component scope (tests use this). */
 export function topBarDescriptor(props: TopBarProps): PingoNode {
-  const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   return View({
-    className: classes("pui-topbar", dark, props.className),
+    className: skin("pui-topbar", props.className),
     semanticRole: "banner",
     children: [
       ...(props.leading === undefined ? [] : [props.leading]),

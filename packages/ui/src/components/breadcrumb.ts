@@ -1,7 +1,7 @@
 import { memo, Text, View, type PingoEvent, type PingoNode } from "@dopejs/pingo-jsx";
 
 import { classes } from "../overlay";
-import { useTheme } from "../theme";
+import { skin } from "../theme";
 
 export type BreadcrumbItem = {
   readonly label: string;
@@ -17,7 +17,6 @@ export type BreadcrumbProps = {
 
 /** Pure builder: safe to call without a component scope (tests use this). */
 export function breadcrumbDescriptor(props: BreadcrumbProps): PingoNode {
-  const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   const separator = props.separator ?? "/";
   const children: PingoNode[] = [];
   props.items.forEach((item, index) => {
@@ -27,10 +26,8 @@ export function breadcrumbDescriptor(props: BreadcrumbProps): PingoNode {
     const navigate = item.onNavigate;
     children.push(
       Text({
-        className: classes(
-          "pui-breadcrumb__item",
-          current ? "pui-breadcrumb__item--current" : undefined,
-          dark,
+        className: skin(
+          classes("pui-breadcrumb__item", current ? "pui-breadcrumb__item--current" : undefined),
         ),
         value: item.label,
         semanticRole: current ? "text" : "link",
@@ -50,9 +47,7 @@ export function breadcrumbDescriptor(props: BreadcrumbProps): PingoNode {
       }),
     );
     if (!current) {
-      children.push(
-        Text({ className: classes("pui-breadcrumb__separator", dark), value: separator }),
-      );
+      children.push(Text({ className: skin("pui-breadcrumb__separator"), value: separator }));
     }
   });
   return View({

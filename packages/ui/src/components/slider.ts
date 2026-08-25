@@ -3,7 +3,7 @@ import { useLayoutValue, useSignal, type LayoutGeometry } from "@dopejs/pingo-ru
 
 import { positionToValue, useDrag, type DragHandlers } from "../drag";
 import { classes } from "../overlay";
-import { useTheme } from "../theme";
+import { skin } from "../theme";
 
 export type SliderProps = {
   readonly value?: number;
@@ -31,7 +31,6 @@ export function sliderDescriptor(
   handlers: DragHandlers | undefined,
   attach: (handle: ViewHandle | null) => void,
 ): PingoNode {
-  const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   const min = props.min ?? 0;
   const max = props.max ?? 100;
   const disabled = props.disabled === true;
@@ -41,10 +40,8 @@ export function sliderDescriptor(
     if (next !== value) props.onValueChange?.(next);
   };
   return View({
-    className: classes(
-      "pui-slider",
-      disabled ? "pui-slider--disabled" : undefined,
-      dark,
+    className: skin(
+      classes("pui-slider", disabled ? "pui-slider--disabled" : undefined),
       props.className,
     ),
     semanticRole: "slider",
@@ -73,11 +70,11 @@ export function sliderDescriptor(
           },
         }),
     children: [
-      View({ className: classes("pui-slider__track", dark) }),
+      View({ className: skin("pui-slider__track") }),
       // Width as a percentage of the track: the filled range follows the value
       // without the Shell needing to know the track's pixel width.
-      View({ className: classes("pui-slider__range", dark), style: { width: percent } }),
-      View({ className: classes("pui-slider__thumb", dark), style: { left: percent } }),
+      View({ className: skin("pui-slider__range"), style: { width: percent } }),
+      View({ className: skin("pui-slider__thumb"), style: { left: percent } }),
     ],
   });
 }

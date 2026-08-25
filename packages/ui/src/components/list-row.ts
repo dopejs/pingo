@@ -1,7 +1,7 @@
 import { memo, Text, View, type PingoEvent, type PingoNode } from "@dopejs/pingo-jsx";
 
 import { classes } from "../overlay";
-import { useTheme } from "../theme";
+import { skin } from "../theme";
 
 // Type alias (not interface) so the implicit index signature satisfies
 // memo's Props extends Record<string, unknown> constraint.
@@ -20,17 +20,17 @@ export type ListRowProps = {
 
 /** Pure builder: safe to call without a component scope (tests use this). */
 export function listRowDescriptor(props: ListRowProps): PingoNode {
-  const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   const disabled = props.disabled === true;
   const interactive = !disabled && props.onPress !== undefined;
   const press = (): void => props.onPress?.();
   return View({
-    className: classes(
-      "pui-list-row",
-      interactive ? "pui-list-row--interactive" : undefined,
-      props.selected === true ? "pui-list-row--selected" : undefined,
-      disabled ? "pui-list-row--disabled" : undefined,
-      dark,
+    className: skin(
+      classes(
+        "pui-list-row",
+        interactive ? "pui-list-row--interactive" : undefined,
+        props.selected === true ? "pui-list-row--selected" : undefined,
+        disabled ? "pui-list-row--disabled" : undefined,
+      ),
       props.className,
     ),
     semanticRole: interactive ? "button" : "listitem",
@@ -60,7 +60,7 @@ export function listRowDescriptor(props: ListRowProps): PingoNode {
             ? []
             : [
                 Text({
-                  className: classes("pui-list-row__description", dark),
+                  className: skin("pui-list-row__description"),
                   value: props.description,
                 }),
               ]),
