@@ -4,12 +4,26 @@ title: Journal des modifications
 
 # Changelog
 
-La politique de versions figure dans `docs/release.md` : les 11 paquets sont publiés atomiquement dans
+La politique de versions figure dans `docs/release.md` : les 12 paquets sont publiés atomiquement dans
 la même version, et le semver npm et la version de l'ABI binaire sont gérés séparément.
 
-## Unreleased
+## 0.3.0 - 2026-08-25
 
-- La licence du projet passe de MIT à Apache-2.0 à partir de la prochaine version npm ;
+- Les éléments d'une liste virtuelle s'étirent désormais sur la largeur de la liste : les
+  lignes du corps d'un tableau s'alignent sur les colonnes de son en-tête. La mise en page
+  de l'enveloppe appartient au Core et ne passe pas par la cascade de styles.
+- Une boîte étirée dans un conteneur défilant retrouve sa taille transversale définie et sa
+  base de pourcentage : les boîtes d'un panneau défilant ne retombent plus sur
+  l'ajustement au contenu, et `100%` dans un élément virtuel ne vaut plus zéro.
+- Les éléments flex reçoivent la taille minimale automatique de CSS sur l'axe de bloc : un
+  très grand frère ne peut plus écraser un élément dimensionné par son contenu.
+  Sous-ensemble CSS 1.8.0 : `min-width`/`min-height` valent désormais `auto` par défaut.
+- Composants : Skeleton pulse ; NavigationMenu ne porte plus la bordure de Menubar et gagne
+  un chevron ; l'en-tête d'un tableau ne se comprime plus ; StatCard/TopBar/ListRow
+  conservent la largeur de leur contenu lorsqu'aucune largeur n'est donnée.
+- Publication : l'ensemble publié et la liste d'artefacts proviennent de la liste du
+  vérificateur ; la vérification de build reproductible passe en fin de chaîne.
+- La licence du projet passe de MIT à Apache-2.0 à partir de la version 0.3.0 ;
   les versions publiées jusqu'à la v0.2.1 restent sous licence MIT.
 - La courbe de transfert de la molette s'aligne sur le navigateur : les crans discrets défilent en
   animation, tandis que les deltas haute précision (pavé tactile) restent appliqués 1:1 immédiatement.

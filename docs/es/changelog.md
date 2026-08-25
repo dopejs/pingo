@@ -4,12 +4,26 @@ title: Registro de cambios
 
 # Changelog
 
-El criterio de versionado está en `docs/release.md`: los 11 paquetes se publican de forma atómica con
+El criterio de versionado está en `docs/release.md`: los 12 paquetes se publican de forma atómica con
 la misma versión, y el semver de npm y la versión del ABI binario se gestionan por separado.
 
-## Unreleased
+## 0.3.0 - 2026-08-25
 
-- La licencia del proyecto cambia de MIT a Apache-2.0 a partir de la próxima versión de npm;
+- Los elementos de una lista virtual ahora se estiran a lo ancho de la lista, de modo que
+  las filas del cuerpo de una tabla coinciden con las columnas de su cabecera. La
+  disposición del envoltorio pertenece al Core y no pasa por la cascada de estilos.
+- Una caja estirada dentro de un contenedor con desplazamiento recupera su tamaño
+  transversal definido y su base porcentual: las cajas de un panel con desplazamiento ya no
+  vuelven a ajustarse al contenido, y `100%` dentro de un elemento virtual ya no da cero.
+- Los elementos flex reciben el tamaño mínimo automático de CSS en el eje de bloque: un
+  hermano muy grande ya no puede aplastar a otro dimensionado por su contenido. Subconjunto
+  CSS 1.8.0: `min-width`/`min-height` ahora son `auto` inicialmente.
+- Componentes: Skeleton late; NavigationMenu deja de llevar el borde de Menubar y añade un
+  chevron; la cabecera de una tabla ya no se encoge; StatCard/TopBar/ListRow conservan el
+  ancho de su contenido cuando se montan sin uno.
+- Publicación: el conjunto que se publica y la lista de artefactos se derivan de la lista
+  del verificador; la comprobación de compilación reproducible pasa al final de las puertas.
+- La licencia del proyecto cambia de MIT a Apache-2.0 a partir de 0.3.0;
   las versiones publicadas hasta v0.2.1 siguen bajo MIT.
 - La curva de transferencia de la rueda se alinea con el navegador: los saltos discretos de rueda se
   animan y los deltas de alta precisión (trackpad) se siguen aplicando 1:1 al instante. `DispatchEvent`

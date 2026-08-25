@@ -4,12 +4,21 @@ title: 變更紀錄
 
 # Changelog
 
-版本口徑見 `docs/release.md`：11 個套件同版本原子發佈，npm semver 與二進位
+版本口徑見 `docs/release.md`：12 個套件同版本原子發佈，npm semver 與二進位
 ABI 版本獨立管理。
 
-## Unreleased
+## 0.3.0 - 2026-08-25
 
-- 專案授權自下一個 npm 版本起由 MIT 改為 Apache-2.0；v0.2.1 及更早的已發佈
+- 虛擬清單的項目現在會跨清單拉伸，表格的表身列因此與表頭欄寬對齊。包裝盒的版面配置歸
+  Core 所有，不進入樣式階層。
+- 可捲動容器內被拉伸的子節點重新取得確定的交叉尺寸與百分比基準：捲動面板裡的盒子不再
+  退回收縮包裹，虛擬項目裡的 `100%` 不再解析為 0。
+- flex 項目取得 CSS 的 automatic minimum size（僅區塊軸）：一個極大的兄弟節點不再能把
+  內容尺寸的項目壓到 0。CSS 子集升至 1.8.0，`min-width`/`min-height` 初始值改為 `auto`。
+- 元件：Skeleton 加上脈動動畫；NavigationMenu 不再套用 Menubar 的外框並帶上 chevron；
+  表格表頭不可壓縮；StatCard/TopBar/ListRow 在沒有寬度時保住自己的內容寬。
+- 發布鏈：npm 發布集與產物清單改為從驗證器的套件清單衍生；可重現建置的驗證移到門檻鏈尾。
+- 專案授權自 0.3.0 起由 MIT 改為 Apache-2.0；v0.2.1 及更早的已發佈
   版本仍維持 MIT。
 - 滾輪傳遞曲線對齊瀏覽器原生：離散滾輪格改為動畫捲動，高精度（觸控板）差量
   維持即時 1:1；Input Stream 的 `DispatchEvent` 新增 flags 欄位，ABI 版本

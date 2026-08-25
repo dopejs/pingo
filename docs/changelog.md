@@ -4,10 +4,23 @@ title: 变更日志
 
 # Changelog
 
-版本口径见 `docs/release.md`：11 个包同版本原子发布，npm semver 与二进制
+版本口径见 `docs/release.md`：12 个包同版本原子发布，npm semver 与二进制
 ABI 版本独立管理。
 
-## Unreleased
+## 0.3.0 - 2026-08-25
+
+- 虚拟列表的项现在跨列表拉伸，表体行因此与表头列宽对齐。包装盒的布局归 Core，不进入
+  样式级联——给它加样式会让整棵子树从直接属性默认值切到 CSS 默认值。
+- 可滚动容器里被拉伸的子节点重新拿回确定的交叉尺寸与百分比基准：滚动面板里的盒子不再
+  退回收缩包裹，虚拟项里的 `100%` 不再解析成 0。
+- flex 项获得 CSS 的 automatic minimum size（仅块轴，行内轴仍需显式 `min-width`）：
+  一个巨大的兄弟节点不再把内容尺寸的项压到 0。CSS 子集升至 1.8.0，`min-width`/
+  `min-height` 初始值由 `0px` 改为 CSS 的 `auto`。
+- 组件：Skeleton 加上 shadcn 的脉冲动画；NavigationMenu 不再套用 Menubar 的边框外观
+  并带上会翻转的 chevron；表格表头不可压缩；StatCard/TopBar/ListRow 的伸缩基准由 0
+  改为内容宽，无宽度挂载时不再塌陷。
+- 发布链：npm 发布集与产物清单改为从校验器的 `RELEASE_PACKAGES` 派生，未经校验的包
+  发不出去；可复现构建校验移到门禁链尾，证据与真正发布的产物绑定。
 
 - 实施 M9“生产资格、增量合成与发布硬化”：ABI 17 增加事务式 immutable Picture 资源，
   保留 inline D3 oracle/kill switch；产品 Core 恢复到 384 KiB 工程门禁并固定可复现工具链；
@@ -23,8 +36,7 @@ ABI 版本独立管理。
   Worker stall、native/WASM 字节差分、500 动画性能/内存预算与 WASM 体积门禁已自动化。
 - 完成 M6：foundation facade、单源 CSS subset、typed computed style、display/overflow、
   原生事件状态/伪类、迁移诊断与独立回滚开关全部通过 `pnpm m6:check`。
-- 项目许可证从下一次 npm 发布起由 MIT 切换为 Apache-2.0；v0.2.1 及以前
-  的已发布版本仍保持 MIT。
+- 项目许可证自 0.3.0 起由 MIT 切换为 Apache-2.0；v0.2.1 及以前的已发布版本仍保持 MIT。
 
 ## 0.2.1 - 2026-08-20
 

@@ -4,12 +4,26 @@ title: Änderungsprotokoll
 
 # Changelog
 
-Die Versionspolitik steht in `docs/release.md`: Alle 11 Pakete werden atomar in derselben Version
+Die Versionspolitik steht in `docs/release.md`: Alle 12 Pakete werden atomar in derselben Version
 veröffentlicht, npm-Semver und die Version des binären ABI werden getrennt verwaltet.
 
-## Unreleased
+## 0.3.0 - 2026-08-25
 
-- Die Projektlizenz wechselt ab der nächsten npm-Version von MIT zu Apache-2.0;
+- Elemente einer virtuellen Liste werden jetzt über die Liste gestreckt, sodass die Zeilen
+  eines Tabellenkörpers zu den Spalten der Kopfzeile passen. Das Layout der Hülle gehört
+  dem Core und geht nicht durch die Style-Kaskade.
+- Ein gestreckter Kasten in einem scrollenden Container erhält seine definite Quergröße und
+  seine Prozentbasis zurück: Kästen in einem Scroll-Panel fallen nicht mehr auf
+  Shrink-to-fit zurück, und `100%` in einem virtuellen Element ergibt nicht mehr null.
+- Flex-Elemente erhalten die automatische Mindestgröße aus CSS entlang der Blockachse: ein
+  sehr großes Geschwisterelement kann ein inhaltsbemessenes nicht mehr auf null drücken.
+  CSS-Subset 1.8.0: `min-width`/`min-height` sind jetzt initial `auto`.
+- Komponenten: Skeleton pulsiert; NavigationMenu trägt nicht mehr den Rahmen der Menubar
+  und bekommt ein Chevron; eine Tabellenkopfzeile schrumpft nicht mehr; StatCard/TopBar/
+  ListRow behalten ihre Inhaltsbreite, wenn keine Breite vorgegeben ist.
+- Release: Publish-Menge und Artefaktliste stammen aus der Paketliste des Verifiers; die
+  Reproduzierbarkeitsprüfung läuft nun am Ende der Gates.
+- Die Projektlizenz wechselt ab 0.3.0 von MIT zu Apache-2.0;
   die bis einschließlich v0.2.1 veröffentlichten Versionen bleiben unter MIT.
 - Die Übertragungskurve des Mausrads folgt jetzt dem Browser: diskrete Rastschritte scrollen animiert,
   während hochpräzise Deltas (Trackpad) weiterhin sofort 1:1 angewendet werden. `DispatchEvent` des
