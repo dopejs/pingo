@@ -21,9 +21,6 @@ Canvas 原生的可编辑文本。
 
 仓库：<https://github.com/dopejs/pingo>
 
-> 品牌已切换为 pingo；现有公开包在兼容迁移完成前仍使用 `@dopejs/pingo`，因此下面的
-> 安装命令保持可直接运行。
-
 技术决策以 [`docs/design.md`](docs/design.md) 为准，交付顺序与出口门禁见
 [`docs/plan.md`](docs/plan.md)。修改架构或行为前先读 [`AGENTS.md`](AGENTS.md)。
 
