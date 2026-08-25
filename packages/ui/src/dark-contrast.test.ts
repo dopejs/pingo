@@ -113,3 +113,44 @@ function luminance(colour: string): number {
   };
   return 0.2126 * channel(0) + 0.7152 * channel(2) + 0.0722 * channel(4);
 }
+
+// The other way a dark skin breaks: a rule states a colour for light and never
+// states the dark counterpart, so a light value paints a dark surface. That one
+// is readable in the stylesheet, but only if you notice the absence -- and an
+// absence is the hardest thing to review. Resolving both themes turns it into a
+// value comparison.
+//
+// Identical across themes is not itself wrong: a brand colour, a translucent
+// scrim and a black shadow are all deliberately theme-invariant. Only a *light*
+// value that survives into dark is a defect, so that is what this flags.
+describe("dark skin surfaces", () => {
+  it("lets no light surface value survive into dark", () => {
+    const failures: string[] = [];
+    for (const className of surfaceClasses()) {
+      // Background only. `border-color` defaults to `currentColor`, so it is
+      // not an independent signal: a destructive button keeps a #fafafa border
+      // across themes because both destructive foregrounds are #fafafa, on a
+      // red surface that does change. Flagging that reports the token table's
+      // intent as a defect.
+      for (const property of ["backgroundColor"] as const) {
+        const light = resolve(className, "light")[property];
+        const dark = resolve(className, "dark")[property];
+        if (typeof light !== "string" || light !== dark) continue;
+        if (isTransparent(light) || luminance(light) < 0.5) continue;
+        failures.push(`${className}.${property} stays ${light} in dark`);
+      }
+    }
+    expect(failures).toStrictEqual([]);
+  });
+});
+
+/** Every class the sheet declares, minus the text roles the contrast test owns. */
+function surfaceClasses(): readonly string[] {
+  return [
+    ...new Set(
+      [...pingoUiCssText.matchAll(/\.(pui-[a-z0-9_-]+)/gu)].map((match) => match[1] ?? ""),
+    ),
+  ]
+    .filter((name) => name !== "pui-dark")
+    .sort();
+}
