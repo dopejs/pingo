@@ -9,8 +9,8 @@
 > GitHub release workflow 跑的是 `pnpm release:gate`（M0→M9 全链）。该门禁已于
 > v0.3.0 在 clean checkout 上全绿。`release:gate` 和 `m9:candidate` 本身不会创建
 > tag、Release、npm publish 或修改线上配置；单独运行 `m9:candidate` 只生成
-> `standalone-report-only`，只有作为成功的 `release:gate` 最后一步运行时，报告才标记
-> `passed-in-current-m9-check`。
+> `standalone-report-only`，只有作为成功的 `release:gate` 最后一步运行时（该链会传
+> `--gates-passed`），报告才标记 `passed-in-current-release-gate`。
 >
 > 注意：`m9:candidate` 要求 `packages/host/wasm/manifest.json` 的
 > `reproducibleCleanBuilds` 为 2，而普通的 `pnpm core:wasm` 会把它写回 0。`check:full`
@@ -46,7 +46,8 @@
 
 ```sh
 node scripts/set-release-version.mjs 0.3.1 && pnpm install
-# 更新 CHANGELOG.md 的 Unreleased 段落
+# 关掉 CHANGELOG.md 的 Unreleased 段落，并把同一版本写进 apps/site/content/changelog.md
+# 及其九份翻译（全部必须覆盖同一组版本，见 scripts/check-changelog-sync.test.mjs）
 git commit -am "release: v0.3.1"
 git tag v0.3.1 && git push origin main v0.3.1
 ```

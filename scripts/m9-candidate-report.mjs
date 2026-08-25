@@ -6,6 +6,12 @@ import { promisify } from "node:util";
 
 import { RELEASE_PACKAGES } from "./check-npm-release.mjs";
 import { assertQualifiedEvidenceBuild, auditM9Evidence } from "./audit-m9-evidence.mjs";
+import {
+  GATE_CONTEXT_PASSED,
+  GATE_CONTEXT_STANDALONE,
+  GATES_PASSED_FLAG,
+  REQUIRED_GATES,
+} from "./m9-candidate-gates.mjs";
 
 const run = promisify(execFile);
 const root = path.resolve(import.meta.dirname, "..");
@@ -68,22 +74,10 @@ const report = {
     attribution: wasm.attribution,
   },
   packages,
-  gateContext: process.argv.includes("--gates-passed")
-    ? "passed-in-current-m9-check"
-    : "standalone-report-only",
-  requiredGates: [
-    "m8:check",
-    "picture-contracts",
-    "optimized-inline-browser-differential",
-    "main-postMessage-SAB-lifecycle",
-    "native-wasm-differential",
-    "rich-scroll-performance",
-    "accelerated-30-minute-soak",
-    "wasm-reproducibility-and-budget",
-    "qualification-v2",
-    "api-abi-snapshots",
-    "release-tarballs",
-  ],
+  gateContext: process.argv.includes(GATES_PASSED_FLAG)
+    ? GATE_CONTEXT_PASSED
+    : GATE_CONTEXT_STANDALONE,
+  requiredGates: REQUIRED_GATES,
   supportMatrix: qualification.matrix,
   knownLimitations: qualification.matrix
     .filter((entry) => entry.status !== "qualified")
