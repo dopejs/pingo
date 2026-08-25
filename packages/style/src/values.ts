@@ -250,6 +250,8 @@ function parsePropertyValue(grammar: string, rawValue: unknown): SpecifiedStyleV
       return rawValue === "none" ? "none" : parseLength(rawValue, false, false);
     case "non-negative-length":
       return parseLength(rawValue, true, false);
+    case "non-negative-length-auto":
+      return rawValue === "auto" ? "auto" : parseLength(rawValue, true, false);
     case "non-negative-number": {
       const number = parseFiniteNumber(rawValue);
       return number === null || number < 0 ? null : number;

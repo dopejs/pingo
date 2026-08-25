@@ -143,11 +143,12 @@
 // `flex: 0 0 auto`: a header row is not shrinkable. It shares the table's flex
 // line with the body, and a virtualised body's flex base is the height of every
 // row it holds -- 440 000px for 10 000 rows. Split by `shrink * base`, the
-// header's share of that deficit still exceeded its own height and crushed it
-// to a hairline, so its labels landed on the first row of data. CSS would stop
-// that with the automatic minimum size, which needs min-content measurement
-// this engine does not have yet (see docs/design.md); saying the header does
-// not shrink is both the fix and what a table header actually means.
+// header's share of that deficit exceeded its own height and crushed it to a
+// hairline, so its labels landed on the first row of data. The automatic
+// minimum size raises that floor to the header's padding and border, but no
+// further: the cells clip their own overflow, and a box that clips asks nothing
+// of its parent's minimum. Saying the header does not shrink is both the fix
+// and what a table header actually means.
 .pui-table__header {
   flex: t.$grow-none;
   border-bottom-width: t.$border-width;

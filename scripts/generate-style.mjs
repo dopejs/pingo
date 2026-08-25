@@ -36,6 +36,7 @@ const grammarTypes = {
   "length-none": 'PingoStyleLength | "none"',
   "line-height": 'number | PingoStyleLength | "normal"',
   "non-negative-length": "PingoStyleLength",
+  "non-negative-length-auto": 'PingoStyleLength | "auto"',
   "non-negative-number": "number",
   "non-negative-length-normal": 'PingoStyleLength | "normal"',
   "object-fit": '"contain" | "cover" | "fill" | "none" | "scale-down"',

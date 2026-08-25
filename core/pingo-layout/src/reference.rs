@@ -70,7 +70,7 @@ pub fn reference_layout(
         zero(scene, root, &mut out);
         return Ok(out);
     }
-    let size = layout_node(
+    let (size, _) = layout_node(
         scene,
         root,
         constraints,
@@ -92,6 +92,8 @@ struct Item {
     constraints: BoxConstraints,
     /// See the engine's `ChildInput::cross_pin`.
     cross_pin: Option<CrossPin>,
+    /// See the engine's `LayoutSnapshot::content_min_height`.
+    content_min: f32,
     basis: PercentBasis,
     margin: EdgeInsets,
     min_main: f32,
@@ -118,6 +120,10 @@ struct Box2 {
     percent: PercentBasis,
     fixed_width: Option<f32>,
     fixed_height: Option<f32>,
+    /// See the engine's `Frame::declared_height`.
+    declared_height: Option<f32>,
+    /// This box's own resolved `min-height`, zero when it is `auto`.
+    min_height: f32,
     row: bool,
     reverse: bool,
     justify: StyleKeyword,
@@ -136,7 +142,7 @@ fn layout_node(
     parent: ParentAxes,
     measurer: &mut impl IntrinsicMeasurer,
     out: &mut ReferenceLayout,
-) -> Result<Size, LayoutError> {
+) -> Result<(Size, f32), LayoutError> {
     if scene.virtual_list(node).is_some() {
         return Err(LayoutError::SceneInvariant(
             "reference layout does not model virtual lists",
@@ -162,7 +168,7 @@ fn layout_node(
     }
 
     for item in &mut items {
-        item.size = layout_node(
+        (item.size, item.content_min) = layout_node(
             scene,
             item.node,
             item.constraints,
@@ -195,7 +201,7 @@ fn layout_node(
     // which is exactly the optimisation this oracle exists to check.
     if resolve_flex(scene, &container, &mut items, size)? {
         for item in &mut items {
-            item.size = layout_node(
+            (item.size, item.content_min) = layout_node(
                 scene,
                 item.node,
                 item.constraints,
@@ -214,7 +220,7 @@ fn layout_node(
     // Out of flow: laid out against the container's padding box and placed
     // there, never touching the flow totals.
     for item in &mut out_of_flow {
-        item.size = layout_node(
+        (item.size, item.content_min) = layout_node(
             scene,
             item.node,
             item.constraints,
@@ -236,7 +242,35 @@ fn layout_node(
         let offset = out_of_flow_offset(scene, &container, item, padding_box);
         out.geometry.insert(item.node, (offset, item.size));
     }
-    Ok(size)
+    // See the engine's `LayoutSnapshot::content_min_height`.
+    let content_min = if scene.scrollable_axis(node, false) {
+        0.0
+    } else {
+        let contents = match container.declared_height {
+            Some(height) => height,
+            None if has_children => {
+                let gaps = if container.row {
+                    0.0
+                } else {
+                    container.gap * (items.len().saturating_sub(1)) as f32
+                };
+                let children = items
+                    .iter()
+                    .map(|item| item.margin.vertical() + item.content_min)
+                    .fold(0.0_f32, |total, value| {
+                        if container.row {
+                            total.max(value)
+                        } else {
+                            total + value
+                        }
+                    });
+                children + gaps + container.insets.vertical()
+            }
+            None => intrinsic.height,
+        };
+        contents.max(container.min_height)
+    };
+    Ok((size, content_min))
 }
 
 /// Where an out-of-flow child sits inside its container's padding box.
@@ -349,6 +383,32 @@ fn resolve_flex(
         return Ok(false);
     }
 
+    // CSS's automatic minimum size. See the engine's `automatic_minimum`.
+    let minimum = items
+        .iter()
+        .map(|item| {
+            if container.row
+                || has_requested_dimension(
+                    scene,
+                    item.node,
+                    Prop::MinHeight,
+                    StyleProperty::MinHeight,
+                )
+                || scene.scrollable_axis(item.node, false)
+            {
+                item.min_main
+            } else {
+                item.min_main.max(item.content_min)
+            }
+        })
+        .collect::<Vec<_>>();
+    // A minimum wins over a maximum, as CSS has it, so raising the floor raises
+    // the ceiling with it. See the engine's `resolve_flex`.
+    let maximum = items
+        .iter()
+        .enumerate()
+        .map(|(index, item)| item.max_main.max(minimum[index]))
+        .collect::<Vec<_>>();
     let mut target = base.clone();
     let mut frozen = vec![false; items.len()];
     for (index, item) in items.iter().enumerate() {
@@ -357,11 +417,11 @@ fn resolve_flex(
         // layout produced; the flex step never resizes an inflexible item.
         if factor <= 0.0 {
             frozen[index] = true;
-        } else if growing && base[index] >= item.max_main {
-            target[index] = item.max_main;
+        } else if growing && base[index] >= maximum[index] {
+            target[index] = maximum[index];
             frozen[index] = true;
-        } else if !growing && base[index] <= item.min_main {
-            target[index] = item.min_main;
+        } else if !growing && base[index] <= minimum[index] {
+            target[index] = minimum[index];
             frozen[index] = true;
         }
     }
@@ -416,11 +476,11 @@ fn resolve_flex(
         }
         let mut violations = vec![0.0_f32; items.len()];
         let mut total = 0.0_f32;
-        for (index, item) in items.iter().enumerate() {
+        for index in 0..items.len() {
             if frozen[index] {
                 continue;
             }
-            let clamped = target[index].clamp(item.min_main, item.max_main).max(0.0);
+            let clamped = target[index].clamp(minimum[index], maximum[index]).max(0.0);
             violations[index] = clamped - target[index];
             target[index] = clamped;
             total += violations[index];
@@ -604,6 +664,7 @@ fn describe(
         insets.vertical(),
         border_box,
     )?;
+    let declared_height = fixed_height;
     if let Some((row, value)) = flex_basis {
         if row {
             fixed_width = Some(value);
@@ -694,6 +755,8 @@ fn describe(
         percent,
         fixed_width,
         fixed_height,
+        declared_height,
+        min_height,
         row,
         reverse,
         justify: scene
@@ -859,6 +922,7 @@ fn child_item(scene: &Scene, container: &Box2, node: NodeId) -> Result<Item, Lay
         node,
         constraints,
         cross_pin,
+        content_min: 0.0,
         basis,
         margin: margins.values,
         min_main,

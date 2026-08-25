@@ -433,7 +433,9 @@ fn decode_length(
             if !line_height
                 && matches!(
                     property.grammar(),
-                    StyleValueGrammar::LengthAuto | StyleValueGrammar::ZIndex
+                    StyleValueGrammar::LengthAuto
+                        | StyleValueGrammar::NonNegativeLengthAuto
+                        | StyleValueGrammar::ZIndex
                 ) =>
         {
             StyleLengthUnit::Auto
@@ -473,6 +475,7 @@ fn decode_length(
     if matches!(
         property.grammar(),
         StyleValueGrammar::NonNegativeLength
+            | StyleValueGrammar::NonNegativeLengthAuto
             | StyleValueGrammar::NonNegativeLengthNormal
             | StyleValueGrammar::PositiveLength
     ) && value < 0.0
@@ -1324,6 +1327,6 @@ mod tests {
 
     #[test]
     fn subset_version_is_explicit_for_contract_reports() {
-        assert_eq!(crate::CSS_SUBSET_VERSION, "1.7.0");
+        assert_eq!(crate::CSS_SUBSET_VERSION, "1.8.0");
     }
 }

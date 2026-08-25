@@ -2053,6 +2053,47 @@ Skeleton 一直是块静止的灰底，而 shadcn 的骨架屏靠 `animate-pulse
 在一个周期里确有起落且带 `cause === "animation"` 的帧；`animated: false` 时灰度零起伏、动画帧
 为 0。
 
+### min-content 测量与 flex 的 automatic minimum size（2026-08-25）
+
+上一条留下的缺口：CSS 里 flex item 的 `min-width`/`min-height` 初始值是 `auto`，解析成它的
+content-based minimum，一个巨大的兄弟节点因此压不垮它。本引擎没有这一条，所以"内容尺寸项 +
+巨大兄弟"一律被压到 0。这次补上了，但**只补块轴**。
+
+**为什么只有块轴。** 沿块轴（column flex 容器分配的那根轴）的 content-based minimum 就是这一趟
+布局**已经量出来的东西**：叶子是它报告的高度，column 是子节点之和加上间距与内边距，row 是其中最高
+的一个。存一个 f32/节点即可，不需要第二次测量。沿行内轴则是叶子"最长不可断行片段"的宽度，那要再
+测一次文本；那一次测量的代价与缓存影响是另一件事，所以 row 容器保持旧行为（项仍可被压到 0），
+`min-width` 要显式写。
+
+**规则**（`LayoutSnapshot::content_min_height`，引擎与 `reference.rs` 同构）：
+
+- 可滚动容器在它滚动的那根轴上贡献 **0**，也就是说它对祖先的最小高度不提要求。这一条偏离严格
+  CSS（CSS 里滚动容器仍按内容算 min-content），但**必须如此**：一个装着一万行虚拟列表的
+  滚动容器否则会让每一个祖先都无法收缩——上一次就是栽在这里。
+- 声明了 `height` 的盒子，最小高度就是那个高度，里面装什么不再重要。注意取的是 `flex-basis`
+  覆盖**之前**的值：flex basis 只是分配的起点，不是下限。
+- 声明了 `min-height` 的，抬到那个值。
+- 其余按上面的自底向上组合。
+
+**子集变更**：`min-width`/`min-height` 的初始值从 `0px` 改成 `auto`（CSS 初始值），grammar
+改成 `non-negative-length-auto`，`cssSubsetVersion` 升到 **1.8.0**。`min-height: 0` 仍然是
+关掉自动下限的标准写法，有单测钉住。
+
+**踩到的坑**：`min` 覆盖 `max` 是 CSS 的规则（used value 是 `max(min, min(max, value))`），
+引擎在记录 flex item 时就把 `max` 抬到了 `min` 之上，而 reference 的冻结前置检查还在用原始
+`max_main`。抬高自动下限之后两边就分叉了——差分预言机抓到了一个 63px 的差。修法是把自动下限
+的计算从"记录 item 时"挪到 `resolve_flex` 里，与 reference 逐行同构，并让两边都按同一个
+`maximum = max(max_main, minimum)` 走。
+
+**影响面**：只有 column flex 容器里、没写 `min-height`、且不是滚动容器的项，现在多了一条下限。
+`pui` 里唯一被这条救到的是"内容有真实高度"的那类行；`.pui-table__header` **仍然**需要
+`flex: 0 0 auto`——它的单元格 `overflow: hidden`，按上面的规则对父级的最小高度不提要求，所以
+自动下限只把表头托到内边距加边框（1px → 17.8px），托不住那行文字。
+
+**验证**：`pingo-layout` 新增两个单测——一万行的滚动兄弟旁边内容尺寸项保住自己的高度、且外层盒子
+仍能收缩（上一版正是这里炸的）；`min-height: 0` 的项仍被压到 0 而没写的那个保住 100px。差分
+预言机、增量/全量一致性、属性测试全绿。
+
 ### 表头被一万行压塌，以及 `align-items` 的旧默认值（2026-08-25）
 
 文档站的表格：表头只有 1px 高（剩下的是下边框），标签压在第一行数据上；表头宽 184px 而表体

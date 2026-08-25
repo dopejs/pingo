@@ -53,6 +53,22 @@ pub struct LayoutSnapshot {
     ids: Vec<NodeId>,
     offsets: Vec<Point>,
     sizes: Vec<Size>,
+    /// Each node's content-based minimum height, in border-box units.
+    ///
+    /// This is CSS's min-content size along the block axis, which is the axis a
+    /// column flex container distributes along, and it is what `min-height:
+    /// auto` resolves to. The pass already measures it: a leaf's is the height
+    /// it reported, a column's is the sum of its children's plus its gaps and
+    /// insets, and a row's is the tallest of them. A scroll container's is zero
+    /// on the axis it scrolls, because hiding the overflow is what it exists to
+    /// do -- without that a virtualised list holding ten thousand rows would
+    /// make every ancestor unshrinkable.
+    ///
+    /// The inline axis has no equivalent here: a leaf's min-content *width* is
+    /// its longest unbreakable run, which needs a second text measurement this
+    /// engine does not make. Row flex containers therefore keep the old
+    /// behaviour, where an item may be shrunk to nothing. See docs/design.md.
+    content_min_height: Vec<f32>,
     /// Whether each entry was a virtual list item or lived inside one.
     ///
     /// An item is usually a wrapper around an application subtree, so a window
@@ -375,6 +391,8 @@ impl LayoutEngine {
         self.back.offsets.resize(scene.len(), Point::ZERO);
         self.back.sizes.clear();
         self.back.sizes.resize(scene.len(), Size::ZERO);
+        self.back.content_min_height.clear();
+        self.back.content_min_height.resize(scene.len(), 0.0);
         self.record_virtual_items(scene);
     }
 
@@ -408,16 +426,21 @@ impl LayoutEngine {
         self.back.ids.extend_from_slice(scene.ids());
         self.back.offsets.clear();
         self.back.sizes.clear();
+        self.back.content_min_height.clear();
         let mut added = Vec::new();
         for node in scene.ids().iter().copied() {
             match previous.get(&node) {
                 Some(&index) => {
                     self.back.offsets.push(self.front.offsets[index]);
                     self.back.sizes.push(self.front.sizes[index]);
+                    self.back
+                        .content_min_height
+                        .push(self.front.content_min_height[index]);
                 }
                 None => {
                     self.back.offsets.push(Point::ZERO);
                     self.back.sizes.push(Size::ZERO);
+                    self.back.content_min_height.push(0.0);
                     added.push(node);
                 }
             }
@@ -471,6 +494,9 @@ impl LayoutEngine {
         self.back.ids.clone_from(&self.front.ids);
         self.back.offsets.clone_from(&self.front.offsets);
         self.back.sizes.clone_from(&self.front.sizes);
+        self.back
+            .content_min_height
+            .clone_from(&self.front.content_min_height);
         self.back
             .virtual_items
             .clone_from(&self.front.virtual_items);
@@ -711,6 +737,14 @@ struct Frame {
     justify: StyleKeyword,
     /// Cross-axis alignment for direct children.
     align: StyleKeyword,
+    /// Running content-based minimum height of the children placed so far:
+    /// summed with gaps in column flow, the tallest in row flow.
+    content_min: f32,
+    /// The height this node declared, before a definite `flex-basis` replaced
+    /// it. A declared height *is* the box's minimum content height -- what is
+    /// inside it no longer matters -- whereas a flex basis is only where the
+    /// distribution starts from.
+    declared_height: Option<f32>,
     /// Whether this container's own cross size is known before its children lay
     /// out.
     ///
@@ -805,7 +839,7 @@ fn compute_subtree(
                 ))?;
                 let margin = style_margin(scene, child, child_margin_basis(frame))?.values;
                 open_child_slot(frame);
-                accumulate_child(frame, size, margin);
+                accumulate_child(frame, size, margin, output.content_min_height[index]);
                 continue;
             }
             let input = constraints_for_child(scene, frame, child, flex.target_for(frame, child))?;
@@ -858,6 +892,21 @@ fn compute_subtree(
         );
         let size = frame.constraints.constrain(requested);
         output.sizes[frame.index] = size;
+        // A scroll container hides its overflow, so it asks nothing of its
+        // ancestors on the axis it scrolls. A declared height is the box's
+        // minimum whatever is inside it. Otherwise it is what this pass
+        // measured: a leaf's own height, or a box's children plus its insets.
+        // A declared `min-height` raises whichever of those applies.
+        output.content_min_height[frame.index] = if scene.scrollable_axis(frame.node, false) {
+            0.0
+        } else {
+            let contents = match frame.declared_height {
+                Some(height) => height,
+                None if has_children => frame.content_min + insets.vertical(),
+                None => intrinsic.height,
+            };
+            contents.max(frame.style_bounds[2])
+        };
         if !frame.flex_pass {
             let start = flex.targets.len();
             let count = resolve_flex(scene, &frame, size, flex)?;
@@ -873,6 +922,7 @@ fn compute_subtree(
                 frame.next_child = scene.first_child(frame.node);
                 frame.main = 0.0;
                 frame.cross = 0.0;
+                frame.content_min = 0.0;
                 frame.placed = false;
                 stack.push(frame);
                 continue;
@@ -912,7 +962,14 @@ fn compute_subtree(
                 // container's own size is known.
             } else {
                 if !parent.flex_pass {
-                    record_flex_item(scene, parent, &frame, size, &mut flex.items);
+                    record_flex_item(
+                        scene,
+                        parent,
+                        &frame,
+                        size,
+                        output.content_min_height[frame.index],
+                        &mut flex.items,
+                    );
                 }
                 open_child_slot(parent);
                 let parent_insets = parent.padding.add(parent.border);
@@ -927,7 +984,12 @@ fn compute_subtree(
                         parent_insets.top + parent.main + frame.margin.values.top,
                     )
                 };
-                accumulate_child(parent, size, frame.margin.values);
+                accumulate_child(
+                    parent,
+                    size,
+                    frame.margin.values,
+                    output.content_min_height[frame.index],
+                );
             }
         }
     }
@@ -941,18 +1003,26 @@ const FLEX_EPSILON: f32 = 1.0 / 1024.0;
 fn open_child_slot(parent: &mut Frame) {
     if parent.placed {
         parent.main += parent.gap;
+        // The gap sits between the children whatever height they take, so it
+        // is part of the container's minimum as much as of its natural size.
+        if !parent.row {
+            parent.content_min += parent.gap;
+        }
     }
     parent.placed = true;
 }
 
 /// Adds one child's outer box to its parent's running main and cross extents.
-fn accumulate_child(parent: &mut Frame, size: Size, margin: EdgeInsets) {
+fn accumulate_child(parent: &mut Frame, size: Size, margin: EdgeInsets, content_min: f32) {
+    let outer_min = margin.vertical() + content_min;
     if parent.row {
         parent.main += margin.horizontal() + size.width;
         parent.cross = parent.cross.max(margin.vertical() + size.height);
+        parent.content_min = parent.content_min.max(outer_min);
     } else {
         parent.main += margin.vertical() + size.height;
         parent.cross = parent.cross.max(margin.horizontal() + size.width);
+        parent.content_min += outer_min;
     }
 }
 
@@ -960,12 +1030,45 @@ fn accumulate_child(parent: &mut Frame, size: Size, margin: EdgeInsets) {
 struct FlexItem {
     node: NodeId,
     base: f32,
+    /// See [`LayoutSnapshot::content_min_height`].
+    content_min: f32,
     min: f32,
     max: f32,
     grow: f32,
     shrink: f32,
     target: f32,
     frozen: bool,
+}
+
+/// CSS's automatic minimum size for one flex item, along its container's axis.
+///
+/// A flex item whose main-axis `min-*` is `auto` may not shrink below its
+/// content-based minimum. Without that floor one very large sibling takes the
+/// whole deficit and then some: a table body holding ten thousand virtual rows
+/// has a flex base of 440 000px, and against a 260px table the header row --
+/// which shares the line -- took a share larger than its own height and
+/// collapsed, so its labels landed on the first row of data.
+///
+/// Only column flow is answered. The content-based minimum along the block axis
+/// is what the pass already measured, so it costs nothing to know; along the
+/// inline axis it is a leaf's longest unbreakable run, which needs a second
+/// text measurement this engine does not make. A row's items therefore keep the
+/// old behaviour. See `LayoutSnapshot::content_min_height` and docs/design.md.
+fn automatic_minimum(scene: &Scene, parent: &Frame, node: NodeId, content_min: f32) -> f32 {
+    if parent.row {
+        return 0.0;
+    }
+    // A declared `min-height` is the author's own floor, including the `0` that
+    // is the standard way to say "this may shrink to nothing".
+    if has_requested_dimension(scene, node, Prop::MinHeight, StyleProperty::MinHeight) {
+        return 0.0;
+    }
+    // A scroll container's minimum is zero on the axis it scrolls: `content_min`
+    // already says so, but saying it here keeps the rule readable.
+    if scene.scrollable_axis(node, false) {
+        return 0.0;
+    }
+    content_min
 }
 
 /// Records one child as it pops, if it can flex at all.
@@ -982,6 +1085,7 @@ fn record_flex_item(
     parent: &Frame,
     frame: &Frame,
     size: Size,
+    content_min: f32,
     items: &mut Vec<FlexItem>,
 ) {
     let grow = scene
@@ -1008,6 +1112,7 @@ fn record_flex_item(
     items.push(FlexItem {
         node: frame.node,
         base,
+        content_min,
         min,
         max: max.max(min),
         grow,
@@ -1081,6 +1186,14 @@ fn resolve_flex(
     // resize something that declared itself inflexible. An item that can move
     // but already sits past the bound this pass would push it toward is frozen
     // at that bound instead.
+    // CSS's automatic minimum size, resolved here rather than when the item was
+    // recorded so that this and `reference::resolve_flex` read the same inputs.
+    for item in items.iter_mut() {
+        item.min = item
+            .min
+            .max(automatic_minimum(scene, frame, item.node, item.content_min));
+        item.max = item.max.max(item.min);
+    }
     for item in items.iter_mut() {
         let factor = if growing { item.grow } else { item.shrink };
         if factor <= 0.0 {
@@ -1201,6 +1314,7 @@ fn zero_subtree(
     for index in start..end {
         output.offsets[index] = Point::ZERO;
         output.sizes[index] = Size::ZERO;
+        output.content_min_height[index] = 0.0;
     }
     Ok(())
 }
@@ -1418,6 +1532,7 @@ fn make_frame(
         insets.vertical(),
         border_box,
     )?;
+    let declared_height = fixed_height;
     if let Some((row, value)) = flex_basis {
         if row {
             fixed_width = Some(value);
@@ -1551,6 +1666,8 @@ fn make_frame(
         fixed_height,
         main,
         cross: 0.0,
+        content_min: 0.0,
+        declared_height,
         row,
         reverse,
         justify: scene
@@ -3535,6 +3652,255 @@ mod tests {
         assert_eq!(
             engine.snapshot().geometry(ninth),
             Some((Point::new(0.0, 270.0), Size::new(100.0, 30.0)))
+        );
+    }
+
+    #[test]
+    fn a_content_sized_sibling_keeps_its_height_and_a_scrolling_one_gives_it_up() {
+        // The docs site's table: a 260px column holding a header that sizes to
+        // its content and a scrolling body whose flex base is the height of ten
+        // thousand rows. Split by `shrink * base`, the header's share of that
+        // deficit exceeded its own height and crushed it to nothing. Its
+        // automatic minimum is the content height it already measured, and the
+        // body's is zero because it scrolls, so the body gives up the whole
+        // deficit and the header keeps its rows.
+        const ROOT: u32 = 0;
+        const COLUMN: u32 = 1;
+        const HEADER: u32 = 2;
+        const LABEL: u32 = 3;
+        const BODY: u32 = 4;
+        const ROWS: u32 = 5;
+        const COLUMN_STYLE: u32 = 1;
+        const FLEXIBLE: u32 = 2;
+        const SCROLLING: u32 = 3;
+        const TALL: u32 = 4;
+        const LABEL_STYLE: u32 = 5;
+
+        fn flexible(extra: &[(StyleProperty, u8, Vec<u8>)]) -> Vec<u8> {
+            let mut entries = vec![
+                (StyleProperty::FlexGrow, STYLE_VALUE_F32, number(1.0)),
+                (StyleProperty::FlexShrink, STYLE_VALUE_F32, number(1.0)),
+                (StyleProperty::FlexBasis, STYLE_VALUE_LENGTH, auto()),
+            ];
+            entries.extend_from_slice(extra);
+            computed_style(&entries)
+        }
+
+        let mut scene = Scene::new();
+        commit(
+            &mut scene,
+            1,
+            vec![
+                Mutation::DefineResource {
+                    resource_id: COLUMN_STYLE,
+                    kind: ResourceKind::ComputedStyle,
+                    bytes: computed_style(&[
+                        (
+                            StyleProperty::FlexDirection,
+                            STYLE_VALUE_KEYWORD,
+                            keyword(StyleKeyword::Column),
+                        ),
+                        (StyleProperty::Height, STYLE_VALUE_LENGTH, px(260.0)),
+                    ]),
+                },
+                Mutation::DefineResource {
+                    resource_id: FLEXIBLE,
+                    kind: ResourceKind::ComputedStyle,
+                    bytes: flexible(&[]),
+                },
+                Mutation::DefineResource {
+                    resource_id: SCROLLING,
+                    kind: ResourceKind::ComputedStyle,
+                    bytes: flexible(&[(
+                        StyleProperty::OverflowY,
+                        STYLE_VALUE_KEYWORD,
+                        keyword(StyleKeyword::Auto),
+                    )]),
+                },
+                Mutation::DefineResource {
+                    resource_id: TALL,
+                    kind: ResourceKind::ComputedStyle,
+                    bytes: computed_style(&[(
+                        StyleProperty::Height,
+                        STYLE_VALUE_LENGTH,
+                        px(440_000.0),
+                    )]),
+                },
+                Mutation::DefineResource {
+                    resource_id: LABEL_STYLE,
+                    kind: ResourceKind::ComputedStyle,
+                    bytes: computed_style(&[(StyleProperty::Height, STYLE_VALUE_LENGTH, px(34.0))]),
+                },
+                create(id(ROOT), NodeKind::Root, None),
+                create(id(COLUMN), NodeKind::Container, Some(id(ROOT))),
+                create(id(HEADER), NodeKind::Container, Some(id(COLUMN))),
+                create(id(LABEL), NodeKind::Container, Some(id(HEADER))),
+                create(id(BODY), NodeKind::Container, Some(id(COLUMN))),
+                create(id(ROWS), NodeKind::Container, Some(id(BODY))),
+                Mutation::SetRef {
+                    node_id: id(COLUMN).raw(),
+                    prop: Prop::ComputedStyle,
+                    resource_id: COLUMN_STYLE,
+                },
+                Mutation::SetRef {
+                    node_id: id(HEADER).raw(),
+                    prop: Prop::ComputedStyle,
+                    resource_id: FLEXIBLE,
+                },
+                Mutation::SetRef {
+                    node_id: id(LABEL).raw(),
+                    prop: Prop::ComputedStyle,
+                    resource_id: LABEL_STYLE,
+                },
+                Mutation::SetRef {
+                    node_id: id(BODY).raw(),
+                    prop: Prop::ComputedStyle,
+                    resource_id: SCROLLING,
+                },
+                Mutation::SetRef {
+                    node_id: id(ROWS).raw(),
+                    prop: Prop::ComputedStyle,
+                    resource_id: TALL,
+                },
+            ],
+        );
+        let mut engine = LayoutEngine::new();
+        engine
+            .layout(
+                &scene,
+                BoxConstraints::tight(Size::new(560.0, 400.0)).expect("viewport"),
+                &mut ZeroIntrinsicMeasurer,
+            )
+            .expect("layout");
+        let snapshot = engine.snapshot();
+        assert_eq!(
+            snapshot.geometry(id(HEADER)).map(|(_, size)| size.height),
+            Some(34.0),
+            "the header keeps the height its content asked for"
+        );
+        assert_eq!(
+            snapshot
+                .geometry(id(BODY))
+                .map(|(point, size)| (point.y, size.height)),
+            Some((34.0, 226.0)),
+            "the scrolling body absorbs the whole deficit"
+        );
+        // The column itself sits inside a taller viewport and could have been
+        // asked to grow to its content; it must not be, because its minimum
+        // sees through the scroll container to zero rather than to 440 000px.
+        assert_eq!(
+            snapshot.geometry(id(COLUMN)).map(|(_, size)| size.height),
+            Some(260.0),
+            "a box holding a scroll container still shrinks"
+        );
+    }
+
+    #[test]
+    fn a_declared_minimum_of_zero_lets_a_flex_item_shrink_away() {
+        // `min-height: 0` is the standard way to opt out of the automatic
+        // minimum, and it has to keep working now that the automatic one does.
+        const COLUMN_STYLE: u32 = 1;
+        const FLEXIBLE: u32 = 2;
+        const TALL: u32 = 3;
+        const SHRINKABLE: u32 = 4;
+
+        let mut scene = Scene::new();
+        commit(
+            &mut scene,
+            1,
+            vec![
+                Mutation::DefineResource {
+                    resource_id: COLUMN_STYLE,
+                    kind: ResourceKind::ComputedStyle,
+                    bytes: computed_style(&[
+                        (
+                            StyleProperty::FlexDirection,
+                            STYLE_VALUE_KEYWORD,
+                            keyword(StyleKeyword::Column),
+                        ),
+                        (StyleProperty::Height, STYLE_VALUE_LENGTH, px(40.0)),
+                    ]),
+                },
+                Mutation::DefineResource {
+                    resource_id: FLEXIBLE,
+                    kind: ResourceKind::ComputedStyle,
+                    bytes: computed_style(&[
+                        (StyleProperty::FlexGrow, STYLE_VALUE_F32, number(1.0)),
+                        (StyleProperty::FlexShrink, STYLE_VALUE_F32, number(1.0)),
+                        (StyleProperty::FlexBasis, STYLE_VALUE_LENGTH, auto()),
+                        (StyleProperty::MinHeight, STYLE_VALUE_LENGTH, px(0.0)),
+                    ]),
+                },
+                Mutation::DefineResource {
+                    resource_id: TALL,
+                    kind: ResourceKind::ComputedStyle,
+                    bytes: computed_style(&[
+                        (StyleProperty::FlexGrow, STYLE_VALUE_F32, number(1.0)),
+                        (StyleProperty::FlexShrink, STYLE_VALUE_F32, number(1.0)),
+                        (StyleProperty::FlexBasis, STYLE_VALUE_LENGTH, auto()),
+                    ]),
+                },
+                Mutation::DefineResource {
+                    resource_id: SHRINKABLE,
+                    kind: ResourceKind::ComputedStyle,
+                    bytes: computed_style(&[(
+                        StyleProperty::Height,
+                        STYLE_VALUE_LENGTH,
+                        px(100.0),
+                    )]),
+                },
+                create(id(0), NodeKind::Root, None),
+                create(id(1), NodeKind::Container, Some(id(0))),
+                create(id(2), NodeKind::Container, Some(id(1))),
+                create(id(3), NodeKind::Container, Some(id(2))),
+                create(id(4), NodeKind::Container, Some(id(1))),
+                create(id(5), NodeKind::Container, Some(id(4))),
+                Mutation::SetRef {
+                    node_id: id(1).raw(),
+                    prop: Prop::ComputedStyle,
+                    resource_id: COLUMN_STYLE,
+                },
+                Mutation::SetRef {
+                    node_id: id(2).raw(),
+                    prop: Prop::ComputedStyle,
+                    resource_id: FLEXIBLE,
+                },
+                Mutation::SetRef {
+                    node_id: id(3).raw(),
+                    prop: Prop::ComputedStyle,
+                    resource_id: SHRINKABLE,
+                },
+                Mutation::SetRef {
+                    node_id: id(4).raw(),
+                    prop: Prop::ComputedStyle,
+                    resource_id: TALL,
+                },
+                Mutation::SetRef {
+                    node_id: id(5).raw(),
+                    prop: Prop::ComputedStyle,
+                    resource_id: SHRINKABLE,
+                },
+            ],
+        );
+        let mut engine = LayoutEngine::new();
+        engine
+            .layout(
+                &scene,
+                BoxConstraints::tight(Size::new(200.0, 400.0)).expect("viewport"),
+                &mut ZeroIntrinsicMeasurer,
+            )
+            .expect("layout");
+        let snapshot = engine.snapshot();
+        // Two items each holding 100px of content, in a 40px column: the one
+        // that said `min-height: 0` takes the whole deficit, and the one that
+        // did not keeps the content it measured.
+        assert_eq!(
+            snapshot.geometry(id(2)).map(|(_, size)| size.height),
+            Some(0.0)
+        );
+        assert_eq!(
+            snapshot.geometry(id(4)).map(|(_, size)| size.height),
+            Some(100.0)
         );
     }
 
