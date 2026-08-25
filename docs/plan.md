@@ -5,6 +5,11 @@
 > 依据：[`design.md`](design.md)
 >
 > 规划口径：按依赖顺序、交付物和出口门禁管理，不含人力与工期估算
+>
+> 命令口径：下文各里程碑章节里的 `pnpm mN:check` 是**当时的历史记录**，保留原文以免
+> 改写既成事实。这些逐里程碑链已在 `843e6fb` 合并为两个仍可运行的门禁：
+> `pnpm check:full`（全部工程回归）与 `pnpm release:gate`（`check:full` + 资格审计 +
+> 发布产物验证 + 只读候选报告）。要实际运行时一律以 package.json 为准
 
 ---
 
@@ -698,7 +703,7 @@ layout animation 不随 M7 默认开放。每个候选属性必须另证每帧 l
 - 后续 CSS 语法/属性/selector/伪类和二维虚拟化按 style 扩展分类逐项立项；能归一到已有
   computed value 的扩展不得无故修改 ABI。
 
-`pnpm m8:check` 必须包含媒体资源生命周期、错误/seek/loop/fallback、内存硬预算和浏览器
+全量工程门禁必须包含媒体资源生命周期、错误/seek/loop/fallback、内存硬预算和浏览器
 E2E；真实硬件解码、功耗与受版权内容仍属平台资格，不能由开发机结果冒充支持声明。
 
 交付证据包括 Video metadata/事件/控制与资源替换单测、单帧在途和丢旧保新的内存契约、
@@ -710,8 +715,9 @@ E2E；真实硬件解码、功耗与受版权内容仍属平台资格，不能�
 
 ### M9：生产资格、增量合成与发布硬化
 
-> 当前状态：**已完成（2026-08-21）**。clean checkout 的 `pnpm m9:check` 已全绿；产品
-> Core WASM 为 389,844 gzip bytes，比 384 KiB 工程门禁低 3,372 bytes。详细执行方案、阶段出口、
+> 当前状态：**已完成（2026-08-21）**。clean checkout 的全量工程门禁已全绿；出口时产品
+> Core WASM 为 389,844 gzip bytes，比 384 KiB 工程门禁低 3,372 bytes（2026-08-25 复核值见
+> [`wasm-size-attribution.md`](wasm-size-attribution.md)）。详细执行方案、阶段出口、
 > 失败模式和回滚路径见 [`m9-production-plan.md`](m9-production-plan.md)。M9 只硬化已交付能力，不把
 > bidi、二维虚拟化、复杂 CSS、WebGPU 默认启用或 overlay 布局混入本阶段。
 
@@ -731,8 +737,9 @@ E2E；真实硬件解码、功耗与受版权内容仍属平台资格，不能�
 - 对 bidi、placeholder/overlay、二维虚拟化、复杂 CSS、WebGPU 和独立 DevTools UI
   形成 Adopt / Defer / Reject 决策，不在 M9 内实现。
 
-M9 工程出口命令为 `pnpm m9:check`，完整串联 `pnpm m8:check`，并加入 Picture
-资源/差分/性能、WASM 384 KiB 余量、资格审计器、加速 soak、发布 tarball 与回滚演练。
+M9 工程出口命令为 `pnpm release:gate`，它完整串联 `pnpm check:full`（M0→M8 全部回归），
+并加入 Picture 资源/差分/性能、WASM 384 KiB 余量、资格审计器、加速 soak、发布 tarball
+与回滚演练。逐里程碑的 `m8:check`/`m9:check` 链已在 `843e6fb` 合并为这两个可运行门禁。
 真实设备、IME、屏幕阅读器、媒体功耗和 DRM 证据只决定对应 role 是否 `qualified`，缺失时
 保持 `unqualified`；它们不改变自动化工程里程碑状态，也不得由模拟数据替代。
 完成时七个资格角色均为 `unqualified`，六类 M10 候选均为 Defer；候选报告确认未创建 tag、

@@ -1,9 +1,11 @@
 # M9 生产资格、增量合成与发布硬化计划
 
-> 状态：**已完成（2026-08-21）**。clean checkout 的 `pnpm m9:check` 已通过；产品 Core
+> 状态：**已完成（2026-08-21）**。clean checkout 的全量工程门禁已通过；出口时产品 Core
 > WASM 为 389,844 gzip bytes（比 384 KiB 门禁低 3,372 bytes），候选检查未产生外部状态
 >
-> 前置：M8 工程门禁已完成；开始实现前必须保持 `pnpm m8:check` 全绿
+> 出口命令：`pnpm release:gate`（内含 `pnpm check:full`）。本文写作时的
+> `m9:check`/`m8:check` 链已在 `843e6fb` 合并为这两个可运行门禁，下文沿用当时的阶段
+> 名称，但命令一律以 package.json 为准
 >
 > 总计划：[`plan.md`](plan.md)
 >
@@ -170,12 +172,14 @@ API、Scene、Mutation Stream 或业务 durable state。
 
 交付：
 
-- 新增 `pnpm m9:check`，串联 `m8:check`、Picture 契约/差分/性能、WASM 余量、资格审计器、
-  deterministic soak、API/ABI 快照与 release tarball 验证。
-- 新增只读候选发布报告：commit、版本、ABI/Worker protocol、WASM digest、11 个包 digest、
+- 新增全量工程门禁（交付为 `pnpm check:full`，发布链为 `pnpm release:gate`），串联既有
+  里程碑回归、Picture 契约/差分/性能、WASM 余量、资格审计器、deterministic soak、
+  API/ABI 快照与 release tarball 验证。
+- 新增只读候选发布报告：commit、版本、ABI/Worker protocol、WASM digest、发布集全部包的 digest、
   测试结果、资格矩阵、已知限制、回滚开关和未满足支持项。
-- 把 GitHub release workflow 的全量门禁从历史 `m5:check` 升级为 `m9:check`；升级前对
-  当前 `main` fail closed，禁止创建 post-M8 tag 或发布 npm。
+- 把 GitHub release workflow 的全量门禁从历史 `m5:check` 升级为当前全量门禁
+  （`.github/workflows/release.yml` 跑 `pnpm release:gate`）；升级前对当前 `main`
+  fail closed，禁止创建 post-M8 tag 或发布 npm。
 - 每次提交运行加速 soak；定期运行真实 30 分钟 scroll/animation/edit/media 组合 soak，
   对 frame/resource/node/listener 数量设置硬预算和结束态回收断言。
 - 自动演练页面级 kill switch、Picture 优化关闭、Video 关闭、SAB→postMessage→main-thread
@@ -206,7 +210,7 @@ M9 不实现延后能力，只为每个候选项记录需求证据、性能/包�
 
 M9 只有在以下自动、可重复条件全部满足时才能声明工程完成：
 
-1. `pnpm m9:check` 在 clean checkout 全绿并完整包含 `pnpm m8:check`。
+1. `pnpm release:gate` 在 clean checkout 全绿并完整包含 `pnpm check:full` 的既往里程碑回归。
 2. Picture optimized/reference、main/postMessage/SAB、native/WASM 的正确性和资源时序门禁通过。
 3. rich-scroll 的绝对性能、复杂度不变量、200ms stall 和资源预算通过。
 4. 产品 Core WASM clean build `≤ 384 KiB` gzip且冷启动 `< 50ms`。
