@@ -5,6 +5,10 @@
 .pui-checkbox {
   align-items: center;
   cursor: pointer;
+  color: t.$foreground;
+  &.pui-dark {
+    color: t.$dark-foreground;
+  }
 }
 
 .pui-checkbox__box {

@@ -169,6 +169,10 @@
 .pui-menu__content {
   padding: t.$popover-offset;
   row-gap: t.$zero;
+  color: t.$foreground;
+  &.pui-dark {
+    color: t.$dark-foreground;
+  }
 }
 
 .pui-menu__item {

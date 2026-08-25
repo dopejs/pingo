@@ -138,6 +138,10 @@
 
 .pui-table {
   flex-direction: column;
+  color: t.$foreground;
+  &.pui-dark {
+    color: t.$dark-foreground;
+  }
 }
 
 // `flex: 0 0 auto`: a header row is not shrinkable. It shares the table's flex
@@ -233,6 +237,10 @@
   flex-direction: column;
   row-gap: t.$calendar-gap;
   width: t.$calendar-width;
+  color: t.$foreground;
+  &.pui-dark {
+    color: t.$dark-foreground;
+  }
 }
 
 .pui-calendar__header {

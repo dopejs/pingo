@@ -9,6 +9,10 @@
 .pui-radio {
   align-items: center;
   cursor: pointer;
+  color: t.$foreground;
+  &.pui-dark {
+    color: t.$dark-foreground;
+  }
 }
 
 .pui-radio--disabled {
