@@ -24,7 +24,7 @@ use pingo_abi::{NodeKind, Prop, StyleKeyword, StyleProperty};
 use pingo_scene::{NodeId, Scene};
 
 use crate::engine::{
-    DIRECTION_ROW, EdgeInsets, PercentBasis, flex_basis_main, has_requested_dimension,
+    DIRECTION_ROW, EdgeInsets, PercentBasis, add_insets, flex_basis_main, has_requested_dimension,
     intersect_constraints, is_tight, justify_spacing, outer_dimension, percentage_basis,
     resolve_style_length, style_border, style_margin, style_padding, subtract_insets,
 };
@@ -106,6 +106,10 @@ struct Item {
 struct Box2 {
     node: NodeId,
     insets: EdgeInsets,
+    /// Border alone: an absolutely positioned child's containing block is the
+    /// padding box, so it starts inside the border and on top of the padding.
+    border: EdgeInsets,
+    padding: EdgeInsets,
     own: BoxConstraints,
     child_constraints: BoxConstraints,
     percent: PercentBasis,
@@ -213,18 +217,18 @@ fn layout_node(
         // The container's own size, not the constraint it was measured under:
         // a column relaxes its block axis to infinity, so a slider 20px tall
         // placed its children against infinity. See `engine::arrange_children`.
-        let content = Size::new(
-            (size.width - container.insets.horizontal()).max(0.0),
-            (size.height - container.insets.vertical()).max(0.0),
+        let padding_box = Size::new(
+            (size.width - container.border.horizontal()).max(0.0),
+            (size.height - container.border.vertical()).max(0.0),
         );
-        let offset = out_of_flow_offset(scene, &container, item, content);
+        let offset = out_of_flow_offset(scene, &container, item, padding_box);
         out.geometry.insert(item.node, (offset, item.size));
     }
     Ok(size)
 }
 
 /// Where an out-of-flow child sits inside its container's padding box.
-fn out_of_flow_offset(scene: &Scene, container: &Box2, item: &Item, content: Size) -> Point {
+fn out_of_flow_offset(scene: &Scene, container: &Box2, item: &Item, padding_box: Size) -> Point {
     // Both insets auto means the static position: where the child would sit as
     // the container's only flex item. See `engine::out_of_flow_offset`.
     let (horizontal, vertical) = if container.row {
@@ -235,7 +239,7 @@ fn out_of_flow_offset(scene: &Scene, container: &Box2, item: &Item, content: Siz
     let x = axis_offset(
         scene,
         item.node,
-        content.width,
+        padding_box.width,
         item.size.width + item.margin.horizontal(),
         StyleProperty::Left,
         StyleProperty::Right,
@@ -244,13 +248,15 @@ fn out_of_flow_offset(scene: &Scene, container: &Box2, item: &Item, content: Siz
     let y = axis_offset(
         scene,
         item.node,
-        content.height,
+        padding_box.height,
         item.size.height + item.margin.vertical(),
         StyleProperty::Top,
         StyleProperty::Bottom,
         vertical,
     ) + item.margin.top;
-    Point::new(container.insets.left + x, container.insets.top + y)
+    // The padding box's corner: an absolutely positioned child sits inside the
+    // border and on the padding, not past it. See `engine::out_of_flow_offset`.
+    Point::new(container.border.left + x, container.border.top + y)
 }
 
 fn axis_offset(
@@ -658,6 +664,8 @@ fn describe(
     Ok(Box2 {
         node,
         insets,
+        border,
+        padding,
         own,
         child_constraints,
         percent,
@@ -684,12 +692,17 @@ fn child_item(scene: &Scene, container: &Box2, node: NodeId) -> Result<Item, Lay
     let margin_basis = container_margin_basis(container);
     let margins = style_margin(scene, node, margin_basis)?;
     let out_of_flow = scene.out_of_flow(node);
+    // An absolutely positioned child's containing block is the padding box.
+    let containing = PercentBasis {
+        width: add_insets(container.percent.width, container.padding.horizontal()),
+        height: add_insets(container.percent.height, container.padding.vertical()),
+    };
     let mut constraints = if out_of_flow {
         BoxConstraints {
             min_width: 0.0,
-            max_width: subtract_insets(container.percent.width, margins.values.horizontal()),
+            max_width: subtract_insets(containing.width, margins.values.horizontal()),
             min_height: 0.0,
-            max_height: subtract_insets(container.percent.height, margins.values.vertical()),
+            max_height: subtract_insets(containing.height, margins.values.vertical()),
         }
     } else {
         container.child_constraints
@@ -699,7 +712,7 @@ fn child_item(scene: &Scene, container: &Box2, node: NodeId) -> Result<Item, Lay
         constraints.max_height = subtract_insets(constraints.max_height, margins.values.vertical());
     }
     let basis = if out_of_flow {
-        container.percent
+        containing
     } else {
         PercentBasis {
             width: subtract_insets(container.percent.width, margins.values.horizontal()),

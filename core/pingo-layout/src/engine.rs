@@ -1640,9 +1640,12 @@ fn out_of_flow_input(
     margin_basis: f32,
     margin: EdgeInsets,
 ) -> Result<ChildInput, LayoutError> {
+    // The padding box, which is the containing block CSS gives an absolutely
+    // positioned child: percentages resolve against it, not against the
+    // content box its in-flow siblings share.
     let basis = PercentBasis {
-        width: parent.percent.width,
-        height: parent.percent.height,
+        width: add_insets(parent.percent.width, parent.padding.horizontal()),
+        height: add_insets(parent.percent.height, parent.padding.vertical()),
     };
     // With no size and no opposing insets the box shrinks to fit inside the
     // containing block, which is the closest this subset gets to CSS's
@@ -1710,8 +1713,9 @@ fn inset_span(
 /// CSS would use its static position, which this subset does not model.
 /// Places one out-of-flow child inside a container of a now-known size.
 ///
-/// `content` is the container's content box. It is passed rather than read off
-/// the frame because the frame's percentage basis comes from the constraint the
+/// `padding_box` is the containing block CSS gives such a child: the parent's
+/// box less its border, padding included. It is passed rather than read off the
+/// frame because the frame's percentage basis comes from the constraint the
 /// container was measured under, which for a column's block axis is infinite:
 /// a slider is 20px tall and its children were placed against infinity.
 fn out_of_flow_offset(
@@ -1719,9 +1723,8 @@ fn out_of_flow_offset(
     frame: &Frame,
     child: NodeId,
     size: Size,
-    content: Size,
+    padding_box: Size,
 ) -> Result<Point, LayoutError> {
-    let insets = frame.padding.add(frame.border);
     let margin = style_margin(scene, child, child_margin_basis(frame))?.values;
     // With both insets auto the child takes its static position, which CSS
     // defines as where it would sit if it were the container's only flex item:
@@ -1736,7 +1739,7 @@ fn out_of_flow_offset(
     let x = out_of_flow_axis(
         scene,
         child,
-        content.width,
+        padding_box.width,
         size.width + margin.horizontal(),
         StyleProperty::Left,
         StyleProperty::Right,
@@ -1745,13 +1748,15 @@ fn out_of_flow_offset(
     let y = out_of_flow_axis(
         scene,
         child,
-        content.height,
+        padding_box.height,
         size.height + margin.vertical(),
         StyleProperty::Top,
         StyleProperty::Bottom,
         vertical,
     ) + margin.top;
-    Ok(Point::new(insets.left + x, insets.top + y))
+    // The padding box's corner, so `top: 0` sits inside the border and on the
+    // padding rather than past it.
+    Ok(Point::new(frame.border.left + x, frame.border.top + y))
 }
 
 /// Where a sole flex item sits on one axis under `alignment`.
@@ -1811,10 +1816,11 @@ fn arrange_children(
     let insets = frame.padding.add(frame.border);
     // Out-of-flow children first, and whatever kind of container this is: a
     // virtual list takes its flow from Core's index but still holds a panel or
-    // an overlay the same way.
-    let content = Size::new(
-        (size.width - insets.horizontal()).max(0.0),
-        (size.height - insets.vertical()).max(0.0),
+    // an overlay the same way. Their containing block is this box's padding
+    // box, which is what CSS gives an absolutely positioned child.
+    let padding_box = Size::new(
+        (size.width - frame.border.horizontal()).max(0.0),
+        (size.height - frame.border.vertical()).max(0.0),
     );
     let mut out_of_flow = scene.first_child(frame.node);
     while let Some(node) = out_of_flow {
@@ -1828,7 +1834,7 @@ fn arrange_children(
         let child_size = *output.sizes.get(index).ok_or(LayoutError::SceneInvariant(
             "layout child has no computed size",
         ))?;
-        output.offsets[index] = out_of_flow_offset(scene, frame, node, child_size, content)?;
+        output.offsets[index] = out_of_flow_offset(scene, frame, node, child_size, padding_box)?;
     }
     if scene.virtual_list(frame.node).is_some() {
         return Ok(());
@@ -2007,6 +2013,15 @@ pub(crate) fn has_requested_dimension(
         || scene
             .style_length(node, property, 0)
             .is_some_and(|length| length.unit != StyleLengthUnit::Auto)
+}
+
+/// Grows a possibly-infinite extent, so an unbounded basis stays unbounded.
+pub(crate) fn add_insets(value: f32, insets: f32) -> f32 {
+    if value.is_infinite() {
+        value
+    } else {
+        value + insets
+    }
 }
 
 pub(crate) fn subtract_insets(value: f32, insets: f32) -> f32 {
@@ -2783,6 +2798,122 @@ mod tests {
         assert_eq!(
             engine.snapshot().geometry(filler),
             Some((Point::new(0.0, 20.0), Size::new(200.0, 10.0)))
+        );
+    }
+
+    #[test]
+    fn an_out_of_flow_child_is_placed_against_the_padding_box() {
+        // CSS gives an absolutely positioned child its parent's *padding* box
+        // as a containing block: `top: 0` sits inside the border and on top of
+        // the padding, and a percentage resolves against that box. Reading it
+        // as the content box put every such child a padding in -- a toast's
+        // close button sat twelve pixels below the corner it belongs in.
+        let mut scene = Scene::new();
+        let root = id(0);
+        let card = id(1);
+        let pinned = id(2);
+        let half = id(3);
+        commit(
+            &mut scene,
+            1,
+            vec![
+                Mutation::DefineResource {
+                    resource_id: 1,
+                    kind: ResourceKind::ComputedStyle,
+                    bytes: computed_style(&[
+                        (StyleProperty::Width, STYLE_VALUE_LENGTH, px(100.0)),
+                        (StyleProperty::Height, STYLE_VALUE_LENGTH, px(100.0)),
+                        (StyleProperty::PaddingTop, STYLE_VALUE_LENGTH, px(12.0)),
+                        (StyleProperty::PaddingRight, STYLE_VALUE_LENGTH, px(12.0)),
+                        (StyleProperty::PaddingBottom, STYLE_VALUE_LENGTH, px(12.0)),
+                        (StyleProperty::PaddingLeft, STYLE_VALUE_LENGTH, px(12.0)),
+                        (StyleProperty::BorderTopWidth, STYLE_VALUE_LENGTH, px(2.0)),
+                        (StyleProperty::BorderLeftWidth, STYLE_VALUE_LENGTH, px(2.0)),
+                        (
+                            StyleProperty::BorderTopStyle,
+                            STYLE_VALUE_KEYWORD,
+                            keyword(StyleKeyword::Solid),
+                        ),
+                        (
+                            StyleProperty::BorderLeftStyle,
+                            STYLE_VALUE_KEYWORD,
+                            keyword(StyleKeyword::Solid),
+                        ),
+                    ]),
+                },
+                Mutation::DefineResource {
+                    resource_id: 2,
+                    kind: ResourceKind::ComputedStyle,
+                    bytes: computed_style(&[
+                        (
+                            StyleProperty::Position,
+                            STYLE_VALUE_KEYWORD,
+                            keyword(StyleKeyword::Absolute),
+                        ),
+                        (StyleProperty::Top, STYLE_VALUE_LENGTH, px(0.0)),
+                        (StyleProperty::Left, STYLE_VALUE_LENGTH, px(0.0)),
+                        (StyleProperty::Width, STYLE_VALUE_LENGTH, px(10.0)),
+                        (StyleProperty::Height, STYLE_VALUE_LENGTH, px(10.0)),
+                    ]),
+                },
+                Mutation::DefineResource {
+                    resource_id: 3,
+                    kind: ResourceKind::ComputedStyle,
+                    bytes: computed_style(&[
+                        (
+                            StyleProperty::Position,
+                            STYLE_VALUE_KEYWORD,
+                            keyword(StyleKeyword::Absolute),
+                        ),
+                        (StyleProperty::Top, STYLE_VALUE_LENGTH, percent(50.0)),
+                        (StyleProperty::Left, STYLE_VALUE_LENGTH, px(0.0)),
+                        (StyleProperty::Width, STYLE_VALUE_LENGTH, percent(50.0)),
+                        (StyleProperty::Height, STYLE_VALUE_LENGTH, px(4.0)),
+                    ]),
+                },
+                create(root, NodeKind::Root, None),
+                create(card, NodeKind::Container, Some(root)),
+                create(pinned, NodeKind::Container, Some(card)),
+                create(half, NodeKind::Container, Some(card)),
+                Mutation::SetRef {
+                    node_id: card.raw(),
+                    prop: Prop::ComputedStyle,
+                    resource_id: 1,
+                },
+                Mutation::SetRef {
+                    node_id: pinned.raw(),
+                    prop: Prop::ComputedStyle,
+                    resource_id: 2,
+                },
+                Mutation::SetRef {
+                    node_id: half.raw(),
+                    prop: Prop::ComputedStyle,
+                    resource_id: 3,
+                },
+            ],
+        );
+        let mut engine = LayoutEngine::new();
+        engine
+            .layout(
+                &scene,
+                BoxConstraints::tight(Size::new(200.0, 200.0)).expect("viewport"),
+                &mut ZeroIntrinsicMeasurer,
+            )
+            .expect("layout");
+
+        // `top: 0; left: 0` lands on the border's inside edge, not a padding
+        // further in. It was at (14, 14) before.
+        assert_eq!(
+            engine.snapshot().geometry(pinned),
+            Some((Point::new(2.0, 2.0), Size::new(10.0, 10.0)))
+        );
+        // Percentages take the padding box too. `box-sizing` is CSS's
+        // content-box default, so the declared 100 plus 24 of padding and a
+        // 2px border is a 126 border box and a 124 padding box: half is 62,
+        // not half of the 100 its in-flow siblings share.
+        assert_eq!(
+            engine.snapshot().geometry(half),
+            Some((Point::new(2.0, 2.0 + 62.0), Size::new(62.0, 4.0)))
         );
     }
 
@@ -4080,16 +4211,17 @@ mod tests {
             )
             .expect("layout");
 
-        // Content box is 100x60 inside 10px padding.
-        // Pinned: right 5 from the content edge, bottom 5 likewise.
+        // The containing block is the root's padding box -- 120x80, since it
+        // has padding but no border -- not the 100x60 its in-flow children
+        // share. Pinned: 5 from the padding box's right and bottom edges.
         assert_eq!(
             engine.snapshot().geometry(pinned),
-            Some((Point::new(10.0 + 75.0, 10.0 + 45.0), Size::new(20.0, 10.0)))
+            Some((Point::new(95.0, 65.0), Size::new(20.0, 10.0)))
         );
-        // Stretched: 100 - 4 - 6 wide, top at half the content height.
+        // Stretched: 120 - 4 - 6 wide, top at half the padding box's height.
         assert_eq!(
             engine.snapshot().geometry(stretched),
-            Some((Point::new(14.0, 40.0), Size::new(90.0, 8.0)))
+            Some((Point::new(4.0, 40.0), Size::new(110.0, 8.0)))
         );
         // The in-flow child is untouched: nothing out of flow took a slot.
         assert_eq!(
