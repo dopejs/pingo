@@ -1,12 +1,19 @@
 # Changelog
 
-版本口径见 `docs/release.md`：11 个包同版本原子发布，npm semver 与二进制
-ABI 版本独立管理。
+版本口径见 `docs/release.md`：13 个包同版本原子发布，npm semver 与二进制
+ABI 版本独立管理。本文、面向用户的 `apps/site/content/changelog.md` 及其九份翻译必须
+覆盖同一组已发布版本，由 `scripts/check-changelog-sync.test.mjs` 强制；各份详略与读者
+不同，但不得缺少其他份已经记录的版本。
 
-## Unreleased
+## 0.3.1 - 2026-08-25
 
-- 项目许可证从下一次 npm 发布起由 MIT 切换为 Apache-2.0；v0.2.1 及以前
-  的已发布版本仍保持 MIT。
+- `@dopejs/pingo-ui` 加入发布集，与引擎同版本发布。它此前只存在于仓库与文档站，
+  发布集里没有它，所以 46 个组件有文档却装不到。纳入发布集同时打开了它的产物校验：
+  必需文件、法律文件、workspace 依赖改写与依赖闭包。
+
+## 0.3.0 - 2026-08-25
+
+- 项目许可证自本版起由 MIT 切换为 Apache-2.0；v0.2.1 及以前的已发布版本仍保持 MIT。
 - ABI 17 新增事务化 Picture 资源流；Core 可复用 immutable 子树，Canvas2D 后端原子安装、
   引用和释放资源，并保留 `incrementalPicturesEnabled` 内联回退开关。
 - M9 增加 rich-scroll 性能/复杂度门禁、optimized/inline 像素差分、native/WASM 生命周期
@@ -15,6 +22,21 @@ ABI 版本独立管理。
   真机资格，因此没有新增平台支持声明。
 - 候选发布检查会验证包、WASM、资格状态、回滚开关和副作用，但不会创建 tag、发布 npm、
   创建 GitHub Release 或修改线上配置；六类 M10 候选能力均继续 Defer。
+- 虚拟列表的项跨列表拉伸，表体行因此与表头列宽对齐；包装盒的布局归 Core，不进入样式级联。
+- 可滚动容器里被拉伸的子节点重新拿回确定的交叉尺寸与百分比基准。
+- flex 项获得 CSS 的 automatic minimum size（仅块轴）。CSS 子集升至 1.8.0，
+  `min-width`/`min-height` 初始值由 `0px` 改为 CSS 的 `auto`。
+- 发布链：npm 发布集与产物清单改为从校验器的 `RELEASE_PACKAGES` 派生，未经校验的包
+  发不出去；可复现构建校验移到门禁链尾，证据与真正发布的产物绑定。
+
+## 0.2.1 - 2026-08-20
+
+- 公开幂等且可重试的 `initializeWasm`，业务可以自行编排 WASM loading；默认 Storybook
+  loading 改为轻量延迟展示，Worker 初始化复用同一入口。
+- 双时钟 Playground 改为进入页面即持续的百万行虚拟滚动；按钮只阻塞主线程，不再
+  启动或重置滚动状态。
+- 新增 Core/Worker 时钟持有的恒速程序化滚动 `setScrollVelocity`；Input Stream
+  增加对应命令，ABI 版本 10 → 11。
 
 ## 0.2.0
 

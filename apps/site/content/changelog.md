@@ -4,7 +4,7 @@ title: 变更日志
 
 # Changelog
 
-版本口径见 `docs/release.md`：12 个包同版本原子发布，npm semver 与二进制
+版本口径见 `docs/release.md`：13 个包同版本原子发布，npm semver 与二进制
 ABI 版本独立管理。
 
 ## 0.3.1 - 2026-08-25
