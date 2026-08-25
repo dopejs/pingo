@@ -2,7 +2,7 @@ import { memo, Svg, Text, View, type PingoEvent, type PingoNode } from "@dopejs/
 import { useSignal } from "@dopejs/pingo-runtime";
 
 import { CheckIcon } from "../icons";
-import { classes, skin, useTheme } from "../theme";
+import { classes, skin } from "../theme";
 
 // Type alias (not interface) so the implicit index signature satisfies
 // memo's Props extends Record<string, unknown> constraint.
@@ -24,8 +24,6 @@ export function checkboxDescriptor(
   checked: boolean,
   toggle: () => void,
 ): PingoNode {
-  const theme = useTheme();
-  const dark = theme === "dark";
   const disabled = props.disabled === true;
   return View({
     className: skin(
@@ -45,18 +43,12 @@ export function checkboxDescriptor(
         }),
     children: [
       View({
-        className: [
-          "pui-checkbox__box",
-          checked ? "pui-checkbox__box--checked" : undefined,
-          dark ? "pui-dark" : undefined,
-        ]
-          .filter((part) => part !== undefined)
-          .join(" "),
+        className: skin(
+          classes("pui-checkbox__box", checked ? "pui-checkbox__box--checked" : undefined),
+        ),
         children: checked
           ? Svg({
-              className: ["pui-checkbox__indicator", dark ? "pui-dark" : undefined]
-                .filter((part) => part !== undefined)
-                .join(" "),
+              className: skin("pui-checkbox__indicator"),
               source: CheckIcon,
             })
           : null,
@@ -65,9 +57,7 @@ export function checkboxDescriptor(
         ? []
         : [
             Text({
-              className: ["pui-label", "pui-checkbox__label", dark ? "pui-dark" : undefined]
-                .filter((part) => part !== undefined)
-                .join(" "),
+              className: skin(classes("pui-label", "pui-checkbox__label")),
               value: props.label,
             }),
           ]),

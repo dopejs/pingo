@@ -14,7 +14,7 @@ import {
   useOverlayFocus,
   type OverlayFocus,
 } from "../overlay";
-import { skin, useTheme } from "../theme";
+import { skin } from "../theme";
 
 // Type aliases (not interfaces) so the implicit index signature satisfies
 // memo's Props extends Record<string, unknown> constraint.
@@ -47,7 +47,6 @@ export function dialogDescriptor(
   side: SheetSide = "right",
 ): PingoNode {
   if (!props.open) return null;
-  const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   const close = (): void => props.onOpenChange?.(false);
   return View({
     className: classes(
@@ -64,13 +63,14 @@ export function dialogDescriptor(
         onClick: close,
       }),
       View({
-        className: classes(
-          "pui-overlay__panel",
-          variant === "sheet" ? "pui-sheet__panel" : undefined,
-          // One modifier per side rather than only the non-default one: a
-          // bottom sheet and a right sheet differ in axis, not just in margin.
-          variant === "sheet" ? `pui-sheet__panel--${side}` : undefined,
-          dark,
+        className: skin(
+          classes(
+            "pui-overlay__panel",
+            variant === "sheet" ? "pui-sheet__panel" : undefined,
+            // One modifier per side rather than only the non-default one: a
+            // bottom sheet and a right sheet differ in axis, not just in margin.
+            variant === "sheet" ? `pui-sheet__panel--${side}` : undefined,
+          ),
         ),
         // Core delivers keys to the focused node, so the panel takes focus as
         // it mounts and gives it back when it goes.
@@ -122,9 +122,8 @@ export function dialogTriggerRef(focus: OverlayFocus): (handle: NodeHandle | nul
 }
 
 function section(name: string, props: DialogSection, themed: boolean): PingoNode {
-  const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   return View({
-    className: classes(name, themed ? dark : undefined, props.className),
+    className: themed ? skin(name, props.className) : classes(name, props.className),
     children: props.children,
   });
 }

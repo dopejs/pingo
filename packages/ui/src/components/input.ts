@@ -10,7 +10,7 @@ import {
 } from "@dopejs/pingo-jsx";
 import { useMemo, useRef, type RefObject } from "@dopejs/pingo-runtime";
 
-import { classes, skin, useTheme } from "../theme";
+import { classes, skin } from "../theme";
 
 // Type alias (not interface) so the implicit index signature satisfies
 // memo's Props extends Record<string, unknown> constraint.
@@ -74,12 +74,11 @@ export function inputDescriptor(
   field?: RefObject<NodeHandle | null>,
   attach?: (handle: NodeHandle | null) => void,
 ): PingoNode {
-  const theme = useTheme();
   const disabled = props.disabled === true;
   const readOnly = disabled || props.readOnly === true;
   // pingo has no descendant selectors, so each themed element carries its own
   // dark marker, matching the Card sub-element convention.
-  const slotClass = (name: string): string => (theme === "dark" ? `${name} pui-dark` : name);
+  const slotClass = (name: string): string => skin(name);
   return View({
     className: skin(
       classes("pui-input", disabled ? "pui-input--disabled" : undefined),

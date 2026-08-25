@@ -2,7 +2,7 @@ import { memo, Svg, Text, View, type PingoEvent, type PingoNode } from "@dopejs/
 
 import { CloseIcon } from "../icons";
 import { classes } from "../overlay";
-import { skin, useTheme } from "../theme";
+import { skin } from "../theme";
 
 export type ToastVariant = "default" | "destructive";
 
@@ -19,7 +19,6 @@ export type ToastProps = {
 /** Pure builder: safe to call without a component scope (tests use this). */
 export function toastDescriptor(props: ToastProps): PingoNode {
   if (!props.open) return null;
-  const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   const destructive = props.variant === "destructive";
   return View({
     className: skin(
@@ -35,10 +34,7 @@ export function toastDescriptor(props: ToastProps): PingoNode {
             Text({
               // A destructive toast already inverts its foreground; muting it
               // again would put grey on red.
-              className: classes(
-                destructive ? undefined : "pui-toast__description",
-                destructive ? undefined : dark,
-              ),
+              className: destructive ? "" : skin("pui-toast__description"),
               value: props.description,
             }),
           ]),

@@ -12,7 +12,7 @@ import { createContext, useContext, useMemo, useSignal } from "@dopejs/pingo-run
 
 import { ChevronDownIcon } from "../icons";
 import { orderedValues, step } from "../keyboard";
-import { skin, useTheme } from "../theme";
+import { skin } from "../theme";
 
 export type AccordionContextValue = {
   readonly openValue: string | undefined;
@@ -114,17 +114,13 @@ export function accordionItemDescriptor(
   props: AccordionItemProps,
   context: AccordionContextValue | undefined,
 ): PingoNode {
-  const theme = useTheme();
-  const dark = theme === "dark";
   const open = context?.openValue === props.value;
   const toggle = (): void => context?.onToggle(props.value);
   return View({
     className: skin("pui-accordion__item", props.className),
     children: [
       View({
-        className: ["pui-accordion__trigger", dark ? "pui-dark" : undefined]
-          .filter((part) => part !== undefined)
-          .join(" "),
+        className: skin("pui-accordion__trigger"),
         direction: "row",
         semanticRole: "button",
         semanticValue: open ? "open" : "closed",
@@ -144,18 +140,14 @@ export function accordionItemDescriptor(
           // gives it a box: an Svg with no size collapses to 0x0 and the
           // trigger's `space-between` has nothing to push apart.
           Svg({
-            className: ["pui-accordion__indicator", dark ? "pui-dark" : undefined]
-              .filter((part) => part !== undefined)
-              .join(" "),
+            className: skin("pui-accordion__indicator"),
             source: ChevronDownIcon,
             ...(open ? { style: { transform: "rotate(180deg)" } } : {}),
           }),
         ],
       }),
       View({
-        className: ["pui-accordion__content", dark ? "pui-dark" : undefined]
-          .filter((part) => part !== undefined)
-          .join(" "),
+        className: skin("pui-accordion__content"),
         // display:none preserves content state instead of unmounting it.
         style: { display: open ? "flex" : "none" },
         children: props.children,

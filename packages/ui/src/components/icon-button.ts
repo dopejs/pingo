@@ -2,7 +2,7 @@ import { memo, type PingoNode } from "@dopejs/pingo-jsx";
 import { Pressable } from "@dopejs/pingo-widgets";
 
 import { cva } from "../cva";
-import { useTheme } from "../theme";
+import { skin } from "../theme";
 import type { ButtonVariant } from "./button";
 
 export type IconButtonSize = "default" | "sm" | "lg";
@@ -32,21 +32,17 @@ const iconButtonClass = cva({
       destructive: "pui-button--destructive",
     },
     size: { default: "", sm: "pui-button--sm", lg: "pui-button--lg" },
-    theme: { light: "", dark: "pui-dark" },
     disabled: { true: "pui-button--disabled" },
   },
   defaultVariants: { variant: "default", size: "default" },
 });
 
 function IconButtonImpl(props: IconButtonProps): PingoNode {
-  const theme = useTheme();
   const disabled = props.disabled === true;
-  const className = [
-    iconButtonClass({ variant: props.variant, size: props.size, theme, disabled }),
+  const className = skin(
+    iconButtonClass({ variant: props.variant, size: props.size, disabled }),
     props.className,
-  ]
-    .filter((part) => part !== undefined && part !== "")
-    .join(" ");
+  );
   return Pressable({
     className,
     disabled,

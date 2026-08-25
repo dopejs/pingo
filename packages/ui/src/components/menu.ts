@@ -13,7 +13,7 @@ import { createContext, useContext, useMemo, useSignal } from "@dopejs/pingo-run
 import { ChevronDownIcon } from "../icons";
 import { labelledValues, orderedValues, step } from "../keyboard";
 import { classes, escapeHandler, useOverlayFocus, type OverlayFocus } from "../overlay";
-import { skin, useTheme } from "../theme";
+import { skin } from "../theme";
 import { anchorDescriptor } from "./popover";
 import { useAnchoredPlacement, type AnchoredPlacement } from "../use-anchored";
 
@@ -145,17 +145,16 @@ export function menuTriggerDescriptor(
   context: MenuContextValue | undefined,
   select: boolean,
 ): PingoNode {
-  const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   const toggle = (): void => context?.setOpen(context.open !== true);
   const selected = context?.value;
   const label =
     selected === undefined ? props.placeholder : (context?.labelFor(selected) ?? selected);
   return View({
-    className: classes(
-      select ? "pui-select__trigger" : "pui-anchor__trigger",
-      select ? dark : undefined,
-      props.className,
-    ),
+    // Only a select's trigger is a themed surface; a dropdown trigger is the
+    // caller's own node and carries the caller's skin.
+    className: select
+      ? skin("pui-select__trigger", props.className)
+      : classes("pui-anchor__trigger", props.className),
     semanticRole: "button",
     semanticValue: context?.open === true ? "expanded" : "collapsed",
     ...(context === undefined ? {} : { ref: context.focus.trigger }),
@@ -167,10 +166,7 @@ export function menuTriggerDescriptor(
       // says it opens something. A dropdown trigger is the caller's node.
       [
         Text({
-          className: classes(
-            context?.value === undefined ? "pui-select__placeholder" : undefined,
-            context?.value === undefined ? dark : undefined,
-          ),
+          className: context?.value === undefined ? skin("pui-select__placeholder") : "",
           value: label ?? "",
         }),
         select ? Svg({ className: skin("pui-select__indicator"), source: ChevronDownIcon }) : null,
@@ -199,16 +195,16 @@ export function menuContentDescriptor(
   select = false,
 ): PingoNode {
   if (context?.open !== true) return null;
-  const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   const values = orderedValues(props.children);
   return View({
-    className: classes(
-      "pui-anchor__content",
-      "pui-menu__content",
-      // A select's list is its trigger's, so it follows that width; a dropdown
-      // menu is its own surface and keeps the popover default.
-      select ? "pui-select__content" : undefined,
-      dark,
+    className: skin(
+      classes(
+        "pui-anchor__content",
+        "pui-menu__content",
+        // A select's list is its trigger's, so it follows that width; a dropdown
+        // menu is its own surface and keeps the popover default.
+        select ? "pui-select__content" : undefined,
+      ),
       props.className,
     ),
     semanticRole: "menu",

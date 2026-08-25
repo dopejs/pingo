@@ -1,6 +1,6 @@
 import { memo, View, type PingoNode } from "@dopejs/pingo-jsx";
 
-import { skin, useTheme } from "../theme";
+import { skin } from "../theme";
 
 // Type alias (not interface) so the implicit index signature satisfies
 // memo's Props extends Record<string, unknown> constraint.
@@ -11,15 +11,13 @@ export type ProgressProps = {
 };
 
 function ProgressImpl(props: ProgressProps): PingoNode {
-  const theme = useTheme();
-  const dark = theme === "dark" ? "pui-dark" : undefined;
   const max = Math.max(1, props.max ?? 100);
   const pct = Math.min(100, Math.max(0, (props.value / max) * 100));
   const className = skin("pui-progress", props.className);
   return View({
     className,
     children: View({
-      className: ["pui-progress__indicator", dark].filter((part) => part !== undefined).join(" "),
+      className: skin("pui-progress__indicator"),
       style: { width: `${pct}%` },
     }),
   });

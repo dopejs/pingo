@@ -10,7 +10,7 @@ import {
 import { createContext, useContext, useMemo, useSignal } from "@dopejs/pingo-runtime";
 
 import { orderedValues, step } from "../keyboard";
-import { classes, skin, useTheme } from "../theme";
+import { classes, skin } from "../theme";
 
 export type RadioGroupContextValue = {
   readonly value: string | undefined;
@@ -110,8 +110,6 @@ export function radioGroupItemDescriptor(
   props: RadioGroupItemProps,
   context: RadioGroupContextValue | undefined,
 ): PingoNode {
-  const theme = useTheme();
-  const dark = theme === "dark";
   const checked = context?.value === props.value;
   const disabled = context?.disabled === true;
   const select = (): void => context?.onSelect(props.value);
@@ -133,14 +131,10 @@ export function radioGroupItemDescriptor(
         }),
     children: [
       View({
-        className: ["pui-radio__circle", dark ? "pui-dark" : undefined]
-          .filter((part) => part !== undefined)
-          .join(" "),
+        className: skin("pui-radio__circle"),
         children: checked
           ? View({
-              className: ["pui-radio__indicator", dark ? "pui-dark" : undefined]
-                .filter((part) => part !== undefined)
-                .join(" "),
+              className: skin("pui-radio__indicator"),
             })
           : null,
       }),
@@ -148,9 +142,7 @@ export function radioGroupItemDescriptor(
         ? []
         : [
             Text({
-              className: ["pui-label", "pui-radio__label", dark ? "pui-dark" : undefined]
-                .filter((part) => part !== undefined)
-                .join(" "),
+              className: skin(classes("pui-label", "pui-radio__label")),
               value: props.label,
             }),
           ]),

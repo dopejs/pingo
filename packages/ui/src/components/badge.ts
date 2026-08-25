@@ -1,7 +1,7 @@
 import { memo, Text, View, type PingoNode } from "@dopejs/pingo-jsx";
 
 import { cva } from "../cva";
-import { useTheme } from "../theme";
+import { skin } from "../theme";
 
 export type BadgeVariant = "default" | "secondary" | "destructive" | "outline";
 
@@ -23,16 +23,12 @@ const badgeClass = cva({
       destructive: "pui-badge--destructive",
       outline: "pui-badge--outline",
     },
-    theme: { light: "", dark: "pui-dark" },
   },
   defaultVariants: { variant: "default" },
 });
 
 function BadgeImpl(props: BadgeProps): PingoNode {
-  const theme = useTheme();
-  const className = [badgeClass({ variant: props.variant, theme }), props.className]
-    .filter((part) => part !== undefined && part !== "")
-    .join(" ");
+  const className = skin(badgeClass({ variant: props.variant }), props.className);
   return View({
     className,
     ...(props.semanticLabel === undefined ? {} : { semanticLabel: props.semanticLabel }),
