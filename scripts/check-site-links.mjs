@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
@@ -43,8 +44,40 @@ for (const file of files) {
   }
 }
 
+// The same rot one level out: a link from any markdown file in the repository
+// to a file that is not there. Moving the site's pages out of `docs/` broke
+// five of these at once, in engineering plans and in the README, and none of
+// them fail a build or render as anything but an ordinary link.
+const repositoryRoot = path.resolve(import.meta.dirname, "..");
+const SKIPPED = new Set(["node_modules", "dist", "dist-pages", ".git", "target", "coverage"]);
+
+async function repositoryMarkdown(directory) {
+  const files = [];
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    if (SKIPPED.has(entry.name)) continue;
+    const absolute = path.join(directory, entry.name);
+    if (entry.isDirectory()) files.push(...(await repositoryMarkdown(absolute)));
+    else if (entry.name.endsWith(".md")) files.push(absolute);
+  }
+  return files;
+}
+
+for (const file of await repositoryMarkdown(repositoryRoot)) {
+  const source = await readFile(file, "utf8");
+  for (const match of source.matchAll(/\]\(([^)\s#<]+)(?:#[^)\s]*)?\)/gu)) {
+    const target = match[1];
+    // Absolute site routes are the check above; URLs are nobody's.
+    if (/^[a-z]+:/iu.test(target) || target.startsWith("/")) continue;
+    if (!existsSync(path.resolve(path.dirname(file), target))) {
+      problems.push(`${path.relative(repositoryRoot, file)}: ${target} does not exist`);
+    }
+  }
+}
+
 if (problems.length > 0) {
   process.stderr.write(`${problems.join("\n")}\n`);
   process.exit(1);
 }
-process.stdout.write(`site links: ${String(routes.size)} pages, every in-site link resolves\n`);
+process.stdout.write(
+  `site links: ${String(routes.size)} pages, every in-site link and repository path resolves\n`,
+);

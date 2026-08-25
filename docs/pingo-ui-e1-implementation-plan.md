@@ -51,7 +51,7 @@
 - [x] `PingoEvent` 增 `"keydown" | "keyup"` 与 `key` / `code` / `repeat`。
 - [x] `CommonProps` 增 `onKeyDown(Capture)` / `onKeyUp(Capture)`。
 - [x] 事件类型映射表与 `eventBubbles` 更新（键事件冒泡）。
-- [x] `pnpm api:check` 快照按 docs/api/index.md 程序更新。
+- [x] `pnpm api:check` 快照按 apps/site/content/api/index.md 程序更新。
 
 ### Task E1-5: Host 监听与三 transport 一致性
 

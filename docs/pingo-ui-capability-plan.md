@@ -3,7 +3,7 @@
 > 状态：草案
 > 关联文档：[`css-events-plan.md`](./css-events-plan.md)、[`scss-less-support.md`](./scss-less-support.md)、
 > [`m10-capability-decisions.md`](./m10-capability-decisions.md)、[`design.md`](./design.md) §12.1、
-> [`style-support.md`](./style-support.md)
+> [`style-support.md`](../apps/site/content/guide/style-support.md)
 > 定位：以 shadcn 式组件库（`@dopejs/pingo-ui`）为目标的产品与工程方案。
 > 本文档取代 2026-08-21 前一版《pingo-ui 基础能力补齐方案》。
 

@@ -1,6 +1,6 @@
 # E6 组件级 memo 实现计划
 
-> **状态：已全部执行完成（2026-08-21，`a923e61…abc3d8d`）。** 进度权威记录见 `pingo-ui-implementation-plan.md` 进度总览。实施偏差：isMemoComponent 用 in-narrowing（repo lint 规则）；AnyPingoElement 擦除字段一并拓宽；组件 props interface 改 type alias（memo 泛型约束）；facade API 快照按 docs/api/index.md 程序更新。
+> **状态：已全部执行完成（2026-08-21，`a923e61…abc3d8d`）。** 进度权威记录见 `pingo-ui-implementation-plan.md` 进度总览。实施偏差：isMemoComponent 用 in-narrowing（repo lint 规则）；AnyPingoElement 擦除字段一并拓宽；组件 props interface 改 type alias（memo 泛型约束）；facade API 快照按 apps/site/content/api/index.md 程序更新。
 
 > **For agentic workers:** REQUIRED SUB-SKILL: superpowers:subagent-driven-development. Steps use checkbox syntax.
 

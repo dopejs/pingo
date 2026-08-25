@@ -367,7 +367,7 @@ git commit -m "feat(reconciler): wire context providers through the owner chain"
 **Files:**
 
 - Modify: `packages/facade/src/index.ts`
-- Modify: `benchmarks/api/facade.v1.d.ts`（按 docs/api/index.md 程序更新快照）
+- Modify: `benchmarks/api/facade.v1.d.ts`（按 apps/site/content/api/index.md 程序更新快照）
 
 - [ ] **Step 1: facade 导出** createContext/useContext/isContextProvider + 类型
       （PingoContext/ContextProvider/ContextProviderProps），放既有 runtime re-export 块。

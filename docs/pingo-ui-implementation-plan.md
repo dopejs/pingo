@@ -288,7 +288,7 @@ TopBar 的标题列、StatCard 的数值、ListRow 的文本列都是伸缩件�
 ## 验收标准（每步出口的固化门禁）
 
 所有步骤的通用门禁（缺一不可）：`pnpm test:run` 全绿、`pnpm typecheck` 全绿、
-`pnpm api:check` 通过（公开面变更必须按 docs/api/index.md 程序更新快照并说明理由）、
+`pnpm api:check` 通过（公开面变更必须按 apps/site/content/api/index.md 程序更新快照并说明理由）、
 凡动 `core/` 必须 `pnpm rust:test`（禁止裸 cargo）、凡动 ABI 必须 golden bytes +
 TS/Rust 往返 + malformed-input/fuzz。
 

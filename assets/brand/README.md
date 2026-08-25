@@ -4,8 +4,7 @@
 
 The mark is a **pixel P**: a coarse pixel grid forming the letter P, with one
 pixel detached above the bowl — the pixel being placed. It reads as both
-"canvas/raster" and "work in progress". Full design spec:
-[`docs/superpowers/specs/2026-08-20-pingo-logo-design.md`](../../docs/superpowers/specs/2026-08-20-pingo-logo-design.md).
+"canvas/raster" and "work in progress".
 
 ## Files
 

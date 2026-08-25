@@ -113,7 +113,7 @@ hosted-root.ts}`
       告警约定，凭空发明一个不如给一个可断言的计数；Core 侧的拒绝另有
       `frameDiagnostics.observeGeometryRejected`。
 - [x] 单测：订阅/退订对称、快速开关不泄漏观察、selector 稳定性。
-- [x] `pnpm api:check` 快照按 `docs/api/index.md` 程序更新。
+- [x] `pnpm api:check` 快照按 `apps/site/content/api/index.md` 程序更新。
 
 ### Task E8-6: 定位策略纯函数
 

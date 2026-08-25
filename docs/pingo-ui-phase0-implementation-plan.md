@@ -10,7 +10,7 @@
 
 **Tech Stack:** pnpm workspace、tsc 构建、vitest、dart-sass（经 style-preprocess）、Storybook html-vite。
 
-**Spec:** [`docs/pingo-ui-capability-plan.md`](../pingo-ui-capability-plan.md)（§4 包结构、§5 主题模型、§6 API 契约、§8 第一批）。
+**Spec:** [`docs/pingo-ui-capability-plan.md`](./pingo-ui-capability-plan.md)（§4 包结构、§5 主题模型、§6 API 契约、§8 第一批）。
 
 ## 已验证的引擎事实（实现约束）
 

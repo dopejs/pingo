@@ -11,7 +11,7 @@
 
 <p align="center">
   <a href="https://www.npmjs.com/package/@dopejs/pingo"><img alt="npm" src="https://img.shields.io/npm/v/@dopejs/pingo?color=2f6bff&label=%40dopejs%2Fpingo"></a>
-  <a href="docs/changelog.md"><img alt="changelog" src="https://img.shields.io/badge/changelog-read-2f6bff"></a>
+  <a href="https://pingo.dopejs.com/changelog"><img alt="changelog" src="https://img.shields.io/badge/changelog-read-2f6bff"></a>
   <a href="LICENSE"><img alt="license" src="https://img.shields.io/badge/license-Apache--2.0-blue"></a>
   <a href="https://pingo.dopejs.com"><img alt="docs" src="https://img.shields.io/badge/docs-pingo.dopejs.com-2f6bff"></a>
 </p>
@@ -122,7 +122,7 @@ pnpm add @dopejs/pingo-ui
 
 **目前没有**：CSS 选择器与层叠的完整兼容、SSR 与 HTML 首屏、`flex-wrap`、渐变与图案
 填充、图表。样式子集的逐条偏差见
-[样式支持表](https://pingo.dopejs.com/style-support)。
+[样式支持表](https://pingo.dopejs.com/guide/style-support)。
 
 ## 参与开发
 

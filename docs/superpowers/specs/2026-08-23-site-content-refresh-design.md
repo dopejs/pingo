@@ -21,9 +21,9 @@
 现有 CSS 内容（`apps/site/content/guide/style-support.md` 生成表、`docs/scss-less-support.md`）是内部
 设计/参考文档，缺用户向指南。新增：
 
-1. `docs/guide/styling.md` — 样式使用指南：CSS subset 用法、类选择器/继承/计算样式
+1. `apps/site/content/guide/styling.md` — 样式使用指南：CSS subset 用法、类选择器/继承/计算样式
    的边界、与内联 prop 的优先级、动画支持标注。
-2. `docs/guide/scss-less.md` — SCSS/Less 使用指南：构建期编译管线、Vite 插件用法、
+2. `apps/site/content/guide/scss-less.md` — SCSS/Less 使用指南：构建期编译管线、Vite 插件用法、
    安全边界（Sass/Less 不进浏览器 bundle/Core）、source map 与错误诊断。
 3. `apps/site/content/guide/style-support.md`（脚本生成，勿手改）挂入导航作为参考页，标注 subset 版本；
    `scss-less-support.md` 保持内部设计文档，不进导航。
@@ -65,8 +65,8 @@
 
 ## D. 首页与现有页面更新
 
-- `docs/index.md` hero/features：补充基础组件、CSS/SCSS/Less、UI 组件库三个能力点。
-- `docs/guide/getting-started.md`、`docs/guide/architecture.md`：更新能力描述，
+- `apps/site/content/index.md` hero/features：补充基础组件、CSS/SCSS/Less、UI 组件库三个能力点。
+- `apps/site/content/guide/getting-started.md`、`apps/site/content/guide/architecture.md`：更新能力描述，
   交叉链接新页面。
 - `apps/site/content.mjs` 的 `navigationOrder()` 加入 styling/scss-less/基础组件/
   Components 入口。
