@@ -7,7 +7,7 @@ pnpm add @dopejs/pingo
 ```
 
 Votre application ne dépend que du package `@dopejs/pingo`. `@dopejs/pingo-host`, `@dopejs/pingo-jsx` et les autres sont des packages d'implémentation interne,
-ils ne font pas partie du contrat public — le [scanner de migration](/migration) refusera toute importation directe de ces derniers.
+ils ne font pas partie du contrat public — le [scanner de migration](/guide/migration) refusera toute importation directe de ces derniers.
 
 ## Monter votre premier canvas
 
@@ -115,7 +115,7 @@ const root = await createHostedCanvasRoot(canvas, {
 ```
 
 `onFrame` fournit à chaque frame le nombre de commandes, la taille en octets de la DisplayList ainsi que le comptage des zones sales côté Core, la charge de travail de layout et le hash de picture —
-c'est la première source de données pour le diagnostic de performance. Pour en savoir plus, consultez [Diagnostics](/diagnostics).
+c'est la première source de données pour le diagnostic de performance. Pour en savoir plus, consultez [Diagnostics](/guide/diagnostics).
 
 ## Aperçu des capacités
 

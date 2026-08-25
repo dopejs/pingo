@@ -74,7 +74,7 @@ L'archive `DOPR` enregistre les flux de mutations et d'entrées dans l'ordre d'o
 Au-dessus de ce noyau se trouvent trois couches d'API destinées aux auteurs :
 
 - **Composants de base** — éléments au niveau du moteur tels que View/Text/Image, Input/TextArea, SVG/Path, voir [Composants de base](/guide/elements).
-- **Styles** — un sous-ensemble CSS versionné analysé côté coquille (tableau de prise en charge [ici](/style-support)), ainsi que le pipeline de build [SCSS/Less](/guide/scss-less) ; le cœur ne consomme que des valeurs typées normalisées et n'analyse pas le texte CSS.
+- **Styles** — un sous-ensemble CSS versionné analysé côté coquille (tableau de prise en charge [ici](/guide/style-support)), ainsi que le pipeline de build [SCSS/Less](/guide/scss-less) ; le cœur ne consomme que des valeurs typées normalisées et n'analyse pas le texte CSS.
 - **Bibliothèque de composants UI** — `@dopejs/pingo-ui`, des composants finis alignés sur shadcn/ui, tous rendus sur canvas, voir [documentation des composants](/components).
 
 ## Pour aller plus loin

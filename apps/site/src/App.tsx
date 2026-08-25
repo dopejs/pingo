@@ -44,6 +44,7 @@ function navItems(locale: SiteLocale): readonly NavItem[] {
     { text: locale.ui.components, route: "/components" },
     { text: locale.ui.api, route: "/api" },
     { text: locale.ui.playground, route: "/playground" },
+    { text: locale.ui.changelog, route: "/changelog" },
   ];
 }
 
@@ -69,7 +70,7 @@ function sidebarSections(page: SitePage, locale: SiteLocale): readonly NavSectio
       })),
     }));
   }
-  if (page.route.includes("/guide/") || page.route === "/style-support") {
+  if (page.route.includes("/guide/")) {
     return [
       {
         text: locale.ui.sectionStart,
@@ -83,7 +84,7 @@ function sidebarSections(page: SitePage, locale: SiteLocale): readonly NavSectio
         items: [
           { text: locale.ui.styling, route: "/guide/styling" },
           { text: locale.ui.scssLess, route: "/guide/scss-less" },
-          { text: locale.ui.cssSupport, route: "/style-support" },
+          { text: locale.ui.cssSupport, route: "/guide/style-support" },
         ],
       },
       {
@@ -105,12 +106,14 @@ function sidebarSections(page: SitePage, locale: SiteLocale): readonly NavSectio
         ],
       },
       {
-        // The release and runbook pages belong to the design corpus and are no
-        // longer published; migration and diagnostics stay published because
-        // the guide and the API page link to them, but they do not need a
-        // sidebar group of their own.
+        // Release and runbook belong to the design corpus and are no longer
+        // published. Migration and diagnostics are written for people shipping
+        // an application, so they are guide pages like any other.
         text: locale.ui.sectionShipping,
-        items: [{ text: locale.ui.changelog, route: "/changelog" }],
+        items: [
+          { text: locale.ui.migration, route: "/guide/migration" },
+          { text: locale.ui.diagnostics, route: "/guide/diagnostics" },
+        ],
       },
     ];
   }
@@ -122,12 +125,7 @@ function sidebarSections(page: SitePage, locale: SiteLocale): readonly NavSectio
       },
     ];
   }
-  return [
-    {
-      text: locale.ui.sectionEngineering,
-      items: [{ text: locale.ui.changelog, route: "/changelog" }],
-    },
-  ];
+  return [];
 }
 
 function SiteHeader({

@@ -90,7 +90,7 @@ WebGPU 채택 여부는 데이터 기반 결정이며, [ADR-0006](https://github
 
 - **기본 컴포넌트** —— View/Text/Image, Input/TextArea, SVG/Path 등 엔진 수준 요소,
   [기본 컴포넌트](/guide/elements)를 참조하십시오.
-- **스타일** —— Shell 측에서 파싱하는 버전이 지정된 CSS 서브셋(지원 표는 [여기](/style-support) 참조)과
+- **스타일** —— Shell 측에서 파싱하는 버전이 지정된 CSS 서브셋(지원 표는 [여기](/guide/style-support) 참조)과
   빌드 시점의 [SCSS/Less 파이프라인](/guide/scss-less), Core는 정규화된 타입 값만 소비하며
   CSS 텍스트를 파싱하지 않습니다.
 - **UI 컴포넌트 라이브러리** —— `@dopejs/pingo-ui`, shadcn/ui와 정렬된 완성 컴포넌트로,

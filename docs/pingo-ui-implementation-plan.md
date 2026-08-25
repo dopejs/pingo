@@ -384,7 +384,7 @@ oracle 一致；`pnpm release:check`、`pnpm migration:check`、`pnpm storybook:
 - **平台资格未做** —— **本环境无法收口**。真机帧时、真实 IME、跨浏览器均未验证，且
   没有可用的自动化设备服务。按 AGENTS.md 这属于平台资格而不是工程完成度：它必须保持
   可见，但不把已完成的工程项标记为未完成。
-- **CSS 子集的其余既知偏差**共 9 条，集中记录在 `docs/style-support.md`
+- **CSS 子集的其余既知偏差**共 9 条，集中记录在 `apps/site/content/guide/style-support.md`
   「Known deviations from CSS」，其中最可能被踩到的是：绝对定位的包含块是父节点、
   不确定轴上的百分比解析为 0。
 

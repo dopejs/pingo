@@ -1,7 +1,7 @@
 # 公开 API
 
 `@dopejs/pingo` 的导出即公开契约。内部包（`@dopejs/pingo-host` 等）不承诺稳定性，
-[迁移扫描器](/migration)会阻止业务直接依赖它们。
+[迁移扫描器](/guide/migration)会阻止业务直接依赖它们。
 
 ::: tip 快照即契约
 公开面被固化在 `benchmarks/api/facade.v1.d.ts` 中，任何签名变化都必须显式更新该快照并经过审阅，
@@ -85,7 +85,7 @@ CSS_SUBSET_VERSION: string
 
 `createStyleSheet` 编译同节点 class/compound-class selector、shorthand、cascade 与
 computed-value 元数据；失败时抛出带结构化 diagnostics 的 `StyleSheetCompileError`。
-`compileStyleSheet` 是不抛异常的对应入口。完整支持矩阵见[生成的 CSS subset 表](/style-support)。
+`compileStyleSheet` 是不抛异常的对应入口。完整支持矩阵见[生成的 CSS subset 表](/guide/style-support)。
 `styleCapabilities().engineReady` 为 `true`，每个属性的 `engineSupport` 为 `m6-core`。
 `root.styleMetrics()` 暴露累计 resolution/cache hit/diagnostic/interaction variant 计数；
 滚动热路径不进入 Shell resolver。输入变化时仍使用完整 resolver 保证结果可差分验证。
@@ -218,9 +218,9 @@ engineIdentity(): { version, abiVersion }
 verifyWasmIntegrity(bytes, manifest): Promise<void>
 ```
 
-`WasmIntegrityError` 在自托管 WASM 与构建 manifest 不一致时抛出。见[诊断](/diagnostics)。
+`WasmIntegrityError` 在自托管 WASM 与构建 manifest 不一致时抛出。见[诊断](/guide/diagnostics)。
 
 ## 迁移边界
 
 `@dopejs/pingo-compat` 是独立的边界包，提供 `mountCompatPage` 做按页面灰度与回退。
-详见[迁移指南](/migration)。
+详见[迁移指南](/guide/migration)。

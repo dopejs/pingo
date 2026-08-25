@@ -7,7 +7,7 @@ description: pingo 的 CSS subset：类选择器、层叠与优先级、继承�
 
 pingo 的样式是一个**版本化的 CSS subset**（当前 1.6.0）：CSS 文本在 Shell 侧解析与计算，
 Core 只消费规范化后的类型化值——CSS 文本和选择器匹配永远不会进入 Core。
-完整的属性支持表见 [CSS subset 支持](/style-support)，本页讲用法与边界。
+完整的属性支持表见 [CSS subset 支持](/guide/style-support)，本页讲用法与边界。
 
 ## 创建与注册样式表
 
@@ -94,7 +94,7 @@ const sheet = createStyleSheet({
 
 ## 与 CSS 的主要偏差
 
-子集有意不做完整 CSS 兼容，关键偏差（完整清单见 [CSS subset 支持](/style-support)）：
+子集有意不做完整 CSS 兼容，关键偏差（完整清单见 [CSS subset 支持](/guide/style-support)）：
 
 - `position: absolute` 的包含块是**父节点**而不是最近的 positioned 祖先；
   没有 `position: relative`，视觉偏移用 `transform`。

@@ -147,7 +147,7 @@ describe("stylesheet compilation", () => {
     // `min-width`/`min-height` are `auto` initially, as CSS has them, and the
     // engine answers `auto` along the block axis, where the content-based
     // minimum is what the layout pass already measured. See the
-    // flex-item-minimum note in docs/style-support.md.
+    // flex-item-minimum note in apps/site/content/guide/style-support.md.
     for (const property of ["min-width", "min-height"]) {
       expect(compileStyleSheet(`.a { ${property}: auto; }`).styleSheet).not.toBeNull();
       // Negative minimums are not CSS either, and would silently do nothing.
@@ -218,7 +218,7 @@ describe("computed style resolver", () => {
     expect(resolveStyle({ nodeType: "view", inlineStyle: { inset: 0 } }).style.left).toBe("0px");
 
     expect(supportsStyle("position", "static")).toBe(true);
-    // relative and fixed are deliberately absent; see docs/style-support.md.
+    // relative and fixed are deliberately absent; see apps/site/content/guide/style-support.md.
     for (const invalid of ["relative", "fixed", "sticky", "auto"]) {
       expect(supportsStyle("position", invalid), invalid).toBe(false);
     }

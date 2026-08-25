@@ -155,7 +155,7 @@ Resizable 共用它；指针捕获在按下时取得、结束时释放，否则�
 行无法参与测量。列宽由显式的 `columns` spec 决定，表头与每一行共用同一份。shadcn
 的 Table 是纯 `<table>`，它**无法虚拟化**；这不是退让，是虚拟化表格唯一的形态。
 
-**弹层的两条硬约束**（都源自引擎语义，见 `docs/style-support.md`）：
+**弹层的两条硬约束**（都源自引擎语义，见 `apps/site/content/guide/style-support.md`）：
 
 1. **视口型必须挂在靠近根的容器下**：Dialog / Sheet / ToastViewport 用
    `position: absolute` 铺满**自己的父节点**，因为本引擎的包含块是父节点而不是
@@ -175,7 +175,7 @@ Resizable 共用它；指针捕获在按下时取得、结束时释放，否则�
   field 用 `flex: 1 1 0px` 吃掉装饰件剩下的行宽。TextArea 仍无 slot。
 - 无 focus ring：pingo 没有 `:focus-within`，且边框挂在 shell 上（待选择器能力落地）。
   `boxShadow` 本身已随 E4 可用（Card 已用 `$shadow-sm`），只支持外阴影、每节点最多
-  4 层，`inset` 会被拒绝；完整偏差见 `docs/style-support.md`。焦点本身是可见的（Core 有 focus/focus-visible 状态），
+  4 层，`inset` 会被拒绝；完整偏差见 `apps/site/content/guide/style-support.md`。焦点本身是可见的（Core 有 focus/focus-visible 状态），
   缺的只是描边样式。
 - 键盘导航（E1 已落地）：Tabs 用 Left/Right/Home/End，RadioGroup 用四向方向键，
   Accordion 用 Up/Down 移动焦点、Enter/Space 展开，DropdownMenu / Select /
@@ -218,4 +218,4 @@ Resizable 共用它；指针捕获在按下时取得、结束时释放，否则�
   flex item 没有 CSS 的 automatic minimum size，可被压缩到 0（等价于浏览器里
   到处写 `min-w-0`）；`position: absolute` 的包含块是**父节点**而不是最近的
   positioned 祖先，因此绝对定位元素必须是它所对齐的盒子的直接子节点，
-  也没有 `position: relative`。完整偏差清单见 `docs/style-support.md`。
+  也没有 `position: relative`。完整偏差清单见 `apps/site/content/guide/style-support.md`。

@@ -80,7 +80,7 @@ export type ToastViewportProps = { readonly children: PingoNode; readonly classN
  *
  * Absolutely positioned against *its own parent*, because the containing block
  * in this engine is the parent rather than the nearest positioned ancestor.
- * Mount it near the root; see docs/style-support.md.
+ * Mount it near the root; see apps/site/content/guide/style-support.md.
  */
 export const ToastViewport = memo(function ToastViewportImpl(props: ToastViewportProps): PingoNode {
   return View({

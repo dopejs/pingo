@@ -82,7 +82,7 @@ typed-array 循环——**每次绘制都调一次 wasm→JS 不是可接受的�
 在这套内核之上是三层作者面向的 API：
 
 - **基础组件** —— View/Text/Image、Input/TextArea、SVG/Path 等引擎级元素，见[基础组件](/guide/elements)。
-- **样式** —— Shell 侧解析的版本化 CSS subset（支持表见[这里](/style-support)），以及构建期的
+- **样式** —— Shell 侧解析的版本化 CSS subset（支持表见[这里](/guide/style-support)），以及构建期的
   [SCSS/Less 管线](/guide/scss-less)；Core 只消费规范化后的类型化值，不解析 CSS 文本。
 - **UI 组件库** —— `@dopejs/pingo-ui`，与 shadcn/ui 对齐的成品组件，全部渲染到 canvas，
   见[组件文档](/components)。

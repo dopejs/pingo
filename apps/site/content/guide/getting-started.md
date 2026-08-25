@@ -7,7 +7,7 @@ pnpm add @dopejs/pingo
 ```
 
 业务只依赖 `@dopejs/pingo` 这一个包。`@dopejs/pingo-host`、`@dopejs/pingo-jsx` 等是内部实现包，
-不属于公开契约——[迁移扫描器](/migration)会拒绝直接 import 它们。
+不属于公开契约——[迁移扫描器](/guide/migration)会拒绝直接 import 它们。
 
 ## 挂载第一个画布
 
@@ -116,7 +116,7 @@ const root = await createHostedCanvasRoot(canvas, {
 ```
 
 `onFrame` 每帧给出命令数、DisplayList 字节数以及 Core 侧的脏域计数、布局工作量与 picture hash，
-是性能排查的第一手数据。更多见[诊断](/diagnostics)。
+是性能排查的第一手数据。更多见[诊断](/guide/diagnostics)。
 
 ## 能力导览
 

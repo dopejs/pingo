@@ -7,7 +7,7 @@ description: pingo의 CSS subset——클래스 셀렉터, 캐스케이드와 �
 
 pingo의 스타일은 **버전화된 CSS subset**(현재 1.6.0)입니다. CSS 텍스트는 Shell 쪽에서 파싱·계산되고,
 Core는 정규화된 타입 값만 소비합니다——CSS 텍스트와 셀렉터 매칭은 절대 Core에 들어가지 않습니다.
-전체 속성 지원 표는 [CSS subset 지원](/style-support)을 보고, 이 페이지에서는 사용법과 경계를 다룹니다.
+전체 속성 지원 표는 [CSS subset 지원](/guide/style-support)을 보고, 이 페이지에서는 사용법과 경계를 다룹니다.
 
 ## 스타일시트 만들고 등록하기
 
@@ -96,7 +96,7 @@ subset은 **같은 노드 위의 클래스 셀렉터**와 네 개의 인터랙�
 
 ## CSS와의 주요 차이
 
-subset은 의도적으로 완전한 CSS 호환을 하지 않습니다. 핵심 차이(전체 목록은 [CSS subset 지원](/style-support)):
+subset은 의도적으로 완전한 CSS 호환을 하지 않습니다. 핵심 차이(전체 목록은 [CSS subset 지원](/guide/style-support)):
 
 - `position: absolute`의 containing block은 **부모 노드**이며 가장 가까운 positioned 조상이 아닙니다.
   `position: relative`는 없고, 시각적 오프셋은 `transform`을 씁니다.

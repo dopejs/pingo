@@ -44,7 +44,7 @@
 ## 3. 事故处置清单
 
 1. 采集 `engineIdentity()`、`pageId`、`root.mode`、`transportMetrics()`
-   快照与 `onFallback` 原因（见 `docs/diagnostics.md`）。
+   快照与 `onFallback` 原因（见 `apps/site/content/guide/diagnostics.md`）。
 2. 判断影响面：单页面 → 手动回退；多页面同错误 → 灰度关断该批页面。
 3. 若怀疑资源问题：核对 CDN 上的 WASM 与 `manifest.json` digest。
 4. 可复现问题：用 `DOPR` 录制回放在 headless 环境确定性复现

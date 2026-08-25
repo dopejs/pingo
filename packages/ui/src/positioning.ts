@@ -218,7 +218,7 @@ export interface PlacementStyle {
  *
  * Absolute children are positioned against their parent in this engine, and the
  * panel's parent is the anchor wrapper, so the world origin has to come back
- * out. See docs/style-support.md on containing blocks.
+ * out. See apps/site/content/guide/style-support.md on containing blocks.
  */
 export function placementStyle(placement: Placement, anchor: LayoutRect): PlacementStyle {
   return {

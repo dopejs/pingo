@@ -8,7 +8,7 @@ description: "El subconjunto de CSS de pingo: selectores de clase, cascada y esp
 Los estilos de pingo son un **subconjunto de CSS versionado** (actualmente 1.6.0): el texto CSS
 se parsea y calcula en la Shell, y el Core sólo consume valores tipados normalizados; el texto CSS
 y la coincidencia de selectores nunca entran en el Core. La tabla completa de propiedades
-soportadas está en [soporte del subconjunto de CSS](/style-support); esta página cubre el uso y
+soportadas está en [soporte del subconjunto de CSS](/guide/style-support); esta página cubre el uso y
 los límites.
 
 ## Crear y registrar hojas de estilo
@@ -108,7 +108,7 @@ estado no puede disparar cambios de layout.
 ## Principales desviaciones respecto a CSS
 
 El subconjunto renuncia deliberadamente a la compatibilidad CSS completa. Desviaciones clave
-(lista completa en [soporte del subconjunto de CSS](/style-support)):
+(lista completa en [soporte del subconjunto de CSS](/guide/style-support)):
 
 - El bloque contenedor de `position: absolute` es el **padre**, no el ancestro posicionado más
   cercano; no existe `position: relative`, el desplazamiento visual se hace con `transform`.

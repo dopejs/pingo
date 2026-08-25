@@ -47,7 +47,7 @@ $input-gap: 8px !default;
 // Structural tokens: the field absorbs the line, adornments keep their size.
 $input-field-flex: 1 1 0px !default;
 $input-slot-flex: 0 0 auto !default;
-// shadcn elevation ramp. Outer shadows only; see docs/style-support.md.
+// shadcn elevation ramp. Outer shadows only; see apps/site/content/guide/style-support.md.
 $shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !default;
 $shadow-md:
   0 4px 6px -1px rgba(0, 0, 0, 0.1),
@@ -61,7 +61,7 @@ $dark-shadow-md:
   0 2px 4px -2px rgba(0, 0, 0, 0.5) !default;
 
 // Overlay layering. z-index orders siblings only, so these separate an overlay
-// from page content under the same parent; see docs/style-support.md.
+// from page content under the same parent; see apps/site/content/guide/style-support.md.
 $z-dropdown: 1000 !default;
 $z-overlay: 1100 !default;
 $z-toast: 1200 !default;

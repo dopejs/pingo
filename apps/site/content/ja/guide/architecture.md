@@ -74,7 +74,7 @@ WebGPU を採用するかどうかはデータに基づく決定である。[ADR
 このカーネルの上に、作者向けの 3 層の API がある。
 
 - **基礎コンポーネント** —— View/Text/Image、Input/TextArea、SVG/Path などのエンジンレベル要素。[基礎コンポーネント](/guide/elements)を参照。
-- **スタイル** —— Shell 側で解析されるバージョン管理された CSS subset（対応表は[こちら](/style-support)）、およびビルド時の
+- **スタイル** —— Shell 側で解析されるバージョン管理された CSS subset（対応表は[こちら](/guide/style-support)）、およびビルド時の
   [SCSS/Less パイプライン](/guide/scss-less)。Core は正規化された型付き値のみを消費し、CSS テキストを解析しない。
 - **UI コンポーネントライブラリ** —— `@dopejs/pingo-ui`。shadcn/ui と整合する完成品コンポーネントで、すべて canvas にレンダリングされる。
   [コンポーネントドキュメント](/components)を参照。

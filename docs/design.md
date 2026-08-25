@@ -1878,7 +1878,7 @@ role/aria/tabindex/bounds，用 `createImageBitmap` 回读 worker canvas 做像�
 
 要一起改的是字形的落点。文本从节点自己的原点开始画、按 border box 对齐，在 padding 不可能
 存在时这两者是同一件事；有了 padding 就会把标签画到药丸的左上角。两者都改成从 content box
-起算。百分比 padding 按节点自己的盒子解析，与旁边的圆角一致，`docs/style-support.md` 记了
+起算。百分比 padding 按节点自己的盒子解析，与旁边的圆角一致，`apps/site/content/guide/style-support.md` 记了
 这条偏差。皮肤里的药丸也改成由"标签 + padding"定尺寸而不是固定高度：文本节点的基线是从
 content box 顶端往下量的，只给 `min-height` 会把页码留在盒子顶部。
 

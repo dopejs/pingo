@@ -7,7 +7,7 @@ pnpm add @dopejs/pingo
 ```
 
 비즈니스는 `@dopejs/pingo` 하나의 패키지만 의존합니다. `@dopejs/pingo-host`, `@dopejs/pingo-jsx` 등은 내부 구현 패키지로,
-공개 계약에 속하지 않습니다—[마이그레이션 스캐너](/migration)가 직접 import하는 것을 거부합니다.
+공개 계약에 속하지 않습니다—[마이그레이션 스캐너](/guide/migration)가 직접 import하는 것을 거부합니다.
 
 ## 첫 번째 캔버스 마운트
 
@@ -116,7 +116,7 @@ const root = await createHostedCanvasRoot(canvas, {
 ```
 
 `onFrame`은 매 프레임마다 명령 수, DisplayList 바이트 수, Core 측의 더티 영역 카운트, 레이아웃 작업량, picture hash를 제공하므로,
-성능 문제를 진단하는 최우선 데이터입니다. 자세한 내용은 [진단](/diagnostics)을 참조하십시오.
+성능 문제를 진단하는 최우선 데이터입니다. 자세한 내용은 [진단](/guide/diagnostics)을 참조하십시오.
 
 ## 기능 둘러보기
 

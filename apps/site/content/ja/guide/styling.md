@@ -7,7 +7,7 @@ description: pingo の CSS サブセット：クラスセレクタ、カスケ�
 
 pingo のスタイルは**バージョン管理された CSS サブセット**（現在 1.6.0）です。CSS テキストは Shell 側で解析・計算され、
 Core は正規化された型付きの値のみを消費します。CSS テキストとセレクタのマッチングが Core に入ることは決してありません。
-完全なプロパティ対応表は [CSS subset サポート](/style-support) を参照してください。本ページでは使い方と境界を説明します。
+完全なプロパティ対応表は [CSS subset サポート](/guide/style-support) を参照してください。本ページでは使い方と境界を説明します。
 
 ## スタイルシートの作成と登録
 
@@ -95,7 +95,7 @@ const sheet = createStyleSheet({
 
 ## CSS との主な相違点
 
-サブセットは意図的に完全な CSS 互換を実装していません。主な相違点（完全な一覧は [CSS subset サポート](/style-support) を参照）：
+サブセットは意図的に完全な CSS 互換を実装していません。主な相違点（完全な一覧は [CSS subset サポート](/guide/style-support) を参照）：
 
 - `position: absolute` の包含ブロックは**親ノード**であり、最も近い positioned 祖先ではありません。
   `position: relative` はなく、視覚的なオフセットには `transform` を使います。

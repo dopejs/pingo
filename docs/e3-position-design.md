@@ -40,7 +40,7 @@ CSS 的规则是"最近的 positioned 祖先"。本子集改为**父节点**，�
 3. 覆盖 A2 的实际用法：Popover 挂在锚点下，Dialog/Toast 挂在 root 下。
 
 **代价**：`position: relative` 祖先 + 深层 `absolute` 后代的 CSS 惯用写法不成立，
-绝对定位子节点必须是包含块的直接子节点。写入 `docs/style-support.md` 偏差清单，
+绝对定位子节点必须是包含块的直接子节点。写入 `apps/site/content/guide/style-support.md` 偏差清单，
 "最近 positioned 祖先"作为后续工作。
 
 ### D4：脱离流的布局路径

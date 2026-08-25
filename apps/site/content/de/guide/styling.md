@@ -8,7 +8,7 @@ description: "Das CSS-Subset von pingo: Klassenselektoren, Kaskade und Spezifit�
 Das Styling von pingo ist ein **versioniertes CSS-Subset** (derzeit 1.6.0): CSS-Text wird auf
 Shell-Seite geparst und berechnet, der Core konsumiert nur normalisierte, typisierte Werte — CSS-Text
 und Selektor-Matching gelangen niemals in den Core. Die vollständige Tabelle unterstützter
-Eigenschaften finden Sie unter [CSS-Subset-Unterstützung](/style-support); diese Seite behandelt
+Eigenschaften finden Sie unter [CSS-Subset-Unterstützung](/guide/style-support); diese Seite behandelt
 Verwendung und Grenzen.
 
 ## Stylesheets erstellen und registrieren
@@ -109,7 +109,7 @@ Layout-Änderung auslösen.
 ## Wesentliche Abweichungen von CSS
 
 Das Subset zielt bewusst nicht auf vollständige CSS-Kompatibilität. Die wichtigsten Abweichungen
-(vollständige Liste unter [CSS-Subset-Unterstützung](/style-support)):
+(vollständige Liste unter [CSS-Subset-Unterstützung](/guide/style-support)):
 
 - Der Containing Block von `position: absolute` ist der **Elternknoten**, nicht der nächste
   positionierte Vorfahre; es gibt kein `position: relative`, visuelle Verschiebungen laufen über

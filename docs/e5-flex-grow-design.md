@@ -106,7 +106,7 @@ feature bit 只是"这个 Shell 说自己是哪个子集版本"，**没有任何
 
 **与 CSS 的已知偏差**：CSS 规定 `flex: <number>` 的 basis 为 `0%`，本实现用 `0px`。
 理由：`0%` 在 basis 不确定的容器中会退化为 `auto`，而 `0px` 恒定确定；两者在确定
-容器中数值相同。此偏差写入 `docs/style-support.md`。
+容器中数值相同。此偏差写入 `apps/site/content/guide/style-support.md`。
 
 ### D2：主轴伸缩用"栈驱动两遍"，不引入递归
 
@@ -168,13 +168,13 @@ feature bit 只是"这个 Shell 说自己是哪个子集版本"，**没有任何
 （`min-width: auto` 解析为 min-content）。本子集 `min-width` / `min-height` 的
 initial 是 `0px`（见 schema），没有 `auto` 值，也没有 min-content 测量。因此
 **本实现的 flex item 可以被压缩到 0**，等价于浏览器里到处写 `min-w-0`。
-这是显式取舍：避免引入 min-content 内在尺寸子系统。写入 `docs/style-support.md`。
+这是显式取舍：避免引入 min-content 内在尺寸子系统。写入 `apps/site/content/guide/style-support.md`。
 
 **执行期新增决策 1：可滚动主轴不做 shrink。** `overflow` 非 visible 的轴上，
 `child_constraints` 已被显式放宽到无限——这是"内容溢出即滚动区"的语义。若在同
 一根轴上再执行 shrink，会把滚动容器存在的理由（可滚动的溢出内容）直接压没。
 因此 `resolve_flex` 在 `free < 0 && scrollable_axis(container, main)` 时返回空。
-grow 不受影响（视口比内容长时仍然拉伸）。写入 `docs/style-support.md`。
+grow 不受影响（视口比内容长时仍然拉伸）。写入 `apps/site/content/guide/style-support.md`。
 
 **执行期新增决策 2：缺失的 flex 因子按"不可伸缩"处理。** Shell 的
 `resolveStyle` 对每个适用属性都会写出解析值（含 initial），所以任何被 Shell 样式
@@ -197,7 +197,7 @@ content box。这是一处缺陷修复，不是语义扩张。
 
 **明确不修的相邻问题**：`flex-direction: column` 且父高度不确定时，百分比高度仍
 解析为 `0`。CSS 规定此时行为等同 `auto`。本次不动，因为改它会波及全部现有
-column 布局；作为已知缺口写入 `docs/style-support.md`。
+column 布局；作为已知缺口写入 `apps/site/content/guide/style-support.md`。
 
 ### D5：feature bit 变成真实闸门
 
@@ -246,7 +246,7 @@ schemas/style.v1.json                                +3 属性 +1 shorthand +1 g
 scripts/generate-style.mjs                           grammarTypes 增加 non-negative-number
 packages/style/src/generated.ts                      生成
 core/pingo-abi/src/style_generated.rs                生成
-docs/style-support.md                                生成（含 §D1/§D3/§D4 偏差说明）
+apps/site/content/guide/style-support.md                                生成（含 §D1/§D3/§D4 偏差说明）
 packages/style/src/values.ts                         non-negative-number 解析 + flex shorthand 展开
 packages/reconciler/src/computed-style-resource.ts   featureBits 按实际用量
 core/pingo-abi/src/computed_style.rs                 逐条 feature gate

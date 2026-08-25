@@ -74,7 +74,7 @@ Los archivos `DOPR` graban en orden original los flujos de Mutation e Input, y p
 Sobre este núcleo hay tres capas de API orientadas a los autores:
 
 - **Componentes básicos** — elementos a nivel de motor como View/Text/Image, Input/TextArea, SVG/Path, etc.; véase [componentes básicos](/guide/elements).
-- **Estilos** — un subconjunto de CSS versionado que el Shell analiza (la tabla de soporte está [aquí](/style-support)), junto con el
+- **Estilos** — un subconjunto de CSS versionado que el Shell analiza (la tabla de soporte está [aquí](/guide/style-support)), junto con el
   [pipeline de SCSS/Less](/guide/scss-less) en tiempo de compilación; el núcleo solo consume valores tipados ya normalizados y no analiza texto CSS.
 - **Librería de componentes UI** — `@dopejs/pingo-ui`, componentes terminados alineados con shadcn/ui, todos renderizados en canvas;
   véase la [documentación de componentes](/components).

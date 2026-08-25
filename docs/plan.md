@@ -511,7 +511,7 @@ word-boundary 单测）、TS 210 项、真实 Chromium 17 项（含点击聚焦�
 - `@dopejs/pingo-compat` 边界包：按页面粒度的挂载/卸载适配器与回退开关，
   业务经它接入 pingo 并可一键切回存量渲染路径；依赖方向 compat → facade
   单向，删除 shim 不改 Core（自动依赖方向检查）。
-- 迁移指南 `docs/migration.md`：接入步骤、能力矩阵、已知限制与回退操作。
+- 迁移指南 `apps/site/content/guide/migration.md`：接入步骤、能力矩阵、已知限制与回退操作。
 - 自动迁移检查工具：扫描业务源码中不被公开 API 支持的用法（内部包直接
   import、每 widget HTML 输入控件、`forceUpdate` 式逃生口等）并输出报告。
 
@@ -522,7 +522,7 @@ word-boundary 单测）、TS 210 项、真实 Chromium 17 项（含点击聚焦�
 - 发布包内容验证扩展：`pnpm pack` 产物 golden、source map 存在性、类型与
   子路径入口完整性。
 - WASM 资源完整性：构建产物 SHA-256 manifest 与可选运行时校验。
-- 错误诊断链路：公开错误码/诊断文档 `docs/diagnostics.md`，facade 导出
+- 错误诊断链路：公开错误码/诊断文档 `apps/site/content/guide/diagnostics.md`，facade 导出
   引擎版本与 ABI 版本供事故上报。
 
 #### M5-C 试点 shadow/灰度/回退演练

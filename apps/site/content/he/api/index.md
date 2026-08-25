@@ -1,7 +1,7 @@
 # API ציבורי
 
 מה ש-`@dopejs/pingo` מייצא הוא החוזה הציבורי. חבילות פנימיות (`@dopejs/pingo-host` ואחרות) אינן מבטיחות
-יציבות, ו[סורק ההגירה](/migration) מונע מיישום להיות תלוי בהן ישירות.
+יציבות, ו[סורק ההגירה](/guide/migration) מונע מיישום להיות תלוי בהן ישירות.
 
 ::: tip התצלום הוא החוזה
 המשטח הציבורי מקובע ב-`benchmarks/api/facade.v1.d.ts`. כל שינוי חתימה מחייב עדכון מפורש של אותו תצלום
@@ -102,9 +102,9 @@ verifyWasmIntegrity(bytes, manifest): Promise<void>
 ```
 
 ‏`WasmIntegrityError` נזרק כאשר קובץ WASM שאתה מארח בעצמך אינו תואם למניפסט הבנייה. ראה
-[אבחון](/diagnostics).
+[אבחון](/guide/diagnostics).
 
 ## גבול ההגירה
 
 ‏`@dopejs/pingo-compat` היא חבילת גבול עצמאית המספקת את `mountCompatPage` להשקה לפי עמוד ולחזרה. פרטים
-ב[מדריך ההגירה](/migration).
+ב[מדריך ההגירה](/guide/migration).

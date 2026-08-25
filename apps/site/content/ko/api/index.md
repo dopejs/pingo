@@ -1,7 +1,7 @@
 # 공개 API
 
 `@dopejs/pingo`의 익스포트가 공개 계약입니다. 내부 패키지(`@dopejs/pingo-host` 등)는 안정성을
-약속하지 않으며, [마이그레이션 스캐너](/migration)가 애플리케이션의 직접 의존을 막습니다.
+약속하지 않으며, [마이그레이션 스캐너](/guide/migration)가 애플리케이션의 직접 의존을 막습니다.
 
 ::: tip 스냅샷이 곧 계약
 공개 표면은 `benchmarks/api/facade.v1.d.ts`에 고정되어 있습니다. 시그니처가 바뀌면 이 스냅샷을
@@ -102,9 +102,9 @@ verifyWasmIntegrity(bytes, manifest): Promise<void>
 ```
 
 자체 호스팅한 WASM이 빌드 manifest와 일치하지 않으면 `WasmIntegrityError`가 발생합니다.
-[진단](/diagnostics)을 보십시오.
+[진단](/guide/diagnostics)을 보십시오.
 
 ## 마이그레이션 경계
 
 `@dopejs/pingo-compat`은 독립적인 경계 패키지로, 페이지 단위 점진 적용과 롤백을 위한
-`mountCompatPage`를 제공합니다. 자세한 내용은 [마이그레이션 가이드](/migration)에 있습니다.
+`mountCompatPage`를 제공합니다. 자세한 내용은 [마이그레이션 가이드](/guide/migration)에 있습니다.

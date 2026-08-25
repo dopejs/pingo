@@ -33,6 +33,8 @@ export interface SiteLocale {
     readonly styling: string;
     readonly scssLess: string;
     readonly cssSupport: string;
+    readonly migration: string;
+    readonly diagnostics: string;
     readonly sectionStyling: string;
     readonly sectionBaseElements: string;
     readonly elements: string;
@@ -48,7 +50,6 @@ export interface SiteLocale {
     readonly sectionStart: string;
     readonly sectionCapabilities: string;
     readonly sectionShipping: string;
-    readonly sectionEngineering: string;
     readonly changelog: string;
     readonly publicApi: string;
     readonly outline: string;
@@ -95,6 +96,8 @@ export const SITE_LOCALES: readonly SiteLocale[] = [
       styling: "样式指南",
       scssLess: "SCSS 与 Less",
       cssSupport: "CSS 支持表",
+      migration: "迁移",
+      diagnostics: "诊断",
       sectionStyling: "样式",
       sectionBaseElements: "基础组件",
       elements: "视图、文本与图片",
@@ -110,7 +113,6 @@ export const SITE_LOCALES: readonly SiteLocale[] = [
       sectionStart: "入门",
       sectionCapabilities: "能力",
       sectionShipping: "上线",
-      sectionEngineering: "工程文档",
       changelog: "变更日志",
       publicApi: "公开 API",
       outline: "本页目录",
@@ -155,6 +157,8 @@ export const SITE_LOCALES: readonly SiteLocale[] = [
       styling: "樣式指南",
       scssLess: "SCSS 與 Less",
       cssSupport: "CSS 支援表",
+      migration: "遷移",
+      diagnostics: "診斷",
       sectionStyling: "樣式",
       sectionBaseElements: "基礎元件",
       elements: "視圖、文字與圖片",
@@ -170,7 +174,6 @@ export const SITE_LOCALES: readonly SiteLocale[] = [
       sectionStart: "入門",
       sectionCapabilities: "能力",
       sectionShipping: "上線",
-      sectionEngineering: "工程文件",
       changelog: "變更紀錄",
       publicApi: "公開 API",
       outline: "本頁目錄",
@@ -216,6 +219,8 @@ export const SITE_LOCALES: readonly SiteLocale[] = [
       styling: "スタイリング",
       scssLess: "SCSS と Less",
       cssSupport: "CSS サポート表",
+      migration: "移行",
+      diagnostics: "診断",
       sectionStyling: "スタイル",
       sectionBaseElements: "基本要素",
       elements: "View・Text・Image",
@@ -231,7 +236,6 @@ export const SITE_LOCALES: readonly SiteLocale[] = [
       sectionStart: "入門",
       sectionCapabilities: "機能",
       sectionShipping: "リリース",
-      sectionEngineering: "エンジニアリング文書",
       changelog: "変更履歴",
       publicApi: "公開 API",
       outline: "このページの目次",
@@ -276,6 +280,8 @@ export const SITE_LOCALES: readonly SiteLocale[] = [
       styling: "스타일링",
       scssLess: "SCSS와 Less",
       cssSupport: "CSS 지원 표",
+      migration: "마이그레이션",
+      diagnostics: "진단",
       sectionStyling: "스타일",
       sectionBaseElements: "기본 요소",
       elements: "View·Text·Image",
@@ -291,7 +297,6 @@ export const SITE_LOCALES: readonly SiteLocale[] = [
       sectionStart: "입문",
       sectionCapabilities: "기능",
       sectionShipping: "배포",
-      sectionEngineering: "엔지니어링 문서",
       changelog: "변경 내역",
       publicApi: "공개 API",
       outline: "이 페이지 목차",
@@ -337,6 +342,8 @@ export const SITE_LOCALES: readonly SiteLocale[] = [
       styling: "Guía de estilos",
       scssLess: "SCSS y Less",
       cssSupport: "Tabla de soporte de CSS",
+      migration: "Migración",
+      diagnostics: "Diagnóstico",
       sectionStyling: "Estilos",
       sectionBaseElements: "Elementos básicos",
       elements: "View, Text e Image",
@@ -352,7 +359,6 @@ export const SITE_LOCALES: readonly SiteLocale[] = [
       sectionStart: "Introducción",
       sectionCapabilities: "Capacidades",
       sectionShipping: "Puesta en producción",
-      sectionEngineering: "Documentos de ingeniería",
       changelog: "Registro de cambios",
       publicApi: "API pública",
       outline: "En esta página",
@@ -398,6 +404,8 @@ export const SITE_LOCALES: readonly SiteLocale[] = [
       styling: "Guide des styles",
       scssLess: "SCSS et Less",
       cssSupport: "Tableau de prise en charge CSS",
+      migration: "Migration",
+      diagnostics: "Diagnostic",
       sectionStyling: "Styles",
       sectionBaseElements: "Éléments de base",
       elements: "View, Text et Image",
@@ -413,7 +421,6 @@ export const SITE_LOCALES: readonly SiteLocale[] = [
       sectionStart: "Débuter",
       sectionCapabilities: "Capacités",
       sectionShipping: "Mise en production",
-      sectionEngineering: "Documents d'ingénierie",
       changelog: "Journal des modifications",
       publicApi: "API publique",
       outline: "Sur cette page",
@@ -459,6 +466,8 @@ export const SITE_LOCALES: readonly SiteLocale[] = [
       styling: "Styling-Leitfaden",
       scssLess: "SCSS und Less",
       cssSupport: "CSS-Unterstützungstabelle",
+      migration: "Migration",
+      diagnostics: "Diagnose",
       sectionStyling: "Styles",
       sectionBaseElements: "Grundelemente",
       elements: "View, Text und Image",
@@ -474,7 +483,6 @@ export const SITE_LOCALES: readonly SiteLocale[] = [
       sectionStart: "Einstieg",
       sectionCapabilities: "Funktionen",
       sectionShipping: "Betrieb",
-      sectionEngineering: "Technische Dokumente",
       changelog: "Änderungsprotokoll",
       publicApi: "Öffentliche API",
       outline: "Auf dieser Seite",
@@ -520,6 +528,8 @@ export const SITE_LOCALES: readonly SiteLocale[] = [
       styling: "Руководство по стилям",
       scssLess: "SCSS и Less",
       cssSupport: "Таблица поддержки CSS",
+      migration: "Миграция",
+      diagnostics: "Диагностика",
       sectionStyling: "Стили",
       sectionBaseElements: "Базовые элементы",
       elements: "View, Text и Image",
@@ -535,7 +545,6 @@ export const SITE_LOCALES: readonly SiteLocale[] = [
       sectionStart: "Начало",
       sectionCapabilities: "Возможности",
       sectionShipping: "Выпуск",
-      sectionEngineering: "Инженерные документы",
       changelog: "История изменений",
       publicApi: "Публичный API",
       outline: "На этой странице",
@@ -582,6 +591,8 @@ export const SITE_LOCALES: readonly SiteLocale[] = [
       styling: "دليل التنسيق",
       scssLess: "SCSS وLess",
       cssSupport: "جدول دعم CSS",
+      migration: "الترحيل",
+      diagnostics: "التشخيص",
       sectionStyling: "الأنماط",
       sectionBaseElements: "العناصر الأساسية",
       elements: "View وText وImage",
@@ -597,7 +608,6 @@ export const SITE_LOCALES: readonly SiteLocale[] = [
       sectionStart: "الانطلاق",
       sectionCapabilities: "القدرات",
       sectionShipping: "الإطلاق",
-      sectionEngineering: "وثائق الهندسة",
       changelog: "سجل التغييرات",
       publicApi: "واجهة البرمجة العامة",
       outline: "في هذه الصفحة",
@@ -644,6 +654,8 @@ export const SITE_LOCALES: readonly SiteLocale[] = [
       styling: "מדריך עיצוב",
       scssLess: "SCSS ו-Less",
       cssSupport: "טבלת תמיכת CSS",
+      migration: "הגירה",
+      diagnostics: "אבחון",
       sectionStyling: "סגנונות",
       sectionBaseElements: "רכיבי בסיס",
       elements: "View, Text ו-Image",
@@ -659,7 +671,6 @@ export const SITE_LOCALES: readonly SiteLocale[] = [
       sectionStart: "התחלה",
       sectionCapabilities: "יכולות",
       sectionShipping: "עלייה לאוויר",
-      sectionEngineering: "מסמכי הנדסה",
       changelog: "יומן שינויים",
       publicApi: "API ציבורי",
       outline: "בעמוד זה",

@@ -146,7 +146,7 @@ function expandShorthand(
  *
  * `flex: <number>` uses a `0px` basis rather than CSS's `0%`: an indefinite
  * container makes `0%` behave as `auto`, while `0px` is always definite, and
- * the two agree inside a definite container. See docs/style-support.md.
+ * the two agree inside a definite container. See apps/site/content/guide/style-support.md.
  */
 function expandFlex(
   longhands: readonly string[],
@@ -553,7 +553,7 @@ const MAXIMUM_SHADOWS = 4;
  * `inset` is rejected rather than silently dropped: drawing one needs an
  * inverse path and a clip, and quietly turning an inset shadow into an outer
  * one would draw the opposite of what the author asked for. See
- * docs/style-support.md.
+ * apps/site/content/guide/style-support.md.
  */
 function parseBoxShadow(rawValue: unknown): string | null {
   if (rawValue === "none") return "none";

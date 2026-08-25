@@ -97,7 +97,7 @@ Auf diesem Kernel liegen drei autorengerichtete API-Ebenen:
 - **Basiskomponenten** —— Engine-Elemente wie View/Text/Image, Input/TextArea, SVG/Path, siehe
   [Basiskomponenten](/guide/elements).
 - **Styles** —— eine versionierte CSS-Teilmenge, die auf Shell-Seite geparst wird (Unterstützungstabelle
-  [hier](/style-support)), sowie die [SCSS/Less-Pipeline](/guide/scss-less) zur Build-Zeit; der Core
+  [hier](/guide/style-support)), sowie die [SCSS/Less-Pipeline](/guide/scss-less) zur Build-Zeit; der Core
   konsumiert nur normalisierte typisierte Werte und parst keinen CSS-Text.
 - **UI-Komponentenbibliothek** —— `@dopejs/pingo-ui`, fertige Komponenten, die an shadcn/ui ausgerichtet
   sind und vollständig auf Canvas rendern, siehe [Komponentendokumentation](/components).

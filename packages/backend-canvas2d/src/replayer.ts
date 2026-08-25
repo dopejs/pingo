@@ -404,7 +404,7 @@ function replayCommand(
       const color = rgbaCss(reader.u32());
       // Core already folded CSS spread into the rectangle and radii, so all
       // that is left is what Canvas2D does natively. The fill itself lands
-      // under the node's own background; see docs/style-support.md.
+      // under the node's own background; see apps/site/content/guide/style-support.md.
       context.save();
       context.shadowColor = color;
       context.shadowBlur = blur;

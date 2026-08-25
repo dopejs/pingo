@@ -8,7 +8,7 @@ description: Le subset CSS de pingo — sélecteurs de classe, cascade et spéci
 Le style de pingo est un **subset CSS versionné** (actuellement 1.6.0) : le texte CSS est analysé
 et calculé côté Shell, et le Core ne consomme que des valeurs typées normalisées — le texte CSS et
 la correspondance de sélecteurs n'entrent jamais dans le Core. La table complète des propriétés
-prises en charge figure dans [Prise en charge du subset CSS](/style-support) ; cette page couvre
+prises en charge figure dans [Prise en charge du subset CSS](/guide/style-support) ; cette page couvre
 l'usage et les limites.
 
 ## Créer et enregistrer une feuille de style
@@ -109,7 +109,7 @@ pas déclencher de changement de mise en page.
 ## Écarts principaux avec le CSS
 
 Le subset ne vise délibérément pas la compatibilité CSS complète. Écarts clés (liste complète dans
-[Prise en charge du subset CSS](/style-support)) :
+[Prise en charge du subset CSS](/guide/style-support)) :
 
 - Le bloc conteneur de `position: absolute` est le **nœud parent**, pas l'ancêtre positionné le
   plus proche ; il n'y a pas de `position: relative`, les décalages visuels passent par

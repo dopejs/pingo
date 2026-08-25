@@ -83,7 +83,7 @@
 ### Task E5-6: 出口门禁 + Input slot
 
 **Files:** `packages/ui/src/input.tsx`、`packages/ui/src/styles/input.scss`、
-`packages/ui/src/index.ts`、storybook 展区、`docs/style-support.md`
+`packages/ui/src/index.ts`、storybook 展区、`apps/site/content/guide/style-support.md`
 
 - [x] **Step 1**：`Input` 增 `prefix?` / `suffix?` slot，输入区 `flex: 1 1 0px`。
 - [x] **Step 2**：descriptor 测试 + 皮肤解析测试 + storybook 明暗展区。

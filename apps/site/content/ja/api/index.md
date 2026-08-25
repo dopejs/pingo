@@ -1,7 +1,7 @@
 # 公開 API
 
 `@dopejs/pingo` のエクスポートが公開契約です。内部パッケージ（`@dopejs/pingo-host` など）は
-安定性を約束しません。[移行スキャナ](/migration)がアプリケーションからの直接依存を止めます。
+安定性を約束しません。[移行スキャナ](/guide/migration)がアプリケーションからの直接依存を止めます。
 
 ::: tip スナップショットが契約
 公開面は `benchmarks/api/facade.v1.d.ts` に固定されています。シグネチャの変更はこのスナップショットを
@@ -102,9 +102,9 @@ verifyWasmIntegrity(bytes, manifest): Promise<void>
 ```
 
 セルフホストした WASM がビルドの manifest と一致しない場合、`WasmIntegrityError` が投げられます。
-[診断](/diagnostics)を参照してください。
+[診断](/guide/diagnostics)を参照してください。
 
 ## 移行の境界
 
 `@dopejs/pingo-compat` は独立した境界パッケージで、ページ単位の段階適用とロールバックのための
-`mountCompatPage` を提供します。詳しくは[移行ガイド](/migration)を参照してください。
+`mountCompatPage` を提供します。詳しくは[移行ガイド](/guide/migration)を参照してください。

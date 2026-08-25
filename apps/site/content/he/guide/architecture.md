@@ -90,7 +90,7 @@ threadים. ארכיון `DOPR` מקליט זרמי Mutation ו־Input בסדר 
 
 - **קומפוננטות בסיסיות** —— אלמנטים ברמת מנוע כגון View/Text/Image, Input/TextArea, SVG/Path,
   ראו [קומפוננטות בסיסיות](/guide/elements).
-- **סגנונות** —— תת־קבוצת CSS עם גרסאות המפוענחת בצד ה־Shell (טבלת תמיכה [כאן](/style-support)),
+- **סגנונות** —— תת־קבוצת CSS עם גרסאות המפוענחת בצד ה־Shell (טבלת תמיכה [כאן](/guide/style-support)),
   וכן צינור [SCSS/Less](/guide/scss-less) בזמן בנייה; ה־Core צורך רק ערכים מתוקננים ומטויפים,
   אינו מפענח טקסט CSS.
 - **ספריית קומפוננטות UI** —— `@dopejs/pingo-ui`, קומפוננטות מוגמרות המיושרות עם shadcn/ui,

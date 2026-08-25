@@ -1392,7 +1392,7 @@ fn push_shadows(
 /// `style_border_radius` above already does. CSS resolves padding percentages
 /// against the containing block's content width, so the two disagree for a
 /// percentage padding on a text node; the subset's callers use lengths, and
-/// `docs/style-support.md` records the gap.
+/// `apps/site/content/guide/style-support.md` records the gap.
 fn text_content_insets(scene: &Scene, node: NodeId, size: pingo_layout::Size) -> [f32; 4] {
     let (widths, _) = style_border(scene, node);
     let padding = |property: StyleProperty| {

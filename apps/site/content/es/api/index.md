@@ -1,7 +1,7 @@
 # API pública
 
 Lo que exporta `@dopejs/pingo` es el contrato público. Los paquetes internos (`@dopejs/pingo-host` y
-demás) no prometen estabilidad, y el [escáner de migración](/migration) impide que una aplicación
+demás) no prometen estabilidad, y el [escáner de migración](/guide/migration) impide que una aplicación
 dependa de ellos directamente.
 
 ::: tip La instantánea es el contrato
@@ -104,9 +104,9 @@ verifyWasmIntegrity(bytes, manifest): Promise<void>
 ```
 
 `WasmIntegrityError` se lanza cuando un WASM alojado por tu cuenta no coincide con el manifiesto de
-la compilación. Véase [diagnóstico](/diagnostics).
+la compilación. Véase [diagnóstico](/guide/diagnostics).
 
 ## Frontera de migración
 
 `@dopejs/pingo-compat` es un paquete de frontera independiente que ofrece `mountCompatPage` para el
-despliegue por página y la vuelta atrás. Más detalles en la [guía de migración](/migration).
+despliegue por página y la vuelta atrás. Más detalles en la [guía de migración](/guide/migration).

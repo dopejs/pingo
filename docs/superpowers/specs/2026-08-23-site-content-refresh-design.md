@@ -18,14 +18,14 @@
 
 ## A. CSS 文档（用户向，新增）
 
-现有 CSS 内容（`docs/style-support.md` 生成表、`docs/scss-less-support.md`）是内部
+现有 CSS 内容（`apps/site/content/guide/style-support.md` 生成表、`docs/scss-less-support.md`）是内部
 设计/参考文档，缺用户向指南。新增：
 
 1. `docs/guide/styling.md` — 样式使用指南：CSS subset 用法、类选择器/继承/计算样式
    的边界、与内联 prop 的优先级、动画支持标注。
 2. `docs/guide/scss-less.md` — SCSS/Less 使用指南：构建期编译管线、Vite 插件用法、
    安全边界（Sass/Less 不进浏览器 bundle/Core）、source map 与错误诊断。
-3. `docs/style-support.md`（脚本生成，勿手改）挂入导航作为参考页，标注 subset 版本；
+3. `apps/site/content/guide/style-support.md`（脚本生成，勿手改）挂入导航作为参考页，标注 subset 版本；
    `scss-less-support.md` 保持内部设计文档，不进导航。
 
 ## B. 基础组件文档（Guide 新增小节）

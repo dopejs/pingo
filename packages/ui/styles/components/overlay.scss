@@ -2,7 +2,7 @@
 
 // A viewport overlay fills its own parent, because the containing block in this
 // engine is the parent rather than the nearest positioned ancestor. Mount
-// Dialog, Sheet and Toast near the root; see docs/style-support.md.
+// Dialog, Sheet and Toast near the root; see apps/site/content/guide/style-support.md.
 .pui-overlay {
   position: absolute;
   top: t.$zero;

@@ -7,7 +7,7 @@ pnpm add @dopejs/pingo
 ```
 
 Die Anwendung hängt nur von dem Paket `@dopejs/pingo` ab. `@dopejs/pingo-host`, `@dopejs/pingo-jsx` und andere sind interne Implementierungspakete
-und gehören nicht zum öffentlichen Vertrag – der [Migrations-Scanner](/migration) lehnt den direkten Import dieser Pakete ab.
+und gehören nicht zum öffentlichen Vertrag – der [Migrations-Scanner](/guide/migration) lehnt den direkten Import dieser Pakete ab.
 
 ## Die erste Leinwand einhängen
 
@@ -116,7 +116,7 @@ const root = await createHostedCanvasRoot(canvas, {
 ```
 
 `onFrame` liefert pro Frame die Anzahl der Befehle, die DisplayList-Bytes sowie die Dirty-Bereich-Zähler, den Layout-Aufwand und den Picture-Hash auf Core-Seite.
-Das sind die wichtigsten Daten für die Performance-Analyse. Mehr dazu unter [Diagnose](/diagnostics).
+Das sind die wichtigsten Daten für die Performance-Analyse. Mehr dazu unter [Diagnose](/guide/diagnostics).
 
 ## Überblick über die Fähigkeiten
 

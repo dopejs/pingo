@@ -92,4 +92,4 @@ pnpm 在打包时自动把 `workspace:*` 重写为当前精确版本，
   不依赖 unpublish（72 小时窗口且破坏下游 lockfile）。
 - 业务侧回滚与放量控制见 `docs/runbook.md`（灰度关断不依赖 npm 回滚）。
 - WASM 资产完整性：事故时用 `manifest.json` digest 对照 CDN 内容
-  （见 `docs/diagnostics.md`）。
+  （见 `apps/site/content/guide/diagnostics.md`）。

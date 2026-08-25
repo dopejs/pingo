@@ -1,7 +1,7 @@
 # 公開 API
 
 `@dopejs/pingo` 的匯出即公開契約。內部套件（`@dopejs/pingo-host` 等）不承諾穩定性，
-[遷移掃描器](/migration)會阻止業務直接相依它們。
+[遷移掃描器](/guide/migration)會阻止業務直接相依它們。
 
 ::: tip 快照即契約
 公開面被固化在 `benchmarks/api/facade.v1.d.ts` 中，任何簽章變化都必須明確更新該快照並經過審閱，
@@ -101,9 +101,9 @@ engineIdentity(): { version, abiVersion }
 verifyWasmIntegrity(bytes, manifest): Promise<void>
 ```
 
-`WasmIntegrityError` 在自架 WASM 與建置 manifest 不一致時擲出。見[診斷](/diagnostics)。
+`WasmIntegrityError` 在自架 WASM 與建置 manifest 不一致時擲出。見[診斷](/guide/diagnostics)。
 
 ## 遷移邊界
 
 `@dopejs/pingo-compat` 是獨立的邊界套件，提供 `mountCompatPage` 做依頁面灰度與回退。
-詳見[遷移指南](/migration)。
+詳見[遷移指南](/guide/migration)。

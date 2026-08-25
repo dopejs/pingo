@@ -7,7 +7,7 @@ pnpm add @dopejs/pingo
 ```
 
 ビジネスコードが依存するのは `@dopejs/pingo` の1パッケージのみです。`@dopejs/pingo-host`、`@dopejs/pingo-jsx` などは内部実装パッケージであり、
-公開契約には含まれません——[移行スキャナー](/migration)はこれらを直接 import するコードを拒否します。
+公開契約には含まれません——[移行スキャナー](/guide/migration)はこれらを直接 import するコードを拒否します。
 
 ## 最初のキャンバスをマウントする
 
@@ -116,7 +116,7 @@ const root = await createHostedCanvasRoot(canvas, {
 ```
 
 `onFrame` は毎フレーム、コマンド数、DisplayList のバイト数、Core 側のダーティ領域カウント、レイアウト作業量、picture hash を提供します。
-これはパフォーマンス調査の一次データです。詳細は[診断](/diagnostics)を参照してください。
+これはパフォーマンス調査の一次データです。詳細は[診断](/guide/diagnostics)を参照してください。
 
 ## 機能ツアー
 
