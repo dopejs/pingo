@@ -288,6 +288,8 @@ function parsePropertyValue(grammar: string, rawValue: unknown): SpecifiedStyleV
       return parseTransform(rawValue);
     case "box-shadow":
       return parseBoxShadow(rawValue);
+    case "scrollbar-color":
+      return parseScrollbarColor(rawValue);
     case "z-index": {
       if (rawValue === "auto") return "auto";
       const number = parseFiniteNumber(rawValue);
@@ -519,6 +521,24 @@ function parsePosition(rawValue: unknown): string | null {
   const x = parsePositionAxis(first, "x");
   const y = parsePositionAxis(second, "y");
   return x === null || y === null ? null : `${x} ${y}`;
+}
+
+/**
+ * Canonicalizes `scrollbar-color` into `auto` or `#rrggbbaa #rrggbbaa`.
+ *
+ * `auto` is kept rather than resolved: CSS leaves the colours to the user
+ * agent there, and the user agent is Core, which knows the surface the bar is
+ * drawn on. Two colours, thumb first, as the property is written.
+ */
+function parseScrollbarColor(rawValue: unknown): string | null {
+  if (rawValue === "auto") return "auto";
+  if (typeof rawValue !== "string") return null;
+  const parts = rawValue.trim().split(/\s+/u);
+  if (parts.length !== 2) return null;
+  const thumb = parseColor(parts[0], false);
+  const track = parseColor(parts[1], false);
+  if (typeof thumb !== "string" || typeof track !== "string") return null;
+  return `${thumb} ${track}`;
 }
 
 /** Every shadow a node may declare; the decoder rejects a longer list. */

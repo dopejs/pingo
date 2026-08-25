@@ -164,9 +164,31 @@ function encodeValue(
       return { tag: tags.transformList, payload: transformPayload(requireString(value, property)) };
     case "shadow-list":
       return { tag: tags.shadowList, payload: shadowPayload(requireString(value, property)) };
+    case "color-pair":
+      return {
+        tag: tags.colorPair,
+        payload: colorPairPayload(requireString(value, property), property),
+      };
     default:
       throw new TypeError(`${property} uses unsupported canonical type ${canonical}`);
   }
+}
+
+/**
+ * `auto` carries no bytes at all: it is not a pair the Shell picked but a
+ * deferral to the user agent, which here is Core.
+ */
+function colorPairPayload(value: string, property: StylePropertyName): Uint8Array {
+  if (value === "auto") return new Uint8Array(0);
+  const parts = value.split(" ");
+  if (parts.length !== 2) {
+    throw new TypeError(`${property} expects two colors or auto`);
+  }
+  const bytes = new Uint8Array(8);
+  const view = new DataView(bytes.buffer);
+  view.setUint32(0, parseRgba(parts[0] ?? "", property), true);
+  view.setUint32(4, parseRgba(parts[1] ?? "", property), true);
+  return bytes;
 }
 
 function lengthPayload(value: string): Uint8Array {

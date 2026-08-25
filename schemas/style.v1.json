@@ -44,7 +44,8 @@
       "lineHeight": 7,
       "transformList": 8,
       "position": 9,
-      "shadowList": 10
+      "shadowList": 10,
+      "colorPair": 11
     },
     "lengthUnits": { "px": 1, "percent": 2, "auto": 3, "none": 4, "normal": 5, "number": 6 },
     "transformOperations": { "matrix": 1, "translate": 2, "scale": 3, "rotate": 4 }
@@ -1204,6 +1205,21 @@
       "inherited": false,
       "grammar": "scrollbar-width",
       "canonical": "keyword",
+      "invalidation": ["paint", "paintSelf"],
+      "animation": "discrete",
+      "appliesTo": ["view", "textArea"],
+      "feature": "scrollbar",
+      "affects": ["paint"],
+      "percentageReference": "none"
+    },
+    {
+      "id": 70,
+      "cssName": "scrollbar-color",
+      "jsName": "scrollbarColor",
+      "initial": "auto",
+      "inherited": true,
+      "grammar": "scrollbar-color",
+      "canonical": "color-pair",
       "invalidation": ["paint", "paintSelf"],
       "animation": "discrete",
       "appliesTo": ["view", "textArea"],

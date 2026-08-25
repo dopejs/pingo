@@ -1446,12 +1446,23 @@ fn scrollbar_instructions(
         return instructions;
     };
     let [offset_x, offset_y] = scene.scroll_position(node).unwrap_or([0.0, 0.0]);
-    let rgba = scene
-        .presented_style_rgba(node, StyleProperty::Color)
-        .unwrap_or(0x0000_00ff);
-    // Straight RGBA, so the alpha is the last byte.
-    let alpha = ((rgba & 0xff) as f32 * SCROLLBAR_THUMB_ALPHA) as u32;
-    let thumb_rgba = (rgba & 0xffff_ff00) | alpha.min(0xff);
+    // `scrollbar-color` names the pair; `auto` leaves it to the user agent,
+    // which is this: the node's own text colour, faded enough to read as a
+    // control rather than as content, so both themes follow without a second
+    // declaration. A named track is drawn behind the thumb; the user-agent
+    // default has none, which is the overlay bar the platforms draw.
+    let named = scene.presented_style_color_pair(node, StyleProperty::ScrollbarColor);
+    let (thumb_rgba, track_rgba) = match named {
+        Some([thumb, track]) => (thumb, Some(track)),
+        None => {
+            let rgba = scene
+                .presented_style_rgba(node, StyleProperty::Color)
+                .unwrap_or(0x0000_00ff);
+            // Straight RGBA, so the alpha is the last byte.
+            let alpha = ((rgba & 0xff) as f32 * SCROLLBAR_THUMB_ALPHA) as u32;
+            ((rgba & 0xffff_ff00) | alpha.min(0xff), None)
+        }
+    };
     let radius = thickness / 2.0;
     // An axis draws a bar when it scrolls and its content is longer than the
     // box. Both are decided before either is placed, because a bar shortens
@@ -1486,11 +1497,27 @@ fn scrollbar_instructions(
         let range = total - viewport;
         let travel = (track - length).max(0.0);
         let start = (position / range).clamp(0.0, 1.0) * travel;
-        let rect = if horizontal {
-            [start, size.height - thickness, length, thickness]
+        let (rect, track_rect) = if horizontal {
+            (
+                [start, size.height - thickness, length, thickness],
+                [0.0, size.height - thickness, track, thickness],
+            )
         } else {
-            [size.width - thickness, start, thickness, length]
+            (
+                [size.width - thickness, start, thickness, length],
+                [size.width - thickness, 0.0, thickness, track],
+            )
         };
+        if let Some(rgba) = track_rgba {
+            push(
+                &mut instructions,
+                DisplayCommand::FillColorRRect {
+                    rect: track_rect,
+                    radii: [radius; 4],
+                    rgba,
+                },
+            );
+        }
         push(
             &mut instructions,
             DisplayCommand::FillColorRRect {
@@ -1847,6 +1874,72 @@ mod tests {
                 radii: [4.0; 4],
                 rgba: 0x0000_0072,
             }]
+        );
+
+        // A named `scrollbar-color` replaces the user-agent pair and adds the
+        // track behind the thumb, which the overlay default does not draw.
+        commit(
+            &mut scene,
+            2,
+            vec![
+                Mutation::DefineResource {
+                    resource_id: 6,
+                    kind: ResourceKind::ComputedStyle,
+                    bytes: computed_style(&[
+                        (
+                            pingo_abi::StyleProperty::OverflowY,
+                            pingo_abi::STYLE_VALUE_KEYWORD,
+                            (StyleKeyword::Auto as u16)
+                                .to_le_bytes()
+                                .into_iter()
+                                .chain(0_u16.to_le_bytes())
+                                .collect(),
+                        ),
+                        (
+                            pingo_abi::StyleProperty::ScrollbarColor,
+                            pingo_abi::STYLE_VALUE_COLOR_PAIR,
+                            0x1122_3344_u32
+                                .to_le_bytes()
+                                .into_iter()
+                                .chain(0x5566_7788_u32.to_le_bytes())
+                                .collect(),
+                        ),
+                    ]),
+                },
+                Mutation::SetRef {
+                    node_id: viewport.raw(),
+                    prop: Prop::ComputedStyle,
+                    resource_id: 6,
+                },
+            ],
+        );
+        let painted = scrollbar_instructions(&scene, viewport, size, &Content);
+        assert_eq!(
+            painted
+                .iter()
+                .map(|entry| entry.command.clone())
+                .collect::<Vec<_>>(),
+            vec![
+                DisplayCommand::FillColorRRect {
+                    rect: [92.0, 0.0, 8.0, 200.0],
+                    radii: [4.0; 4],
+                    rgba: 0x5566_7788,
+                },
+                DisplayCommand::FillColorRRect {
+                    rect: [92.0, 0.0, 8.0, 100.0],
+                    radii: [4.0; 4],
+                    rgba: 0x1122_3344,
+                },
+            ]
+        );
+        commit(
+            &mut scene,
+            3,
+            vec![Mutation::SetRef {
+                node_id: viewport.raw(),
+                prop: Prop::ComputedStyle,
+                resource_id: 5,
+            }],
         );
 
         // Scrolled to the end it sits at the end of the track, same length.

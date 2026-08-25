@@ -39,6 +39,7 @@ const grammarTypes = {
   "non-negative-number": "number",
   "non-negative-length-normal": 'PingoStyleLength | "normal"',
   "object-fit": '"contain" | "cover" | "fill" | "none" | "scale-down"',
+  "scrollbar-color": "string",
   "scrollbar-width": '"auto" | "none" | "thin"',
   "opacity": "number",
   "overflow": '"auto" | "clip" | "hidden" | "scroll" | "visible"',

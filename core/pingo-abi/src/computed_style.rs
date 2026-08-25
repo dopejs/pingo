@@ -5,10 +5,11 @@ use crate::{
     STYLE_COMPUTED_ENCODING_VERSION, STYLE_COMPUTED_MAX_BYTES, STYLE_COMPUTED_MAX_ENTRIES,
     STYLE_INTERACTION_STATE_MASK, STYLE_LENGTH_AUTO, STYLE_LENGTH_NONE, STYLE_LENGTH_NORMAL,
     STYLE_LENGTH_NUMBER, STYLE_LENGTH_PERCENT, STYLE_LENGTH_PX, STYLE_TRANSFORM_MATRIX,
-    STYLE_TRANSFORM_ROTATE, STYLE_TRANSFORM_SCALE, STYLE_TRANSFORM_TRANSLATE, STYLE_VALUE_F32,
-    STYLE_VALUE_FONT_FAMILY_LIST, STYLE_VALUE_KEYWORD, STYLE_VALUE_LENGTH, STYLE_VALUE_LINE_HEIGHT,
-    STYLE_VALUE_POSITION, STYLE_VALUE_RGBA8, STYLE_VALUE_SHADOW_LIST, STYLE_VALUE_TRANSFORM_LIST,
-    STYLE_VALUE_U16, StyleCanonicalValue, StyleKeyword, StyleProperty, StyleValueGrammar,
+    STYLE_TRANSFORM_ROTATE, STYLE_TRANSFORM_SCALE, STYLE_TRANSFORM_TRANSLATE,
+    STYLE_VALUE_COLOR_PAIR, STYLE_VALUE_F32, STYLE_VALUE_FONT_FAMILY_LIST, STYLE_VALUE_KEYWORD,
+    STYLE_VALUE_LENGTH, STYLE_VALUE_LINE_HEIGHT, STYLE_VALUE_POSITION, STYLE_VALUE_RGBA8,
+    STYLE_VALUE_SHADOW_LIST, STYLE_VALUE_TRANSFORM_LIST, STYLE_VALUE_U16, StyleCanonicalValue,
+    StyleKeyword, StyleProperty, StyleValueGrammar,
 };
 
 const HEADER_BYTES: usize = 16;
@@ -77,6 +78,12 @@ pub enum ComputedStyleValue {
     Position([StyleLength; 2]),
     /// Ordered drop shadows, outermost declaration first.
     ShadowList(Arc<[StyleShadow]>),
+    /// Thumb and track colours, or `None` for the user agent's own choice.
+    ///
+    /// `auto` is a value in its own right rather than a pair the Shell picked:
+    /// CSS leaves the colours to the user agent there, and Core is the user
+    /// agent. It arrives as an empty payload.
+    ColorPair(Option<[u32; 2]>),
 }
 
 /// One outer drop shadow in border-box pixels.
@@ -379,12 +386,35 @@ fn decode_value(
         STYLE_VALUE_SHADOW_LIST if expected == StyleCanonicalValue::ShadowList => {
             Ok(ComputedStyleValue::ShadowList(decode_shadow_list(payload)?))
         }
+        STYLE_VALUE_COLOR_PAIR if expected == StyleCanonicalValue::ColorPair => Ok(
+            ComputedStyleValue::ColorPair(decode_color_pair(property, payload)?),
+        ),
         _ => Err(AbiError::WrongPropertyEncoding {
             prop: property as u16,
             expected: canonical_name(expected),
             actual: "computed-style value tag",
         }),
     }
+}
+
+/// An empty payload is `auto`; anything else is exactly two straight RGBA8s.
+fn decode_color_pair(
+    property: StyleProperty,
+    payload: &[u8],
+) -> Result<Option<[u32; 2]>, AbiError> {
+    if payload.is_empty() {
+        return Ok(None);
+    }
+    if payload.len() != 8 {
+        return Err(AbiError::WrongPropertyEncoding {
+            prop: property as u16,
+            expected: "color-pair",
+            actual: "computed-style payload length",
+        });
+    }
+    let thumb = u32::from_le_bytes(payload[0..4].try_into().expect("checked length"));
+    let track = u32::from_le_bytes(payload[4..8].try_into().expect("checked length"));
+    Ok(Some([thumb, track]))
 }
 
 fn decode_length(
@@ -617,6 +647,7 @@ const fn canonical_name(value: StyleCanonicalValue) -> &'static str {
         StyleCanonicalValue::TransformList => "transform-list",
         StyleCanonicalValue::ShadowList => "shadow-list",
         StyleCanonicalValue::Position => "position",
+        StyleCanonicalValue::ColorPair => "color-pair",
     }
 }
 
@@ -1189,6 +1220,52 @@ mod tests {
             ComputedStyleResource::decode(&shadow_resource(&shadow_record(1.0, 2.0, 3.0, 4.0)))
                 .is_ok()
         );
+    }
+
+    #[test]
+    fn a_color_pair_decodes_auto_from_no_bytes_and_a_pair_from_eight() {
+        for (payload, expected) in [
+            (Vec::new(), Some(ComputedStyleValue::ColorPair(None))),
+            (
+                0x1122_3344_u32
+                    .to_le_bytes()
+                    .into_iter()
+                    .chain(0x5566_7788_u32.to_le_bytes())
+                    .collect::<Vec<_>>(),
+                Some(ComputedStyleValue::ColorPair(Some([
+                    0x1122_3344,
+                    0x5566_7788,
+                ]))),
+            ),
+        ] {
+            let bytes = resource(&[entry(
+                StyleProperty::ScrollbarColor,
+                0,
+                STYLE_VALUE_COLOR_PAIR,
+                &payload,
+            )]);
+            let decoded = ComputedStyleResource::decode(&bytes).expect("color pair");
+            assert_eq!(
+                decoded.value(StyleProperty::ScrollbarColor, 0).cloned(),
+                expected
+            );
+        }
+    }
+
+    #[test]
+    fn a_color_pair_of_any_other_length_is_rejected() {
+        for length in [1_usize, 4, 7, 9, 12] {
+            let bytes = resource(&[entry(
+                StyleProperty::ScrollbarColor,
+                0,
+                STYLE_VALUE_COLOR_PAIR,
+                &vec![0_u8; length],
+            )]);
+            assert!(
+                ComputedStyleResource::decode(&bytes).is_err(),
+                "{length} bytes is not a color pair"
+            );
+        }
     }
 
     #[test]

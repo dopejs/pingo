@@ -150,6 +150,65 @@ describe("scrollbar", () => {
     expect(thumb(canvas)).toBeUndefined();
   }, 60_000);
 
+  it("takes the colours a caller names", async () => {
+    // `scrollbar-color` is a real CSS property and its initial `auto` leaves
+    // the pair to the user agent, which is Core. A named pair replaces both
+    // and adds the track the overlay default does not draw.
+    const canvas = document.createElement("canvas");
+    canvas.width = WIDTH;
+    canvas.height = HEIGHT;
+    canvas.style.cssText = `display:block;width:${String(WIDTH)}px;height:${String(HEIGHT)}px`;
+    document.body.append(canvas);
+    const frames: FrameReport[] = [];
+    const root = await createHostedCanvasRoot(canvas, {
+      styleSheets: [createPingoUiStyleSheet()],
+      onFrame: (report) => frames.push(report),
+      transport: { preference: "main-thread", strict: true },
+    });
+    roots.push(root);
+    root.render(
+      createElement("container", {
+        width: WIDTH,
+        height: HEIGHT,
+        backgroundColor: "#ffffffff",
+        style: { flexDirection: "column", padding: "20px" },
+        children: createElement("container", {
+          width: 260,
+          height: AREA,
+          style: { flexDirection: "column", scrollbarColor: "#ff0000ff #0000ffff" },
+          children: createElement(ScrollArea, {
+            children: Array.from({ length: 20 }, (_, index) =>
+              createElement("container", {
+                key: String(index),
+                padding: 8,
+                children: createElement(Label, { children: `row ${String(index)}` }),
+              }),
+            ),
+          }),
+        }),
+      }),
+    );
+    while (!frames.some((frame) => frame.cause === "mutation")) await pause(16);
+    await pause(400);
+
+    const context = canvas.getContext("2d");
+    if (context === null) throw new Error("Chromium did not provide Canvas2D");
+    const data = context.getImageData(0, 0, WIDTH, HEIGHT).data;
+    let red = 0;
+    let blue = 0;
+    for (let index = 0; index < data.length; index += 4) {
+      const r = data[index] ?? 0;
+      const g = data[index + 1] ?? 0;
+      const b = data[index + 2] ?? 0;
+      if (r > 200 && g < 60 && b < 60) red += 1;
+      if (b > 200 && g < 60 && r < 60) blue += 1;
+    }
+    // The thumb in red over its track in blue, and the track is the longer of
+    // the two because the thumb is only the visible fraction of it.
+    expect(red).toBeGreaterThan(50);
+    expect(blue).toBeGreaterThan(red);
+  }, 60_000);
+
   it("scrolls a virtual window without materializing it", async () => {
     // Virtualization is a View-level contract, so this is the same component
     // with a data window instead of children -- a hundred thousand rows and a

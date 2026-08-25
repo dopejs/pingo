@@ -680,6 +680,22 @@ impl Scene {
         }
     }
 
+    /// Returns a colour pair, or `None` when the value is `auto` or absent.
+    ///
+    /// `auto` and "not declared" answer the same way on purpose: both mean the
+    /// user agent chooses, and here the user agent is Core.
+    #[must_use]
+    pub fn presented_style_color_pair(
+        &self,
+        node: NodeId,
+        property: StyleProperty,
+    ) -> Option<[u32; 2]> {
+        match self.presented_style_value(node, property)? {
+            ComputedStyleValue::ColorPair(pair) => *pair,
+            _ => None,
+        }
+    }
+
     /// Whether any live resource declares `z-index`.
     #[must_use]
     pub const fn uses_z_index(&self) -> bool {

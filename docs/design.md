@@ -1978,6 +1978,27 @@ Slider 和 Resizable 是库里仅有的两个拖拽控件，两个都不跟手�
 **验证**：真实浏览器里 Slider 从 40 拖到 94，指针移到组件外仍然跟随（捕获生效），松开落在
 22；Resizable 的分隔条一路跟到指针，移到组件下方 100px 仍然跟随。
 
+### `scrollbar-color`：滚动条配色（2026-08-25）
+
+上一条把滚动条交给 Core 画时，颜色用的是 UA 默认值。这一条补上显式配色，也就是 CSS 的
+`scrollbar-color: <thumb> <track>`（继承，初始值 `auto`）。
+
+**新增一个 value tag**（`colorPair` = 11），这是子集第一次需要"一个属性两个颜色"。编码规则：
+**空 payload 就是 `auto`**，8 字节就是一对直通 RGBA8（滑块在前、轨道在后）。`auto` 不是
+Shell 挑了一对颜色，而是把选择权交回 UA——这里 UA 就是 Core——所以它没有字节可写，这一点比
+塞一个哨兵值更诚实。解码器只接受 0 或 8 字节，其余长度一律拒绝。
+
+**UA 默认值**仍是节点自己的 `color` 降到 45% 不透明度，不画轨道——就是各平台的 overlay 式
+滚动条。写了 `scrollbar-color` 就两者都换掉，并且在滑块后面补上轨道。
+
+**验证**：Rust 侧断言空 payload 解成 `auto`、8 字节解成那一对，1/4/7/9/12 字节全部拒绝；
+`pingo-paint` 断言指定配色后先画轨道再画滑块、颜色分别是那两个；TS 侧断言 `auto` 编成 0 字节、
+一对编成 8 字节且字节序正确；`scrollbar-travel.browser.ts` 从 CSS 文本一路走到画布像素，
+数红蓝像素确认滑块是红的、轨道是蓝的且更长。跨语言 round trip 与公共 API 快照都通过。
+
+**顺带**：computed style 的编码器测试原本断言"每个条目的 payload 都非空"，现在放宽到"只有
+`scrollbar-color` 可以为空"——空 payload 在这里就是值本身。
+
 ### 绝对定位的包含块是 padding box（2026-08-25）
 
 CSS 给绝对定位子节点的包含块是父级的 **padding box**：`top: 0` 落在边框内侧、内边距之上，
