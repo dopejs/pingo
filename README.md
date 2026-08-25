@@ -7,6 +7,8 @@
 
 <h1 align="center">Pingo</h1>
 
+<p align="center">在 canvas 上写 TSX。</p>
+
 <p align="center">
   <a href="https://www.npmjs.com/package/@dopejs/pingo"><img alt="npm" src="https://img.shields.io/npm/v/@dopejs/pingo?color=2f6bff&label=%40dopejs%2Fpingo"></a>
   <a href="docs/changelog.md"><img alt="changelog" src="https://img.shields.io/badge/changelog-read-2f6bff"></a>
@@ -14,91 +16,134 @@
   <a href="https://pingo.dopejs.com"><img alt="docs" src="https://img.shields.io/badge/docs-pingo.dopejs.com-2f6bff"></a>
 </p>
 
-Pingo 是一套从零设计的 Web Canvas 渲染引擎：Rust/WASM Core 负责 Scene、布局、文本、
-命中、滚动、绘制与动画，TypeScript Shell 负责组件树、样式与调度，两者之间只通过
-版本化的二进制 ABI 通信。目标是高性能 TSX 运行时、原生虚拟滚动、确定性渲染，以及
-Canvas 原生的可编辑文本。
+Pingo 用函数组件、hooks 和 CSS 描述界面，但不生成 DOM：Rust/WASM 核心负责布局、
+文本、命中、滚动、绘制与动画，TypeScript 外壳负责组件树与样式，两者之间只通过版本化
+的二进制协议通信。写法是熟悉的，跑的是一条不经过 DOM 的渲染管线。
 
-仓库：<https://github.com/dopejs/pingo>
+它适合这些场景：
 
-技术决策以 [`docs/design.md`](docs/design.md) 为准，交付顺序与出口门禁见
-[`docs/plan.md`](docs/plan.md)。修改架构或行为前先读 [`AGENTS.md`](AGENTS.md)。
+- **长列表与表格**——窗口由核心规划，百万行的代价等于一屏，滚动稳态完全不回调 JS。
+- **主线程会被阻塞的应用**——UI 时钟与渲染时钟相互独立，主线程卡住 200ms 画面仍然连续。
+- **canvas 内的文本编辑**——caret、选区、IME 组合、剪贴板与撤销重做由引擎实现，业务
+  不必再为输入能力叠一层 HTML 控件。
 
-## 现在能做什么
+想先看效果，[Playground](https://pingo.dopejs.com/playground) 里有百万行滚动、编辑与
+IME、命中测试与双时钟的实时演示，右侧是逐帧指标。
 
-以下均已在仓库中实现并由自动门禁覆盖，不是路线图：
+## 安装
 
-- **组件运行时**：TSX 函数组件、hooks 与 signal、`memo`、context。
-- **CSS 子集**：69 个属性、版本化（当前 `1.8.0`）、逐属性 feature bit。子集外的写法
-  在编译期被拒绝并带属性名与源位置，而不是静默降级。
-- **布局**：flex 单行布局（含 `flex-grow/shrink/basis`）、`position: absolute` +
-  inset、`z-index`、`box-shadow`、overflow 与滚动。
-- **原生虚拟滚动**：窗口由 Core 规划，百万行的代价等于一屏。
-- **文本与编辑**：引擎自绘文本、光标、选区、IME 组合、剪贴板、撤销/重做。
-- **矢量**：SVG 路径与文档子集，图标可直接用 `createSvg` 接入。
-- **组件库** `@dopejs/pingo-ui`：46 个 shadcn 形状的组件（含自带虚拟滚动的 `Table`）。
-- **无障碍**：语义树随帧导出，键盘导航、焦点与角色贯穿组件库。
-- **降级链**：SharedArrayBuffer → `postMessage` → 主线程 Canvas2D。
+```sh
+pnpm add @dopejs/pingo
+```
 
-**尚未具备**：CSS 选择器与层叠的完整兼容、SSR/HTML 首屏、`flex-wrap`、渐变与图案
-填充、图表。各组件的已知缺口见
-[`packages/ui/README.md`](packages/ui/README.md)，CSS 子集的既知偏差见
-[`docs/style-support.md`](docs/style-support.md)。
+业务只依赖 `@dopejs/pingo` 一个包。`@dopejs/pingo-host`、`@dopejs/pingo-jsx` 等是内部
+实现包，不属于公开契约。
 
-## 工作区
+## 第一个画布
 
-| 目录                  | 内容                                                            |
-| --------------------- | --------------------------------------------------------------- |
-| `core/`               | Rust workspace：scene、layout、text、hit、scroll、paint、abi 等 |
-| `packages/`           | TypeScript：runtime、jsx、style、reconciler、host、backend、ui  |
-| `packages/facade`     | `@dopejs/pingo` 门面，只重导出公开 API                          |
-| `apps/storybook`      | 组件库明暗展区                                                  |
-| `apps/platform-probe` | 平台能力探针（Worker 时钟、SAB、OffscreenCanvas、IME 回放）     |
+```ts
+import { createElement, createHostedCanvasRoot } from "@dopejs/pingo";
 
-## 本地运行
+const canvas = document.querySelector<HTMLCanvasElement>("#app")!;
+canvas.width = 800;
+canvas.height = 600;
 
-前置要求：Node.js 22.12+、pnpm 10.33.2、Rust 1.96.0，并安装
-`wasm32-unknown-unknown` target。
+const root = await createHostedCanvasRoot(canvas);
+
+root.render(
+  createElement("container", {
+    width: 800,
+    height: 600,
+    backgroundColor: "#ffffffff",
+    padding: 24,
+    children: createElement("text", {
+      value: "Hello pingo",
+      fontSize: 24,
+      lineHeight: 32,
+      color: "#1f2329ff",
+    }),
+  }),
+);
+```
+
+`createHostedCanvasRoot` 自己探测浏览器能力，在 SharedArrayBuffer、`postMessage` 与
+主线程 Canvas2D 之间选路，你不需要为降级写分支；`root.mode` 会告诉你实际选中了哪条。
+
+配好 `tsconfig.json` 就能写 TSX：
+
+```json
+{
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "@dopejs/pingo"
+  }
+}
+```
+
+```tsx
+function OrderRow({ index }: { index: number }) {
+  return (
+    <container width={480} height={32} padding={[6, 12, 6, 12]}>
+      <text value={`订单 #${index}`} fontSize={13} lineHeight={20} />
+    </container>
+  );
+}
+```
+
+完整入门见[快速开始](https://pingo.dopejs.com/guide/getting-started)。
+
+## 组件库
+
+`@dopejs/pingo-ui` 提供 46 个与 shadcn/ui 对齐的组件，明暗主题、键盘导航与语义角色都
+已接好，其中 `Table` / `DataTable` 自带虚拟滚动。每个组件的用法、可用属性与已知缺口见
+[组件文档](https://pingo.dopejs.com/components/button)。
+
+它**还没有发布到 npm**：包在仓库里（`packages/ui`）并随每次门禁验证，但公开发布集目前
+只有引擎的 12 个包。要用它先从源码构建，或在
+[组件文档](https://pingo.dopejs.com/components/button)里看它现在的样子。
+
+## 能力与边界
+
+已经实现并由自动门禁覆盖的：
+
+| 能力       | 说明                                                               |
+| ---------- | ------------------------------------------------------------------ |
+| 组件运行时 | TSX 函数组件、hooks 与 signal、`memo`、context                     |
+| 样式       | 69 个 CSS 属性的版本化子集（当前 `1.8.0`），逐属性 feature bit     |
+| 布局       | flex 单行、`position: absolute` + inset、`z-index`、overflow       |
+| 虚拟滚动   | 窗口由核心规划，x/y 单轴，滚动帧不进入 Shell                       |
+| 文本与编辑 | 引擎自绘文本、caret、选区、IME 组合、剪贴板、撤销重做              |
+| 矢量       | SVG 路径与文档子集，图标可用 `createSvg` 直接接入                  |
+| 动画       | 核心内的 transition 与 keyframes，可 retarget/cancel，尊重减弱动效 |
+| 无障碍     | 语义树随帧导出到旁路 DOM，键盘导航与角色贯穿组件库                 |
+| 降级链     | SharedArrayBuffer → `postMessage` → 主线程 Canvas2D                |
+
+**目前没有**：CSS 选择器与层叠的完整兼容、SSR 与 HTML 首屏、`flex-wrap`、渐变与图案
+填充、图表。样式子集的逐条偏差见
+[样式支持表](https://pingo.dopejs.com/style-support)。
+
+## 参与开发
+
+前置要求：Node.js 22.12+、pnpm 10.33.2、Rust 1.96.0，并安装 `wasm32-unknown-unknown`
+target。
 
 ```bash
 pnpm install --frozen-lockfile
-pnpm check           # 日常：构建、lint、类型、测试、覆盖率门槛与帧时基准
-pnpm check:full      # 完整：加上协议/API/迁移/后端差分/动画/soak 等全部门禁
-pnpm storybook:build # 组件库
-pnpm probe:dev       # 平台探针；开发服务器发送 COOP/COEP 以启用跨源隔离
+pnpm check           # 构建、lint、类型、测试、覆盖率与帧时基准
+pnpm check:full      # 加上协议/API/迁移/后端差分/动画/soak 等全部门禁
+pnpm storybook:dev   # 组件库展区
 ```
 
-## 当前实测
+技术决策以 [`docs/design.md`](docs/design.md) 为准，交付顺序与门禁见
+[`docs/plan.md`](docs/plan.md)。改架构或行为前先读 [`AGENTS.md`](AGENTS.md)。
 
-下表取自同一次 `pnpm check:full` 执行，不是历史累积：
-
-| 项目        | 实测                                                  |
-| ----------- | ----------------------------------------------------- |
-| 测试        | 116 文件 / 795 用例                                   |
-| Rust 行覆盖 | 整仓 ≥85%，`pingo-abi` / `scene` / `scroll` ≥95%      |
-| Core 帧时   | 5000 节点、每帧 20 次更新，p95 3.180ms（预算 16.7ms） |
-| 虚拟滚动    | 百万行，每帧 p95 0.833µs                              |
-| WASM        | 372,852 / 393,216 gzip                                |
-| ABI 版本    | 22（跨语言往返 + golden bytes + fuzz 覆盖）           |
-
-门禁全绿**不等于**可以发布：打标签、GitHub Release 与 npm 发布在发布流程升级到当前
-门禁之前保持关闭，这是有意的。
-
-## 平台资格
-
-真机帧时、真实输入法、跨浏览器矩阵属于**平台资格认证**，与工程里程碑分离：它们必须
-保持可见，但不把已完成的工程项标记为未完成。具备正式设备与环境时使用
-`pnpm platform:qualify`；未认证的平台不得对外宣称已达到对应指标。
-
-发布另有 `pnpm release:gate`：它在 `check:full` 之上追加平台资格审计、npm 打包验证与
-候选报告，且要求工作树干净。完整口径见 [`docs/plan.md`](docs/plan.md)。
-
-采集口径与已知限制见 [`docs/m0-probes.md`](docs/m0-probes.md)。
+真机帧时、真实输入法与跨浏览器矩阵属于**平台资格认证**，与工程门禁分离：未认证的平台
+不对外宣称已达到对应指标，口径见 [`docs/m0-probes.md`](docs/m0-probes.md)。
 
 ## 许可证
 
-当前开发分支及其下一次 npm 发布使用 [Apache License 2.0](LICENSE)。v0.2.1
-及以前的已发布版本继续适用其原有 MIT 许可证。
+[Apache License 2.0](LICENSE)，自 0.3.0 起生效；v0.2.1 及以前的已发布版本继续适用其
+原有的 MIT 许可证。
 
 `packages/ui` 内联了少量 Lucide 图标路径（ISC），声明见
 [`packages/ui/src/icons.ts`](packages/ui/src/icons.ts)。
