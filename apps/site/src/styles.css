@@ -450,6 +450,54 @@ a {
   font-size: 12.5px;
 }
 
+/* Line numbers are a counter, not markup: a reader copying the block gets the
+   code and nothing else. Shiki emits one `.line` per source line, so the
+   numbering follows the source rather than the wrapping. */
+.doc-content pre.code-block code {
+  display: block;
+  counter-reset: line;
+  /* Shiki separates its line spans with real newlines. Under `pre` those are
+     line breaks of their own, so every line rendered twice as tall; the lines
+     are blocks and keep their own `pre`, so nothing is lost by collapsing the
+     whitespace between them. */
+  white-space: normal;
+}
+
+.doc-content pre.code-block .line {
+  display: block;
+  position: relative;
+  white-space: pre;
+  /* A blank source line has no content and so generates no line box. Without a
+     height it collapses and its number lands on top of the next one. */
+  min-height: 1lh;
+}
+
+.doc-content pre.code-block .line::before {
+  counter-increment: line;
+  content: counter(line);
+  /* Sticky rather than absolute: a long line scrolls sideways, and a number
+     that scrolls away with it tells you nothing. The background is the block's
+     own, so the code passes behind the gutter instead of through it. */
+  position: sticky;
+  left: 0;
+  display: inline-block;
+  width: 2ch;
+  padding-right: 1.5ch;
+  background: var(--bg-code);
+  /* The block's own left padding is scrollable area too, so the gutter has to
+     paint across it or code slides out into the margin. */
+  box-shadow: -20px 0 0 var(--bg-code);
+  color: var(--text-faint);
+  text-align: right;
+  user-select: none;
+}
+
+/* A source file ending in a newline gives shiki one empty trailing line;
+   showing it would invent a line the file does not have. */
+.doc-content pre.code-block .line:last-child:empty {
+  display: none;
+}
+
 .doc-content blockquote {
   margin: 18px 0;
   padding: 2px 18px;

@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 
 import matter from "gray-matter";
 import MarkdownIt from "markdown-it";
+import { createHighlighter } from "shiki";
 import anchor from "markdown-it-anchor";
 import container from "markdown-it-container";
 
@@ -93,8 +94,45 @@ function slugify(value) {
     .replace(/^-+|-+$/gu, "");
 }
 
-function createMarkdown(demoIds) {
-  const markdown = new MarkdownIt({ html: true, linkify: true });
+/**
+ * Build-time syntax highlighting for the four languages the docs actually use.
+ *
+ * Shiki runs here, in Node, so none of it reaches the browser. Only one theme
+ * is loaded because a code block is dark under both site themes -- `--bg-code`
+ * is dark in each -- so there is nothing to switch between.
+ */
+async function createSyntaxHighlighter() {
+  return createHighlighter({
+    themes: ["github-dark"],
+    langs: ["tsx", "ts", "sh", "json"],
+  });
+}
+
+/** Languages beyond these render as plain text rather than failing the build. */
+const HIGHLIGHTED_LANGUAGES = new Set(["tsx", "ts", "sh", "json"]);
+
+function createMarkdown(demoIds, highlighter) {
+  const markdown = new MarkdownIt({
+    html: true,
+    linkify: true,
+    highlight(code, language) {
+      if (!HIGHLIGHTED_LANGUAGES.has(language)) return "";
+      return highlighter.codeToHtml(code, {
+        lang: language,
+        theme: "github-dark",
+        transformers: [
+          {
+            // The theme's own background would win over the site's, being
+            // inline. The page decides the surface; the theme decides the ink.
+            pre(node) {
+              delete node.properties.style;
+              node.properties.class = `${node.properties.class ?? ""} code-block`.trim();
+            },
+          },
+        ],
+      });
+    },
+  });
   markdown.use(anchor, { slugify });
   markdown.use(container, "preview", {
     render(tokens, index) {
@@ -200,7 +238,8 @@ function requestRoute(pathname) {
 }
 
 export async function loadSiteContent() {
-  const markdown = createMarkdown(await collectDemoIds());
+  const [demoIds, highlighter] = await Promise.all([collectDemoIds(), createSyntaxHighlighter()]);
+  const markdown = createMarkdown(demoIds, highlighter);
   const pages = [];
   for (const sourcePath of await markdownFiles(contentRoot)) {
     const absolute = path.join(contentRoot, sourcePath);
