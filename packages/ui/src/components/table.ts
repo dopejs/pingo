@@ -43,12 +43,9 @@ export type TableProps<Row> = {
  * header and body consume the same one — which is also what keeps them aligned
  * without a table layout to align them.
  *
- * A column with no width shares the remainder through `flex`, and that only
- * works where there is a remainder to share. The header row fills the table,
- * so it has one; a body row is a virtual item, and a virtual item is not
- * stretched across its list (see docs/design.md, 2026-08-24), so it has none
- * and every flexible column in the body collapses to nothing. Give each column
- * an explicit width until that is fixed.
+ * A column with no width shares the remainder through `flex`, which needs a
+ * remainder to share: the header row fills the table and so does a body row,
+ * because Core stretches a virtual item across its list.
  */
 export function columnStyle<Row>(column: TableColumn<Row>): Record<string, unknown> {
   return column.width === undefined
@@ -118,6 +115,10 @@ export function tableDescriptor<Row>(props: TableProps<Row>): PingoNode {
           // asks for, so a million rows costs the same as a screenful.
           VirtualList({
             className: "pui-table__body",
+            // `rowgroup` is what a `<tbody>` maps to, and it also puts the
+            // body's own box in the semantic tree, where header/body column
+            // alignment can be asserted rather than eyeballed.
+            semanticRole: "rowgroup",
             itemCount: props.rowCount,
             estimatedItemHeight: props.estimatedRowHeight ?? 44,
             renderItem: row,

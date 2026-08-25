@@ -2022,6 +2022,42 @@ Shell 挑了一对颜色，而是把选择权交回 UA——这里 UA 就是 Cor
 **顺带**：computed style 的编码器测试原本断言"每个条目的 payload 都非空"，现在放宽到"只有
 `scrollbar-color` 可以为空"——空 payload 在这里就是值本身。
 
+### 虚拟列表里的一切都缩成了内容宽（2026-08-25）
+
+Table 与 DataTable 的表头列宽对，表体列宽不对：`flex: 1 1 0` 的那一列在表头拿到 248px，
+在每一行里是 0，整行只有 272px 而不是 520px。同一份列定义、同一套样式，只有"行在虚拟列表
+里"这一点不同。
+
+两个缺陷叠在一起：
+
+**一、Shell 给虚拟项套的匿名盒没有样式。** `materializeVirtualWindow` 把调用方渲染出来的
+每一项包进一个只带 item index 的 `container`。它既没有 `className` 也没有 `style`，于是
+根本没有解析出 computed style，Core 只能回落到旧的直接属性默认值：`align-items: flex-start`、
+主轴为行。调用方的行因此被当作行方向的 flex item 沿主轴排布，缩成自己的内容宽。现在包装盒按
+列表的虚拟轴显式带上 `flex-direction` 与 `align-items: stretch`，成为一个真正透明的单子盒。
+
+**二、被拉伸的子节点，在可滚动容器里丢掉了确定的交叉尺寸。** `align-items: stretch` 给子节点
+的是一个等于容器内容盒的**最小值**；可滚动容器紧接着把同一根轴的**最大值**放成无穷，好让内容
+溢出。这对 min/max 于是不再 tight，`cross_definite` 判成 false，`percent` 基准变成无穷——
+滚动面板里的每个盒子都退回收缩包裹，虚拟项里的 `100%` 解析成 0。修法是把这次"钉住"显式传下去
+（`CrossPin`）：谁在拉伸时钉了哪根轴、钉到多少，`make_frame` 就用它当外尺寸与百分比基准，并把
+该轴记为确定。**不是**从"有限 min + 无穷 max"去猜——那样会误伤列方向上任何被拉伸的行，表头一度
+因此塌成 0 高。
+
+**影响面**：可滚动容器（含所有虚拟列表）的直接子节点。此前它们全都收缩包裹，所以修好之后
+"变宽"的地方就是本来就该填满的地方。`reference.rs` 同步了同一条规则，差分预言机全绿。
+
+**残留**：容器主轴不确定时，`flex-basis: 0` 的项没有按 CSS 的 max-content contribution 参与
+容器的固有尺寸，仍然算作 0。因此 `.pui-statcard__value`、`.pui-topbar__title`、
+`.pui-list-row__text` 用 `flex: 1 1 auto` 而不是 `1 1 0`——有宽度时照样把尾部槽位推到边上，
+没宽度时保住自己的内容宽。补齐 flex 固有尺寸是独立的一件事。
+
+**验证**：`pingo-layout` 新增单测 `a_table_body_stretches_its_rows_like_its_header`，按真实
+形状搭出"定宽外框 / 表格列 / 表头行 / 虚拟表体 / 匿名包装盒 / 行 / 四个单元格"，断言表体某行的
+四列与表头逐列相等（修复前是 `[0, 72, 80, 120]`）。`packages/ui` 新增浏览器回归
+`table-columns.browser.ts`，用无障碍语义树断言每个表体行的宽度等于表格宽度。storybook 里
+`data--table` / `data--data-table` 的表体行从 272/472 变成 520，列与表头对齐。
+
 ### 绝对定位的包含块是 padding box（2026-08-25）
 
 CSS 给绝对定位子节点的包含块是父级的 **padding box**：`top: 0` 落在边框内侧、内边距之上，

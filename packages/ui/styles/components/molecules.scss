@@ -22,8 +22,9 @@
 
 // The title column absorbs the line, which is what pushes the actions to the
 // trailing edge without anyone measuring anything.
+// `auto` basis: see `.pui-statcard__value`.
 .pui-topbar__title {
-  flex: t.$grow-1;
+  flex: t.$grow-auto;
   font-size: t.$font-size-xl;
   font-weight: t.$font-weight-semibold;
 }
@@ -130,14 +131,25 @@
   }
 }
 
+// `flex-end`, not `baseline`: this subset resolves `baseline` to `flex-start`,
+// which hung the small delta off the top of the tall value. Bottom-aligning
+// two proportional line boxes is the closest this gets to a shared baseline.
 .pui-statcard__row {
   flex-direction: row;
-  align-items: baseline;
+  align-items: flex-end;
   column-gap: t.$overlay-gap;
 }
 
+// `auto` basis, not zero, and the same for the topbar's title and the list
+// row's text. A growing slot still takes the whole remainder when the molecule
+// was given a width, which is what puts deltas, actions and badges on the far
+// edge. But this engine does not yet give a zero-basis item its max-content
+// contribution when the container sizes to its content, so in a molecule
+// mounted without a width the slot collapsed to nothing: a stat value spilled
+// out of its card with the delta drawn on top, and a list row's two lines of
+// text stacked under its badge. See docs/design.md, 2026-08-25.
 .pui-statcard__value {
-  flex: t.$grow-1;
+  flex: t.$grow-auto;
   font-size: t.$stat-value-size;
   line-height: t.$stat-value-line-height;
   font-weight: t.$font-weight-semibold;
@@ -220,8 +232,9 @@
 }
 
 // The text column takes whatever the leading and trailing slots leave.
+// `auto` basis: see `.pui-statcard__value`.
 .pui-list-row__text {
-  flex: t.$grow-1;
+  flex: t.$grow-auto;
   flex-direction: column;
 }
 

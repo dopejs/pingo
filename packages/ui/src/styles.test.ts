@@ -50,14 +50,19 @@ describe("pingo-ui skin", () => {
   });
 
   it("lets the product molecules push their trailing slots to the edge", () => {
-    // These three are the first real consumers of flexGrow: the growing column
+    // These three are the first real consumers of flexGrow: the growing slot
     // is what puts actions, deltas and trailing slots on the far edge without
-    // anyone measuring anything.
-    for (const className of ["pui-topbar__title", "pui-statcard__value", "pui-list-row__text"]) {
+    // anyone measuring anything. The basis is `auto` rather than zero so the
+    // slot keeps its content width in a molecule that was mounted without one.
+    for (const className of [
+      "pui-topbar__title",
+      "pui-statcard__value",
+      "pui-list-row__text",
+    ]) {
       const style = resolve(className);
       expect(style.flexGrow, className).toBe(1);
       expect(style.flexShrink, className).toBe(1);
-      expect(style.flexBasis, className).toBe("0px");
+      expect(style.flexBasis, className).toBe("auto");
     }
     expect(resolve("pui-topbar").flexDirection).toBe("row");
     expect(resolve("pui-list-row").flexDirection).toBe("row");

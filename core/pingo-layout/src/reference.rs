@@ -24,9 +24,10 @@ use pingo_abi::{NodeKind, Prop, StyleKeyword, StyleProperty};
 use pingo_scene::{NodeId, Scene};
 
 use crate::engine::{
-    DIRECTION_ROW, EdgeInsets, PercentBasis, add_insets, flex_basis_main, has_requested_dimension,
-    intersect_constraints, is_tight, justify_spacing, outer_dimension, percentage_basis,
-    resolve_style_length, style_border, style_margin, style_padding, subtract_insets,
+    CrossPin, DIRECTION_ROW, EdgeInsets, ParentAxes, PercentBasis, add_insets, flex_basis_main,
+    has_requested_dimension, intersect_constraints, is_tight, justify_spacing, outer_dimension,
+    percentage_basis, resolve_style_length, style_border, style_margin, style_padding,
+    subtract_insets,
 };
 use crate::{BoxConstraints, IntrinsicMeasurer, LayoutError, Point, Size};
 
@@ -77,7 +78,7 @@ pub fn reference_layout(
             width: constraints.max_width,
             height: constraints.max_height,
         },
-        None,
+        ParentAxes::default(),
         measurer,
         &mut out,
     )?;
@@ -89,6 +90,8 @@ pub fn reference_layout(
 struct Item {
     node: NodeId,
     constraints: BoxConstraints,
+    /// See the engine's `ChildInput::cross_pin`.
+    cross_pin: Option<CrossPin>,
     basis: PercentBasis,
     margin: EdgeInsets,
     min_main: f32,
@@ -130,7 +133,7 @@ fn layout_node(
     node: NodeId,
     constraints: BoxConstraints,
     basis: PercentBasis,
-    flex_axis_row: Option<bool>,
+    parent: ParentAxes,
     measurer: &mut impl IntrinsicMeasurer,
     out: &mut ReferenceLayout,
 ) -> Result<Size, LayoutError> {
@@ -139,7 +142,7 @@ fn layout_node(
             "reference layout does not model virtual lists",
         ));
     }
-    let container = describe(scene, node, constraints, basis, flex_axis_row)?;
+    let container = describe(scene, node, constraints, basis, parent)?;
 
     let mut items = Vec::new();
     let mut out_of_flow = Vec::new();
@@ -164,7 +167,10 @@ fn layout_node(
             item.node,
             item.constraints,
             item.basis,
-            Some(container.row),
+            ParentAxes {
+                flex_row: Some(container.row),
+                cross_pin: item.cross_pin,
+            },
             measurer,
             out,
         )?;
@@ -194,7 +200,10 @@ fn layout_node(
                 item.node,
                 item.constraints,
                 item.basis,
-                Some(container.row),
+                ParentAxes {
+                    flex_row: Some(container.row),
+                    cross_pin: item.cross_pin,
+                },
                 measurer,
                 out,
             )?;
@@ -210,7 +219,10 @@ fn layout_node(
             item.node,
             item.constraints,
             item.basis,
-            Some(container.row),
+            ParentAxes {
+                flex_row: Some(container.row),
+                cross_pin: item.cross_pin,
+            },
             measurer,
             out,
         )?;
@@ -502,7 +514,7 @@ fn describe(
     node: NodeId,
     constraints: BoxConstraints,
     basis: PercentBasis,
-    flex_axis_row: Option<bool>,
+    parent: ParentAxes,
 ) -> Result<Box2, LayoutError> {
     let width_basis = percentage_basis(basis.width, constraints.min_width);
     let height_basis = percentage_basis(basis.height, constraints.min_height);
@@ -560,7 +572,7 @@ fn describe(
         });
     }
     let own = intersect_constraints(constraints, min_width, max_width, min_height, max_height);
-    let flex_basis = flex_axis_row.and_then(|row| {
+    let flex_basis = parent.flex_row.and_then(|row| {
         flex_basis_main(
             scene,
             node,
@@ -611,12 +623,23 @@ fn describe(
             direction,
             StyleKeyword::RowReverse | StyleKeyword::ColumnReverse
         );
-    let outer_width = fixed_width.map_or(own.max_width, |width| {
+    // See the engine's `CrossPin`.
+    let pinned_width = parent
+        .cross_pin
+        .filter(|pin| pin.horizontal)
+        .map(|pin| pin.extent);
+    let pinned_height = parent
+        .cross_pin
+        .filter(|pin| !pin.horizontal)
+        .map(|pin| pin.extent);
+    let outer_width = fixed_width.or(pinned_width).map_or(own.max_width, |width| {
         own.constrain(Size::new(width, own.min_height)).width
     });
-    let outer_height = fixed_height.map_or(own.max_height, |height| {
-        own.constrain(Size::new(own.min_width, height)).height
-    });
+    let outer_height = fixed_height
+        .or(pinned_height)
+        .map_or(own.max_height, |height| {
+            own.constrain(Size::new(own.min_width, height)).height
+        });
     let content_width = subtract_insets(outer_width, insets.horizontal());
     let content_height = subtract_insets(outer_height, insets.vertical());
     let percent = PercentBasis {
@@ -680,9 +703,13 @@ fn describe(
             .style_keyword(node, StyleProperty::AlignItems, 0)
             .unwrap_or(StyleKeyword::FlexStart),
         cross_definite: if row {
-            fixed_height.is_some() || is_tight(own.min_height, own.max_height)
+            fixed_height.is_some()
+                || pinned_height.is_some()
+                || is_tight(own.min_height, own.max_height)
         } else {
-            fixed_width.is_some() || is_tight(own.min_width, own.max_width)
+            fixed_width.is_some()
+                || pinned_width.is_some()
+                || is_tight(own.min_width, own.max_width)
         },
         gap,
     })
@@ -739,17 +766,30 @@ fn child_item(scene: &Scene, container: &Box2, node: NodeId) -> Result<Item, Lay
     // from its own box and its insets.
     // The content box, not the child constraint: a scrollable axis relaxes the
     // latter to infinity so content may overflow. See `engine::child_input`.
+    let mut cross_pin = None;
     if !out_of_flow && container.align == StyleKeyword::Stretch && container.cross_definite {
         if container.row {
             if !has_requested_dimension(scene, node, Prop::Height, StyleProperty::Height)
                 && basis.height.is_finite()
             {
                 constraints.min_height = basis.height;
+                if !constraints.max_height.is_finite() {
+                    cross_pin = Some(CrossPin {
+                        horizontal: false,
+                        extent: basis.height,
+                    });
+                }
             }
         } else if !has_requested_dimension(scene, node, Prop::Width, StyleProperty::Width)
             && basis.width.is_finite()
         {
             constraints.min_width = basis.width;
+            if !constraints.max_width.is_finite() {
+                cross_pin = Some(CrossPin {
+                    horizontal: true,
+                    extent: basis.width,
+                });
+            }
         }
     }
     let (auto_main_start, auto_main_end, auto_cross_start, auto_cross_end) = if container.row {
@@ -817,6 +857,7 @@ fn child_item(scene: &Scene, container: &Box2, node: NodeId) -> Result<Item, Lay
     Ok(Item {
         node,
         constraints,
+        cross_pin,
         basis,
         margin: margins.values,
         min_main,

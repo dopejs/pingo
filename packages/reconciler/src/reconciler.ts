@@ -485,6 +485,24 @@ const VIRTUAL_LIST_KEYS = new Set([
   "velocityHorizonSeconds",
 ]);
 const VIRTUAL_ITEM_INDEX = Symbol("pingo.virtualItemIndex");
+
+/**
+ * The anonymous box a rendered virtual item is wrapped in.
+ *
+ * The wrapper carries the item index, so the item the caller rendered is its
+ * child rather than the virtual item itself. Without a style of its own the
+ * wrapper resolved no computed style at all, and Core's legacy fallback made it
+ * a `flex-start` row: the caller's item was laid out along the wrapper's main
+ * axis and shrank to its own content instead of filling the list. Every
+ * flexible table column collapsed in the body while the header kept its share.
+ *
+ * The direction is the list's cross axis, so the item stretches across the
+ * list and advances along the axis Core virtualizes.
+ */
+const VIRTUAL_ITEM_STYLE = {
+  y: Object.freeze({ flexDirection: "column", alignItems: "stretch" }),
+  x: Object.freeze({ flexDirection: "row", alignItems: "stretch" }),
+} as const;
 const FOUNDATION_COMPONENT = Symbol.for("dopejs.pingo.foundation-component");
 
 interface StyleResolutionContext {
@@ -1580,6 +1598,7 @@ class ReconcilerRoot implements CoreDrivenPingoRoot {
         }
         const props = {
           children: child,
+          style: VIRTUAL_ITEM_STYLE[config.axis],
           [VIRTUAL_ITEM_INDEX]: index,
         } as Record<string | symbol, unknown>;
         wrapper = createElement(

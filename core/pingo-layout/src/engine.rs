@@ -306,6 +306,9 @@ impl LayoutEngine {
                     boundary_constraints,
                     boundary_basis,
                     percentage_basis(boundary_basis.width, boundary_constraints.min_width),
+                    // A boundary is re-measured against its own prior size, so
+                    // there is no relaxed axis left to pin.
+                    ParentAxes::default(),
                     measurer,
                     virtual_layout,
                     &mut self.back,
@@ -332,6 +335,7 @@ impl LayoutEngine {
                 constraints,
                 root_basis,
                 percentage_basis(root_basis.width, constraints.min_width),
+                ParentAxes::default(),
                 measurer,
                 virtual_layout,
                 &mut self.back,
@@ -504,7 +508,7 @@ impl LayoutEngine {
             parent_constraints,
             parent_basis,
             percentage_basis(parent_basis.width, parent_constraints.min_width),
-            None,
+            ParentAxes::default(),
             virtual_layout,
         )?;
         let input = constraints_for_child(scene, &parent_frame, node, None)?;
@@ -514,6 +518,10 @@ impl LayoutEngine {
             input.constraints,
             input.basis,
             input.margin_basis,
+            ParentAxes {
+                flex_row: Some(input.flex_axis_row),
+                cross_pin: input.cross_pin,
+            },
             measurer,
             virtual_layout,
             &mut self.back,
@@ -747,6 +755,7 @@ fn compute_subtree(
     constraints: BoxConstraints,
     basis: PercentBasis,
     margin_basis: f32,
+    parent: ParentAxes,
     measurer: &mut impl IntrinsicMeasurer,
     virtual_layout: &impl VirtualLayoutProvider,
     output: &mut LayoutSnapshot,
@@ -768,7 +777,7 @@ fn compute_subtree(
         constraints,
         basis,
         margin_basis,
-        None,
+        parent,
         virtual_layout,
     )?;
     root_frame.flex_items_start = flex.items.len();
@@ -806,7 +815,10 @@ fn compute_subtree(
                 input.constraints,
                 input.basis,
                 input.margin_basis,
-                Some(input.flex_axis_row),
+                ParentAxes {
+                    flex_row: Some(input.flex_axis_row),
+                    cross_pin: input.cross_pin,
+                },
                 virtual_layout,
             )?;
             child_frame.flex_items_start = flex.items.len();
@@ -1296,7 +1308,7 @@ fn make_frame(
     incoming: BoxConstraints,
     basis: PercentBasis,
     margin_basis: f32,
-    flex_axis_row: Option<bool>,
+    parent: ParentAxes,
     virtual_layout: &impl VirtualLayoutProvider,
 ) -> Result<Frame, LayoutError> {
     let index = scene.resolve(node).ok_or(LayoutError::SceneInvariant(
@@ -1371,7 +1383,8 @@ fn make_frame(
     // A definite flex-basis replaces the main-axis size property, which is what
     // makes `flex: 1 1 0` collapse an item to its share of the line instead of
     // to its declared width.
-    let flex_basis = flex_axis_row
+    let flex_basis = parent
+        .flex_row
         .filter(|_| scene.uses_flex_sizing())
         .and_then(|row| {
             flex_basis_main(
@@ -1434,18 +1447,30 @@ fn make_frame(
             direction,
             StyleKeyword::RowReverse | StyleKeyword::ColumnReverse
         );
+    let pinned_width = parent
+        .cross_pin
+        .filter(|pin| pin.horizontal)
+        .map(|pin| pin.extent);
+    let pinned_height = parent
+        .cross_pin
+        .filter(|pin| !pin.horizontal)
+        .map(|pin| pin.extent);
     // A declared extent still has to satisfy the incoming constraints before it
     // can bound children or resolve their percentages.
-    let outer_width = fixed_width.map_or(constraints.max_width, |width| {
-        constraints
-            .constrain(Size::new(width, constraints.min_height))
-            .width
-    });
-    let outer_height = fixed_height.map_or(constraints.max_height, |height| {
-        constraints
-            .constrain(Size::new(constraints.min_width, height))
-            .height
-    });
+    let outer_width = fixed_width
+        .or(pinned_width)
+        .map_or(constraints.max_width, |width| {
+            constraints
+                .constrain(Size::new(width, constraints.min_height))
+                .width
+        });
+    let outer_height = fixed_height
+        .or(pinned_height)
+        .map_or(constraints.max_height, |height| {
+            constraints
+                .constrain(Size::new(constraints.min_width, height))
+                .height
+        });
     let mut child_constraints = BoxConstraints {
         min_width: 0.0,
         max_width: subtract_insets(outer_width, insets.horizontal()),
@@ -1485,9 +1510,13 @@ fn make_frame(
     // pinned by handing down a tight constraint, which is what a stretch or a
     // resolved flex target does. Anything else is shrink-to-fit.
     let cross_definite = if row {
-        fixed_height.is_some() || is_tight(constraints.min_height, constraints.max_height)
+        fixed_height.is_some()
+            || pinned_height.is_some()
+            || is_tight(constraints.min_height, constraints.max_height)
     } else {
-        fixed_width.is_some() || is_tight(constraints.min_width, constraints.max_width)
+        fixed_width.is_some()
+            || pinned_width.is_some()
+            || is_tight(constraints.min_width, constraints.max_width)
     };
     let gap = match scene.f32_prop(node, Prop::Gap).or_else(|| {
         resolve_style_length(
@@ -1548,6 +1577,35 @@ struct ChildInput {
     margin_basis: f32,
     /// Whether the parent flows children along the inline axis.
     flex_axis_row: bool,
+    /// The cross extent a stretching parent pinned. See [`CrossPin`].
+    cross_pin: Option<CrossPin>,
+}
+
+/// An extent a stretching parent pinned on an axis it then left unbounded.
+///
+/// `align-items: stretch` hands a child a minimum equal to the container's
+/// content box, and a scrolling container immediately relaxes the matching
+/// maximum to infinity so content may overflow it. The pair stops looking
+/// tight, and the child loses both its definite cross size and its percentage
+/// basis: every box inside a scrolling panel falls back to shrink-to-fit, and
+/// a virtual item's contents resolve `100%` to nothing. The pinned minimum is
+/// the extent the child actually takes, so it is what bounds that child's own
+/// children and resolves their percentages.
+/// What a parent tells a child about the axes it was laid out on.
+#[derive(Clone, Copy, Default)]
+pub(crate) struct ParentAxes {
+    /// Whether the parent flows children along the inline axis. Absent at a
+    /// subtree root, which has no parent to flow it.
+    pub(crate) flex_row: Option<bool>,
+    /// The cross extent the parent pinned. See [`CrossPin`].
+    pub(crate) cross_pin: Option<CrossPin>,
+}
+
+#[derive(Clone, Copy)]
+pub(crate) struct CrossPin {
+    /// Whether the pinned axis is the inline one.
+    pub(crate) horizontal: bool,
+    pub(crate) extent: f32,
 }
 
 fn constraints_for_child(
@@ -1572,17 +1630,30 @@ fn constraints_for_child(
     // Not `constraints`: a scrollable axis relaxes that to infinity so content
     // may overflow, and reading the line's cross size off it turned every child
     // of a scrolling panel back into shrink-to-fit.
+    let mut cross_pin = None;
     if parent.align == StyleKeyword::Stretch && parent.cross_definite {
         if parent.row {
             if !has_requested_dimension(scene, child, Prop::Height, StyleProperty::Height)
                 && basis.height.is_finite()
             {
                 constraints.min_height = basis.height;
+                if !constraints.max_height.is_finite() {
+                    cross_pin = Some(CrossPin {
+                        horizontal: false,
+                        extent: basis.height,
+                    });
+                }
             }
         } else if !has_requested_dimension(scene, child, Prop::Width, StyleProperty::Width)
             && basis.width.is_finite()
         {
             constraints.min_width = basis.width;
+            if !constraints.max_width.is_finite() {
+                cross_pin = Some(CrossPin {
+                    horizontal: true,
+                    extent: basis.width,
+                });
+            }
         }
     }
     // Second pass: the child's share of the line is already decided, so it is
@@ -1601,6 +1672,9 @@ fn constraints_for_child(
         basis,
         margin_basis,
         flex_axis_row: parent.row,
+        // Kept through the flex second pass: a flex target retightens the main
+        // axis, and the pin is on the cross one.
+        cross_pin,
     })
 }
 
@@ -1676,6 +1750,8 @@ fn out_of_flow_input(
         basis,
         margin_basis,
         flex_axis_row: parent.row,
+        // Out of flow: no parent stretched it, so there is nothing to pin.
+        cross_pin: None,
     })
 }
 
@@ -3416,6 +3492,410 @@ mod tests {
         assert_eq!(
             engine.snapshot().geometry(ninth),
             Some((Point::new(0.0, 270.0), Size::new(0.0, 30.0)))
+        );
+    }
+
+    #[test]
+    fn a_table_body_stretches_its_rows_like_its_header() {
+        // The pui table's own shape: a frame that names the width, a table
+        // column that inherits it, a header row of one flexible and three
+        // fixed cells, and a virtualised body whose rows carry the same
+        // columns. The header and a body row must agree on every column.
+        struct VirtualGeometry;
+
+        impl VirtualLayoutProvider for VirtualGeometry {
+            fn item_offset(&self, list: NodeId, item_index: u32) -> Option<f32> {
+                (list == id(4)).then_some(item_index as f32 * 44.0)
+            }
+
+            fn content_extent(&self, list: NodeId) -> Option<f32> {
+                (list == id(4)).then_some(880.0)
+            }
+        }
+
+        const FRAME: u32 = 1;
+        const TABLE: u32 = 2;
+        const HEADER: u32 = 3;
+        const BODY: u32 = 4;
+        // Resource ids double as the style each node takes.
+        const COLUMN_STYLE: u32 = 1;
+        const FRAME_STYLE: u32 = 2;
+        const ROW_STYLE: u32 = 3;
+        const BODY_STYLE: u32 = 4;
+        const WRAPPER_STYLE: u32 = 5;
+        const FLEX_CELL: u32 = 6;
+        const FIXED_CELL_BASE: u32 = 10;
+        const FIXED_WIDTHS: [f32; 3] = [72.0, 80.0, 120.0];
+
+        fn stretch_column(extra: &[(StyleProperty, u8, Vec<u8>)]) -> Vec<u8> {
+            let mut entries = vec![
+                (
+                    StyleProperty::FlexDirection,
+                    STYLE_VALUE_KEYWORD,
+                    keyword(StyleKeyword::Column),
+                ),
+                (
+                    StyleProperty::AlignItems,
+                    STYLE_VALUE_KEYWORD,
+                    keyword(StyleKeyword::Stretch),
+                ),
+            ];
+            entries.extend_from_slice(extra);
+            computed_style(&entries)
+        }
+
+        fn stretch_row(extra: &[(StyleProperty, u8, Vec<u8>)]) -> Vec<u8> {
+            let mut entries = vec![
+                (
+                    StyleProperty::FlexDirection,
+                    STYLE_VALUE_KEYWORD,
+                    keyword(StyleKeyword::Row),
+                ),
+                (
+                    StyleProperty::AlignItems,
+                    STYLE_VALUE_KEYWORD,
+                    keyword(StyleKeyword::Stretch),
+                ),
+            ];
+            entries.extend_from_slice(extra);
+            computed_style(&entries)
+        }
+
+        // Four cells per row: one flexible column and three fixed ones.
+        fn add_cells(
+            mutations: &mut Vec<Mutation>,
+            cells: &mut Vec<(u32, usize, NodeId)>,
+            next_cell: &mut u32,
+            parent: u32,
+        ) {
+            for slot in 0..4 {
+                let cell = *next_cell;
+                *next_cell += 1;
+                mutations.push(create(id(cell), NodeKind::Container, Some(id(parent))));
+                mutations.push(Mutation::SetRef {
+                    node_id: id(cell).raw(),
+                    prop: Prop::ComputedStyle,
+                    resource_id: if slot == 0 {
+                        FLEX_CELL
+                    } else {
+                        FIXED_CELL_BASE + slot as u32 - 1
+                    },
+                });
+                cells.push((parent, slot, id(cell)));
+            }
+        }
+
+        let mut cells: Vec<(u32, usize, NodeId)> = Vec::new();
+        // Ids are handed out in creation order; the scene requires no gaps.
+        let mut next_cell = BODY + 1;
+
+        let mut scene = Scene::new();
+        let mut first = vec![
+            Mutation::DefineResource {
+                resource_id: COLUMN_STYLE,
+                kind: ResourceKind::ComputedStyle,
+                bytes: stretch_column(&[]),
+            },
+            Mutation::DefineResource {
+                resource_id: FRAME_STYLE,
+                kind: ResourceKind::ComputedStyle,
+                bytes: stretch_column(&[(StyleProperty::Width, STYLE_VALUE_LENGTH, px(520.0))]),
+            },
+            Mutation::DefineResource {
+                resource_id: ROW_STYLE,
+                kind: ResourceKind::ComputedStyle,
+                bytes: stretch_row(&[
+                    (StyleProperty::MinHeight, STYLE_VALUE_LENGTH, px(44.0)),
+                    (StyleProperty::Width, STYLE_VALUE_LENGTH, auto()),
+                    (StyleProperty::Height, STYLE_VALUE_LENGTH, auto()),
+                ]),
+            },
+            // The body: full width, `flex` height, and it scrolls.
+            Mutation::DefineResource {
+                resource_id: BODY_STYLE,
+                kind: ResourceKind::ComputedStyle,
+                // A flex *row*, because the skin declares no direction and
+                // `row` is the initial. A virtual list sizes its items across
+                // its virtual axis regardless, which this pins down.
+                bytes: stretch_row(&[
+                    (StyleProperty::Width, STYLE_VALUE_LENGTH, percent(100.0)),
+                    (StyleProperty::FlexGrow, STYLE_VALUE_F32, number(1.0)),
+                    (StyleProperty::FlexShrink, STYLE_VALUE_F32, number(1.0)),
+                    (StyleProperty::FlexBasis, STYLE_VALUE_LENGTH, auto()),
+                ]),
+            },
+            // The wrapper the Shell inserts: a transparent single-child box
+            // along the list's cross axis.
+            Mutation::DefineResource {
+                resource_id: WRAPPER_STYLE,
+                kind: ResourceKind::ComputedStyle,
+                bytes: stretch_column(&[]),
+            },
+            Mutation::DefineResource {
+                resource_id: FLEX_CELL,
+                kind: ResourceKind::ComputedStyle,
+                bytes: computed_style(&[
+                    (StyleProperty::FlexGrow, STYLE_VALUE_F32, number(1.0)),
+                    (StyleProperty::FlexShrink, STYLE_VALUE_F32, number(1.0)),
+                    (StyleProperty::FlexBasis, STYLE_VALUE_LENGTH, px(0.0)),
+                ]),
+            },
+            create(id(0), NodeKind::Root, None),
+            create(id(FRAME), NodeKind::Container, Some(id(0))),
+            create(id(TABLE), NodeKind::Container, Some(id(FRAME))),
+            create(id(HEADER), NodeKind::Container, Some(id(TABLE))),
+            create(id(BODY), NodeKind::Scroll, Some(id(TABLE))),
+            Mutation::SetRef {
+                node_id: id(FRAME).raw(),
+                prop: Prop::ComputedStyle,
+                resource_id: FRAME_STYLE,
+            },
+            Mutation::SetRef {
+                node_id: id(TABLE).raw(),
+                prop: Prop::ComputedStyle,
+                resource_id: COLUMN_STYLE,
+            },
+            Mutation::SetRef {
+                node_id: id(HEADER).raw(),
+                prop: Prop::ComputedStyle,
+                resource_id: ROW_STYLE,
+            },
+            Mutation::SetRef {
+                node_id: id(BODY).raw(),
+                prop: Prop::ComputedStyle,
+                resource_id: BODY_STYLE,
+            },
+            Mutation::ConfigureVirtualList {
+                node_id: id(BODY).raw(),
+                item_count: 20,
+                estimated_item_size: 44.0,
+                base_overscan_viewports: 1.0,
+                velocity_horizon_seconds: 0.25,
+                maximum_ahead_viewports: 4.0,
+                axis: pingo_abi::VirtualAxis::Y,
+            },
+        ];
+        for (index, width) in FIXED_WIDTHS.iter().enumerate() {
+            first.push(Mutation::DefineResource {
+                resource_id: FIXED_CELL_BASE + index as u32,
+                kind: ResourceKind::ComputedStyle,
+                bytes: computed_style(&[
+                    (StyleProperty::Width, STYLE_VALUE_LENGTH, px(*width)),
+                    (StyleProperty::FlexGrow, STYLE_VALUE_F32, number(0.0)),
+                    (StyleProperty::FlexShrink, STYLE_VALUE_F32, number(0.0)),
+                    (StyleProperty::FlexBasis, STYLE_VALUE_LENGTH, auto()),
+                ]),
+            });
+        }
+        add_cells(&mut first, &mut cells, &mut next_cell, HEADER);
+        commit(&mut scene, 1, first);
+
+        let mut engine = LayoutEngine::new();
+        let viewport = BoxConstraints::tight(Size::new(520.0, 300.0)).expect("viewport");
+        engine
+            .layout_with_virtual(
+                &scene,
+                viewport,
+                &mut ZeroIntrinsicMeasurer,
+                &VirtualGeometry,
+            )
+            .expect("first layout");
+        let header_columns = column_widths(&engine, &cells, HEADER);
+        assert_eq!(
+            header_columns,
+            vec![248.0, 72.0, 80.0, 120.0],
+            "the header shares the table's width out to its columns"
+        );
+
+        // The Shell wraps every rendered item in an anonymous container that
+        // carries the item index. The wrapper is the virtual item; the styled
+        // row is its child.
+        let wrapper = next_cell;
+        next_cell += 1;
+        let row = next_cell;
+        next_cell += 1;
+        let mut second = vec![
+            create(id(wrapper), NodeKind::Container, Some(id(BODY))),
+            Mutation::SetRef {
+                node_id: id(wrapper).raw(),
+                prop: Prop::ComputedStyle,
+                resource_id: WRAPPER_STYLE,
+            },
+            Mutation::SetVirtualItem {
+                node_id: id(wrapper).raw(),
+                item_index: 0,
+            },
+            create(id(row), NodeKind::Container, Some(id(wrapper))),
+            Mutation::SetRef {
+                node_id: id(row).raw(),
+                prop: Prop::ComputedStyle,
+                resource_id: ROW_STYLE,
+            },
+        ];
+        add_cells(&mut second, &mut cells, &mut next_cell, row);
+        commit(&mut scene, 2, second);
+        engine
+            .layout_with_virtual(
+                &scene,
+                viewport,
+                &mut ZeroIntrinsicMeasurer,
+                &VirtualGeometry,
+            )
+            .expect("second layout");
+
+        assert_eq!(
+            column_widths(&engine, &cells, row),
+            header_columns,
+            "a body row's columns line up with the header's"
+        );
+    }
+
+    /// Widths of a table row's cells, left to right.
+    fn column_widths(
+        engine: &LayoutEngine,
+        cells: &[(u32, usize, NodeId)],
+        parent: u32,
+    ) -> Vec<f32> {
+        let mut widths: Vec<(usize, f32)> = cells
+            .iter()
+            .filter(|(owner, _, _)| *owner == parent)
+            .map(|(_, slot, cell)| {
+                (
+                    *slot,
+                    engine
+                        .snapshot()
+                        .geometry(*cell)
+                        .map(|(_, size)| size.width)
+                        .unwrap_or(f32::NAN),
+                )
+            })
+            .collect();
+        widths.sort_by_key(|(slot, _)| *slot);
+        widths.into_iter().map(|(_, width)| width).collect()
+    }
+
+    #[test]
+    fn a_virtual_item_that_arrives_later_is_measured_against_the_list_it_joins() {
+        // The shape a real window has: the list is committed on its own, Core
+        // plans the range, and the Shell materialises the items on a following
+        // frame. The list takes its width from its parent rather than naming
+        // one, which is what a table body does.
+        struct VirtualGeometry;
+
+        impl VirtualLayoutProvider for VirtualGeometry {
+            fn item_offset(&self, list: NodeId, item_index: u32) -> Option<f32> {
+                (list == id(2)).then_some(item_index as f32 * 30.0)
+            }
+
+            fn content_extent(&self, list: NodeId) -> Option<f32> {
+                (list == id(2)).then_some(300.0)
+            }
+        }
+
+        let root = id(0);
+        let frame = id(1);
+        let list = id(2);
+        let item = id(3);
+        let mut scene = Scene::new();
+        commit(
+            &mut scene,
+            1,
+            vec![
+                Mutation::DefineResource {
+                    resource_id: 1,
+                    kind: ResourceKind::ComputedStyle,
+                    bytes: computed_style(&[(StyleProperty::Width, STYLE_VALUE_LENGTH, px(120.0))]),
+                },
+                // Percentage width, as a table body has: it fills the table.
+                Mutation::DefineResource {
+                    resource_id: 2,
+                    kind: ResourceKind::ComputedStyle,
+                    bytes: computed_style(&[
+                        (StyleProperty::Width, STYLE_VALUE_LENGTH, percent(100.0)),
+                        (StyleProperty::Height, STYLE_VALUE_LENGTH, px(80.0)),
+                        // The Shell materialises every initial value, so a real
+                        // list carries the CSS initial `stretch`.
+                        (
+                            StyleProperty::AlignItems,
+                            STYLE_VALUE_KEYWORD,
+                            keyword(StyleKeyword::Stretch),
+                        ),
+                    ]),
+                },
+                Mutation::DefineResource {
+                    resource_id: 3,
+                    kind: ResourceKind::ComputedStyle,
+                    bytes: computed_style(&[(StyleProperty::Height, STYLE_VALUE_LENGTH, px(30.0))]),
+                },
+                create(root, NodeKind::Root, None),
+                create(frame, NodeKind::Container, Some(root)),
+                create(list, NodeKind::Scroll, Some(frame)),
+                Mutation::SetRef {
+                    node_id: frame.raw(),
+                    prop: Prop::ComputedStyle,
+                    resource_id: 1,
+                },
+                Mutation::SetRef {
+                    node_id: list.raw(),
+                    prop: Prop::ComputedStyle,
+                    resource_id: 2,
+                },
+                Mutation::ConfigureVirtualList {
+                    node_id: list.raw(),
+                    item_count: 10,
+                    estimated_item_size: 30.0,
+                    base_overscan_viewports: 1.0,
+                    velocity_horizon_seconds: 0.25,
+                    maximum_ahead_viewports: 4.0,
+                    axis: pingo_abi::VirtualAxis::Y,
+                },
+            ],
+        );
+        let mut engine = LayoutEngine::new();
+        engine
+            .layout_with_virtual(
+                &scene,
+                BoxConstraints::tight(Size::new(120.0, 80.0)).expect("viewport"),
+                &mut ZeroIntrinsicMeasurer,
+                &VirtualGeometry,
+            )
+            .expect("first layout");
+        assert_eq!(
+            engine.snapshot().geometry(list).map(|(_, size)| size.width),
+            Some(120.0)
+        );
+
+        // The item joins on the next frame, which is the only way it ever
+        // arrives: Core plans the range and the Shell answers.
+        commit(
+            &mut scene,
+            2,
+            vec![
+                create(item, NodeKind::Container, Some(list)),
+                Mutation::SetRef {
+                    node_id: item.raw(),
+                    prop: Prop::ComputedStyle,
+                    resource_id: 3,
+                },
+                Mutation::SetVirtualItem {
+                    node_id: item.raw(),
+                    item_index: 1,
+                },
+            ],
+        );
+        engine
+            .layout_with_virtual(
+                &scene,
+                BoxConstraints::tight(Size::new(120.0, 80.0)).expect("viewport"),
+                &mut ZeroIntrinsicMeasurer,
+                &VirtualGeometry,
+            )
+            .expect("second layout");
+
+        // It fills the list it joined, exactly as a first-frame item would.
+        assert_eq!(
+            engine.snapshot().geometry(item),
+            Some((Point::new(0.0, 30.0), Size::new(120.0, 30.0)))
         );
     }
 
