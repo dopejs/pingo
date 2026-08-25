@@ -2022,6 +2022,19 @@ Shell 挑了一对颜色，而是把选择权交回 UA——这里 UA 就是 Cor
 **顺带**：computed style 的编码器测试原本断言"每个条目的 payload 都非空"，现在放宽到"只有
 `scrollbar-color` 可以为空"——空 payload 在这里就是值本身。
 
+### Skeleton 的呼吸（2026-08-25）
+
+Skeleton 一直是块静止的灰底，而 shadcn 的骨架屏靠 `animate-pulse` 呼吸——没有这层动，它跟
+"加载失败留下的空盒子"分不出来。
+
+**修法**：用 Core 的关键帧动画驱动 `opacity`（1 → 0.5 → 1，2s，`cubic-bezier(0.4, 0, 0.6, 1)`，
+与 Tailwind 的 `animate-pulse` 一致）。迭代次数取 `reconciler` 允许的上限 1_000_000 而不是
+`Infinity`——动画资源要求有限迭代数。新增 `animated: false` 给不需要动的场合（如快照测试）留出口。
+
+**验证**：`packages/ui/src/skeleton-pulse.browser.ts` 每 120ms 采一次骨架条的灰度，断言灰度
+在一个周期里确有起落且带 `cause === "animation"` 的帧；`animated: false` 时灰度零起伏、动画帧
+为 0。
+
 ### 虚拟列表里的一切都缩成了内容宽（2026-08-25）
 
 Table 与 DataTable 的表头列宽对，表体列宽不对：`flex: 1 1 0` 的那一列在表头拿到 248px，
