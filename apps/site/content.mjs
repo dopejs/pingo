@@ -8,7 +8,11 @@ import anchor from "markdown-it-anchor";
 import container from "markdown-it-container";
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const docsRoot = path.join(repositoryRoot, "docs");
+// The site's own content, not the repository's design documents. `docs/`
+// holds the design and milestone corpus, which is written for contributors and
+// must not be published: it used to be, and a visitor could land on an internal
+// milestone plan with numbers two releases out of date.
+const contentRoot = path.join(repositoryRoot, "apps/site/content");
 const demosRoot = path.join(repositoryRoot, "apps/site/src/demos");
 const localePaths = ["zh-Hant", "ja", "ko", "es", "fr", "de", "ru", "ar", "he"];
 
@@ -198,14 +202,14 @@ function requestRoute(pathname) {
 export async function loadSiteContent() {
   const markdown = createMarkdown(await collectDemoIds());
   const pages = [];
-  for (const sourcePath of await markdownFiles(docsRoot)) {
-    const absolute = path.join(docsRoot, sourcePath);
+  for (const sourcePath of await markdownFiles(contentRoot)) {
+    const absolute = path.join(contentRoot, sourcePath);
     const [source, metadata] = await Promise.all([readFile(absolute, "utf8"), stat(absolute)]);
     let parsed;
     try {
       parsed = matter(source);
     } catch (cause) {
-      throw new Error(`frontmatter parse failed for docs/${sourcePath}`, { cause });
+      throw new Error(`frontmatter parse failed for ${sourcePath}`, { cause });
     }
     const environment = { sourcePath };
     const tokens = markdown.parse(parsed.content, environment);
@@ -309,7 +313,7 @@ export async function loadSiteContent() {
     };
   };
   const root = byRoute.get("/")?.get("");
-  if (root === undefined) throw new Error("site content is missing docs/index.md");
+  if (root === undefined) throw new Error("site content is missing apps/site/content/index.md");
   return {
     pages: documents,
     searchIndex: pages.map((page) => ({

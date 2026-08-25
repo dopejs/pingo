@@ -105,13 +105,12 @@ function sidebarSections(page: SitePage, locale: SiteLocale): readonly NavSectio
         ],
       },
       {
+        // The release and runbook pages belong to the design corpus and are no
+        // longer published; migration and diagnostics stay published because
+        // the guide and the API page link to them, but they do not need a
+        // sidebar group of their own.
         text: locale.ui.sectionShipping,
-        items: [
-          { text: locale.ui.migration, route: "/migration" },
-          { text: locale.ui.release, route: "/release" },
-          { text: locale.ui.diagnostics, route: "/diagnostics" },
-          { text: locale.ui.runbook, route: "/runbook" },
-        ],
+        items: [{ text: locale.ui.changelog, route: "/changelog" }],
       },
     ];
   }
@@ -126,13 +125,7 @@ function sidebarSections(page: SitePage, locale: SiteLocale): readonly NavSectio
   return [
     {
       text: locale.ui.sectionEngineering,
-      items: [
-        { text: locale.ui.design, route: "/design" },
-        { text: locale.ui.plan, route: "/plan" },
-        { text: "M9", route: "/m9-production-plan" },
-        { text: locale.ui.adr, route: "/adr/0007-css-events-and-foundation-components" },
-        { text: locale.ui.changelog, route: "/changelog" },
-      ],
+      items: [{ text: locale.ui.changelog, route: "/changelog" }],
     },
   ];
 }
@@ -183,17 +176,6 @@ function SiteHeader({
               {item.text}
             </a>
           ))}
-          <details className="engineering-menu">
-            <summary>{locale.ui.engineering}</summary>
-            <div>
-              <a href={pageHref("/design")}>{locale.ui.design}</a>
-              <a href={pageHref("/plan")}>{locale.ui.plan}</a>
-              <a href={pageHref("/m9-production-plan")}>M9</a>
-              <a href={pageHref("/adr/0007-css-events-and-foundation-components")}>
-                {locale.ui.adr}
-              </a>
-            </div>
-          </details>
         </nav>
         <div className="header-tools">
           <button className="search-trigger" type="button" onClick={() => setSearchOpen(true)}>

@@ -86,7 +86,6 @@ export default defineConfig({
     __PINGO_VERSION__: JSON.stringify(engineVersion()),
   },
   plugins: [react(), developmentContent()],
-  publicDir: "../../docs/public",
   build: {
     outDir: "dist",
     emptyOutDir: true,

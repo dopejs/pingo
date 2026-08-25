@@ -76,7 +76,7 @@ const documentationOutput = await format(renderDocumentation(schema), {
 const outputs = new Map([
   [path.join(repositoryRoot, "packages/style/src/generated.ts"), typescriptOutput],
   [path.join(repositoryRoot, "core/pingo-abi/src/style_generated.rs"), rustOutput],
-  [path.join(repositoryRoot, "docs/style-support.md"), documentationOutput],
+  [path.join(repositoryRoot, "apps/site/content/style-support.md"), documentationOutput],
 ]);
 
 let stale = false;
