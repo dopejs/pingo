@@ -2477,21 +2477,13 @@ fn annotate_event_cursors(scene: &Scene, records: &mut [EventTransactionRecord])
             record.cursor = StyleKeyword::Auto;
             continue;
         };
+        // The generated grammar decides which keywords `cursor` accepts. A
+        // hand-written copy of the list here silently dropped every keyword
+        // added after it: a resize handle asked for `col-resize` and the
+        // pointer stayed on `auto`.
         record.cursor = scene
             .presented_style_keyword(target, StyleProperty::Cursor)
-            .filter(|cursor| {
-                matches!(
-                    cursor,
-                    StyleKeyword::Auto
-                        | StyleKeyword::Crosshair
-                        | StyleKeyword::Default
-                        | StyleKeyword::Grab
-                        | StyleKeyword::Grabbing
-                        | StyleKeyword::NotAllowed
-                        | StyleKeyword::Pointer
-                        | StyleKeyword::Text
-                )
-            })
+            .filter(|cursor| StyleProperty::Cursor.accepts_keyword(*cursor))
             .unwrap_or(StyleKeyword::Auto);
     }
 }

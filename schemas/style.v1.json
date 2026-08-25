@@ -55,6 +55,8 @@
     { "id": 51, "name": "absolute" },
     { "id": 52, "name": "static" },
     { "id": 53, "name": "thin" },
+    { "id": 54, "name": "col-resize" },
+    { "id": 55, "name": "row-resize" },
     { "id": 2, "name": "auto" },
     { "id": 3, "name": "baseline" },
     { "id": 4, "name": "border-box" },
@@ -112,12 +114,14 @@
     "box-sizing": ["border-box", "content-box"],
     "cursor": [
       "auto",
+      "col-resize",
       "crosshair",
       "default",
       "grab",
       "grabbing",
       "not-allowed",
       "pointer",
+      "row-resize",
       "text"
     ],
     "display": ["flex", "none"],

@@ -256,11 +256,11 @@ mod tests {
 
     #[test]
     fn generated_style_keywords_and_property_grammars_are_exhaustively_queryable() {
-        let keywords = (1..=53)
+        let keywords = (1..=55)
             .map(|id| StyleKeyword::from_u16(id).expect("declared style keyword id"))
             .collect::<Vec<_>>();
         assert_eq!(StyleKeyword::from_u16(0), None);
-        assert_eq!(StyleKeyword::from_u16(54), None);
+        assert_eq!(StyleKeyword::from_u16(56), None);
         assert!(keywords.iter().all(|keyword| !keyword.name().is_empty()));
 
         for id in 1..=STYLE_PROPERTY_MAX_ID {

@@ -69,22 +69,26 @@
 
 .pui-resizable__handle {
   background-color: t.$border;
-  cursor: pointer;
   &.pui-dark {
     background-color: t.$dark-border;
   }
 }
 
+// The cursor names the axis the seam moves along, which is what tells a user
+// it is a splitter and not a link. `pointer` said "this navigates".
 .pui-resizable__handle--row {
   width: t.$resizable-handle;
   height: t.$full;
+  cursor: col-resize;
 }
 
 .pui-resizable__handle--column {
   width: t.$full;
   height: t.$resizable-handle;
+  cursor: row-resize;
 }
 
+// Last, so it wins over the axis rules above: a disabled seam does not move.
 .pui-resizable__handle--disabled {
   opacity: t.$disabled-opacity;
   cursor: default;

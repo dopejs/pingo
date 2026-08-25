@@ -8,6 +8,7 @@ use crate::{
     AbiError, EVENT_TRANSACTIONS_MAGIC, EventTransactionOpcode, InputEventKind, InputPointerType,
     MAX_EVENT_TRANSACTION_INSTRUCTIONS, MAX_EVENT_TRANSACTIONS_BYTES, MAX_KEYBOARD_CODE_ID,
     MAX_KEYBOARD_KEY_NAME_ID, MAX_RESOURCE_BYTES, NULL_NODE_ID, StreamKind, StyleKeyword,
+    StyleProperty,
 };
 
 /// One Core-hit-tested event and its stable propagation path.
@@ -316,17 +317,11 @@ fn validate_record(record: &EventTransactionRecord) -> Result<(), AbiError> {
     if record.elapsed_micros == 0 || record.elapsed_micros > 1_000_000 {
         return Err(AbiError::InvalidValue("event elapsed time is invalid"));
     }
-    if !matches!(
-        record.cursor,
-        StyleKeyword::Auto
-            | StyleKeyword::Crosshair
-            | StyleKeyword::Default
-            | StyleKeyword::Grab
-            | StyleKeyword::Grabbing
-            | StyleKeyword::NotAllowed
-            | StyleKeyword::Pointer
-            | StyleKeyword::Text
-    ) {
+    // The generated grammar decides which keywords `cursor` accepts. A
+    // hand-written copy here rejected every keyword added after it, and a
+    // rejected record fails the whole batch: a handle asking for `col-resize`
+    // took its own hover, press and drag down with it.
+    if !StyleProperty::Cursor.accepts_keyword(record.cursor) {
         return Err(AbiError::InvalidValue(
             "event transaction cursor is not a supported cursor keyword",
         ));
@@ -536,6 +531,29 @@ mod tests {
         reject(|record| record.tilt[0] = 91.0);
         reject(|record| record.contact_size[1] = -1.0);
         reject(|record| record.cursor = StyleKeyword::Normal);
+
+        // Every keyword the grammar accepts round trips, including the ones
+        // added after this validator was written: a hand-written copy of the
+        // list rejected `col-resize` outright, and a rejected record fails the
+        // whole batch, so a resize handle lost its hover, press and drag.
+        for cursor in [
+            StyleKeyword::Auto,
+            StyleKeyword::ColResize,
+            StyleKeyword::RowResize,
+            StyleKeyword::Grabbing,
+            StyleKeyword::Text,
+        ] {
+            assert!(StyleProperty::Cursor.accepts_keyword(cursor), "{cursor:?}");
+            let mut record = valid.clone();
+            record.cursor = cursor;
+            let bytes = EventTransactionBatch {
+                records: vec![record],
+            }
+            .encode()
+            .expect("encode");
+            let decoded = EventTransactionBatch::decode(&bytes).expect("decode");
+            assert_eq!(decoded.records[0].cursor, cursor);
+        }
 
         let bytes = EventTransactionBatch {
             records: vec![valid],

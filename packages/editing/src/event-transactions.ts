@@ -18,7 +18,16 @@ import {
 import type { InputEventKind, InputPointerType } from "./input-stream";
 
 export type EventCursor =
-  "auto" | "crosshair" | "default" | "grab" | "grabbing" | "not-allowed" | "pointer" | "text";
+  | "auto"
+  | "col-resize"
+  | "crosshair"
+  | "default"
+  | "grab"
+  | "grabbing"
+  | "not-allowed"
+  | "pointer"
+  | "row-resize"
+  | "text";
 
 export interface EventTransaction {
   readonly eventId: number;
@@ -285,6 +294,10 @@ function cursorName(value: number): EventCursor {
       return "pointer";
     case 49:
       return "text";
+    case 54:
+      return "col-resize";
+    case 55:
+      return "row-resize";
     default:
       return fail("unknown event transaction cursor");
   }
