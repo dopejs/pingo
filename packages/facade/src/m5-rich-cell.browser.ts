@@ -87,6 +87,10 @@ describe("rich list cells", () => {
         height: 100,
         backgroundColor: "#ffffffff",
         direction: "row",
+        // `flex-start`, because the unsized image's *natural* size is the
+        // subject here. `align-items` is `stretch` by default, as CSS has it,
+        // and a stretched image would take the row's full height instead.
+        style: { alignItems: "flex-start" },
         children: [
           createElement("image", { key: "scaled", source, width: 40, height: 40 }),
           createElement("image", { key: "natural", source }),

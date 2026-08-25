@@ -3518,6 +3518,20 @@ mod tests {
                     prop: Prop::Width,
                     value: width,
                 },
+                // `flex-start`, so the text box shrink-wraps the run the Host
+                // measured. `align-items` is `stretch` by default, as CSS has
+                // it, and a stretched box would report its parent's width
+                // rather than the measurement these tests are about.
+                Mutation::DefineResource {
+                    resource_id: 9,
+                    kind: ResourceKind::ComputedStyle,
+                    bytes: computed_keyword(StyleProperty::AlignItems, StyleKeyword::FlexStart),
+                },
+                Mutation::SetRef {
+                    node_id: id(1),
+                    prop: Prop::ComputedStyle,
+                    resource_id: 9,
+                },
                 Mutation::CreateNode {
                     node_id: id(2),
                     kind: NodeKind::Text,
@@ -7712,6 +7726,7 @@ mod tests {
         // is 7 rather than the 5 + 4 it used to be.
         assert_eq!(output.diagnostics.layout_visited_nodes, 7);
 
+        // 100 wide, not zero: a list stretches its items across itself.
         assert_eq!(
             engine
                 .layout
@@ -7719,7 +7734,7 @@ mod tests {
                 .geometry(NodeId::from_raw(id(2)).expect("id")),
             Some((
                 pingo_layout::Point::new(0.0, 0.0),
-                pingo_layout::Size::new(0.0, 30.0),
+                pingo_layout::Size::new(100.0, 30.0),
             ))
         );
         assert_eq!(
@@ -7729,7 +7744,7 @@ mod tests {
                 .geometry(NodeId::from_raw(id(3)).expect("id")),
             Some((
                 pingo_layout::Point::new(0.0, 30.0),
-                pingo_layout::Size::new(0.0, 40.0),
+                pingo_layout::Size::new(100.0, 40.0),
             ))
         );
         assert_eq!(
@@ -7739,7 +7754,7 @@ mod tests {
                 .geometry(NodeId::from_raw(id(4)).expect("id")),
             Some((
                 pingo_layout::Point::new(0.0, 70.0),
-                pingo_layout::Size::new(0.0, 20.0),
+                pingo_layout::Size::new(100.0, 20.0),
             ))
         );
     }

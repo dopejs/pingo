@@ -1556,9 +1556,17 @@ fn make_frame(
         justify: scene
             .style_keyword(node, StyleProperty::JustifyContent, 0)
             .unwrap_or(StyleKeyword::FlexStart),
+        // `stretch` is the CSS initial value. A node with no computed style at
+        // all is on the legacy direct-prop path, and defaulting it to
+        // `flex-start` there meant every container written as
+        // `createElement("container", { width, height, children })` did the
+        // opposite of what its author meant: the child shrank to its own
+        // content instead of filling the box it had just been given a width
+        // for. Storybook's `frame()` and the docs site's previews both had to
+        // add a `style` prop to work around it.
         align: scene
             .style_keyword(node, StyleProperty::AlignItems, 0)
-            .unwrap_or(StyleKeyword::FlexStart),
+            .unwrap_or(StyleKeyword::Stretch),
         cross_definite,
         gap,
         placed: false,
@@ -3280,11 +3288,28 @@ mod tests {
             &mut scene,
             1,
             vec![
+                // The row's natural size is what this test is about, so the
+                // root must not stretch it: `align-items` is `stretch` by
+                // default, as CSS has it.
+                Mutation::DefineResource {
+                    resource_id: 1,
+                    kind: ResourceKind::ComputedStyle,
+                    bytes: computed_style(&[(
+                        StyleProperty::AlignItems,
+                        STYLE_VALUE_KEYWORD,
+                        keyword(StyleKeyword::FlexStart),
+                    )]),
+                },
                 create(root, NodeKind::Root, None),
                 create(row, NodeKind::Container, Some(root)),
                 create(thumbnail, NodeKind::Container, Some(row)),
                 create(body, NodeKind::Container, Some(row)),
                 create(tag, NodeKind::Container, Some(row)),
+                Mutation::SetRef {
+                    node_id: root.raw(),
+                    prop: Prop::ComputedStyle,
+                    resource_id: 1,
+                },
                 set_f32(row, Prop::Direction, DIRECTION_ROW),
                 set_f32(row, Prop::Gap, 8.0),
                 set_f32(thumbnail, Prop::Width, 40.0),
@@ -3334,9 +3359,25 @@ mod tests {
             &mut scene,
             1,
             vec![
+                // See the sibling test: the row's natural size only stands
+                // when the root does not stretch it.
+                Mutation::DefineResource {
+                    resource_id: 1,
+                    kind: ResourceKind::ComputedStyle,
+                    bytes: computed_style(&[(
+                        StyleProperty::AlignItems,
+                        STYLE_VALUE_KEYWORD,
+                        keyword(StyleKeyword::FlexStart),
+                    )]),
+                },
                 create(root, NodeKind::Root, None),
                 create(row, NodeKind::Container, Some(root)),
                 create(child, NodeKind::Container, Some(row)),
+                Mutation::SetRef {
+                    node_id: root.raw(),
+                    prop: Prop::ComputedStyle,
+                    resource_id: 1,
+                },
                 set_f32(row, Prop::Direction, DIRECTION_ROW),
                 set_vec4(row, Prop::Padding, [6.0, 12.0, 6.0, 12.0]),
                 set_f32(child, Prop::Width, 50.0),
@@ -3485,13 +3526,15 @@ mod tests {
             )
             .expect("layout");
 
+        // 100 wide, not zero: the list stretches its items across itself, so
+        // an item with no width of its own fills the viewport it scrolls in.
         assert_eq!(
             engine.snapshot().geometry(seventh),
-            Some((Point::new(0.0, 210.0), Size::new(0.0, 30.0)))
+            Some((Point::new(0.0, 210.0), Size::new(100.0, 30.0)))
         );
         assert_eq!(
             engine.snapshot().geometry(ninth),
-            Some((Point::new(0.0, 270.0), Size::new(0.0, 30.0)))
+            Some((Point::new(0.0, 270.0), Size::new(100.0, 30.0)))
         );
     }
 

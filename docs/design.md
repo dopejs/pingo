@@ -2053,6 +2053,49 @@ Skeleton 一直是块静止的灰底，而 shadcn 的骨架屏靠 `animate-pulse
 在一个周期里确有起落且带 `cause === "animation"` 的帧；`animated: false` 时灰度零起伏、动画帧
 为 0。
 
+### 表头被一万行压塌，以及 `align-items` 的旧默认值（2026-08-25）
+
+文档站的表格：表头只有 1px 高（剩下的是下边框），标签压在第一行数据上；表头宽 184px 而表体
+行宽 560px。storybook 的同一个组件是好的。差别不在表格，在两条通用的布局缺口。
+
+**一、表头被兄弟节点压塌。** 用行数直接验证过：`rowCount: 6` 时表头 29px，`rowCount: 10000`
+时 0px。`.pui-table__body` 是 `flex: 1 1 auto`，它的 flex base 就是虚拟内容高度
+`10000 × 44 = 440000px`；表格只有 260px，flex-shrink 要分掉 43.9 万的赤字，按 `shrink × base`
+加权算下来表头那一份仍然超过它自己的高度。CSS 用 automatic minimum size（`min-height: auto`
+解析成内容最小尺寸）挡住这种情况，本引擎没有这一条。
+
+**修法**：`.pui-table__header` 改成 `flex: 0 0 auto`。表头本来就不该被压缩——HTML 表格与
+shadcn 都是这个语义——这既是修复也是它本来的意思。
+
+**为什么没有直接补 automatic minimum size**：我先按"内容尺寸项的 content-based minimum 就是
+它已经量出来的 base size"实现了一版，并把 `min-width`/`min-height` 的初始值从 `0px` 改成
+`auto`（CSS 初始值）、子集升到 1.8.0。表头确实修好了，但**表格自己也被钉住了**——它量到 560×440034，
+不再收缩到 260。原因是这个近似不递归：表格的 base 里含着一个可滚动子节点，而 CSS 的 min-content
+把滚动容器算作 0。要做对就得有真正的 min-content 测量（逐节点、逐轴、自底向上传播），那是独立
+的一件事，半成品比没有更危险，所以整套回退了，`schemas/style.v1.json` 里"拒绝 `min-*: auto`
+以便在编译期暴露这个缺口"的决定保持不变。**遗留**：任何"内容尺寸的 flex item + 巨大兄弟"都仍会
+被压到 0，缺口用 `flex: 0 0 auto` 或显式 `min-*` 绕开。
+
+**二、`align-items` 的旧默认值。** 没有任何 computed style 的节点走旧的直接属性路径，Core 在那里
+把 `align-items` 兜底成 `flex-start` 而不是 CSS 初始值 `stretch`。改成 `stretch`，引擎与
+`reference.rs` 同步。受影响的只有"完全没有样式"的节点——有样式表参与时 Shell 一直都会解析出
+`stretch`。
+
+**影响面**：三处单测的预期跟着变，都是"现在按 CSS 填满父级"：两个 row 测试要的是行的自然尺寸，
+给根节点显式写上 `align-items: flex-start` 保住原意；`wrapping_tree` 同理，否则量到的是被拉伸的
+盒子而不是 Host 量到的行宽；虚拟项的宽度从 0 变成 100，那是上一条修复本来就该有的结果。一个浏览器
+测试（`m5-rich-cell`）里"未定尺寸的图片取自身像素尺寸"也要显式 `flex-start`，否则图片会被拉满行高。
+
+**三、文档站 demo 的外框是 flex row。** `createElement("container", { width, height, children })`
+默认是 flex **行**，所以表格按自身内容定宽、表头因此窄于表体。这不是引擎缺口——浏览器也一样——是
+demo 没把话说全。三个表格 demo 都补上 `flex-direction: column`；storybook 的 `frame()` 一直
+就是这么写的，只是它的注释把原因记成了 `align-items`，一并更正。
+
+**验证**：`packages/ui/src/table-columns.browser.ts` 新增一例，一万行的表格里断言表头高度
+
+> 24px 且第一行数据的顶边不高于表头的底边；去掉 `flex: 0 0 auto` 后该用例失败（表头 1px）。
+> 文档站 `/components/table` 现在量到表头 560×34、三列 376/88/96×33、表体行 560×44、表格 560×260。
+
 ### 虚拟列表里的一切都缩成了内容宽（2026-08-25）
 
 Table 与 DataTable 的表头列宽对，表体列宽不对：`flex: 1 1 0` 的那一列在表头拿到 248px，

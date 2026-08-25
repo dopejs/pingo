@@ -45,9 +45,9 @@ const demo: PreviewDemo = {
     stage(context, [
       createElement("container", {
         width: Math.min(context.width - 48, 560),
-        // A flex container with no style prop is on the direct-prop path,
-        // where align-items is flex-start; the CSS initial `stretch` is what
-        // makes the component inside fill this width.
+        // A column, so the table fills the width this box was given. A flex
+        // row -- which is what a container is by default -- would size it to
+        // its own content instead.
         style: { flexDirection: "column" },
         children: createElement(EmptyTableScene, {}),
       }),

@@ -699,9 +699,10 @@ fn describe(
         justify: scene
             .style_keyword(node, StyleProperty::JustifyContent, 0)
             .unwrap_or(StyleKeyword::FlexStart),
+        // `stretch` is the CSS initial value. See the engine's `make_frame`.
         align: scene
             .style_keyword(node, StyleProperty::AlignItems, 0)
-            .unwrap_or(StyleKeyword::FlexStart),
+            .unwrap_or(StyleKeyword::Stretch),
         cross_definite: if row {
             fixed_height.is_some()
                 || pinned_height.is_some()

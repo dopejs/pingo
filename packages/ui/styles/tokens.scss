@@ -145,6 +145,9 @@ $grow-1: 1 1 0px !default;
 // to nothing there, which is how a virtualised table body ended up 0 tall in
 // an auto-height column and drew its header over an empty page.
 $grow-auto: 1 1 auto !default;
+// Neither grow nor shrink: keep the size your own content produced, whatever
+// the rest of the line does.
+$grow-none: 0 0 auto !default;
 $divider-length: 100% !default;
 $alert-padding: 16px !default;
 $alert-title-gap: 4px !default;

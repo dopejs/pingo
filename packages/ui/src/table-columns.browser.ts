@@ -102,4 +102,51 @@ describe("table columns", () => {
     expect(rows.map(width)).toEqual(rows.map(() => WIDTH));
     expect(rows.length).toBe(ROWS.length + 1);
   }, 60_000);
+
+  it("keeps the header off the first row with ten thousand rows behind it", async () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = WIDTH;
+    canvas.height = HEIGHT;
+    canvas.style.cssText = `display:block;width:${String(WIDTH)}px;height:${String(HEIGHT)}px`;
+    document.body.append(canvas);
+    const frames: FrameReport[] = [];
+    let semantics: Array<Record<string, unknown>> = [];
+    const root = await createHostedCanvasRoot(canvas, {
+      styleSheets: [createPingoUiStyleSheet()],
+      onFrame: (report) => frames.push(report),
+      onSemantics: (snapshot: unknown) => {
+        semantics = Array.isArray(snapshot) ? (snapshot as Record<string, unknown>[]) : [];
+      },
+    });
+    roots.push(root);
+    root.render(
+      createElement("container", {
+        width: WIDTH,
+        height: HEIGHT,
+        style: { flexDirection: "column" },
+        // A virtualised body's flex base is the height of every row it holds:
+        // 440 000px here. Sharing a flex line with that, the header used to
+        // take a share of the deficit larger than itself and collapse to a
+        // hairline, so its labels were drawn over the first row of data.
+        children: Table<Row>({
+          columns: COLUMNS,
+          rowCount: 10_000,
+          getRow: (index) => ({ name: `文件 ${String(index)}`, size: "1 KB" }),
+        }),
+      }),
+    );
+    expect(await waitUntil(() => frames.length > 0)).toBe(true);
+    expect(
+      await waitUntil(() => semantics.filter((node) => String(node.role) === "row").length > 1),
+    ).toBe(true);
+    await pause(250);
+
+    const rect = (node: Record<string, unknown>): Record<string, number> =>
+      (node.bounds ?? {}) as Record<string, number>;
+    const rows = semantics.filter((node) => String(node.role) === "row").map(rect);
+    const [header, first] = rows;
+    expect(header?.height).toBeGreaterThan(24);
+    // The first body row starts below the header rather than under it.
+    expect(first?.top).toBeGreaterThanOrEqual((header?.top ?? 0) + (header?.height ?? 0));
+  }, 60_000);
 });
