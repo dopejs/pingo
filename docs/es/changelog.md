@@ -25,6 +25,21 @@ la misma versión, y el semver de npm y la versión del ABI binario se gestionan
   del verificador; la comprobación de compilación reproducible pasa al final de las puertas.
 - La licencia del proyecto cambia de MIT a Apache-2.0 a partir de 0.3.0;
   las versiones publicadas hasta v0.2.1 siguen bajo MIT.
+
+## 0.2.1 - 2026-08-20
+
+- `initializeWasm` es ahora público, idempotente y reintentable, de modo que la aplicación
+  puede orquestar la carga del WASM. El estado de carga de Storybook pasa a mostrarse de forma
+  ligera y diferida, y la inicialización del Worker reutiliza el mismo punto de entrada.
+- El playground de dos relojes desplaza un millón de filas de forma continua desde que se abre
+  la página; los botones solo bloquean el hilo principal en lugar de iniciar o reiniciar el
+  estado del desplazamiento.
+- Nuevo `setScrollVelocity`, un desplazamiento programático a velocidad constante que sostiene
+  el reloj del Core/Worker. El Input Stream gana el comando correspondiente y la versión del
+  ABI pasa de 10 a 11.
+
+## 0.2.0 - 2026-08-20
+
 - La curva de transferencia de la rueda se alinea con el navegador: los saltos discretos de rueda se
   animan y los deltas de alta precisión (trackpad) se siguen aplicando 1:1 al instante. `DispatchEvent`
   del Input Stream gana un campo de flags y la versión del ABI pasa de 1 a 2.

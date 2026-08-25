@@ -329,7 +329,12 @@ function HomePage({ page, locale }: { page: SitePage; locale: SiteLocale }): Rea
     <main className="home-page">
       <section className="home-hero">
         <div className="home-hero__copy">
-          <span className="eyebrow">Rust · WASM · TypeScript</span>
+          <span className="eyebrow">
+            Rust · WASM · TypeScript
+            <a className="eyebrow__version" href={linkFor("/changelog")}>
+              v{__PINGO_VERSION__}
+            </a>
+          </span>
           <h1>
             <span>{hero?.name ?? "Pingo"}</span>
             {hero?.text ?? page.title}

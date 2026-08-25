@@ -578,6 +578,8 @@ a {
 
 .eyebrow {
   display: inline-flex;
+  align-items: center;
+  gap: 8px;
   padding: 6px 10px;
   border: 1px solid color-mix(in srgb, var(--brand) 32%, var(--line));
   border-radius: 999px;
@@ -587,6 +589,21 @@ a {
   font-weight: 720;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+/* The released version, next to the stack it is built on. It links to the
+   changelog so the number is a way in rather than a decoration. */
+.eyebrow__version {
+  padding-left: 8px;
+  border-left: 1px solid color-mix(in srgb, var(--brand) 32%, var(--line));
+  color: inherit;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+}
+
+.eyebrow__version:hover {
+  text-decoration: underline;
 }
 
 .home-hero h1 {

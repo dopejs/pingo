@@ -25,6 +25,21 @@ veröffentlicht, npm-Semver und die Version des binären ABI werden getrennt ver
   Reproduzierbarkeitsprüfung läuft nun am Ende der Gates.
 - Die Projektlizenz wechselt ab 0.3.0 von MIT zu Apache-2.0;
   die bis einschließlich v0.2.1 veröffentlichten Versionen bleiben unter MIT.
+
+## 0.2.1 - 2026-08-20
+
+- `initializeWasm` ist jetzt öffentlich, idempotent und wiederholbar, sodass Anwendungen das
+  Laden des WASM selbst steuern können. Der Storybook-Ladezustand wird nur noch verzögert und
+  dezent angezeigt, und die Worker-Initialisierung nutzt denselben Einstiegspunkt.
+- Das Playground mit zwei Uhren scrollt ab dem Seitenaufruf durchgehend durch eine Million
+  Zeilen; die Schaltflächen blockieren nur noch den Hauptthread, statt den Scroll-Zustand zu
+  starten oder zurückzusetzen.
+- Neu ist `setScrollVelocity`, ein programmatisches Scrollen mit konstanter Geschwindigkeit,
+  das die Core-/Worker-Uhr hält. Der Input Stream erhält den passenden Befehl, die ABI-Version
+  steigt von 10 auf 11.
+
+## 0.2.0 - 2026-08-20
+
 - Die Übertragungskurve des Mausrads folgt jetzt dem Browser: diskrete Rastschritte scrollen animiert,
   während hochpräzise Deltas (Trackpad) weiterhin sofort 1:1 angewendet werden. `DispatchEvent` des
   Input Stream erhält ein Flags-Feld, und die ABI-Version steigt von 1 auf 2.

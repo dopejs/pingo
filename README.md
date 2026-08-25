@@ -1,4 +1,18 @@
-# Pingo
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/brand/pingo-mark-dark.svg">
+    <img src="assets/brand/pingo-mark.svg" alt="Pingo" width="96" height="96">
+  </picture>
+</p>
+
+<h1 align="center">Pingo</h1>
+
+<p align="center">
+  <a href="https://www.npmjs.com/package/@dopejs/pingo"><img alt="npm" src="https://img.shields.io/npm/v/@dopejs/pingo?color=2f6bff&label=%40dopejs%2Fpingo"></a>
+  <a href="docs/changelog.md"><img alt="changelog" src="https://img.shields.io/badge/changelog-read-2f6bff"></a>
+  <a href="LICENSE"><img alt="license" src="https://img.shields.io/badge/license-Apache--2.0-blue"></a>
+  <a href="https://pingo.dopejs.com"><img alt="docs" src="https://img.shields.io/badge/docs-pingo.dopejs.com-2f6bff"></a>
+</p>
 
 Pingo 是一套从零设计的 Web Canvas 渲染引擎：Rust/WASM Core 负责 Scene、布局、文本、
 命中、滚动、绘制与动画，TypeScript Shell 负责组件树、样式与调度，两者之间只通过
@@ -18,7 +32,7 @@ Canvas 原生的可编辑文本。
 以下均已在仓库中实现并由自动门禁覆盖，不是路线图：
 
 - **组件运行时**：TSX 函数组件、hooks 与 signal、`memo`、context。
-- **CSS 子集**：67 个属性、版本化（当前 `1.6.0`）、逐属性 feature bit。子集外的写法
+- **CSS 子集**：69 个属性、版本化（当前 `1.8.0`）、逐属性 feature bit。子集外的写法
   在编译期被拒绝并带属性名与源位置，而不是静默降级。
 - **布局**：flex 单行布局（含 `flex-grow/shrink/basis`）、`position: absolute` +
   inset、`z-index`、`box-shadow`、overflow 与滚动。
