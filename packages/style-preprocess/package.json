@@ -1,6 +1,6 @@
 {
   "name": "@dopejs/pingo-style-preprocess",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "pingo Node-only SCSS/Less compiler and Vite integration",
   "license": "Apache-2.0",
   "repository": {
