@@ -762,10 +762,11 @@ fn describe(
         justify: scene
             .style_keyword(node, StyleProperty::JustifyContent, 0)
             .unwrap_or(StyleKeyword::FlexStart),
-        // `stretch` is the CSS initial value. See the engine's `make_frame`.
+        // `flex-start` when nothing was declared. See the engine's `make_frame`.
+        // The reference models no virtual lists, so it needs no wrapper case.
         align: scene
             .style_keyword(node, StyleProperty::AlignItems, 0)
-            .unwrap_or(StyleKeyword::Stretch),
+            .unwrap_or(StyleKeyword::FlexStart),
         cross_definite: if row {
             fixed_height.is_some()
                 || pinned_height.is_some()

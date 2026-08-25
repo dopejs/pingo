@@ -3,13 +3,14 @@ import { createElement, memo, useSignal, type PingoNode } from "@dopejs/pingo";
 /**
  * Fixed-width wrapper that lets its child fill it.
  *
- * The `flex-direction: column` is what makes the child fill the frame: a
- * container is a flex *row* by default, in CSS and here, so its child would be
- * sized along the main axis by its own content instead. Every story that gave a
- * component a definite width without saying this got the opposite of what it
- * meant -- a Progress track collapsed onto its own indicator, an Accordion's
- * rules ran only as wide as the longest title, and a Table's header shrank
- * away from its rows.
+ * The `style` prop is what makes the child fill the frame, and it does it
+ * twice over: it opts this container into the CSS subset, where `align-items`
+ * is `stretch` rather than the direct-prop path's `flex-start`, and it names
+ * `column` so the child is stretched across the width rather than sized along
+ * it. Every story that gave a component a definite width without saying this
+ * got the opposite of what it meant -- a Progress track collapsed onto its own
+ * indicator, an Accordion's rules ran only as wide as the longest title, and a
+ * Table's header shrank away from its rows.
  */
 export function frame(width: number, children: PingoNode): PingoNode {
   return createElement("container", {

@@ -45,9 +45,8 @@ const demo: PreviewDemo = {
     stage(context, [
       createElement("container", {
         width: Math.min(context.width - 48, 560),
-        // A column, so the table fills the width this box was given. A flex
-        // row -- which is what a container is by default -- would size it to
-        // its own content instead.
+        // A styled column, so the table fills the width this box was given;
+        // see `table-basic`.
         style: { flexDirection: "column" },
         children: createElement(EmptyTableScene, {}),
       }),

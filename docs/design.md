@@ -2053,6 +2053,36 @@ Skeleton 一直是块静止的灰底，而 shadcn 的骨架屏靠 `animate-pulse
 在一个周期里确有起落且带 `cause === "animation"` 的帧；`animated: false` 时灰度零起伏、动画帧
 为 0。
 
+### 给虚拟项包装盒加样式，等于把整棵子树切到 CSS 路径（2026-08-25）
+
+Playground 的 `/#/scroll` 与 `/#/hit` 版式全乱：每行的缩略图、状态标签、"查看"按钮都被拉满行高，
+本该竖排的标题/副标题/标签变成了横排。
+
+**根因不是 `align-items`，是级联的开关。** `resolveHostStyle` 的 `hasStyleInput` 里有一条
+`context.parentStyle !== undefined`，而 `parentStyle` 取自父节点的解析结果。我为了让虚拟项
+被拉伸，给 Shell 插入的匿名包装盒加了 `style`（见上文"虚拟列表里的一切都缩成了内容宽"），于是
+包装盒解析出了 computed style，**它的每一个后代也跟着解析出 computed style**——整棵子树从旧的
+直接属性路径切到了 CSS 路径。两套默认值不同：`flex-direction` 旧路径是 `column`、CSS 初始值是
+`row`；`align-items` 旧路径是 `flex-start`、CSS 初始值是 `stretch`。Playground 的行全部用直接
+属性写成、没有样式表，于是整页按另一套默认值重排了。
+
+**修法**：包装盒的布局归 Core，不经过样式系统。`SetVirtualItem` 只会发给包装盒，所以 Core 能
+认出它：`make_frame` 里，虚拟列表与虚拟项包装盒在没有声明时按 `align-items: stretch` 处理，
+包装盒的主轴取列表的虚拟轴。Shell 那边的 `style` 撤掉，级联恢复原状。
+
+**同时撤回**：上一条把旧直接属性路径的 `align-items` 兜底从 `flex-start` 改成 CSS 初始值
+`stretch`。它本身更贴近 CSS，但那是一条**兼容路径**——调用方的树就是按这套默认值写的，改掉等于
+无声地给每一棵既有的直接属性树重新排版，而它并不修好任何当前依赖它的东西（表格靠的是 demo 显式
+写 `flex-direction: column`，虚拟项靠的是上面这条 Core 规则）。发版前把破坏性变更收回来更划算。
+旧路径与 CSS 路径的默认值差异仍然是个坑，`apps/storybook/src/layout.ts` 的注释把它记在了最容易
+撞上的地方。
+
+**影响面**：`pingo-layout` 与 `pingo-core` 里为迁就新默认值而改的四处测试脚手架一并撤回；
+`m5-rich-cell` 那条"未定尺寸的图片取自身像素尺寸"也不再需要显式 `flex-start`。
+
+**验证**：Playground 五个 demo 逐页截图对照——标题/副标题/标签恢复竖排，标签与按钮回到自然
+尺寸；文档站 `/components/table` 与 storybook 的 Table/DataTable 列宽、表头高度均不变。
+
 ### min-content 测量与 flex 的 automatic minimum size（2026-08-25）
 
 上一条留下的缺口：CSS 里 flex item 的 `min-width`/`min-height` 初始值是 `auto`，解析成它的

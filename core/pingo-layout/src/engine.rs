@@ -1548,6 +1548,15 @@ fn make_frame(
         .unwrap_or(StyleKeyword::Column);
     let row = virtual_list.map_or_else(
         || {
+            // A virtual item's wrapper flows along the list's own axis, so its
+            // cross axis is the one the item stretches across. See
+            // `keyword_or_virtual_item_default`.
+            if is_virtual_item_wrapper(scene, node) {
+                return scene
+                    .parent(node)
+                    .and_then(|parent| scene.virtual_list(parent))
+                    .is_some_and(|config| config.axis == pingo_abi::VirtualAxis::X);
+            }
             scene
                 .f32_prop(node, Prop::Direction)
                 .is_some_and(|value| value == DIRECTION_ROW)
@@ -1673,17 +1682,20 @@ fn make_frame(
         justify: scene
             .style_keyword(node, StyleProperty::JustifyContent, 0)
             .unwrap_or(StyleKeyword::FlexStart),
-        // `stretch` is the CSS initial value. A node with no computed style at
-        // all is on the legacy direct-prop path, and defaulting it to
-        // `flex-start` there meant every container written as
-        // `createElement("container", { width, height, children })` did the
-        // opposite of what its author meant: the child shrank to its own
-        // content instead of filling the box it had just been given a width
-        // for. Storybook's `frame()` and the docs site's previews both had to
-        // add a `style` prop to work around it.
-        align: scene
-            .style_keyword(node, StyleProperty::AlignItems, 0)
-            .unwrap_or(StyleKeyword::Stretch),
+        // `flex-start`, not CSS's `stretch`, when nothing was declared. A node
+        // with no computed style at all is on the legacy direct-prop path,
+        // which predates the CSS subset and whose callers wrote their trees
+        // against these defaults; a node that opted into CSS always carries an
+        // explicit `align-items` from the Shell. Making the legacy default
+        // agree with CSS restyled every existing direct-prop tree instead:
+        // the playground's row cells had their thumbnails, chips and buttons
+        // stretched to the full row height. See docs/design.md.
+        align: keyword_or_virtual_item_default(
+            scene,
+            node,
+            StyleProperty::AlignItems,
+            StyleKeyword::FlexStart,
+        ),
         cross_definite,
         gap,
         placed: false,
@@ -1693,6 +1705,41 @@ fn make_frame(
         style_bounds: [min_width, max_width, min_height, max_height],
         flex_items_start: 0,
     })
+}
+
+/// A declared keyword, or the default for this node's role.
+///
+/// The anonymous box the Shell wraps a rendered virtual item in carries no
+/// style of its own, and it must not: resolving one for it would give every
+/// node inside the item a computed style too, switching a whole subtree from
+/// the legacy direct-prop defaults to CSS's. So the wrapper's own layout is
+/// decided here instead. It is a transparent single-child box: its main axis
+/// is the list's virtual axis, so `align-items: stretch` makes the item the
+/// caller rendered fill the list across it.
+fn keyword_or_virtual_item_default(
+    scene: &Scene,
+    node: NodeId,
+    property: StyleProperty,
+    legacy: StyleKeyword,
+) -> StyleKeyword {
+    if let Some(declared) = scene.style_keyword(node, property, 0) {
+        return declared;
+    }
+    // A virtual list stretches its items across itself, and an item's wrapper
+    // stretches the box the caller rendered across the item. Both are Core's
+    // own virtualization semantics rather than a style anyone declared.
+    if scene.virtual_list(node).is_some() || is_virtual_item_wrapper(scene, node) {
+        return StyleKeyword::Stretch;
+    }
+    legacy
+}
+
+/// Whether this node is the anonymous box that carries a virtual item index.
+fn is_virtual_item_wrapper(scene: &Scene, node: NodeId) -> bool {
+    scene.virtual_item_index(node).is_some()
+        && scene
+            .parent(node)
+            .is_some_and(|parent| scene.virtual_list(parent).is_some())
 }
 
 /// Everything a parent hands to one child before it is measured.
@@ -3405,28 +3452,11 @@ mod tests {
             &mut scene,
             1,
             vec![
-                // The row's natural size is what this test is about, so the
-                // root must not stretch it: `align-items` is `stretch` by
-                // default, as CSS has it.
-                Mutation::DefineResource {
-                    resource_id: 1,
-                    kind: ResourceKind::ComputedStyle,
-                    bytes: computed_style(&[(
-                        StyleProperty::AlignItems,
-                        STYLE_VALUE_KEYWORD,
-                        keyword(StyleKeyword::FlexStart),
-                    )]),
-                },
                 create(root, NodeKind::Root, None),
                 create(row, NodeKind::Container, Some(root)),
                 create(thumbnail, NodeKind::Container, Some(row)),
                 create(body, NodeKind::Container, Some(row)),
                 create(tag, NodeKind::Container, Some(row)),
-                Mutation::SetRef {
-                    node_id: root.raw(),
-                    prop: Prop::ComputedStyle,
-                    resource_id: 1,
-                },
                 set_f32(row, Prop::Direction, DIRECTION_ROW),
                 set_f32(row, Prop::Gap, 8.0),
                 set_f32(thumbnail, Prop::Width, 40.0),
@@ -3476,25 +3506,9 @@ mod tests {
             &mut scene,
             1,
             vec![
-                // See the sibling test: the row's natural size only stands
-                // when the root does not stretch it.
-                Mutation::DefineResource {
-                    resource_id: 1,
-                    kind: ResourceKind::ComputedStyle,
-                    bytes: computed_style(&[(
-                        StyleProperty::AlignItems,
-                        STYLE_VALUE_KEYWORD,
-                        keyword(StyleKeyword::FlexStart),
-                    )]),
-                },
                 create(root, NodeKind::Root, None),
                 create(row, NodeKind::Container, Some(root)),
                 create(child, NodeKind::Container, Some(row)),
-                Mutation::SetRef {
-                    node_id: root.raw(),
-                    prop: Prop::ComputedStyle,
-                    resource_id: 1,
-                },
                 set_f32(row, Prop::Direction, DIRECTION_ROW),
                 set_vec4(row, Prop::Padding, [6.0, 12.0, 6.0, 12.0]),
                 set_f32(child, Prop::Width, 50.0),

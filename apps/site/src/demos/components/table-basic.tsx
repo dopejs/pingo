@@ -51,10 +51,10 @@ const demo: PreviewDemo = {
   height: 320,
   render: (context): PingoNode =>
     stage(context, [
-      // A column, so the table fills the width this box was given. A flex row
-      // -- which is what a container is by default, in CSS and here -- would
-      // size the table to its own content instead, and the header would end up
-      // narrower than the rows.
+      // The `style` prop opts this box into the CSS subset, where a child is
+      // stretched across the container's width; `column` is what makes that
+      // width the cross axis. Without it the table sizes itself to its own
+      // content and the header ends up narrower than the rows.
       createElement("container", {
         width: Math.min(context.width - 48, 560),
         height: 260,

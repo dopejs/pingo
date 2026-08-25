@@ -3518,20 +3518,6 @@ mod tests {
                     prop: Prop::Width,
                     value: width,
                 },
-                // `flex-start`, so the text box shrink-wraps the run the Host
-                // measured. `align-items` is `stretch` by default, as CSS has
-                // it, and a stretched box would report its parent's width
-                // rather than the measurement these tests are about.
-                Mutation::DefineResource {
-                    resource_id: 9,
-                    kind: ResourceKind::ComputedStyle,
-                    bytes: computed_keyword(StyleProperty::AlignItems, StyleKeyword::FlexStart),
-                },
-                Mutation::SetRef {
-                    node_id: id(1),
-                    prop: Prop::ComputedStyle,
-                    resource_id: 9,
-                },
                 Mutation::CreateNode {
                     node_id: id(2),
                     kind: NodeKind::Text,

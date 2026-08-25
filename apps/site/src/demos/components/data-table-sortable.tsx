@@ -87,7 +87,7 @@ const demo: PreviewDemo = {
   height: 380,
   render: (context): PingoNode =>
     stage(context, [
-      // A column, so the table fills the width this box was given; see
+      // A styled column, so the table fills the width this box was given; see
       // `table-basic`.
       createElement("container", {
         width: Math.min(context.width - 48, 560),
