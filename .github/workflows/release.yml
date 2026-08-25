@@ -76,10 +76,22 @@ jobs:
       - name: Verify publishable tarballs
         run: pnpm npm:release:verify
 
+      # Both the artifacts and the publish set come from the same list the
+      # verifier checked, so a package can never be shipped unverified and a
+      # newly verified one can never be left behind. The hand-written copy of
+      # this list had already drifted: it was missing style-preprocess.
+      - name: Resolve the release package set
+        id: packages
+        run: |
+          set -euo pipefail
+          packages="$(node -e "import('./scripts/check-npm-release.mjs').then((module) => console.log(module.RELEASE_PACKAGES.join(' ')))")"
+          echo "list=$packages" >> "$GITHUB_OUTPUT"
+
       - name: Pack release artifacts
         run: |
+          set -euo pipefail
           mkdir -p release-artifacts
-          for package in runtime editing style jsx backend-canvas2d a11y reconciler host widgets facade compat; do
+          for package in ${{ steps.packages.outputs.list }}; do
             (cd "packages/$package" && pnpm pack --pack-destination ../../release-artifacts)
           done
           cp packages/host/wasm/manifest.json release-artifacts/wasm-manifest.json
@@ -99,9 +111,17 @@ jobs:
               release-artifacts/*
           fi
 
+      # Named packages rather than `-r`: the workspace also holds packages that
+      # are not part of a release -- @dopejs/pingo-ui is still 0.0.0 and has no
+      # tarball verification -- and npm does not let an accidental publish be
+      # taken back. The list is in dependency order.
       - name: Publish to npm with provenance
         if: env.NPM_TOKEN != ''
-        run: pnpm -r publish --access public --no-git-checks --provenance
+        run: |
+          set -euo pipefail
+          for package in ${{ steps.packages.outputs.list }}; do
+            (cd "packages/$package" && pnpm publish --access public --no-git-checks --provenance)
+          done
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
