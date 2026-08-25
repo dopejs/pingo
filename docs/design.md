@@ -2022,6 +2022,24 @@ Shell 挑了一对颜色，而是把选择权交回 UA——这里 UA 就是 Cor
 **顺带**：computed style 的编码器测试原本断言"每个条目的 payload 都非空"，现在放宽到"只有
 `scrollbar-color` 可以为空"——空 payload 在这里就是值本身。
 
+### NavigationMenu 不是 Menubar（2026-08-25）
+
+`NavigationMenu` 直接复用 `Menubar` 的实现，也就连带穿上了它的外观：带边框、带底色的一条
+"菜单栏"。shadcn 把这两个组件分得很开——Menubar 是桌面应用那种带边框的紧凑菜单条，
+NavigationMenu 是一排裸的导航项，每一项后面跟一个 chevron，展开时转 180°。页面的主导航因此
+看起来像应用程序的菜单栏。
+
+**修法**：`.pui-navigation-menu` 从 `.pui-menubar` 的规则里拆出来，只保留居中与间距，不再带
+边框、底色和内边距。菜单项从 bar 的 context 里读 `navigation`——单个条目从自己的 props 看不出
+自己在哪种 bar 里——为真时把触发器渲染成"标签 + chevron"的行（沿用 Accordion 那套：旋转而不是
+换一个字形，图标靠 class 拿到盒子，否则 Svg 会塌成 0x0），为假时仍是单个 Text。role、ref 和
+全部事件处理器都留在用户真正按下的那个节点上。
+
+**影响面**：只有 `NavigationMenu`。`Menubar` 的 DOM 形状、语义与快照都没变，单测全绿。
+
+**验证**：storybook `overlay--navigation-menu` 三个触发器从 52px 宽变成 68px（多出 chevron），
+外层从 39px 高的带框条变成 29px 高的裸行；按下"产品"后 chevron 翻转、面板落在它下面。
+
 ### Skeleton 的呼吸（2026-08-25）
 
 Skeleton 一直是块静止的灰底，而 shadcn 的骨架屏靠 `animate-pulse` 呼吸——没有这层动，它跟

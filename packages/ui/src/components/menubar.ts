@@ -1,6 +1,7 @@
 import {
   createElement,
   memo,
+  Svg,
   Text,
   View,
   type NodeHandle,
@@ -9,6 +10,7 @@ import {
 } from "@dopejs/pingo-jsx";
 import { createContext, useContext, useMemo, useSignal } from "@dopejs/pingo-runtime";
 
+import { ChevronDownIcon } from "../icons";
 import { orderedValues, step } from "../keyboard";
 import { classes } from "../overlay";
 import { useTheme } from "../theme";
@@ -22,6 +24,15 @@ export type MenubarContextValue = {
   readonly setOpen: (value: string | undefined) => void;
   readonly registerMenu: (value: string, handle: NodeHandle | null) => void;
   readonly focusMenu: (value: string) => void;
+  /**
+   * Whether the bar is a navigation menu rather than a menubar.
+   *
+   * The two differ in more than semantics in shadcn: a menubar is a bordered
+   * strip of compact triggers, while a navigation menu is a bare row whose
+   * triggers each carry a chevron. A menu entry cannot tell which it is in
+   * from its own props, so the bar says.
+   */
+  readonly navigation: boolean;
 };
 
 const MenubarContext = createContext<MenubarContextValue | undefined>(undefined);
@@ -43,6 +54,7 @@ function MenubarImpl(props: MenubarProps): PingoNode {
   const open = props.value ?? openSignal.get();
   const context: MenubarContextValue = {
     open,
+    navigation: props.navigation === true,
     setOpen: (value) => {
       openSignal.set(value);
       props.onValueChange?.(value);
@@ -120,31 +132,51 @@ export function menubarMenuDescriptor(
   const dark = useTheme() === "dark" ? "pui-dark" : undefined;
   const open = context?.open === props.value;
   const toggle = (): void => context?.setOpen(open ? undefined : props.value);
+  // A navigation menu's trigger carries a chevron, so it is a row with a label
+  // and an icon in it; a menubar's is the label alone, as shadcn has it. Both
+  // keep the role, the ref and every handler on the node the user presses.
+  const navigation = context?.navigation === true;
+  const triggerProps = {
+    className: classes(
+      "pui-menubar__trigger",
+      navigation ? "pui-menubar__trigger--navigation" : undefined,
+      open ? "pui-menubar__trigger--open" : undefined,
+      dark,
+    ),
+    semanticRole: "menuitem",
+    semanticValue: open ? "expanded" : "collapsed",
+    ref: (handle: NodeHandle | null) => context?.registerMenu(props.value, handle),
+    onPointerDown: (event: PingoEvent): void => event.currentTarget.focus(),
+    onTap: toggle,
+    onClick: toggle,
+    // Enter, Space and Down all open — Down because a menubar user reaching
+    // for the list expects the same key that moves into it.
+    onKeyDown: (event: PingoEvent): void => {
+      if (event.key !== "Enter" && event.key !== " " && event.key !== "ArrowDown") return;
+      event.preventDefault();
+      context?.setOpen(props.value);
+    },
+  };
   return View({
     className: classes("pui-menubar__menu", props.className),
     ...(placement === undefined ? {} : { ref: placement.anchorRef }),
     children: [
-      Text({
-        className: classes(
-          "pui-menubar__trigger",
-          open ? "pui-menubar__trigger--open" : undefined,
-          dark,
-        ),
-        value: props.label,
-        semanticRole: "menuitem",
-        semanticValue: open ? "expanded" : "collapsed",
-        ref: (handle: NodeHandle | null) => context?.registerMenu(props.value, handle),
-        onPointerDown: (event: PingoEvent): void => event.currentTarget.focus(),
-        onTap: toggle,
-        onClick: toggle,
-        // Enter, Space and Down all open — Down because a menubar user reaching
-        // for the list expects the same key that moves into it.
-        onKeyDown: (event: PingoEvent): void => {
-          if (event.key !== "Enter" && event.key !== " " && event.key !== "ArrowDown") return;
-          event.preventDefault();
-          context?.setOpen(props.value);
-        },
-      }),
+      navigation
+        ? View({
+            ...triggerProps,
+            children: [
+              Text({ value: props.label }),
+              // Rotated rather than swapped for a second glyph, the way the
+              // Accordion's is. The class is what gives it a box: an Svg with
+              // no size collapses to 0x0.
+              Svg({
+                className: classes("pui-menubar__indicator", dark),
+                source: ChevronDownIcon,
+                ...(open ? { style: { transform: "rotate(180deg)" } } : {}),
+              }),
+            ],
+          })
+        : Text({ ...triggerProps, value: props.label }),
       open
         ? View({
             className: classes("pui-menubar__content", dark),

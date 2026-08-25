@@ -54,11 +54,7 @@ describe("pingo-ui skin", () => {
     // is what puts actions, deltas and trailing slots on the far edge without
     // anyone measuring anything. The basis is `auto` rather than zero so the
     // slot keeps its content width in a molecule that was mounted without one.
-    for (const className of [
-      "pui-topbar__title",
-      "pui-statcard__value",
-      "pui-list-row__text",
-    ]) {
+    for (const className of ["pui-topbar__title", "pui-statcard__value", "pui-list-row__text"]) {
       const style = resolve(className);
       expect(style.flexGrow, className).toBe(1);
       expect(style.flexShrink, className).toBe(1);

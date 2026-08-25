@@ -7,6 +7,7 @@ type Node = { readonly props: Record<string, unknown> };
 function context(open: string | undefined, overrides: Partial<MenubarContextValue> = {}) {
   return {
     open,
+    navigation: false,
     setOpen: vi.fn(),
     registerMenu: vi.fn(),
     focusMenu: vi.fn(),

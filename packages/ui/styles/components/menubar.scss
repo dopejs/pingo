@@ -1,7 +1,6 @@
 @use "../tokens" as t;
 
-.pui-menubar,
-.pui-navigation-menu {
+.pui-menubar {
   align-items: center;
   column-gap: t.$menubar-gap;
   padding: t.$tabs-list-padding;
@@ -14,6 +13,14 @@
     border-color: t.$dark-border;
     background-color: t.$dark-background;
   }
+}
+
+// A bare row, not the menubar's bordered strip: that is the difference shadcn
+// draws between the two. Wearing the menubar's chrome made a page's primary
+// navigation read as a desktop application's menu bar.
+.pui-navigation-menu {
+  align-items: center;
+  column-gap: t.$menubar-gap;
 }
 
 .pui-menubar__menu {
@@ -32,6 +39,22 @@
   cursor: pointer;
   &.pui-dark {
     color: t.$dark-foreground;
+  }
+}
+
+// The chevron sits after the label, so this trigger is a row.
+.pui-menubar__trigger--navigation {
+  flex-direction: row;
+  align-items: center;
+  column-gap: t.$menubar-gap;
+}
+
+.pui-menubar__indicator {
+  width: t.$icon-size-sm;
+  height: t.$icon-size-sm;
+  color: t.$muted-foreground;
+  &.pui-dark {
+    color: t.$dark-muted-foreground;
   }
 }
 
