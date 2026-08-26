@@ -11,7 +11,7 @@ mod interaction;
 mod scroll;
 mod text;
 
-pub use engine::{CoreEngine, CoreMetrics, FrameDiagnostics, FrameOutput};
+pub use engine::{CoreEngine, CoreMetrics, FrameDiagnostics, FrameOutput, FramePhaseTimings};
 pub use error::CoreError;
 pub use pingo_scroll::ScrollPlatform;
 pub use scroll::{CoreScrollMetrics, VirtualRefillRequest};

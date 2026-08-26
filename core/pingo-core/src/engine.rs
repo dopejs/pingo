@@ -86,6 +86,72 @@ pub struct CoreMetrics {
     pub producer_abi_version: u32,
 }
 
+/// Wall-clock split of one commit, for diagnosing a native benchmark.
+///
+/// The Host already reports the commit's total as `coreMs`; what it cannot say
+/// is which phase spent it, and Core carried no clock at all, so the only way
+/// to attribute a frame was to short-circuit a subsystem and rebuild.
+///
+/// Native only by construction. `Instant::now` is unsupported on wasm32 and
+/// panics there, and a product build should not carry a clock it cannot read:
+/// the wasm implementation below returns a constant, so every phase reads zero
+/// and the arithmetic folds away.
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct FramePhaseTimings {
+    /// Decoding the Mutation Stream and applying it to the Scene.
+    pub scene_ms: f64,
+    /// Editing session reconciliation and its staged display overrides.
+    pub editing_ms: f64,
+    /// The layout pass, including any virtual measurement it triggered.
+    pub layout_ms: f64,
+    /// Scroll state synchronisation and the relayout a correction forces.
+    pub scroll_ms: f64,
+    /// Text resource preparation and fallback relayout.
+    pub text_ms: f64,
+    /// Animation reconciliation and advancement.
+    pub animation_ms: f64,
+    /// Building or reusing the immutable Picture and its `DisplayList`.
+    pub paint_ms: f64,
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+#[derive(Debug)]
+struct PhaseClock(std::time::Instant);
+
+#[cfg(not(target_arch = "wasm32"))]
+impl PhaseClock {
+    fn start() -> Self {
+        Self(std::time::Instant::now())
+    }
+
+    /// Milliseconds since the previous split, and restarts from now.
+    fn split(&mut self) -> f64 {
+        let now = std::time::Instant::now();
+        let elapsed = now.duration_since(self.0).as_secs_f64() * 1_000.0;
+        self.0 = now;
+        elapsed
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+#[derive(Debug)]
+struct PhaseClock;
+
+#[cfg(target_arch = "wasm32")]
+impl PhaseClock {
+    const fn start() -> Self {
+        Self
+    }
+
+    #[expect(
+        clippy::unused_self,
+        reason = "matches the native signature so the commit body needs no cfg"
+    )]
+    fn split(&mut self) -> f64 {
+        0.0
+    }
+}
+
 /// Deterministic work and invalidation diagnostics for one accepted frame.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct FrameDiagnostics {
@@ -298,6 +364,7 @@ pub struct CoreEngine {
     requested_character_range: Option<(NodeId, [u32; 2])>,
     constraints: BoxConstraints,
     metrics: CoreMetrics,
+    phase_timings: FramePhaseTimings,
     last_frame_seq: Option<u32>,
     /// Nodes whose laid-out geometry the Shell asked to have reported.
     ///
@@ -763,6 +830,7 @@ impl CoreEngine {
             requested_character_range: None,
             constraints,
             metrics: CoreMetrics::default(),
+            phase_timings: FramePhaseTimings::default(),
             last_frame_seq: None,
             observed_geometry: OrderedSet::new(),
             observe_geometry_rejections: 0,
@@ -792,11 +860,18 @@ impl CoreEngine {
     /// # Errors
     ///
     /// Returns the same failures as [`Self::commit`], plus metric ABI or cache-state errors.
+    #[expect(
+        clippy::too_many_lines,
+        reason = "the commit pipeline is a sequence of phases, and splitting it \
+                  to satisfy a line count would hide that sequence rather than \
+                  simplify it"
+    )]
     pub fn commit_with_system_text_metrics(
         &mut self,
         bytes: &[u8],
         system_text_metrics: Option<&[u8]>,
     ) -> Result<FrameOutput, CoreError> {
+        let mut phase = PhaseClock::start();
         self.ensure_reverse_streams_drained()?;
         let (batch, report) = match MutationBatch::decode_with_report(bytes) {
             Ok(decoded) => decoded,
@@ -832,6 +907,7 @@ impl CoreEngine {
             Ok(changed) => changed,
             Err(error) => return self.poison(error),
         };
+        self.phase_timings.scene_ms = phase.split();
         if let Err(error) = self.editing.encode_pending() {
             return self.poison(CoreError::EditTransactions(error));
         }
@@ -852,6 +928,7 @@ impl CoreEngine {
         }
 
         self.text.begin_frame();
+        self.phase_timings.editing_ms = phase.split();
         let mut geometry = match self.layout.layout_with_virtual(
             &self.scene,
             self.constraints,
@@ -861,6 +938,7 @@ impl CoreEngine {
             Ok(outcome) => outcome,
             Err(error) => return self.poison(CoreError::Layout(error)),
         };
+        self.phase_timings.layout_ms = phase.split();
         let corrected = match self.scroll.synchronize(
             &mut self.scene,
             self.layout.snapshot(),
@@ -885,19 +963,23 @@ impl CoreEngine {
             }
             geometry.visited = geometry.visited.saturating_add(corrected_geometry.visited);
         }
+        self.phase_timings.scroll_ms = phase.split();
         let fallback_nodes = self.text.prepare_resources(&self.scene);
         self.relayout_text_fallbacks(
             &fallback_nodes,
             &mut geometry.changed,
             &mut geometry.visited,
         )?;
+        self.phase_timings.text_ms = phase.split();
         self.synchronize_animations()?;
+        self.phase_timings.animation_ms = phase.split();
         let text_changed = self.text.has_staged_changes();
         let output =
             self.paint_frame(frame_seq, &geometry.changed, geometry.visited, text_changed)?;
         if let Err(error) = self.text.commit_frame() {
             return self.poison(CoreError::GlyphResources(error));
         }
+        self.phase_timings.paint_ms = phase.split();
         self.metrics.committed_frames += 1;
         self.last_frame_seq = Some(frame_seq);
         Ok(output)
@@ -1881,6 +1963,12 @@ impl CoreEngine {
     #[must_use]
     pub const fn scene(&self) -> &Scene {
         &self.scene
+    }
+
+    /// Phase split of the most recent commit. Zero everywhere on wasm32.
+    #[must_use]
+    pub const fn phase_timings(&self) -> FramePhaseTimings {
+        self.phase_timings
     }
 
     /// Returns top-level acceptance and rejection counters.

@@ -18,7 +18,7 @@ use pingo_abi::{
     Mutation, MutationBatch, MutationInstruction, NULL_NODE_ID, NodeKind, Prop, ResourceKind,
     StyleKeyword,
 };
-use pingo_core::{CoreEngine, FrameDiagnostics, FrameOutput};
+use pingo_core::{CoreEngine, FrameDiagnostics, FrameOutput, FramePhaseTimings};
 use pingo_paint::{SolidPaint, TextStyleResource};
 use pingo_scene::NodeId;
 
@@ -581,6 +581,10 @@ fn report(
     engine: &CoreEngine,
     last: Option<&FrameDiagnostics>,
 ) -> String {
+    // Phase split of the final sampled frame. Counts say how much work a frame
+    // did; this says which phase spent the time doing it, which is what the
+    // counts alone could never distinguish.
+    let phase: FramePhaseTimings = engine.phase_timings();
     samples.sort_by(f64::total_cmp);
     let p50 = percentile(samples, 50, 100);
     let p95 = percentile(samples, 95, 100);
@@ -599,13 +603,20 @@ fn report(
     // them apart.
     let core = last.expect("a sampled frame");
     format!(
-        "{{\"scenario\":\"{scenario}\",\"nodes\":{nodes},\"samples\":{SAMPLE_FRAMES},\"initialMs\":{initial_ms:.6},\"p50Ms\":{p50:.6},\"p95Ms\":{p95:.6},\"p99Ms\":{p99:.6},\"maxMs\":{maximum:.6},\"droppedFrameRate\":{dropped_rate:.8},\"dirtyLayoutNodes\":{},\"layoutVisitedNodes\":{},\"layoutChangedNodes\":{},\"dirtyPaintNodes\":{},\"pictureBuilds\":{},\"overInvalidatedFrames\":{}}}",
+        "{{\"scenario\":\"{scenario}\",\"nodes\":{nodes},\"samples\":{SAMPLE_FRAMES},\"initialMs\":{initial_ms:.6},\"p50Ms\":{p50:.6},\"p95Ms\":{p95:.6},\"p99Ms\":{p99:.6},\"maxMs\":{maximum:.6},\"droppedFrameRate\":{dropped_rate:.8},\"dirtyLayoutNodes\":{},\"layoutVisitedNodes\":{},\"layoutChangedNodes\":{},\"dirtyPaintNodes\":{},\"pictureBuilds\":{},\"overInvalidatedFrames\":{},\"phaseMs\":{{\"scene\":{:.4},\"editing\":{:.4},\"layout\":{:.4},\"scroll\":{:.4},\"text\":{:.4},\"animation\":{:.4},\"paint\":{:.4}}}}}",
         core.dirty_layout_nodes,
         core.layout_visited_nodes,
         core.layout_changed_nodes,
         core.dirty_paint_nodes,
         paint.builds,
         paint.over_invalidated_frames,
+        phase.scene_ms,
+        phase.editing_ms,
+        phase.layout_ms,
+        phase.scroll_ms,
+        phase.text_ms,
+        phase.animation_ms,
+        phase.paint_ms,
     )
 }
 
