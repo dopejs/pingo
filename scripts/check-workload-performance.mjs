@@ -24,6 +24,9 @@ const REQUIRED_SCENARIOS = [
   "long-document-edit",
   "scattered-paint-5000",
   "scattered-mixed-5000",
+  "reflow-head-5000",
+  "reflow-tail-5000",
+  "reflow-tail-fixed-root-5000",
 ];
 const REQUIRED_FIELDS = [
   "nodes",

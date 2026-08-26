@@ -49,8 +49,15 @@ fn main() {
     // changes only the locality, `scattered-mixed` then adds a layout property.
     let scattered_paint = scattered_update(false);
     let scattered_mixed = scattered_update(true);
+    // Same scene, same single edit, different position. In a column, resizing
+    // the first sibling moves every sibling after it and resizing the last
+    // moves none, so the gap between these two separates cost that follows the
+    // number of moved nodes from cost that follows the size of the scene.
+    let reflow_head = single_resize(1, false);
+    let reflow_tail = single_resize(SCATTERED_NODES, false);
+    let reflow_tail_fixed = single_resize(SCATTERED_NODES, true);
     println!(
-        "{{\"version\":1,\"scenarios\":[{dense},{document},{scattered_paint},{scattered_mixed}]}}"
+        "{{\"version\":1,\"scenarios\":[{dense},{document},{scattered_paint},{scattered_mixed},{reflow_head},{reflow_tail},{reflow_tail_fixed}]}}"
     );
 }
 
@@ -182,6 +189,56 @@ fn scattered_update(with_layout: bool) -> String {
     )
 }
 
+fn single_resize(target: u32, fixed_root: bool) -> String {
+    let mut engine = CoreEngine::new(1280.0, 720.0).expect("reflow viewport");
+    let initial_start = Instant::now();
+    black_box(
+        engine
+            .commit(&flat_scene_with_root(SCATTERED_NODES, fixed_root))
+            .expect("reflow initial frame"),
+    );
+    let initial_ms = initial_start.elapsed().as_secs_f64() * 1_000.0;
+    for frame in 0..WARMUP_FRAMES {
+        black_box(
+            engine
+                .commit(&resize_frame(frame + 2, target))
+                .expect("reflow warmup"),
+        );
+    }
+    let mut samples = Vec::with_capacity(SAMPLE_FRAMES as usize);
+    let mut last = None;
+    for frame in 0..SAMPLE_FRAMES {
+        let bytes = resize_frame(frame + WARMUP_FRAMES + 2, target);
+        let start = Instant::now();
+        let output = engine.commit(&bytes).expect("reflow sample");
+        samples.push(start.elapsed().as_secs_f64() * 1_000.0);
+        last = Some(output.diagnostics);
+    }
+    report(
+        match (target, fixed_root) {
+            (1, _) => "reflow-head-5000",
+            (_, false) => "reflow-tail-5000",
+            (_, true) => "reflow-tail-fixed-root-5000",
+        },
+        SCATTERED_NODES,
+        initial_ms,
+        &mut samples,
+        &engine,
+        last.as_ref(),
+    )
+}
+
+fn resize_frame(frame_seq: u32, target: u32) -> Vec<u8> {
+    encode(
+        frame_seq,
+        vec![set_f32(
+            target,
+            Prop::Height,
+            1.0 + f32::from(u16::try_from(frame_seq % 3).unwrap_or(0)),
+        )],
+    )
+}
+
 fn dense_scene() -> Vec<u8> {
     let mut mutations = base_resources();
     mutations.push(create(0, NodeKind::Root, None));
@@ -292,8 +349,24 @@ fn document_edit(frame_seq: u32) -> Vec<u8> {
 }
 
 fn flat_scene(count: u32) -> Vec<u8> {
+    flat_scene_with_root(count, false)
+}
+
+/// `fixed_root` decides whether the root's size depends on its children.
+///
+/// A content-sized root has to re-measure when any child's height changes, so
+/// a full pass there is necessary rather than wasteful. Pinning the root
+/// separates "layout must look at everything" from "layout looks at everything
+/// because it has no other mode".
+fn flat_scene_with_root(count: u32, fixed_root: bool) -> Vec<u8> {
     let mut mutations = base_resources();
     mutations.push(create(0, NodeKind::Root, None));
+    if fixed_root {
+        mutations.extend([
+            set_f32(0, Prop::Width, 1280.0),
+            set_f32(0, Prop::Height, 720.0),
+        ]);
+    }
     for index in 1..=count {
         mutations.extend([
             create(index, NodeKind::Container, Some(0)),
