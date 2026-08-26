@@ -68,6 +68,26 @@ impl AnimationController {
         scene: &mut Scene,
         layout: &LayoutSnapshot,
     ) -> Result<bool, CoreError> {
+        // A tree that declares no animation, with nothing tracked here: every
+        // node would take the `remove_node` branch, which on a node this
+        // controller never touched removes nothing and clears no presentation
+        // style. The pass is a no-op, so skip it rather than paying a map
+        // lookup and a call per node to discover that.
+        //
+        // `has_ref_prop` is deliberately the coarse question. Clearing a
+        // property empties its slot and leaves the lane in place, so this stays
+        // false only for a tree where nothing has *ever* declared an animation.
+        // A tree that had one and lost it keeps paying the full pass -- more
+        // conservative than the tracked maps alone would allow, and it means
+        // the skip can never strand state a finished animation left behind.
+        if self.resource_ids.is_empty()
+            && self.durable.is_empty()
+            && self.transitions.is_empty()
+            && self.keyframes.is_empty()
+            && !scene.has_ref_prop(pingo_abi::Prop::Animation)
+        {
+            return Ok(false);
+        }
         let live = scene.ids().to_vec();
         let mut configured = OrderedMap::new();
         let mut changed = false;

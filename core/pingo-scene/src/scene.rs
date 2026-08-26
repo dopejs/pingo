@@ -408,6 +408,17 @@ impl Scene {
         self.props.vec4.get(&prop)?.get(index).copied().flatten()
     }
 
+    /// Whether any live node declares this reference property.
+    ///
+    /// One map lookup instead of one per node. A per-frame pass looking for a
+    /// property nothing in the tree uses can answer that here and stop, rather
+    /// than asking every node in turn -- which is what `ref_prop` costs when it
+    /// is called in a loop.
+    #[must_use]
+    pub fn has_ref_prop(&self, prop: Prop) -> bool {
+        self.props.refs.contains_key(&prop)
+    }
+
     /// Returns one reference property value.
     #[must_use]
     pub fn ref_prop(&self, node: NodeId, prop: Prop) -> Option<u32> {

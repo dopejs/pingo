@@ -6922,6 +6922,84 @@ mod tests {
         );
     }
 
+    /// Clearing the last animation settles, and stays settled.
+    ///
+    /// Deliberately *not* a test of `synchronize`'s early return, which cannot
+    /// apply here: clearing a property leaves its lane in place, so a tree that
+    /// once declared an animation keeps taking the full pass forever. This
+    /// guards the behaviour that makes that conservatism unnecessary to reason
+    /// about -- a cleared animation settles immediately and no later frame
+    /// moves the picture again.
+    #[test]
+    fn clearing_the_last_animation_leaves_nothing_behind_for_idle_frames() {
+        let mut engine = CoreEngine::new(100.0, 100.0).expect("Core");
+        engine
+            .commit(&frame(
+                1,
+                vec![
+                    Mutation::CreateNode {
+                        node_id: id(0),
+                        kind: NodeKind::Root,
+                        parent: NULL_NODE_ID,
+                        before_sibling: NULL_NODE_ID,
+                    },
+                    Mutation::CreateNode {
+                        node_id: id(1),
+                        kind: NodeKind::Container,
+                        parent: id(0),
+                        before_sibling: NULL_NODE_ID,
+                    },
+                    Mutation::SetF32 {
+                        node_id: id(1),
+                        prop: Prop::Opacity,
+                        value: 1.0,
+                    },
+                    Mutation::DefineResource {
+                        resource_id: 20,
+                        kind: ResourceKind::Animation,
+                        bytes: opacity_keyframes_resource(1_000_000),
+                    },
+                    Mutation::SetRef {
+                        node_id: id(1),
+                        prop: Prop::Animation,
+                        resource_id: 20,
+                    },
+                ],
+            ))
+            .expect("initial");
+        let running = engine.advance(0.25).expect("advance");
+        assert!(
+            running.is_some(),
+            "the animation must produce a frame before it is cleared"
+        );
+
+        let cleared = engine
+            .commit(&frame(
+                2,
+                vec![Mutation::ClearProp {
+                    node_id: id(1),
+                    prop: Prop::Animation,
+                }],
+            ))
+            .expect("clear");
+        assert_eq!(cleared.diagnostics.animation_active, 0);
+
+        // Idle frames from here take the early return. Nothing may drift.
+        let settled = engine
+            .commit(&frame(3, Vec::new()))
+            .expect("idle")
+            .diagnostics
+            .picture_hash;
+        for frame_seq in 4..8 {
+            let idle = engine.commit(&frame(frame_seq, Vec::new())).expect("idle");
+            assert_eq!(idle.diagnostics.animation_active, 0);
+            assert_eq!(
+                idle.diagnostics.picture_hash, settled,
+                "an idle frame changed the picture after the animation was cleared",
+            );
+        }
+    }
+
     #[test]
     fn display_none_cancels_animation_and_restore_restarts_from_durable_state() {
         let mut engine = CoreEngine::new(100.0, 100.0).expect("Core");
