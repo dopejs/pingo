@@ -90,6 +90,19 @@ export interface ClockAnchorDriver {
   request(callback: (timestamp: number) => void): number;
 }
 
+/**
+ * Display cadence sampling for the Worker's render clock.
+ *
+ * A worker cannot read the refresh rate, and its clock otherwise assumes 60Hz,
+ * which caps rendering there on a faster display. Four samples is enough for a
+ * median to reject a startup hitch; the bounds span 240Hz to 30Hz, and a
+ * measurement outside them -- a throttled tab, a sampler racing a resize -- is
+ * discarded in favour of the Worker's own default.
+ */
+const FRAME_INTERVAL_SAMPLES = 4;
+const MINIMUM_FRAME_MS = 4;
+const MAXIMUM_FRAME_MS = 34;
+
 /** Generation-bearing scroll target accepted from a JSX ref or raw host handle. */
 export type ScrollTarget = number | { readonly nodeId: number };
 
@@ -202,6 +215,8 @@ class HostedCanvasRootController implements HostedCanvasRoot {
   readonly #options: HostedCanvasRootOptions;
   readonly #recoverableSink = new RecoverableMutationSink();
   #anchorHandle: number | undefined;
+  #frameIntervals: number[] = [];
+  #frameIntervalHandle: number | undefined;
   #canvas: HTMLCanvasElement;
   #client: RenderWorkerClient | undefined;
   #closePromise: Promise<void> | undefined;
@@ -535,6 +550,7 @@ class HostedCanvasRootController implements HostedCanvasRoot {
     };
     const client = new RenderWorkerClient(workerFactory(), clientOptions);
     this.#client = client;
+    this.startFrameIntervalSampling();
     const workerCapabilities = await client.prepare();
     if (!workerCapabilities.offscreenCanvas) {
       throw new Error("render Worker reports OffscreenCanvas unavailable");
@@ -600,6 +616,10 @@ class HostedCanvasRootController implements HostedCanvasRoot {
       reducedMotion: reducedMotionPreference(this.#options.reducedMotion),
       ...(inputRingBuffer === undefined ? {} : { inputRingBuffer }),
       ...(ringBuffer === undefined ? {} : { ringBuffer }),
+      ...(() => {
+        const targetFrameMs = this.measuredFrameIntervalMs();
+        return targetFrameMs === undefined ? {} : { targetFrameMs };
+      })(),
       width: positiveDimension(this.logicalWidth(), "canvas width"),
     });
     if (client.state !== "ready") throw new Error("render Worker failed during activation");
@@ -1729,6 +1749,38 @@ class HostedCanvasRootController implements HostedCanvasRoot {
     client?.terminate();
   }
 
+  /**
+   * Starts sampling animation-frame intervals.
+   *
+   * Called before the Worker handshake so the samples accumulate during WASM
+   * startup instead of adding to it: by the time activation needs the value it
+   * is usually there, and when it is not the field is simply omitted.
+   */
+  private startFrameIntervalSampling(): void {
+    const driver = this.#options.clockAnchorDriver ?? defaultClockAnchorDriver();
+    if (driver === null) return;
+    let previous: number | undefined;
+    const frame = (timestamp: number): void => {
+      if (this.#closing) return;
+      if (previous !== undefined) this.#frameIntervals.push(timestamp - previous);
+      previous = timestamp;
+      if (this.#frameIntervals.length >= FRAME_INTERVAL_SAMPLES) return;
+      this.#frameIntervalHandle = driver.request(frame);
+    };
+    this.#frameIntervalHandle = driver.request(frame);
+  }
+
+  /** Median sampled frame interval, or undefined when it is not trustworthy. */
+  private measuredFrameIntervalMs(): number | undefined {
+    if (this.#frameIntervals.length < 2) return undefined;
+    const sorted = [...this.#frameIntervals].sort((left, right) => left - right);
+    const median = sorted[Math.floor(sorted.length / 2)];
+    if (median === undefined || median < MINIMUM_FRAME_MS || median > MAXIMUM_FRAME_MS) {
+      return undefined;
+    }
+    return median;
+  }
+
   private startClockAnchors(client: RenderWorkerClient): void {
     const driver = this.#options.clockAnchorDriver ?? defaultClockAnchorDriver();
     if (driver === null) return;
@@ -1765,8 +1817,23 @@ class HostedCanvasRootController implements HostedCanvasRoot {
     if (handle !== undefined && driver !== null) driver.cancel(handle);
   }
 
+  /**
+   * Cancels an in-flight cadence sample.
+   *
+   * The sampler stops itself once it has enough, but a root closed during
+   * startup would otherwise leave one request outstanding against a driver
+   * that outlives it.
+   */
+  private stopFrameIntervalSampling(): void {
+    const handle = this.#frameIntervalHandle;
+    this.#frameIntervalHandle = undefined;
+    const driver = this.#options.clockAnchorDriver ?? defaultClockAnchorDriver();
+    if (handle !== undefined && driver !== null) driver.cancel(handle);
+  }
+
   private async closeOnce(): Promise<void> {
     this.#closing = true;
+    this.stopFrameIntervalSampling();
     this.detachReducedMotionListener();
     this.detachCanvasEventListeners();
     this.stopClockAnchors();

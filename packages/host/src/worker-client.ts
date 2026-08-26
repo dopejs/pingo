@@ -66,6 +66,8 @@ export interface RenderWorkerActivation {
   readonly reducedMotion: boolean;
   readonly inputRingBuffer?: SharedArrayBuffer;
   readonly ringBuffer?: SharedArrayBuffer;
+  /** Observed display frame interval in ms; omitted when not yet estimated. */
+  readonly targetFrameMs?: number;
   readonly width: number;
 }
 
@@ -184,6 +186,9 @@ export class RenderWorkerClient {
         : { inputRingBuffer: activation.inputRingBuffer }),
       ...(activation.ringBuffer === undefined ? {} : { ringBuffer: activation.ringBuffer }),
       sessionId: this.#sessionId,
+      ...(activation.targetFrameMs === undefined
+        ? {}
+        : { targetFrameMs: positiveFinite(activation.targetFrameMs, "target frame interval") }),
       width,
     };
     try {

@@ -14,7 +14,7 @@ import type { RenderClockMetrics } from "./render-clock";
 import type { EditTransaction, EventTransaction } from "@dopejs/pingo-editing";
 import type { MediaFramePath } from "./media";
 
-export const WORKER_PROTOCOL_VERSION = 12 as const;
+export const WORKER_PROTOCOL_VERSION = 13 as const;
 
 export interface WorkerPrepareMessage {
   readonly abiVersion: number;
@@ -36,6 +36,16 @@ export interface WorkerActivateMessage {
   readonly inputRingBuffer?: SharedArrayBuffer;
   readonly ringBuffer?: SharedArrayBuffer;
   readonly sessionId: number;
+  /**
+   * Observed display frame interval, in milliseconds.
+   *
+   * A worker cannot read the refresh rate any more than it can read
+   * `devicePixelRatio`, and its render clock otherwise defaults to 60Hz, which
+   * caps rendering there on a 120Hz display. Omitted when the main thread has
+   * not seen enough animation frames to estimate one, and the worker keeps its
+   * default.
+   */
+  readonly targetFrameMs?: number;
   readonly width: number;
 }
 

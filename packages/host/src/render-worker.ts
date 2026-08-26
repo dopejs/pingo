@@ -181,7 +181,14 @@ async function activate(message: WorkerActivateMessage): Promise<void> {
       sessionId,
     });
   }
-  clock = new HybridRenderClock({ onError: fatal });
+  // The main thread supplies the display's frame interval because a worker
+  // cannot observe it, exactly as it supplies devicePixelRatio. Without it the
+  // clock defaults to 60Hz and caps rendering there, which on a 120Hz display
+  // is half the frames for any transport that waits for the clock.
+  clock = new HybridRenderClock({
+    onError: fatal,
+    ...(message.targetFrameMs === undefined ? {} : { targetFrameMs: message.targetFrameMs }),
+  });
   clock.start((frame) => {
     sabReceiver?.drain();
     drainInputRing();

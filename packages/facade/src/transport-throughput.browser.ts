@@ -32,15 +32,24 @@ const VIEWPORT = { width: 360, height: 480 };
 const TICKS = 60;
 
 /**
- * Floors, not targets. They record what each transport delivers today so a
- * regression is visible; postMessage's is deliberately below its measured
- * ~0.55 so ordinary scheduling noise does not turn the suite red, and raising
- * it is the point of any work on that path.
+ * Floors, not targets.
+ *
+ * postMessage's was 0.4 when this was written, recording a path that delivered
+ * about 0.55 because the Worker's render clock defaulted to 60Hz and it waited
+ * for that clock while SAB bypassed it. Now that the main thread supplies the
+ * display's cadence the same path measures 0.99 alone, so the floor rises with
+ * it -- that was the point of the number existing.
+ *
+ * 0.7 rather than 0.9, because alone is not the condition that matters. Under
+ * the whole browser suite the same case measured 49, 50, 51, 52, 54 and 55
+ * frames of 60 across six runs, while main-thread and SAB held 60 every time.
+ * 0.8 sat on the low edge of that spread and flaked; 0.7 clears it by seven
+ * frames and still fails the 0.55 this path used to deliver.
  */
 const MINIMUM_DELIVERY = new Map<HostTransportMode, number>([
   ["main-thread", 0.9],
   ["sab", 0.9],
-  ["post-message", 0.4],
+  ["post-message", 0.7],
 ]);
 
 afterEach(async () => {
