@@ -8,7 +8,11 @@
 ## 1. 现状：付了 4,700 条指令，只看得见 120 条
 
 首次实测（本机 Apple M4 Pro，400 行非虚拟化列表，Core 自驱滚动 60 帧，
-`main-thread.ts` 补上 dynamic 路径计时之后）：
+`main-thread.ts` 补上 dynamic 路径计时之后）。
+
+**口径警告**：这组数取自 `main-thread` transport，也就是降级链最底档；真实部署走的
+是 postMessage 或 SAB。指令数是跨 transport 相同的，但两个毫秒数需要在 postMessage
+上重测才能用于预算折算。
 
 | 阶段        |     p50 |     p95 |
 | ----------- | ------: | ------: |

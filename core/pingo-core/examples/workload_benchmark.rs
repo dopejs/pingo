@@ -18,7 +18,7 @@ use pingo_abi::{
     Mutation, MutationBatch, MutationInstruction, NULL_NODE_ID, NodeKind, Prop, ResourceKind,
     StyleKeyword,
 };
-use pingo_core::{CoreEngine, FrameDiagnostics};
+use pingo_core::{CoreEngine, FrameDiagnostics, FrameOutput};
 use pingo_paint::{SolidPaint, TextStyleResource};
 use pingo_scene::NodeId;
 
@@ -77,17 +77,26 @@ fn main() {
 fn dense_ui() -> String {
     let node_count = DENSE_ROWS * (DENSE_FIELDS_PER_ROW + 1) + 1;
     let mut engine = CoreEngine::new(1280.0, 900.0).expect("dense viewport");
+    // The product enables incremental Pictures -- the Host defaults
+    // `incrementalPicturesEnabled` to true -- while `CoreEngine` defaults it
+    // off. Measuring without it measures the inline reference path, which is
+    // not what ships.
+    engine
+        .set_incremental_pictures_enabled(true)
+        .expect("incremental pictures");
     let initial_start = Instant::now();
-    black_box(engine.commit(&dense_scene()).expect("dense initial frame"));
+    let initial = engine.commit(&dense_scene()).expect("dense initial frame");
+    acknowledge(&mut engine, &initial);
+    black_box(&initial);
     let initial_ms = initial_start.elapsed().as_secs_f64() * 1_000.0;
 
     let mut rng = Rng::new(0x5eed_0001_u64);
     for frame in 0..WARMUP_FRAMES {
-        black_box(
-            engine
-                .commit(&dense_update(frame + 2, &mut rng, node_count))
-                .expect("dense warmup"),
-        );
+        let warm = engine
+            .commit(&dense_update(frame + 2, &mut rng, node_count))
+            .expect("dense warmup");
+        acknowledge(&mut engine, &warm);
+        black_box(&warm);
     }
     let mut samples = Vec::with_capacity(SAMPLE_FRAMES as usize);
     let mut last = None;
@@ -96,6 +105,7 @@ fn dense_ui() -> String {
         let start = Instant::now();
         let output = engine.commit(&bytes).expect("dense sample");
         samples.push(start.elapsed().as_secs_f64() * 1_000.0);
+        acknowledge(&mut engine, &output);
         last = Some(output.diagnostics);
     }
     report(
@@ -117,20 +127,27 @@ fn dense_ui() -> String {
 fn long_document(resize: bool) -> String {
     let node_count = DOCUMENT_PARAGRAPHS + 1;
     let mut engine = CoreEngine::new(760.0, 900.0).expect("document viewport");
+    // The product enables incremental Pictures -- the Host defaults
+    // `incrementalPicturesEnabled` to true -- while `CoreEngine` defaults it
+    // off. Measuring without it measures the inline reference path, which is
+    // not what ships.
+    engine
+        .set_incremental_pictures_enabled(true)
+        .expect("incremental pictures");
     let initial_start = Instant::now();
-    black_box(
-        engine
-            .commit(&document_scene())
-            .expect("document initial frame"),
-    );
+    let initial = engine
+        .commit(&document_scene())
+        .expect("document initial frame");
+    acknowledge(&mut engine, &initial);
+    black_box(&initial);
     let initial_ms = initial_start.elapsed().as_secs_f64() * 1_000.0;
 
     for frame in 0..WARMUP_FRAMES {
-        black_box(
-            engine
-                .commit(&document_edit(frame + 2, resize))
-                .expect("document warmup"),
-        );
+        let warm = engine
+            .commit(&document_edit(frame + 2, resize))
+            .expect("document warmup");
+        acknowledge(&mut engine, &warm);
+        black_box(&warm);
     }
     let mut samples = Vec::with_capacity(SAMPLE_FRAMES as usize);
     let mut last = None;
@@ -139,6 +156,7 @@ fn long_document(resize: bool) -> String {
         let start = Instant::now();
         let output = engine.commit(&bytes).expect("document sample");
         samples.push(start.elapsed().as_secs_f64() * 1_000.0);
+        acknowledge(&mut engine, &output);
         last = Some(output.diagnostics);
     }
     report(
@@ -163,21 +181,28 @@ fn long_document(resize: bool) -> String {
 /// access pattern rather than from the engine.
 fn scattered_update(with_layout: bool) -> String {
     let mut engine = CoreEngine::new(1280.0, 720.0).expect("scattered viewport");
+    // The product enables incremental Pictures -- the Host defaults
+    // `incrementalPicturesEnabled` to true -- while `CoreEngine` defaults it
+    // off. Measuring without it measures the inline reference path, which is
+    // not what ships.
+    engine
+        .set_incremental_pictures_enabled(true)
+        .expect("incremental pictures");
     let initial_start = Instant::now();
-    black_box(
-        engine
-            .commit(&flat_scene(SCATTERED_NODES))
-            .expect("scattered initial frame"),
-    );
+    let initial = engine
+        .commit(&flat_scene(SCATTERED_NODES))
+        .expect("scattered initial frame");
+    acknowledge(&mut engine, &initial);
+    black_box(&initial);
     let initial_ms = initial_start.elapsed().as_secs_f64() * 1_000.0;
 
     let mut rng = Rng::new(0x5eed_0002_u64);
     for frame in 0..WARMUP_FRAMES {
-        black_box(
-            engine
-                .commit(&scattered_frame(frame + 2, &mut rng, with_layout))
-                .expect("scattered warmup"),
-        );
+        let warm = engine
+            .commit(&scattered_frame(frame + 2, &mut rng, with_layout))
+            .expect("scattered warmup");
+        acknowledge(&mut engine, &warm);
+        black_box(&warm);
     }
     let mut samples = Vec::with_capacity(SAMPLE_FRAMES as usize);
     let mut last = None;
@@ -186,6 +211,7 @@ fn scattered_update(with_layout: bool) -> String {
         let start = Instant::now();
         let output = engine.commit(&bytes).expect("scattered sample");
         samples.push(start.elapsed().as_secs_f64() * 1_000.0);
+        acknowledge(&mut engine, &output);
         last = Some(output.diagnostics);
     }
     report(
@@ -204,19 +230,26 @@ fn scattered_update(with_layout: bool) -> String {
 
 fn single_resize(target: u32, fixed_root: bool) -> String {
     let mut engine = CoreEngine::new(1280.0, 720.0).expect("reflow viewport");
+    // The product enables incremental Pictures -- the Host defaults
+    // `incrementalPicturesEnabled` to true -- while `CoreEngine` defaults it
+    // off. Measuring without it measures the inline reference path, which is
+    // not what ships.
+    engine
+        .set_incremental_pictures_enabled(true)
+        .expect("incremental pictures");
     let initial_start = Instant::now();
-    black_box(
-        engine
-            .commit(&flat_scene_with_root(SCATTERED_NODES, fixed_root))
-            .expect("reflow initial frame"),
-    );
+    let initial = engine
+        .commit(&flat_scene_with_root(SCATTERED_NODES, fixed_root))
+        .expect("reflow initial frame");
+    acknowledge(&mut engine, &initial);
+    black_box(&initial);
     let initial_ms = initial_start.elapsed().as_secs_f64() * 1_000.0;
     for frame in 0..WARMUP_FRAMES {
-        black_box(
-            engine
-                .commit(&resize_frame(frame + 2, target))
-                .expect("reflow warmup"),
-        );
+        let warm = engine
+            .commit(&resize_frame(frame + 2, target))
+            .expect("reflow warmup");
+        acknowledge(&mut engine, &warm);
+        black_box(&warm);
     }
     let mut samples = Vec::with_capacity(SAMPLE_FRAMES as usize);
     let mut last = None;
@@ -225,6 +258,7 @@ fn single_resize(target: u32, fixed_root: bool) -> String {
         let start = Instant::now();
         let output = engine.commit(&bytes).expect("reflow sample");
         samples.push(start.elapsed().as_secs_f64() * 1_000.0);
+        acknowledge(&mut engine, &output);
         last = Some(output.diagnostics);
     }
     report(
@@ -255,16 +289,25 @@ fn resize_frame(frame_seq: u32, target: u32) -> Vec<u8> {
 fn dense_ui_leaf() -> String {
     let node_count = DENSE_ROWS * (DENSE_FIELDS_PER_ROW + 1) + 1;
     let mut engine = CoreEngine::new(1280.0, 900.0).expect("dense viewport");
+    // The product enables incremental Pictures -- the Host defaults
+    // `incrementalPicturesEnabled` to true -- while `CoreEngine` defaults it
+    // off. Measuring without it measures the inline reference path, which is
+    // not what ships.
+    engine
+        .set_incremental_pictures_enabled(true)
+        .expect("incremental pictures");
     let initial_start = Instant::now();
-    black_box(engine.commit(&dense_scene()).expect("dense leaf initial"));
+    let initial = engine.commit(&dense_scene()).expect("dense leaf initial");
+    acknowledge(&mut engine, &initial);
+    black_box(&initial);
     let initial_ms = initial_start.elapsed().as_secs_f64() * 1_000.0;
     let mut rng = Rng::new(0x5eed_0003_u64);
     for frame in 0..WARMUP_FRAMES {
-        black_box(
-            engine
-                .commit(&dense_leaf_update(frame + 2, &mut rng))
-                .expect("dense leaf warmup"),
-        );
+        let warm = engine
+            .commit(&dense_leaf_update(frame + 2, &mut rng))
+            .expect("dense leaf warmup");
+        acknowledge(&mut engine, &warm);
+        black_box(&warm);
     }
     let mut samples = Vec::with_capacity(SAMPLE_FRAMES as usize);
     let mut last = None;
@@ -273,6 +316,7 @@ fn dense_ui_leaf() -> String {
         let start = Instant::now();
         let output = engine.commit(&bytes).expect("dense leaf sample");
         samples.push(start.elapsed().as_secs_f64() * 1_000.0);
+        acknowledge(&mut engine, &output);
         last = Some(output.diagnostics);
     }
     report(
@@ -474,6 +518,19 @@ fn scattered_frame(frame_seq: u32, rng: &mut Rng, with_layout: bool) -> Vec<u8> 
         }
     }
     encode(frame_seq, mutations)
+}
+
+/// Stands in for the Host's Picture acknowledgement.
+///
+/// Incremental Pictures publish resources that the Host installs and confirms;
+/// a headless benchmark has no Host, so it confirms them itself. Without this
+/// the second commit fails with `PictureResourcesNotAcknowledged`.
+fn acknowledge(engine: &mut CoreEngine, output: &FrameOutput) {
+    if !engine.take_picture_resources().is_empty() {
+        engine
+            .acknowledge_picture_resources(output.frame_seq)
+            .expect("picture acknowledgement");
+    }
 }
 
 fn base_resources() -> Vec<Mutation> {
