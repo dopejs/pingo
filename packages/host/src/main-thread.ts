@@ -1051,13 +1051,24 @@ export class CanvasFrameSink implements MutationSink {
       coreDiagnostics === undefined
         ? undefined
         : `${coreDiagnostics.pictureHash.toString(16)}:${String(this.#resourceRevision)}`;
+    // Timed for the same reason the mutation path is: without the replay cost
+    // split out, a slow frame is ambiguous between Core producing the list and
+    // the backend drawing it. This is the path a Core-owned scroll, an
+    // animation and an input frame all take -- the frames whose budget is
+    // tightest -- so leaving it untimed put the observability contract on the
+    // half that is not under pressure. `coreMs` comes from whichever advance
+    // produced this list, recorded by the caller.
+    const replayStart = performance.now();
     const replay = this.replay(displayList, pictureKey);
+    const replayMs = performance.now() - replayStart;
     this.#lastDisplayList = displayList;
     this.#lastPictureKey = pictureKey;
     this.#onFrame?.({
       ...replay.value,
       ...source,
       displayListBytes: displayList.byteLength,
+      coreMs: this.#coreMs,
+      replayMs,
       ...(coreDiagnostics === undefined ? {} : { core: coreDiagnostics }),
       ...(this.#rasterCache === undefined ? {} : { rasterCache: this.#rasterCache.metrics() }),
       ...(replay.rasterFrame === undefined ? {} : { rasterFrame: replay.rasterFrame }),

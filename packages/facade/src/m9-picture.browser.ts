@@ -37,6 +37,15 @@ describe("M9 incremental Picture differential", () => {
 
     expect(optimizedScroll.mutationBytes).toBe(0);
     expect(referenceScroll.mutationBytes).toBe(0);
+    // A Core-owned scroll goes through the dynamic frame path, which reported
+    // no phase timing at all until this was asserted: every scroll frame -- the
+    // ones whose budget is tightest -- arrived with `replayMs` undefined, so a
+    // slow one could not be attributed to Core or to the backend.
+    for (const report of [optimizedScroll, referenceScroll]) {
+      expect(typeof report.replayMs).toBe("number");
+      expect(report.replayMs).toBeGreaterThanOrEqual(0);
+      expect(typeof report.coreMs).toBe("number");
+    }
     expect(optimizedScroll.core?.layoutVisitedNodes).toBe(0);
     expect(referenceScroll.core?.layoutVisitedNodes).toBe(0);
     expect((optimizedScroll.core?.pictureSubtreeBuilds ?? 0) - optimizedBuilds).toBeLessThanOrEqual(
