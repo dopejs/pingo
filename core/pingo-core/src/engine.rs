@@ -2350,7 +2350,10 @@ impl CoreEngine {
         force_full_paint: bool,
     ) -> Result<FrameOutput, CoreError> {
         let mut hit_phase = PhaseClock::start();
-        if let Err(error) = self.hit.update(&self.scene, self.layout.snapshot()) {
+        if let Err(error) = self
+            .hit
+            .update(&self.scene, self.layout.snapshot(), geometry_changed)
+        {
             return self.poison(CoreError::Hit(error));
         }
         self.phase_timings.hit_ms = hit_phase.split();

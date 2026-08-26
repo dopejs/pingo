@@ -12,7 +12,7 @@ use pingo_abi::{
     StyleLengthUnit, StyleProperty, StyleTransformOperation,
 };
 use pingo_layout::LayoutSnapshot;
-use pingo_scene::{NodeId, Scene};
+use pingo_scene::{BitSet, DirtyDomain, NodeId, Scene};
 
 /// Finite two-dimensional point in logical pixels.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
@@ -159,6 +159,8 @@ pub struct HitIndex {
     pub topology_rebuilds: u64,
     /// Number of same-topology AABB refits.
     pub refits: u64,
+    /// Frames whose inputs were unchanged, so nothing was recomputed.
+    pub skipped: u64,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -171,9 +173,33 @@ struct BvhNode {
 
 impl HitIndex {
     /// Recomputes world geometry and rebuilds or refits the BVH transactionally.
-    pub fn update(&mut self, scene: &Scene, layout: &LayoutSnapshot) -> Result<(), HitError> {
+    /// `geometry_changed` names the nodes layout moved or resized this frame.
+    ///
+    /// It is required rather than derived because the dirty domains cannot
+    /// supply it: `Width` and `Height` invalidate `layout` and `paint` and not
+    /// `hit`, so a sibling growing moves every node after it without marking
+    /// one of them hit-dirty. Skipping on the dirty bits alone would answer
+    /// pointer queries from stale geometry -- a click landing on the wrong
+    /// node, which is worse than the rebuild this avoids.
+    pub fn update(
+        &mut self,
+        scene: &Scene,
+        layout: &LayoutSnapshot,
+        geometry_changed: &BitSet,
+    ) -> Result<(), HitError> {
         if scene.ids() != layout.ids() {
             return Err(HitError::TopologyMismatch);
+        }
+        // Nothing this index reads has changed: same nodes, none of them
+        // hit-dirty, and none of them moved. Rebuilding world geometry and the
+        // hittable mask for every node would reproduce exactly what is already
+        // held. This is the whole of an idle frame's hit cost.
+        if self.ids == scene.ids()
+            && scene.dirty(DirtyDomain::Hit).iter_ones().next().is_none()
+            && geometry_changed.iter_ones().next().is_none()
+        {
+            self.skipped = self.skipped.saturating_add(1);
+            return Ok(());
         }
         let geometry = build_world_geometry(scene, layout)?;
         let topology_changed = self.ids != scene.ids();
@@ -767,6 +793,14 @@ mod tests {
     use pingo_layout::{BoxConstraints, LayoutEngine, Size, ZeroIntrinsicMeasurer};
     use proptest::prelude::*;
 
+    /// Declares every node moved, so a test keeps the unconditional rebuild it
+    /// was written against rather than silently exercising the skip path.
+    fn all_moved(scene: &Scene) -> BitSet {
+        let mut changed = BitSet::with_len(scene.len());
+        changed.fill();
+        changed
+    }
+
     use super::*;
 
     fn id(index: u32) -> NodeId {
@@ -907,6 +941,144 @@ mod tests {
         (scene, layout)
     }
 
+    /// The skip must not answer from geometry a layout change invalidated.
+    ///
+    /// `Width` and `Height` invalidate `layout` and `paint`, never `hit`, so a
+    /// node growing moves every sibling after it while leaving the hit domain
+    /// clean. An index that skipped on the dirty bits alone would keep pointing
+    /// at where those siblings used to be, and the existing `hit_naive` oracle
+    /// cannot catch it: it reads the same cached geometry the BVH does, so both
+    /// would be stale together and agree.
+    ///
+    /// So this compares against an index that never skips.
+    #[test]
+    fn skipping_never_answers_from_stale_geometry() {
+        let mut skipping = HitIndex::default();
+        let mut always = HitIndex::default();
+        let (scene, layout) = column_scene(10.0);
+        let changed = all_moved(&scene);
+        skipping
+            .update(&scene, layout.snapshot(), &changed)
+            .expect("first");
+        always
+            .update(&scene, layout.snapshot(), &changed)
+            .expect("first");
+
+        // The first row grows, so the second row moves down without any node
+        // becoming hit-dirty.
+        let (grown, grown_layout) = column_scene(40.0);
+        let moved = moved_nodes(&layout, &grown_layout);
+        assert!(
+            moved.iter_ones().next().is_some(),
+            "the second row must move"
+        );
+        skipping
+            .update(&grown, grown_layout.snapshot(), &moved)
+            .expect("grown");
+        always
+            .update(&grown, grown_layout.snapshot(), &all_moved(&grown))
+            .expect("grown");
+
+        for y in [5.0, 15.0, 25.0, 35.0, 45.0, 55.0] {
+            let point = HitPoint { x: 5.0, y };
+            assert_eq!(
+                skipping.hit(&grown, point).map(|hit| hit.target),
+                always.hit(&grown, point).map(|hit| hit.target),
+                "pointer at y={y} disagrees after a sibling grew",
+            );
+        }
+    }
+
+    /// An idle frame recomputes nothing and still answers the same.
+    #[test]
+    fn an_unchanged_frame_is_skipped() {
+        let (scene, layout) = column_scene(10.0);
+        let mut index = HitIndex::default();
+        index
+            .update(&scene, layout.snapshot(), &all_moved(&scene))
+            .expect("first");
+        let before = index
+            .hit(&scene, HitPoint { x: 5.0, y: 5.0 })
+            .map(|hit| hit.target);
+        // The engine clears the dirty domains once a frame has consumed them;
+        // without that a scene built here still reports the whole tree as
+        // hit-dirty and no frame would ever be idle.
+        let mut scene = scene;
+        scene.clear_dirty();
+        let quiet = BitSet::with_len(scene.len());
+        index
+            .update(&scene, layout.snapshot(), &quiet)
+            .expect("idle");
+        assert_eq!(index.skipped, 1, "an unchanged frame must not recompute");
+        assert_eq!(
+            index
+                .hit(&scene, HitPoint { x: 5.0, y: 5.0 })
+                .map(|hit| hit.target),
+            before,
+        );
+    }
+
+    /// Two stacked rows, the first of the given height.
+    fn column_scene(first_height: f32) -> (Scene, LayoutEngine) {
+        let mut scene = Scene::default();
+        let node = |index: u32, kind: NodeKind, parent: u32| MutationInstruction {
+            flags: 0,
+            mutation: Mutation::CreateNode {
+                node_id: id(index).raw(),
+                kind,
+                parent,
+                before_sibling: NULL_NODE_ID,
+            },
+        };
+        let size = |index: u32, prop: Prop, value: f32| MutationInstruction {
+            flags: 0,
+            mutation: Mutation::SetF32 {
+                node_id: id(index).raw(),
+                prop,
+                value,
+            },
+        };
+        let mut instructions = vec![
+            node(0, NodeKind::Root, NULL_NODE_ID),
+            node(1, NodeKind::Container, id(0).raw()),
+            size(1, Prop::Width, 100.0),
+            size(1, Prop::Height, first_height),
+            node(2, NodeKind::Container, id(0).raw()),
+            size(2, Prop::Width, 100.0),
+            size(2, Prop::Height, 20.0),
+        ];
+        instructions.push(node(3, NodeKind::Container, id(0).raw()));
+        instructions.push(size(3, Prop::Width, 100.0));
+        instructions.push(size(3, Prop::Height, 20.0));
+        scene
+            .commit(MutationBatch {
+                frame_seq: 1,
+                instructions,
+            })
+            .expect("scene commit");
+        let mut layout = LayoutEngine::new();
+        layout
+            .layout(
+                &scene,
+                BoxConstraints::tight(Size::new(200.0, 200.0)).expect("viewport"),
+                &mut ZeroIntrinsicMeasurer,
+            )
+            .expect("layout");
+        (scene, layout)
+    }
+
+    /// Nodes whose offset or size differs between two layouts.
+    fn moved_nodes(before: &LayoutEngine, after: &LayoutEngine) -> BitSet {
+        let snapshot = after.snapshot();
+        let mut changed = BitSet::with_len(snapshot.len());
+        for (index, node) in snapshot.ids().iter().copied().enumerate() {
+            if before.snapshot().geometry(node) != snapshot.geometry(node) {
+                changed.insert(index);
+            }
+        }
+        changed
+    }
+
     #[test]
     fn a_raised_sibling_catches_the_pointer_its_z_index_put_it_over() {
         let point = HitPoint { x: 20.0, y: 20.0 };
@@ -914,14 +1086,18 @@ mod tests {
         // Document order alone: the later sibling is on top.
         let (scene, layout) = overlapping_scene(None);
         let mut index = HitIndex::default();
-        index.update(&scene, layout.snapshot()).expect("index");
+        index
+            .update(&scene, layout.snapshot(), &all_moved(&scene))
+            .expect("index");
         assert_eq!(index.hit(&scene, point).expect("hit").target, id(2));
         assert_eq!(index.hit_naive(&scene, point).expect("hit").target, id(2));
 
         // A z-index lifts the earlier sibling, and what is on top is hit.
         let (scene, layout) = overlapping_scene(Some(1));
         let mut index = HitIndex::default();
-        index.update(&scene, layout.snapshot()).expect("index");
+        index
+            .update(&scene, layout.snapshot(), &all_moved(&scene))
+            .expect("index");
         assert_eq!(index.hit(&scene, point).expect("hit").target, id(1));
         assert_eq!(index.hit_naive(&scene, point).expect("hit").target, id(1));
     }
@@ -1080,7 +1256,9 @@ mod tests {
         // Shell positions overlays against numbers the engine does not believe.
         let (scene, layout) = scene_with_scroll_container(&[100.0, 100.0]);
         let mut index = HitIndex::default();
-        index.update(&scene, layout.snapshot()).expect("hit");
+        index
+            .update(&scene, layout.snapshot(), &all_moved(&scene))
+            .expect("hit");
 
         let mut clipped_away = 0;
         for (node, geometry) in index.geometries() {
@@ -1103,7 +1281,9 @@ mod tests {
     fn last_painted_overlap_wins_and_paths_are_root_ordered() {
         let (scene, layout) = scene_with_children(&[(40.0, 20.0), (40.0, 20.0)]);
         let mut index = HitIndex::default();
-        index.update(&scene, layout.snapshot()).expect("hit index");
+        index
+            .update(&scene, layout.snapshot(), &all_moved(&scene))
+            .expect("hit index");
         let hit = index
             .hit(&scene, HitPoint { x: 10.0, y: 10.0 })
             .expect("hit");
@@ -1120,12 +1300,12 @@ mod tests {
         ) {
             let (scene, layout) = scene_with_children(&sizes);
             let mut index = HitIndex::default();
-            index.update(&scene, layout.snapshot()).expect("hit index");
+            index.update(&scene, layout.snapshot(), &all_moved(&scene)).expect("hit index");
             for (x, y) in points {
                 let point = HitPoint { x, y };
                 prop_assert_eq!(index.hit(&scene, point), index.hit_naive(&scene, point));
             }
-            index.update(&scene, layout.snapshot()).expect("refit");
+            index.update(&scene, layout.snapshot(), &all_moved(&scene)).expect("refit");
             prop_assert_eq!(index.topology_rebuilds, 1);
             prop_assert_eq!(index.refits, 1);
         }
