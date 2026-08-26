@@ -603,7 +603,7 @@ fn report(
     // them apart.
     let core = last.expect("a sampled frame");
     format!(
-        "{{\"scenario\":\"{scenario}\",\"nodes\":{nodes},\"samples\":{SAMPLE_FRAMES},\"initialMs\":{initial_ms:.6},\"p50Ms\":{p50:.6},\"p95Ms\":{p95:.6},\"p99Ms\":{p99:.6},\"maxMs\":{maximum:.6},\"droppedFrameRate\":{dropped_rate:.8},\"dirtyLayoutNodes\":{},\"layoutVisitedNodes\":{},\"layoutChangedNodes\":{},\"dirtyPaintNodes\":{},\"pictureBuilds\":{},\"overInvalidatedFrames\":{},\"phaseMs\":{{\"scene\":{:.4},\"editing\":{:.4},\"layout\":{:.4},\"scroll\":{:.4},\"text\":{:.4},\"animation\":{:.4},\"paint\":{:.4}}}}}",
+        "{{\"scenario\":\"{scenario}\",\"nodes\":{nodes},\"samples\":{SAMPLE_FRAMES},\"initialMs\":{initial_ms:.6},\"p50Ms\":{p50:.6},\"p95Ms\":{p95:.6},\"p99Ms\":{p99:.6},\"maxMs\":{maximum:.6},\"droppedFrameRate\":{dropped_rate:.8},\"dirtyLayoutNodes\":{},\"layoutVisitedNodes\":{},\"layoutChangedNodes\":{},\"dirtyPaintNodes\":{},\"pictureBuilds\":{},\"overInvalidatedFrames\":{},\"phaseMs\":{{\"scene\":{:.4},\"editing\":{:.4},\"layout\":{:.4},\"scroll\":{:.4},\"text\":{:.4},\"animation\":{:.4},\"hit\":{:.4},\"paint\":{:.4}}}}}",
         core.dirty_layout_nodes,
         core.layout_visited_nodes,
         core.layout_changed_nodes,
@@ -616,6 +616,7 @@ fn report(
         phase.scroll_ms,
         phase.text_ms,
         phase.animation_ms,
+        phase.hit_ms,
         phase.paint_ms,
     )
 }

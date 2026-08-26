@@ -110,6 +110,8 @@ pub struct FramePhaseTimings {
     pub text_ms: f64,
     /// Animation reconciliation and advancement.
     pub animation_ms: f64,
+    /// Rebuilding the hit-test index, which paint runs before it starts.
+    pub hit_ms: f64,
     /// Building or reusing the immutable Picture and its `DisplayList`.
     pub paint_ms: f64,
 }
@@ -2347,9 +2349,11 @@ impl CoreEngine {
         layout_visited_nodes: usize,
         force_full_paint: bool,
     ) -> Result<FrameOutput, CoreError> {
+        let mut hit_phase = PhaseClock::start();
         if let Err(error) = self.hit.update(&self.scene, self.layout.snapshot()) {
             return self.poison(CoreError::Hit(error));
         }
+        self.phase_timings.hit_ms = hit_phase.split();
         // Scrolling the value inside its own box moves every glyph in the node,
         // so the subtree cache cannot be trusted for that frame.
         let force_full_paint = force_full_paint | self.reveal_caret_in_editor();
