@@ -23,6 +23,7 @@ const REQUIRED_SCENARIOS = [
   "dense-ui",
   "dense-ui-leaf",
   "long-document-edit",
+  "long-document-edit-same-size",
   "scattered-paint-5000",
   "scattered-mixed-5000",
   "reflow-head-5000",

@@ -43,7 +43,7 @@ const SCATTERED_UPDATES: u32 = 20;
 
 fn main() {
     let dense = dense_ui();
-    let document = long_document();
+    let document = long_document(true);
     // Two scattered variants so the comparison against `m1` isolates one
     // variable at a time: `m1` is contiguous + paint-only, `scattered-paint`
     // changes only the locality, `scattered-mixed` then adds a layout property.
@@ -57,11 +57,16 @@ fn main() {
     // inside rows that carry a fixed width and height. If the relayout
     // boundary works, it stops at the row instead of escalating to the root.
     let dense_leaf = dense_ui_leaf();
+    // Most keystrokes do not rewrap a paragraph, so its height is unchanged and
+    // nothing above it can move. Whether the engine notices is the question:
+    // the boundary walk is static, so it escalates on the shape of the tree
+    // rather than on what the edit turned out to do.
+    let document_stable = long_document(false);
     let reflow_head = single_resize(1, false);
     let reflow_tail = single_resize(SCATTERED_NODES, false);
     let reflow_tail_fixed = single_resize(SCATTERED_NODES, true);
     println!(
-        "{{\"version\":1,\"scenarios\":[{dense},{dense_leaf},{document},{scattered_paint},{scattered_mixed},{reflow_head},{reflow_tail},{reflow_tail_fixed}]}}"
+        "{{\"version\":1,\"scenarios\":[{dense},{dense_leaf},{document},{document_stable},{scattered_paint},{scattered_mixed},{reflow_head},{reflow_tail},{reflow_tail_fixed}]}}"
     );
 }
 
@@ -109,7 +114,7 @@ fn dense_ui() -> String {
 /// therefore the position of every paragraph after it. That reflow is the cost
 /// a text editor pays on a keystroke, and no existing benchmark contains it:
 /// `m4` types into a single field, where nothing follows to be moved.
-fn long_document() -> String {
+fn long_document(resize: bool) -> String {
     let node_count = DOCUMENT_PARAGRAPHS + 1;
     let mut engine = CoreEngine::new(760.0, 900.0).expect("document viewport");
     let initial_start = Instant::now();
@@ -123,21 +128,25 @@ fn long_document() -> String {
     for frame in 0..WARMUP_FRAMES {
         black_box(
             engine
-                .commit(&document_edit(frame + 2))
+                .commit(&document_edit(frame + 2, resize))
                 .expect("document warmup"),
         );
     }
     let mut samples = Vec::with_capacity(SAMPLE_FRAMES as usize);
     let mut last = None;
     for frame in 0..SAMPLE_FRAMES {
-        let bytes = document_edit(frame + WARMUP_FRAMES + 2);
+        let bytes = document_edit(frame + WARMUP_FRAMES + 2, resize);
         let start = Instant::now();
         let output = engine.commit(&bytes).expect("document sample");
         samples.push(start.elapsed().as_secs_f64() * 1_000.0);
         last = Some(output.diagnostics);
     }
     report(
-        "long-document-edit",
+        if resize {
+            "long-document-edit"
+        } else {
+            "long-document-edit-same-size"
+        },
         node_count,
         initial_ms,
         &mut samples,
@@ -365,7 +374,7 @@ fn document_scene() -> Vec<u8> {
     encode(1, mutations)
 }
 
-fn document_edit(frame_seq: u32) -> Vec<u8> {
+fn document_edit(frame_seq: u32, resize: bool) -> Vec<u8> {
     // Strings are immutable interned resources, so an edit defines a new one
     // and repoints the run -- the same shape a keystroke takes.
     let string_id = FIRST_STRING_RESOURCE + 1 + (frame_seq % 2);
@@ -373,8 +382,19 @@ fn document_edit(frame_seq: u32) -> Vec<u8> {
     let mut text = String::from("The quick brown fox jumps over the lazy dog. ");
     // Length alternates so the paragraph's height can change and everything
     // after it has to move; an edit that never reflows measures nothing.
-    for _ in 0..(frame_seq % 3) {
-        text.push_str("Reflow follows an edit in the middle of a document. ");
+    if resize {
+        for _ in 0..(frame_seq % 3) {
+            text.push_str("Reflow follows an edit in the middle of a document. ");
+        }
+    } else {
+        // Same byte length every frame, so the paragraph cannot change height:
+        // one character in, one character out, which is what typing inside a
+        // line looks like.
+        text.push(if frame_seq.is_multiple_of(2) {
+            'a'
+        } else {
+            'b'
+        });
     }
     // Two slots alternating. The new string is defined, the run repointed at
     // it, and only then is the previous slot released -- releasing before the
