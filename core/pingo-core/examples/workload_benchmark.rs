@@ -53,11 +53,15 @@ fn main() {
     // the first sibling moves every sibling after it and resizing the last
     // moves none, so the gap between these two separates cost that follows the
     // number of moved nodes from cost that follows the size of the scene.
+    // Same dense screen, but the edit lands only on leaf cells, which sit
+    // inside rows that carry a fixed width and height. If the relayout
+    // boundary works, it stops at the row instead of escalating to the root.
+    let dense_leaf = dense_ui_leaf();
     let reflow_head = single_resize(1, false);
     let reflow_tail = single_resize(SCATTERED_NODES, false);
     let reflow_tail_fixed = single_resize(SCATTERED_NODES, true);
     println!(
-        "{{\"version\":1,\"scenarios\":[{dense},{document},{scattered_paint},{scattered_mixed},{reflow_head},{reflow_tail},{reflow_tail_fixed}]}}"
+        "{{\"version\":1,\"scenarios\":[{dense},{dense_leaf},{document},{scattered_paint},{scattered_mixed},{reflow_head},{reflow_tail},{reflow_tail_fixed}]}}"
     );
 }
 
@@ -237,6 +241,55 @@ fn resize_frame(frame_seq: u32, target: u32) -> Vec<u8> {
             1.0 + f32::from(u16::try_from(frame_seq % 3).unwrap_or(0)),
         )],
     )
+}
+
+fn dense_ui_leaf() -> String {
+    let node_count = DENSE_ROWS * (DENSE_FIELDS_PER_ROW + 1) + 1;
+    let mut engine = CoreEngine::new(1280.0, 900.0).expect("dense viewport");
+    let initial_start = Instant::now();
+    black_box(engine.commit(&dense_scene()).expect("dense leaf initial"));
+    let initial_ms = initial_start.elapsed().as_secs_f64() * 1_000.0;
+    let mut rng = Rng::new(0x5eed_0003_u64);
+    for frame in 0..WARMUP_FRAMES {
+        black_box(
+            engine
+                .commit(&dense_leaf_update(frame + 2, &mut rng))
+                .expect("dense leaf warmup"),
+        );
+    }
+    let mut samples = Vec::with_capacity(SAMPLE_FRAMES as usize);
+    let mut last = None;
+    for frame in 0..SAMPLE_FRAMES {
+        let bytes = dense_leaf_update(frame + WARMUP_FRAMES + 2, &mut rng);
+        let start = Instant::now();
+        let output = engine.commit(&bytes).expect("dense leaf sample");
+        samples.push(start.elapsed().as_secs_f64() * 1_000.0);
+        last = Some(output.diagnostics);
+    }
+    report(
+        "dense-ui-leaf",
+        node_count,
+        initial_ms,
+        &mut samples,
+        &engine,
+        last.as_ref(),
+    )
+}
+
+/// Rows occupy every seventh id, so skipping them keeps the edit on a leaf.
+fn dense_leaf_update(frame_seq: u32, rng: &mut Rng) -> Vec<u8> {
+    let mut mutations = Vec::with_capacity(SCATTERED_UPDATES as usize);
+    for _ in 0..SCATTERED_UPDATES {
+        let row = rng.next_below(DENSE_ROWS);
+        let field = 1 + rng.next_below(DENSE_FIELDS_PER_ROW);
+        let cell = 1 + row * (DENSE_FIELDS_PER_ROW + 1) + field;
+        mutations.push(set_f32(
+            cell,
+            Prop::Width,
+            180.0 + f32::from(u16::try_from(frame_seq % 40).unwrap_or(0)),
+        ));
+    }
+    encode(frame_seq, mutations)
 }
 
 fn dense_scene() -> Vec<u8> {

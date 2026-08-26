@@ -21,6 +21,7 @@ import path from "node:path";
 const repositoryRoot = path.resolve(import.meta.dirname, "..");
 const REQUIRED_SCENARIOS = [
   "dense-ui",
+  "dense-ui-leaf",
   "long-document-edit",
   "scattered-paint-5000",
   "scattered-mixed-5000",
