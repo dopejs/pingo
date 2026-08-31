@@ -378,6 +378,8 @@ pub const MAX_PICTURE_RESIDENT_BYTES: usize = ${value.limits.pictureResidentByte
 ${renderRustEnum("PictureResourceOpcode", value.streams.pictureResources.commands, "u8", "opcode")}${renderRustLayouts("PictureResourceOpcode", value.streams.pictureResources.commands, instructionHeaderBytes)}${renderRustWordBatchLayout("NON_PASSIVE_REGION", value.nonPassiveRegionBatch)}
 ${renderRustEditingGeometryLayout(value.editingGeometryBatch)}
 ${renderRustWordBatchLayout("SEMANTICS", value.semanticsBatch)}
+${renderRustWordBatchLayout("PAINTED_TEXT", value.paintedTextBatch)}
+${renderRustNamedConstants("PAINTED_TEXT", value.paintedTextBatch.flags)}
 ${renderRustWordBatchLayout("LAYOUT_GEOMETRY", value.layoutGeometryBatch)}
 pub const MAX_OBSERVED_GEOMETRY_NODES: u32 = ${value.limits.maxObservedGeometryNodes};
 pub const EDIT_TRANSACTIONS_MAGIC: u32 = ${magicNumber(value.streams.editTransactions.magic)};
@@ -407,6 +409,18 @@ function renderRustByteLayout(prefix, fields) {
  * Four channels use it; a per-channel copy drifts the moment one of them
  * gains a field.
  */
+function renderRustNamedConstants(prefix, values) {
+  return Object.entries(values)
+    .map(([name, value]) => `pub const ${prefix}_${screamingSnake(name)}: u32 = ${value};`)
+    .join("\n");
+}
+
+function renderTsNamedConstants(prefix, values) {
+  return Object.entries(values)
+    .map(([name, value]) => `export const ${prefix}_${screamingSnake(name)} = ${value} as const;`)
+    .join("\n");
+}
+
 function renderRustWordBatchLayout(prefix, layout) {
   const indices = (group, fields) =>
     fields
@@ -527,6 +541,8 @@ export const MAX_PICTURE_RESIDENT_BYTES = ${value.limits.pictureResidentBytes} a
 ${renderTsEnum("PictureResourceOpcode", value.streams.pictureResources.commands, "opcode")}${renderTsLayouts("PICTURE_RESOURCE_LAYOUTS", "PictureResourceOpcode", value.streams.pictureResources.commands, instructionHeaderBytes)}${renderTsWordBatchLayout("NON_PASSIVE_REGION", value.nonPassiveRegionBatch)}
 ${renderTsEditingGeometryLayout(value.editingGeometryBatch)}
 ${renderTsWordBatchLayout("SEMANTICS", value.semanticsBatch)}
+${renderTsWordBatchLayout("PAINTED_TEXT", value.paintedTextBatch)}
+${renderTsNamedConstants("PAINTED_TEXT", value.paintedTextBatch.flags)}
 ${renderTsWordBatchLayout("LAYOUT_GEOMETRY", value.layoutGeometryBatch)}
 export const MAX_OBSERVED_GEOMETRY_NODES = ${value.limits.maxObservedGeometryNodes} as const;
 export const EDIT_TRANSACTIONS_MAGIC = ${magicNumber(value.streams.editTransactions.magic)} as const;

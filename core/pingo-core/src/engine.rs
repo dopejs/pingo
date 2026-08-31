@@ -1,4 +1,5 @@
 use std::{
+    borrow::Cow,
     collections::{HashMap, HashSet},
     sync::Arc,
 };
@@ -37,13 +38,16 @@ use pingo_abi::{
     LAYOUT_GEOMETRY_HEADER_FRAME_SEQ_INDEX, LAYOUT_GEOMETRY_HEADER_RECORD_COUNT_INDEX,
     LAYOUT_GEOMETRY_HEADER_VERSION_INDEX, LAYOUT_GEOMETRY_HEADER_WORDS, LAYOUT_GEOMETRY_VERSION,
     MAX_OBSERVED_GEOMETRY_NODES, Mutation, MutationBatch, NON_PASSIVE_REGION_VERSION, NULL_NODE_ID,
-    NodeKind, OBSERVE_GEOMETRY_FLAG_ACTIVE, Prop, ResourceKind, SEMANTICS_VERSION, StyleKeyword,
-    StyleProperty, SystemTextMetricBatch,
+    NodeKind, OBSERVE_GEOMETRY_FLAG_ACTIVE, PAINTED_TEXT_CHANNEL_INLINE_FALLBACK,
+    PAINTED_TEXT_CHANNEL_SHAPED_RUN, PAINTED_TEXT_CHANNEL_SYSTEM_FALLBACK,
+    PAINTED_TEXT_FLAG_ORIGIN_CLIPPED, PAINTED_TEXT_FLAG_UNATTRIBUTED,
+    PAINTED_TEXT_HEADER_FLAG_TRUNCATED, PAINTED_TEXT_HEADER_WORDS, PAINTED_TEXT_VERSION, Prop,
+    ResourceKind, SEMANTICS_VERSION, StyleKeyword, StyleProperty, SystemTextMetricBatch,
 };
 use pingo_collections::OrderedSet;
 use pingo_hit::{HitIndex, HitPoint, WorldGeometry, WorldRect};
 use pingo_layout::{BoxConstraints, LayoutEngine};
-use pingo_paint::{PaintEngine, PaintMetrics};
+use pingo_paint::{PaintEngine, PaintMetrics, PaintedTextChannel, PaintedTextSource};
 use pingo_scene::{BitSet, DirtyDomain, NodeId, Scene, SceneMetrics};
 use pingo_scroll::ScrollPlatform;
 
@@ -2268,6 +2272,94 @@ impl CoreEngine {
         bytes
     }
 
+    /// Returns the text this frame's paint emitted, in paint order.
+    ///
+    /// A render oracle, not a semantic one. [`Self::semantics`] answers what the
+    /// Scene means; this answers what paint drew, so it sees visibility,
+    /// `display: none`, paint order, virtualization, and the cache -- and it
+    /// stays correct when incremental Pictures hide the instructions inside a
+    /// nested picture.
+    ///
+    /// Nothing is recorded during paint, so a frame costs the same whether or
+    /// not this is ever called.
+    ///
+    /// Scope: this is what Core *emitted*. Backend viewport culling happens
+    /// during replay and is not reflected here.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the retained paint cache and the Scene disagree.
+    pub fn painted_text(&self) -> Result<Vec<u8>, CoreError> {
+        let frame = self
+            .paint
+            .painted_text(&self.scene, self.layout.snapshot())
+            .map_err(CoreError::Paint)?;
+        let mut payload = Vec::new();
+        let mut records = 0_u32;
+        for record in &frame.records {
+            let mut flags = match record.channel {
+                PaintedTextChannel::ShapedRun => PAINTED_TEXT_CHANNEL_SHAPED_RUN,
+                PaintedTextChannel::SystemFallback => PAINTED_TEXT_CHANNEL_SYSTEM_FALLBACK,
+                PaintedTextChannel::InlineFallback => PAINTED_TEXT_CHANNEL_INLINE_FALLBACK,
+            };
+            if record.origin_clipped {
+                flags |= PAINTED_TEXT_FLAG_ORIGIN_CLIPPED;
+            }
+            // Shaped glyphs come from the text subsystem's content, which an
+            // editing session overrides; a password session overrides it with
+            // bullets. Reading `Scene::text_run` back here instead would report
+            // a value that was never drawn.
+            let resolved = match &record.source {
+                PaintedTextSource::Resource(resource_id) => {
+                    self.utf8_resource(*resource_id).map(Cow::Borrowed)
+                }
+                PaintedTextSource::Inline(text) => Some(Cow::Borrowed(text.as_str())),
+                PaintedTextSource::NodeContent => self
+                    .text
+                    .text_value(&self.scene, record.node)
+                    .map(|value| Cow::Owned(value.to_string())),
+            };
+            let text = resolved.unwrap_or_else(|| {
+                flags |= PAINTED_TEXT_FLAG_UNATTRIBUTED;
+                Cow::Borrowed("")
+            });
+            let bytes = text.as_bytes();
+            for word in [
+                record.node.raw(),
+                flags,
+                record.origin[0].to_bits(),
+                record.origin[1].to_bits(),
+                u32::try_from(bytes.len()).unwrap_or(0),
+            ] {
+                payload.extend_from_slice(&word.to_le_bytes());
+            }
+            payload.extend_from_slice(bytes);
+            while payload.len() % 4 != 0 {
+                payload.push(0);
+            }
+            records = records.saturating_add(1);
+        }
+        let mut bytes = Vec::with_capacity(PAINTED_TEXT_HEADER_WORDS * 4 + payload.len());
+        bytes.extend_from_slice(&PAINTED_TEXT_VERSION.to_le_bytes());
+        let header_flags = if frame.truncated {
+            PAINTED_TEXT_HEADER_FLAG_TRUNCATED
+        } else {
+            0
+        };
+        bytes.extend_from_slice(&header_flags.to_le_bytes());
+        bytes.extend_from_slice(&records.to_le_bytes());
+        bytes.extend_from_slice(&payload);
+        Ok(bytes)
+    }
+
+    /// Reads an interned UTF-8 string resource.
+    fn utf8_resource(&self, resource_id: u32) -> Option<&str> {
+        self.scene
+            .resource(resource_id)
+            .filter(|resource| resource.kind == ResourceKind::Utf8String)
+            .and_then(|resource| std::str::from_utf8(&resource.bytes).ok())
+    }
+
     fn semantic_string(&self, node: NodeId, prop: Prop) -> Option<&str> {
         let resource_id = self.scene.ref_prop(node, prop)?;
         self.scene
@@ -2860,7 +2952,7 @@ fn is_focusable_role(role: &str) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use std::{fs, path::PathBuf};
+    use std::{collections::HashMap, fs, path::PathBuf, sync::Arc};
 
     use pingo_abi::{
         DisplayCommand, DisplayList, EVENT_FLAG_PRECISE_WHEEL, EditTransactionBatch,
@@ -8048,5 +8140,286 @@ mod tests {
         assert!(engine.is_poisoned());
         assert_eq!(engine.metrics().fatal_derivation_failures, 1);
         assert_eq!(engine.commit(&painted_tree()), Err(CoreError::Poisoned));
+    }
+
+    // --- painted-text probe -------------------------------------------------
+
+    #[derive(Debug, PartialEq)]
+    struct PaintedRecord {
+        node: u32,
+        channel: u32,
+        clipped: bool,
+        unattributed: bool,
+        origin: [f32; 2],
+        text: String,
+    }
+
+    fn decode_painted_text(bytes: &[u8]) -> (bool, Vec<PaintedRecord>) {
+        use pingo_abi::{
+            PAINTED_TEXT_CHANNEL_MASK, PAINTED_TEXT_HEADER_FLAGS_INDEX,
+            PAINTED_TEXT_HEADER_RECORD_COUNT_INDEX, PAINTED_TEXT_HEADER_VERSION_INDEX,
+            PAINTED_TEXT_HEADER_WORDS, PAINTED_TEXT_RECORD_FLAGS_INDEX,
+            PAINTED_TEXT_RECORD_NODE_ID_INDEX, PAINTED_TEXT_RECORD_TEXT_BYTES_INDEX,
+            PAINTED_TEXT_RECORD_WORDS, PAINTED_TEXT_RECORD_X_BITS_INDEX,
+            PAINTED_TEXT_RECORD_Y_BITS_INDEX,
+        };
+
+        let word =
+            |offset: usize| u32::from_le_bytes(bytes[offset..offset + 4].try_into().expect("word"));
+        assert_eq!(
+            word(PAINTED_TEXT_HEADER_VERSION_INDEX * 4),
+            pingo_abi::PAINTED_TEXT_VERSION
+        );
+        let truncated = word(PAINTED_TEXT_HEADER_FLAGS_INDEX * 4)
+            & pingo_abi::PAINTED_TEXT_HEADER_FLAG_TRUNCATED
+            != 0;
+        let count = word(PAINTED_TEXT_HEADER_RECORD_COUNT_INDEX * 4) as usize;
+        let mut cursor = PAINTED_TEXT_HEADER_WORDS * 4;
+        let mut records = Vec::with_capacity(count);
+        for _ in 0..count {
+            let field = |index: usize| word(cursor + index * 4);
+            let flags = field(PAINTED_TEXT_RECORD_FLAGS_INDEX);
+            let text_bytes = field(PAINTED_TEXT_RECORD_TEXT_BYTES_INDEX) as usize;
+            let start = cursor + PAINTED_TEXT_RECORD_WORDS * 4;
+            records.push(PaintedRecord {
+                node: field(PAINTED_TEXT_RECORD_NODE_ID_INDEX),
+                channel: flags & PAINTED_TEXT_CHANNEL_MASK,
+                clipped: flags & pingo_abi::PAINTED_TEXT_FLAG_ORIGIN_CLIPPED != 0,
+                unattributed: flags & pingo_abi::PAINTED_TEXT_FLAG_UNATTRIBUTED != 0,
+                origin: [
+                    f32::from_bits(field(PAINTED_TEXT_RECORD_X_BITS_INDEX)),
+                    f32::from_bits(field(PAINTED_TEXT_RECORD_Y_BITS_INDEX)),
+                ],
+                text: String::from_utf8(bytes[start..start + text_bytes].to_vec()).expect("utf-8"),
+            });
+            cursor = start + text_bytes.next_multiple_of(4);
+        }
+        assert_eq!(cursor, bytes.len(), "the batch must be exactly consumed");
+        (truncated, records)
+    }
+
+    /// Text channels in the order the *published bytes* replay them.
+    ///
+    /// Deliberately independent of the probe: it reads the frame's `DisplayList`
+    /// and follows every `DrawPicture` into the picture resources the backend
+    /// was given. If a future instruction paints text outside paint's one text
+    /// funnel, this disagrees with the probe and the test fails.
+    fn published_text_channels(display_list: &[u8], picture_resources: &[u8]) -> Vec<u32> {
+        fn walk(bytes: &[u8], pictures: &HashMap<u32, Arc<[u8]>>, out: &mut Vec<u32>) {
+            let list = DisplayList::decode(bytes).expect("display list");
+            for instruction in &list.instructions {
+                match &instruction.command {
+                    DisplayCommand::DrawGlyphRun { .. } => {
+                        out.push(pingo_abi::PAINTED_TEXT_CHANNEL_SHAPED_RUN);
+                    }
+                    DisplayCommand::DrawTextFallback { .. } => {
+                        out.push(pingo_abi::PAINTED_TEXT_CHANNEL_SYSTEM_FALLBACK);
+                    }
+                    DisplayCommand::DrawTextInlineFallback { .. } => {
+                        out.push(pingo_abi::PAINTED_TEXT_CHANNEL_INLINE_FALLBACK);
+                    }
+                    DisplayCommand::DrawPicture { picture_id, .. } => {
+                        let nested = pictures.get(picture_id).expect("defined picture");
+                        walk(nested, pictures, out);
+                    }
+                    _ => {}
+                }
+            }
+        }
+
+        let mut pictures = HashMap::new();
+        if !picture_resources.is_empty() {
+            let batch = PictureResourceBatch::decode(picture_resources).expect("pictures");
+            for instruction in batch.instructions {
+                if let pingo_abi::PictureResourceCommand::Define { picture_id, bytes } =
+                    instruction.command
+                {
+                    pictures.insert(picture_id, bytes);
+                }
+            }
+        }
+
+        let mut out = Vec::new();
+        walk(display_list, &pictures, &mut out);
+        out
+    }
+
+    /// Root with two plain text children, no editing involved.
+    fn plain_text_tree() -> Vec<u8> {
+        frame(
+            1,
+            vec![
+                Mutation::CreateNode {
+                    node_id: id(0),
+                    kind: NodeKind::Root,
+                    parent: NULL_NODE_ID,
+                    before_sibling: NULL_NODE_ID,
+                },
+                Mutation::CreateNode {
+                    node_id: id(1),
+                    kind: NodeKind::Text,
+                    parent: id(0),
+                    before_sibling: NULL_NODE_ID,
+                },
+                Mutation::CreateNode {
+                    node_id: id(2),
+                    kind: NodeKind::Text,
+                    parent: id(0),
+                    before_sibling: NULL_NODE_ID,
+                },
+                Mutation::DefineResource {
+                    resource_id: 1,
+                    kind: ResourceKind::Paint,
+                    bytes: SolidPaint {
+                        red: 0,
+                        green: 0,
+                        blue: 0,
+                        alpha: 255,
+                    }
+                    .encode()
+                    .to_vec(),
+                },
+                Mutation::DefineResource {
+                    resource_id: 2,
+                    kind: ResourceKind::TextStyle,
+                    bytes: TextStyleResource {
+                        paint_id: 1,
+                        font_size: 16.0,
+                        line_height: 20.0,
+                        weight: 400,
+                        family: "sans-serif".to_owned(),
+                        font_style: StyleKeyword::Normal,
+                        text_align: StyleKeyword::Start,
+                        white_space: StyleKeyword::Normal,
+                        overflow_wrap: StyleKeyword::Normal,
+                        text_overflow: StyleKeyword::Clip,
+                    }
+                    .encode()
+                    .expect("text style"),
+                },
+                Mutation::DefineResource {
+                    resource_id: 3,
+                    kind: ResourceKind::Utf8String,
+                    bytes: "hello".as_bytes().to_vec(),
+                },
+                Mutation::DefineResource {
+                    resource_id: 4,
+                    kind: ResourceKind::Utf8String,
+                    bytes: "world".as_bytes().to_vec(),
+                },
+                Mutation::SetTextRun {
+                    node_id: id(1),
+                    string_id: 3,
+                    style_id: 2,
+                },
+                Mutation::SetTextRun {
+                    node_id: id(2),
+                    string_id: 4,
+                    style_id: 2,
+                },
+            ],
+        )
+    }
+
+    #[test]
+    fn painted_text_reports_every_string_the_frame_drew_in_paint_order() {
+        let mut engine = CoreEngine::new(320.0, 240.0).expect("Core");
+        engine.commit(&plain_text_tree()).expect("frame");
+        let (truncated, records) =
+            decode_painted_text(&engine.painted_text().expect("painted text"));
+        assert!(!truncated);
+        assert_eq!(
+            records
+                .iter()
+                .map(|record| (record.node, record.text.as_str(), record.unattributed))
+                .collect::<Vec<_>>(),
+            vec![(id(1), "hello", false), (id(2), "world", false)]
+        );
+        // Stacked rows, so the second baseline sits below the first.
+        assert!(records[1].origin[1] > records[0].origin[1]);
+    }
+
+    #[test]
+    fn painted_text_matches_the_text_instructions_the_frame_published() {
+        for pictures in [false, true] {
+            let mut engine = CoreEngine::new(320.0, 240.0).expect("Core");
+            engine
+                .set_incremental_pictures_enabled(pictures)
+                .expect("picture mode");
+            let output = engine.commit(&plain_text_tree()).expect("frame");
+            let resources = engine.take_picture_resources();
+            let published = published_text_channels(&output.display_list, &resources);
+            assert_eq!(
+                published.len(),
+                2,
+                "the fixture must actually publish text, or this proves nothing ({pictures})"
+            );
+            let (_, records) = decode_painted_text(&engine.painted_text().expect("painted text"));
+            assert_eq!(
+                records
+                    .iter()
+                    .map(|record| record.channel)
+                    .collect::<Vec<_>>(),
+                published,
+                "every published text instruction must have exactly one record ({pictures})"
+            );
+        }
+    }
+
+    #[test]
+    fn painted_text_is_byte_identical_across_both_paint_paths() {
+        let mut inline = CoreEngine::new(320.0, 240.0).expect("Core");
+        inline.commit(&plain_text_tree()).expect("inline frame");
+
+        let mut pictures = CoreEngine::new(320.0, 240.0).expect("Core");
+        pictures
+            .set_incremental_pictures_enabled(true)
+            .expect("pictures");
+        pictures.commit(&plain_text_tree()).expect("picture frame");
+
+        assert_eq!(
+            inline.painted_text().expect("inline painted text"),
+            pictures.painted_text().expect("picture painted text")
+        );
+    }
+
+    #[test]
+    fn painted_text_never_reports_a_password_value() {
+        let mut engine = CoreEngine::new(320.0, 240.0).expect("Core");
+        engine
+            .commit(&editable_text_tree(1 | 4))
+            .expect("password frame");
+        engine
+            .input(&input(
+                1,
+                vec![InputCommand::Insert {
+                    node_id: id(1),
+                    base_revision: 0,
+                    text: "secret".to_owned(),
+                }],
+            ))
+            .expect("password input")
+            .expect("changed frame");
+
+        let (_, records) = decode_painted_text(&engine.painted_text().expect("painted text"));
+        let painted = records
+            .iter()
+            .map(|record| record.text.as_str())
+            .collect::<Vec<_>>()
+            .join("");
+        assert!(
+            !painted.contains("secret"),
+            "the probe reports what was drawn, and a password field draws bullets: {painted:?}"
+        );
+        assert_eq!(painted, "\u{2022}".repeat("asecret".chars().count()));
+    }
+
+    #[test]
+    fn painted_text_is_empty_before_the_first_frame() {
+        let engine = CoreEngine::new(320.0, 240.0).expect("Core");
+        let (truncated, records) =
+            decode_painted_text(&engine.painted_text().expect("painted text"));
+        assert!(!truncated);
+        assert!(records.is_empty());
     }
 }

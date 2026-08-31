@@ -1227,7 +1227,13 @@ impl CoreTextSystem {
         wrapped_fallback_measure(&text, &breaks, &advances, constraints, style.line_height)
     }
 
-    fn text_value(&self, scene: &Scene, node: NodeId) -> Option<Arc<str>> {
+    /// The content a node paints, which is not always the Scene's string.
+    ///
+    /// An active editing session overrides it, and a password session overrides
+    /// it with bullets. Anything reporting what was drawn must read it here,
+    /// never from `Scene::text_run`, or it will report a value the user never
+    /// saw -- for a password field, the value itself.
+    pub(crate) fn text_value(&self, scene: &Scene, node: NodeId) -> Option<Arc<str>> {
         if let Some(value) = self.edit_overrides.get(&node) {
             return Some(Arc::clone(value));
         }

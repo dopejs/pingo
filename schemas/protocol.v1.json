@@ -475,6 +475,54 @@
       }
     ]
   },
+  "paintedTextBatch": {
+    "version": 1,
+    "headerFields": [
+      {
+        "name": "version",
+        "type": "u32"
+      },
+      {
+        "name": "flags",
+        "type": "u32"
+      },
+      {
+        "name": "recordCount",
+        "type": "u32"
+      }
+    ],
+    "recordFields": [
+      {
+        "name": "nodeId",
+        "type": "u32"
+      },
+      {
+        "name": "flags",
+        "type": "u32"
+      },
+      {
+        "name": "xBits",
+        "type": "u32"
+      },
+      {
+        "name": "yBits",
+        "type": "u32"
+      },
+      {
+        "name": "textBytes",
+        "type": "u32"
+      }
+    ],
+    "flags": {
+      "channelMask": 3,
+      "channelShapedRun": 0,
+      "channelSystemFallback": 1,
+      "channelInlineFallback": 2,
+      "flagOriginClipped": 4,
+      "flagUnattributed": 8,
+      "headerFlagTruncated": 1
+    }
+  },
   "layoutGeometryBatch": {
     "version": 1,
     "headerFields": [
