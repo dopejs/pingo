@@ -3,7 +3,7 @@ import type { PingoImage } from "./image";
 import type { PingoSvg } from "./svg";
 import type { MemoComponent } from "./memo";
 import type { EditTransaction, TextEditingController } from "@dopejs/pingo-editing";
-import type { ContextProvider } from "@dopejs/pingo-runtime";
+import type { AnyContextProvider } from "@dopejs/pingo-runtime";
 import type { PingoStyle } from "@dopejs/pingo-style";
 
 /** Stable list identity used by localized reconciliation. */
@@ -408,11 +408,7 @@ export const Fragment: unique symbol = Symbol.for("dopejs.pingo.fragment");
 
 /** Host, component, memo component, context provider, or Fragment element type. */
 export type ElementType<Props = Record<string, unknown>> =
-  | HostType
-  | FunctionComponent<Props>
-  | MemoComponent<Props>
-  | ContextProvider<unknown>
-  | typeof Fragment;
+  HostType | FunctionComponent<Props> | MemoComponent<Props> | AnyContextProvider | typeof Fragment;
 
 /** Erased immutable descriptor used in heterogeneous child collections. */
 export interface AnyPingoElement {
@@ -421,7 +417,7 @@ export interface AnyPingoElement {
     | HostType
     | FunctionComponent<never>
     | MemoComponent<never>
-    | ContextProvider<unknown>
+    | AnyContextProvider
     | typeof Fragment;
   readonly key: Key | null;
   readonly props: Readonly<Record<string, unknown>>;
@@ -443,6 +439,21 @@ export type PingoNode =
 // eslint-disable-next-line @typescript-eslint/no-namespace -- TypeScript's JSX import-source contract requires this namespace name.
 export declare namespace JSX {
   export type Element = AnyPingoElement;
+  /**
+   * What may appear as a JSX tag.
+   *
+   * Without this, TypeScript falls back to requiring a component's return type
+   * to be assignable to `Element | null`. `PingoNode` includes `undefined`, so
+   * every component written with the return type this package documents was
+   * rejected as a tag. Declaring the tag vocabulary directly is what the
+   * `ElementType` hook exists for.
+   */
+  export type ElementType =
+    | keyof IntrinsicElements
+    | FunctionComponent<never>
+    | MemoComponent<never>
+    | AnyContextProvider
+    | typeof Fragment;
   export interface ElementChildrenAttribute {
     children: unknown;
   }

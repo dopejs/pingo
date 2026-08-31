@@ -5,12 +5,23 @@ import { ComponentScope, useContext } from "./hooks";
 import { signal } from "./signal";
 
 describe("createContext", () => {
+  it("has a callable Provider, so TypeScript can use it as a JSX tag", () => {
+    // Same reason as `memo`: without a call signature `<ctx.Provider>` was a
+    // type error, which left TSX with no way to express context at all. The
+    // reconciler renders a provider as its children, so a direct call must too.
+    const context = createContext("light");
+    expect(typeof context.Provider).toBe("function");
+    expect(context.Provider({ value: "dark", children: "child" })).toBe("child");
+    expect(context.Provider({ value: "dark" })).toBe(null);
+  });
+
   it("creates a branded context with a singleton Provider", () => {
     const context = createContext("fallback");
     expect(context.defaultValue).toBe("fallback");
     expect(isContextProvider(context.Provider)).toBe(true);
     expect(context.Provider.context).toBe(context);
     expect(isContextProvider({})).toBe(false);
+    expect(isContextProvider(() => undefined)).toBe(false);
     expect(isContextProvider(null)).toBe(false);
   });
 });

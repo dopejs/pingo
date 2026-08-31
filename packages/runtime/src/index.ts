@@ -3,6 +3,8 @@ export {
   PINGO_PROVIDER_TYPE,
   createContext,
   isContextProvider,
+  type AnyContextProvider,
+  type AnyPingoContext,
   type ContextLookup,
   type ContextProvider,
   type ContextProviderProps,

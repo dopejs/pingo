@@ -34,11 +34,11 @@ import { ComponentScope } from "@dopejs/pingo-runtime/internal";
 import {
   isContextProvider,
   signal,
-  type ContextProvider,
   type LayoutGeometry,
   type LayoutGeometryAccess,
   type LayoutRect,
-  type PingoContext,
+  type AnyContextProvider,
+  type AnyPingoContext,
   type Signal,
 } from "@dopejs/pingo-runtime";
 import type { EditTransaction, EventTransaction, InputEventKind } from "@dopejs/pingo-editing";
@@ -261,12 +261,13 @@ interface HostInstance extends BaseInstance {
 
 interface ComponentInstance extends BaseInstance {
   readonly kind: "component";
-  readonly type: FunctionComponent<never> | MemoComponent<never> | ContextProvider<unknown>;
+  readonly type: FunctionComponent<never> | MemoComponent<never> | AnyContextProvider;
   props: Readonly<Record<string, unknown>>;
   children: Instance[];
   readonly scope: ComponentScope;
   /** Present when this instance is a context provider element. */
-  contextValue: { context: PingoContext<unknown>; signal: Signal<unknown> } | undefined;
+  // Identity only: the lookup walks owners comparing this by reference.
+  contextValue: { context: AnyPingoContext; signal: Signal<unknown> } | undefined;
 }
 
 type Instance = HostInstance | ComponentInstance;
@@ -1325,7 +1326,7 @@ class ReconcilerRoot implements CoreDrivenPingoRoot {
   /** Walks the owner chain (components and hosts) to the nearest provider of `context`. */
   private lookupContext(
     instance: ComponentInstance,
-    context: PingoContext<unknown>,
+    context: AnyPingoContext,
   ): Signal<unknown> | undefined {
     let owner: Owner = instance.parent;
     while (owner.kind !== "root") {

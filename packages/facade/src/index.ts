@@ -17,6 +17,8 @@ export {
   useSignal,
   useState,
   useViewport,
+  type AnyContextProvider,
+  type AnyPingoContext,
   type ContextLookup,
   type ContextProvider,
   type ContextProviderProps,

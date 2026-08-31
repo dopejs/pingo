@@ -1,5 +1,5 @@
 import { ReactiveObserver, signal, type Signal, type Unsubscribe } from "./signal";
-import type { ContextLookup, PingoContext } from "./context";
+import type { AnyPingoContext, ContextLookup, PingoContext } from "./context";
 
 /** Axis-aligned rectangle in world (root) coordinates. */
 export interface LayoutRect {
@@ -120,7 +120,7 @@ export class ComponentScope {
   }
 
   /** Finds the nearest provider signal for one context along the owner chain. */
-  public lookupContext(context: PingoContext<unknown>): Signal<unknown> | undefined {
+  public lookupContext(context: AnyPingoContext): Signal<unknown> | undefined {
     return this.#lookupContext?.(context);
   }
 

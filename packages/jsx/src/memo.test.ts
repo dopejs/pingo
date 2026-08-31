@@ -23,6 +23,24 @@ describe("memo", () => {
     const element = createElement(memo(Component), { label: "x" });
     expect(isMemoComponent(element.type)).toBe(true);
   });
+
+  it("is callable, so TypeScript can use it as a JSX tag", () => {
+    // TypeScript resolves a JSX tag's props from a call signature. While the
+    // wrapper was a plain object every memoized component -- all of
+    // `@dopejs/pingo-ui` -- was a type error in TSX. The reconciler still
+    // dispatches on the brand and renders `component`; this call path exists so
+    // the type is legal, and it has to agree with what rendering would produce.
+    const wrapped = memo(Component);
+    expect(typeof wrapped).toBe("function");
+    expect(wrapped({ label: "direct" })).toBe("direct");
+  });
+
+  it("keeps the brand distinguishable from a plain function component", () => {
+    // The guard widened to accept functions, so this is the case that would
+    // silently turn every component into a memoized one if it were wrong.
+    expect(isMemoComponent(Component)).toBe(false);
+    expect(isMemoComponent(() => "x")).toBe(false);
+  });
 });
 
 describe("shallowEqual", () => {
