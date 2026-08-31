@@ -584,7 +584,7 @@ class HostedCanvasRootController implements HostedCanvasRoot {
       };
     }
 
-    const offscreen = this.#canvas.transferControlToOffscreen();
+    const offscreen = transferOrExplain(this.#canvas);
     this.#transferred = true;
     let transport: MutationTransport;
     let ringBuffer: SharedArrayBuffer | undefined;
@@ -1504,7 +1504,7 @@ class HostedCanvasRootController implements HostedCanvasRoot {
   private async initializeMainThread(canvas: HTMLCanvasElement): Promise<void> {
     const width = positiveDimension(this.logicalWidth(), "canvas width");
     const height = positiveDimension(this.logicalHeight(), "canvas height");
-    const context = canvas.getContext("2d", { alpha: true });
+    const context = contextOrExplain(canvas);
     if (context === null) throw new Error("Canvas2D context is unavailable");
     const core = await (this.#options.coreFactory ?? createWasmCore)(width, height);
     this.#core = core;
@@ -2140,6 +2140,39 @@ function nextSequence(value: number): number {
  * instead would be worse: the viewport Core lays out against would disagree
  * with the backing store by a sub-pixel and the replay scale would drift.
  */
+/**
+ * A canvas can transfer control to an OffscreenCanvas exactly once, and the
+ * transfer outlives the root that made it. Handing the same element to a
+ * second root therefore fails inside a DOM call with no hint about the cause;
+ * React's StrictMode reaches this on every development mount, because it runs
+ * effects twice against the element React rendered.
+ */
+const REUSED_CANVAS =
+  "this canvas already transferred control to an OffscreenCanvas and cannot host a second root; " +
+  "create a new canvas element per root (React StrictMode mounts effects twice)";
+
+function transferOrExplain(canvas: HTMLCanvasElement): OffscreenCanvas {
+  try {
+    return canvas.transferControlToOffscreen();
+  } catch (cause) {
+    if (isInvalidState(cause)) throw new Error(REUSED_CANVAS, { cause });
+    throw cause;
+  }
+}
+
+function contextOrExplain(canvas: HTMLCanvasElement): CanvasRenderingContext2D | null {
+  try {
+    return canvas.getContext("2d", { alpha: true });
+  } catch (cause) {
+    if (isInvalidState(cause)) throw new Error(REUSED_CANVAS, { cause });
+    throw cause;
+  }
+}
+
+function isInvalidState(cause: unknown): boolean {
+  return cause instanceof DOMException && cause.name === "InvalidStateError";
+}
+
 function positiveDimension(value: number, label: string): number {
   if (!Number.isFinite(value) || value <= 0) {
     throw new RangeError(`${label} must be a positive finite number`);
