@@ -33,6 +33,13 @@ pub enum PaintError {
     MissingCachedSubtree {
         node: NodeId,
     },
+    /// The retained paint cache contradicts itself or the Scene.
+    ///
+    /// Only reachable through the painted-text probe, which walks the cache
+    /// rather than rebuilding it; a frame build cannot produce this.
+    MalformedPaintCache {
+        reason: &'static str,
+    },
     WrongPropertyResource {
         node: NodeId,
         prop: Prop,

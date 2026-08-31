@@ -5,6 +5,7 @@
 
 mod engine;
 mod error;
+mod probe;
 mod resource;
 
 pub use engine::{
@@ -12,4 +13,7 @@ pub use engine::{
     ShapedGlyphRun, TextPaintResolver, VirtualPaintResolver,
 };
 pub use error::PaintError;
+pub use probe::{
+    MAX_PAINTED_TEXT_RECORDS, PaintedText, PaintedTextChannel, PaintedTextFrame, PaintedTextSource,
+};
 pub use resource::{AffineResource, SolidPaint, TextStyleResource};

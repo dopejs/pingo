@@ -12,7 +12,10 @@ use pingo_abi::{
 use pingo_layout::LayoutSnapshot;
 use pingo_scene::{BitSet, DirtyDomain, NodeId, Scene};
 
-use crate::{AffineResource, PaintError, SolidPaint, TextStyleResource};
+use crate::{
+    AffineResource, PaintError, PaintedTextFrame, SolidPaint, TextStyleResource, probe,
+    probe::{SubtreeIndex, subtree_key},
+};
 
 /// Immutable, shareable encoded drawing commands.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -175,8 +178,8 @@ pub struct PaintEngine {
 }
 
 #[derive(Debug)]
-struct CachedSubtree {
-    children: Arc<[Arc<CachedSubtree>]>,
+pub(crate) struct CachedSubtree {
+    pub(crate) children: Arc<[Arc<CachedSubtree>]>,
     /// Child identifiers this subtree was built from.
     ///
     /// A window shift removes one item and adds another, so a parent's child
@@ -184,13 +187,22 @@ struct CachedSubtree {
     /// reveal that its own instructions are stale.
     child_ids: Arc<[NodeId]>,
     command_count: usize,
-    local: Arc<[DisplayInstruction]>,
+    pub(crate) local: Arc<[DisplayInstruction]>,
     /// Painted after the children and inside the same `Save`, for a scrollbar:
     /// it belongs to the container but has to sit above what it scrolls.
-    post: Arc<[DisplayInstruction]>,
-    picture_id: Option<u32>,
+    pub(crate) post: Arc<[DisplayInstruction]>,
+    pub(crate) picture_id: Option<u32>,
     picture_bytes: Arc<[u8]>,
 }
+
+/// The painted-text probe reads the cache instead of adding to it, so these
+/// bounds stay a gate: a probe change must never widen the entry that every
+/// live node keeps resident. Pinned per pointer width because `wasm32` is the
+/// shipped target and the one with a size budget.
+#[cfg(target_pointer_width = "64")]
+const _: () = assert!(size_of::<CachedSubtree>() == 96);
+#[cfg(target_pointer_width = "32")]
+const _: () = assert!(size_of::<CachedSubtree>() == 52);
 
 impl Default for PaintEngine {
     fn default() -> Self {
@@ -250,6 +262,39 @@ impl PaintEngine {
     #[must_use]
     pub const fn metrics(&self) -> PaintMetrics {
         self.metrics
+    }
+
+    /// Returns the text the retained paint tree emits, in paint order.
+    ///
+    /// This is a pull-based diagnostic. Painting records nothing and the cache
+    /// carries no probe state, so a frame costs the same whether or not this is
+    /// ever called. Both paint paths build the same cached subtrees, so the
+    /// answer does not depend on whether incremental Pictures are enabled.
+    ///
+    /// The result describes what Core *emitted*: it is scoped by visibility,
+    /// `display: none`, and virtualization, but not by backend viewport
+    /// culling, which happens during replay.
+    ///
+    /// # Errors
+    ///
+    /// Returns a paint error when the retained cache and the Scene disagree.
+    pub fn painted_text(
+        &self,
+        scene: &Scene,
+        layout: &LayoutSnapshot,
+    ) -> Result<PaintedTextFrame, PaintError> {
+        let Some(root_id) = scene.ids().first().copied() else {
+            return Ok(PaintedTextFrame::default());
+        };
+        let Some(root) = self.subtrees.get(&root_id) else {
+            return Ok(PaintedTextFrame::default());
+        };
+        let index: SubtreeIndex = self
+            .subtrees
+            .iter()
+            .map(|(node, subtree)| (subtree_key(subtree), *node))
+            .collect();
+        probe::collect(root, &index, scene, layout)
     }
 
     /// Builds or reuses a complete immutable Picture.
@@ -1713,6 +1758,7 @@ mod tests {
     use proptest::prelude::*;
 
     use super::*;
+    use crate::{PaintedTextChannel, PaintedTextSource};
 
     fn id(index: u32) -> NodeId {
         NodeId::new(index, 1).expect("id")
@@ -2615,6 +2661,537 @@ mod tests {
                 prop_assert_eq!(incremental.picture.bytes(), full.picture.bytes());
                 scene.clear_dirty();
             }
+        }
+    }
+
+    // --- painted-text probe -------------------------------------------------
+
+    struct ProbeText {
+        glyph_runs: HashMap<NodeId, ShapedGlyphRun>,
+        inline: HashMap<NodeId, String>,
+    }
+
+    impl ProbeText {
+        fn empty() -> Self {
+            Self {
+                glyph_runs: HashMap::new(),
+                inline: HashMap::new(),
+            }
+        }
+
+        fn with_glyph_run(mut self, node: NodeId, span_id: u32) -> Self {
+            self.glyph_runs.insert(
+                node,
+                ShapedGlyphRun {
+                    font_id: 1,
+                    font_size: 16.0,
+                    span_id,
+                },
+            );
+            self
+        }
+
+        fn with_inline(mut self, node: NodeId, text: &str) -> Self {
+            self.inline.insert(node, text.to_owned());
+            self
+        }
+    }
+
+    impl TextPaintResolver for ProbeText {
+        fn glyph_run(&self, node: NodeId) -> Option<ShapedGlyphRun> {
+            self.glyph_runs.get(&node).copied()
+        }
+
+        fn inline_fallback(&self, node: NodeId) -> Option<&str> {
+            self.inline.get(&node).map(String::as_str)
+        }
+
+        fn editor_decorations(&self, _node: NodeId) -> &[EditorDecoration] {
+            &[]
+        }
+    }
+
+    fn utf8_resource(resource_id: u32, text: &str) -> Mutation {
+        Mutation::DefineResource {
+            resource_id,
+            kind: ResourceKind::Utf8String,
+            bytes: text.as_bytes().to_vec(),
+        }
+    }
+
+    fn text_style_resource(resource_id: u32, paint_id: u32) -> Mutation {
+        Mutation::DefineResource {
+            resource_id,
+            kind: ResourceKind::TextStyle,
+            bytes: TextStyleResource {
+                paint_id,
+                font_size: 16.0,
+                line_height: 20.0,
+                weight: 400,
+                family: "system-ui".to_owned(),
+                font_style: StyleKeyword::Normal,
+                text_align: StyleKeyword::Start,
+                white_space: StyleKeyword::Normal,
+                overflow_wrap: StyleKeyword::Normal,
+                text_overflow: StyleKeyword::Clip,
+            }
+            .encode()
+            .expect("text style"),
+        }
+    }
+
+    /// Root, a container carrying an affine transform, and two text children.
+    ///
+    /// The transform is what makes the origin assertions meaningful: without it
+    /// every record would land at the layout offset and a broken transform
+    /// stack would still look right.
+    fn probe_scene() -> Scene {
+        let root = id(0);
+        let group = id(1);
+        let first = id(2);
+        let second = id(3);
+        let mut scene = Scene::new();
+        commit(
+            &mut scene,
+            1,
+            vec![
+                paint_resource(
+                    10,
+                    SolidPaint {
+                        red: 0,
+                        green: 0,
+                        blue: 0,
+                        alpha: 255,
+                    },
+                ),
+                text_style_resource(11, 10),
+                utf8_resource(12, "first"),
+                utf8_resource(13, "second"),
+                Mutation::DefineResource {
+                    resource_id: 14,
+                    kind: ResourceKind::Affine,
+                    bytes: AffineResource {
+                        matrix: [1.0, 0.0, 0.0, 1.0, 7.0, 11.0],
+                    }
+                    .encode()
+                    .to_vec(),
+                },
+                create(root, NodeKind::Root, None),
+                create(group, NodeKind::Container, Some(root)),
+                create(first, NodeKind::Text, Some(group)),
+                create(second, NodeKind::Text, Some(group)),
+                set_f32(group, Prop::Width, 200.0),
+                set_f32(group, Prop::Height, 100.0),
+                set_f32(first, Prop::Width, 100.0),
+                set_f32(first, Prop::Height, 20.0),
+                set_f32(second, Prop::Width, 100.0),
+                set_f32(second, Prop::Height, 20.0),
+                Mutation::SetRef {
+                    node_id: group.raw(),
+                    prop: Prop::Transform,
+                    resource_id: 14,
+                },
+                Mutation::SetTextRun {
+                    node_id: first.raw(),
+                    string_id: 12,
+                    style_id: 11,
+                },
+                Mutation::SetTextRun {
+                    node_id: second.raw(),
+                    string_id: 13,
+                    style_id: 11,
+                },
+            ],
+        );
+        scene
+    }
+
+    fn probe(scene: &Scene, text: &impl TextPaintResolver, pictures: bool) -> PaintedTextFrame {
+        let (layout, changed) = layout(scene);
+        let mut engine = PaintEngine::new();
+        engine.set_incremental_pictures_enabled(pictures);
+        engine
+            .paint_with_text(scene, layout.snapshot(), &changed, false, text)
+            .expect("paint");
+        engine
+            .painted_text(scene, layout.snapshot())
+            .expect("painted text")
+    }
+
+    #[test]
+    fn painted_text_leaves_a_shaped_run_string_to_the_content_owner() {
+        let scene = probe_scene();
+        let text = ProbeText::empty()
+            .with_glyph_run(id(2), 100)
+            .with_glyph_run(id(3), 101);
+        let frame = probe(&scene, &text, false);
+        assert!(!frame.truncated);
+        assert_eq!(
+            frame
+                .records
+                .iter()
+                .map(|record| (record.node, record.channel, record.source.clone()))
+                .collect::<Vec<_>>(),
+            vec![
+                (
+                    id(2),
+                    PaintedTextChannel::ShapedRun,
+                    PaintedTextSource::NodeContent
+                ),
+                (
+                    id(3),
+                    PaintedTextChannel::ShapedRun,
+                    PaintedTextSource::NodeContent
+                ),
+            ]
+        );
+        // The group's affine moves both, and the second sits a row below the
+        // first, so the transform stack is doing real work here.
+        assert_eq!(frame.records[0].origin, [7.0, 11.0]);
+        assert_eq!(frame.records[1].origin, [7.0, 31.0]);
+        assert!(frame.records.iter().all(|record| !record.origin_clipped));
+    }
+
+    #[test]
+    fn painted_text_does_not_leak_one_subtree_state_into_its_sibling() {
+        // The state a node opens with `Save` is closed after its children and
+        // its post pass, not at the end of its own instructions. A walker that
+        // popped in the wrong place would carry the transform below into the
+        // sibling and every origin after it would be silently wrong.
+        let root = id(0);
+        let moved = id(1);
+        let plain = id(2);
+        let inner = id(3);
+        let mut scene = Scene::new();
+        commit(
+            &mut scene,
+            1,
+            vec![
+                paint_resource(
+                    10,
+                    SolidPaint {
+                        red: 0,
+                        green: 0,
+                        blue: 0,
+                        alpha: 255,
+                    },
+                ),
+                text_style_resource(11, 10),
+                utf8_resource(12, "moved"),
+                utf8_resource(13, "plain"),
+                Mutation::DefineResource {
+                    resource_id: 14,
+                    kind: ResourceKind::Affine,
+                    bytes: AffineResource {
+                        matrix: [1.0, 0.0, 0.0, 1.0, 40.0, 0.0],
+                    }
+                    .encode()
+                    .to_vec(),
+                },
+                create(root, NodeKind::Root, None),
+                create(moved, NodeKind::Container, Some(root)),
+                create(plain, NodeKind::Text, Some(root)),
+                create(inner, NodeKind::Text, Some(moved)),
+                set_f32(moved, Prop::Width, 100.0),
+                set_f32(moved, Prop::Height, 20.0),
+                set_f32(plain, Prop::Width, 100.0),
+                set_f32(plain, Prop::Height, 20.0),
+                set_f32(inner, Prop::Width, 100.0),
+                set_f32(inner, Prop::Height, 20.0),
+                Mutation::SetRef {
+                    node_id: moved.raw(),
+                    prop: Prop::Transform,
+                    resource_id: 14,
+                },
+                Mutation::SetTextRun {
+                    node_id: inner.raw(),
+                    string_id: 12,
+                    style_id: 11,
+                },
+                Mutation::SetTextRun {
+                    node_id: plain.raw(),
+                    string_id: 13,
+                    style_id: 11,
+                },
+            ],
+        );
+        for pictures in [false, true] {
+            let frame = probe(&scene, &ProbeText::empty(), pictures);
+            let origins = frame
+                .records
+                .iter()
+                .map(|record| (record.node, record.origin[0]))
+                .collect::<Vec<_>>();
+            assert_eq!(
+                origins,
+                vec![(inner, 40.0), (plain, 0.0)],
+                "the sibling must start from the root's state ({pictures})"
+            );
+        }
+    }
+
+    #[test]
+    fn painted_text_reports_the_system_fallback_string_resource() {
+        let scene = probe_scene();
+        let frame = probe(&scene, &ProbeText::empty(), false);
+        assert_eq!(
+            frame
+                .records
+                .iter()
+                .map(|record| (record.channel, record.source.clone()))
+                .collect::<Vec<_>>(),
+            vec![
+                (
+                    PaintedTextChannel::SystemFallback,
+                    PaintedTextSource::Resource(12)
+                ),
+                (
+                    PaintedTextChannel::SystemFallback,
+                    PaintedTextSource::Resource(13)
+                ),
+            ]
+        );
+    }
+
+    #[test]
+    fn painted_text_reports_the_core_owned_inline_string() {
+        let scene = probe_scene();
+        let text = ProbeText::empty().with_inline(id(2), "composing");
+        let frame = probe(&scene, &text, false);
+        assert_eq!(
+            frame.records[0].source,
+            PaintedTextSource::Inline("composing".to_owned())
+        );
+        assert_eq!(frame.records[0].channel, PaintedTextChannel::InlineFallback);
+    }
+
+    #[test]
+    fn painted_text_is_identical_on_both_paint_paths() {
+        let scene = probe_scene();
+        let text = ProbeText::empty().with_glyph_run(id(2), 100);
+        assert_eq!(probe(&scene, &text, false), probe(&scene, &text, true));
+    }
+
+    #[test]
+    fn painted_text_skips_a_display_none_subtree_and_an_invisible_node() {
+        let mut scene = probe_scene();
+        commit(
+            &mut scene,
+            2,
+            vec![
+                Mutation::DefineResource {
+                    resource_id: 20,
+                    kind: ResourceKind::ComputedStyle,
+                    bytes: computed_style(&[(
+                        pingo_abi::StyleProperty::Display,
+                        pingo_abi::STYLE_VALUE_KEYWORD,
+                        (StyleKeyword::None as u16)
+                            .to_le_bytes()
+                            .into_iter()
+                            .chain(0_u16.to_le_bytes())
+                            .collect(),
+                    )]),
+                },
+                Mutation::DefineResource {
+                    resource_id: 21,
+                    kind: ResourceKind::ComputedStyle,
+                    bytes: computed_style(&[(
+                        pingo_abi::StyleProperty::Visibility,
+                        pingo_abi::STYLE_VALUE_KEYWORD,
+                        (StyleKeyword::Hidden as u16)
+                            .to_le_bytes()
+                            .into_iter()
+                            .chain(0_u16.to_le_bytes())
+                            .collect(),
+                    )]),
+                },
+                Mutation::SetRef {
+                    node_id: id(2).raw(),
+                    prop: Prop::ComputedStyle,
+                    resource_id: 20,
+                },
+                Mutation::SetRef {
+                    node_id: id(3).raw(),
+                    prop: Prop::ComputedStyle,
+                    resource_id: 21,
+                },
+            ],
+        );
+        assert!(probe(&scene, &ProbeText::empty(), false).records.is_empty());
+    }
+
+    #[test]
+    fn painted_text_follows_paint_order_rather_than_document_order() {
+        let mut scene = probe_scene();
+        commit(
+            &mut scene,
+            2,
+            vec![
+                Mutation::DefineResource {
+                    resource_id: 20,
+                    kind: ResourceKind::ComputedStyle,
+                    bytes: computed_style(&[(
+                        pingo_abi::StyleProperty::ZIndex,
+                        pingo_abi::STYLE_VALUE_LENGTH,
+                        {
+                            let mut bytes = vec![pingo_abi::STYLE_LENGTH_NUMBER, 0, 0, 0];
+                            bytes.extend_from_slice(&1.0_f32.to_le_bytes());
+                            bytes
+                        },
+                    )]),
+                },
+                // The first child is lifted over its sibling.
+                Mutation::SetRef {
+                    node_id: id(2).raw(),
+                    prop: Prop::ComputedStyle,
+                    resource_id: 20,
+                },
+            ],
+        );
+        let frame = probe(&scene, &ProbeText::empty(), false);
+        assert_eq!(
+            frame
+                .records
+                .iter()
+                .map(|record| record.node)
+                .collect::<Vec<_>>(),
+            vec![id(3), id(2)]
+        );
+    }
+
+    #[test]
+    fn painted_text_marks_an_origin_outside_an_ancestor_clip() {
+        let root = id(0);
+        let viewport = id(1);
+        let inside = id(2);
+        let outside = id(3);
+        let mut scene = Scene::new();
+        commit(
+            &mut scene,
+            1,
+            vec![
+                paint_resource(
+                    10,
+                    SolidPaint {
+                        red: 0,
+                        green: 0,
+                        blue: 0,
+                        alpha: 255,
+                    },
+                ),
+                text_style_resource(11, 10),
+                utf8_resource(12, "inside"),
+                utf8_resource(13, "outside"),
+                create(root, NodeKind::Root, None),
+                create(viewport, NodeKind::Scroll, Some(root)),
+                create(inside, NodeKind::Text, Some(viewport)),
+                create(outside, NodeKind::Text, Some(viewport)),
+                set_f32(viewport, Prop::Width, 100.0),
+                set_f32(viewport, Prop::Height, 30.0),
+                set_f32(inside, Prop::Width, 100.0),
+                set_f32(inside, Prop::Height, 20.0),
+                set_f32(outside, Prop::Width, 100.0),
+                set_f32(outside, Prop::Height, 20.0),
+                Mutation::SetTextRun {
+                    node_id: inside.raw(),
+                    string_id: 12,
+                    style_id: 11,
+                },
+                Mutation::SetTextRun {
+                    node_id: outside.raw(),
+                    string_id: 13,
+                    style_id: 11,
+                },
+            ],
+        );
+        let frame = probe(&scene, &ProbeText::empty(), false);
+        // The second row's baseline falls past the 30px viewport, so its origin
+        // is outside the clip the scroll container established.
+        assert_eq!(
+            frame
+                .records
+                .iter()
+                .map(|record| record.origin_clipped)
+                .collect::<Vec<_>>(),
+            vec![false, true]
+        );
+    }
+
+    proptest! {
+        #![proptest_config(ProptestConfig::with_cases(64))]
+
+        /// The probe reads the retained cache, so a cached frame and a frame
+        /// built from nothing must not be able to disagree.
+        #[test]
+        fn painted_text_survives_incremental_reuse(
+            widths in prop::collection::vec(1.0_f32..80.0, 1..8),
+            pictures in any::<bool>(),
+        ) {
+            let mut scene = Scene::new();
+            let mut mutations = vec![
+                paint_resource(10, SolidPaint { red: 0, green: 0, blue: 0, alpha: 255 }),
+                text_style_resource(11, 10),
+                create(id(0), NodeKind::Root, None),
+            ];
+            for (index, width) in widths.iter().copied().enumerate() {
+                let node = id(u32::try_from(index).expect("index") + 1);
+                let string_id = 100 + u32::try_from(index).expect("index");
+                mutations.push(utf8_resource(string_id, &format!("row {index}")));
+                mutations.push(create(node, NodeKind::Text, Some(id(0))));
+                mutations.push(set_f32(node, Prop::Width, width));
+                mutations.push(set_f32(node, Prop::Height, 20.0));
+                mutations.push(Mutation::SetTextRun {
+                    node_id: node.raw(),
+                    string_id,
+                    style_id: 11,
+                });
+            }
+            commit(&mut scene, 1, mutations);
+
+            let (first_layout, first_changed) = layout(&scene);
+            let mut incremental = PaintEngine::new();
+            incremental.set_incremental_pictures_enabled(pictures);
+            incremental
+                .paint_with_text(
+                    &scene,
+                    first_layout.snapshot(),
+                    &first_changed,
+                    false,
+                    &ProbeText::empty(),
+                )
+                .expect("first paint");
+            // A second clean frame reuses every cached subtree.
+            scene.clear_dirty();
+            let (clean_layout, clean_changed) = layout(&scene);
+            incremental
+                .paint_with_text(
+                    &scene,
+                    clean_layout.snapshot(),
+                    &clean_changed,
+                    false,
+                    &ProbeText::empty(),
+                )
+                .expect("cached paint");
+            let cached = incremental
+                .painted_text(&scene, clean_layout.snapshot())
+                .expect("cached painted text");
+
+            let mut fresh_engine = PaintEngine::new();
+            fresh_engine.set_incremental_pictures_enabled(pictures);
+            fresh_engine
+                .paint_with_text(
+                    &scene,
+                    clean_layout.snapshot(),
+                    &clean_changed,
+                    true,
+                    &ProbeText::empty(),
+                )
+                .expect("forced paint");
+            let fresh = fresh_engine
+                .painted_text(&scene, clean_layout.snapshot())
+                .expect("fresh painted text");
+
+            prop_assert_eq!(cached, fresh);
         }
     }
 }
