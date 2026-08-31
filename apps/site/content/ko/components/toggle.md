@@ -13,19 +13,16 @@ description: 굵게, 기울임꼴 등 즉시 켜고 끄는 두 가지 상태 전
 ## 사용법
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Toggle } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Toggle, {
-    children: "굵게",
-    defaultPressed: true,
-    onPressedChange: (pressed) => console.log(pressed),
-  }),
+  <Toggle defaultPressed onPressedChange={(pressed) => console.log(pressed)}>
+    굵게
+  </Toggle>,
 );
 ```
 
-`Toggle`은 내부적으로 hooks를 통해 상태를 보유하므로 반드시 `createElement`로 컴포넌트 형태로 마운트해야 합니다. `pressed`를 전달하면 제어 모드로 진입하며, 그렇지 않으면 `defaultPressed`를 사용하여 컴포넌트가 스스로 상태를 가지도록 합니다.
+`Toggle`은 내부적으로 hooks를 통해 상태를 보유하므로 반드시 JSX로 컴포넌트 형태로 마운트해야 합니다. `pressed`를 전달하면 제어 모드로 진입하며, 그렇지 않으면 `defaultPressed`를 사용하여 컴포넌트가 스스로 상태를 가지도록 합니다.
 
 ## 예시
 

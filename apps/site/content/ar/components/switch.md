@@ -13,20 +13,22 @@ description: مفتاح تحكم مُدار لتفعيل الإعدادات ال
 ## الاستخدام
 
 ```tsx
-import { createElement, useSignal, type PingoNode } from "@dopejs/pingo";
+import { useSignal, type PingoNode } from "@dopejs/pingo";
 import { Switch } from "@dopejs/pingo-ui";
 
 // useSignal هو hook، يجب تنفيذه داخل نطاق المكوّن.
 function AirplaneMode(): PingoNode {
   const on = useSignal(false);
-  return createElement(Switch, {
-    checked: on.get(),
-    semanticLabel: "وضع الطيران",
-    onCheckedChange: (next) => on.set(next),
-  });
+  return (
+    <Switch
+      checked={on.get()}
+      semanticLabel="وضع الطيران"
+      onCheckedChange={(next) => on.set(next)}
+    />
+  );
 }
 
-root.render(createElement(AirplaneMode));
+root.render(<AirplaneMode />);
 ```
 
 يحتفظ المكوّن الأب بقيمة `checked`، ويتولى `onCheckedChange` تحديثها — ولا يخزّن المكوّن نفسه الحالة.

@@ -13,19 +13,18 @@ Eine Combobox verbindet einen Trigger, der den ausgewählten Wert anzeigt, mit e
 ## Verwendung
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Combobox } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Combobox, {
-    items: [
+  <Combobox
+    items={[
       { value: "next", label: "Next.js" },
       { value: "remix", label: "Remix" },
       { value: "astro", label: "Astro" },
-    ],
-    placeholder: "Framework wählen",
-    onValueChange: (value) => console.log(value),
-  }),
+    ]}
+    placeholder="Framework wählen"
+    onValueChange={(value) => console.log(value)}
+  />,
 );
 ```
 

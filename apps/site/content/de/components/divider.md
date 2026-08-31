@@ -13,10 +13,9 @@ Trennlinien sorgen für eine visuelle Gruppierung zwischen Inhalten. Die folgend
 ## Verwendung
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Divider } from "@dopejs/pingo-ui";
 
-root.render(createElement(Divider, {}));
+root.render(<Divider />);
 ```
 
 ## Beispiele

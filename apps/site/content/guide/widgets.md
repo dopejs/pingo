@@ -32,16 +32,16 @@ description: "@dopejs/pingo-widgets 提供 TextField、TextArea、Pressable、Bu
 [可编辑元素](/guide/elements-editing)完全相同——widget 不引入新的输入路径。
 
 ```tsx
-import { createElement, TextField } from "@dopejs/pingo";
+import { TextField } from "@dopejs/pingo";
 
-createElement(TextField, {
-  value,
-  revision,
-  semanticLabel: "收件人",
-  width: 320,
-  error: value === "" ? "收件人不能为空" : undefined,
-  onTransaction: (t) => apply(t),
-});
+<TextField
+  value={value}
+  revision={revision}
+  semanticLabel="收件人"
+  width={320}
+  error={value === "" ? "收件人不能为空" : undefined}
+  onTransaction={(t) => apply(t)}
+/>;
 ```
 
 ### Props（TextField）

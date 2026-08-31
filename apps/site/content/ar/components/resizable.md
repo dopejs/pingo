@@ -13,16 +13,9 @@ description: تخطيط ثنائي الألواح بمقبض قابل للسحب
 ## الاستخدام
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Resizable } from "@dopejs/pingo-ui";
 
-root.render(
-  createElement(Resizable, {
-    defaultSplit: 0.4,
-    first: sidebar,
-    second: content,
-  }),
-);
+root.render(<Resizable defaultSplit={0.4} first={sidebar} second={content} />);
 ```
 
 يبلغ عرض المكوّن وارتفاعه 100% من الحاوية الأب، ويتطلب حاوية أب ذات أبعاد محددة. يدعم كلاً من الاستخدام غير المُتحكَّم به (`defaultSplit`) والاستخدام المُتحكَّم به (`split` + `onSplitChange`).

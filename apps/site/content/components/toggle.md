@@ -13,19 +13,16 @@ description: 两态切换按钮，用于加粗、斜体等即时开关，渲染�
 ## 用法
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Toggle } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Toggle, {
-    children: "加粗",
-    defaultPressed: true,
-    onPressedChange: (pressed) => console.log(pressed),
-  }),
+  <Toggle defaultPressed onPressedChange={(pressed) => console.log(pressed)}>
+    加粗
+  </Toggle>,
 );
 ```
 
-`Toggle` 内部通过 hooks 持有状态，必须用 `createElement` 以组件形式挂载。传入 `pressed` 即进入受控模式；否则用 `defaultPressed` 让组件自持状态。
+`Toggle` 内部通过 hooks 持有状态，必须用 JSX 以组件形式挂载。传入 `pressed` 即进入受控模式；否则用 `defaultPressed` 让组件自持状态。
 
 ## 示例
 

@@ -13,10 +13,9 @@ description: كتلة هيكلية نائبة أثناء تحميل المحتو
 ## الاستخدام
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Skeleton } from "@dopejs/pingo-ui";
 
-root.render(createElement(Skeleton, { width: 320, height: 16 }));
+root.render(<Skeleton width={320} height={16} />);
 ```
 
 يمكن حذف `width` / `height` معًا، وعندها تُترك الأبعاد بالكامل للتخطيط الخارجي وورقة الأنماط الخاصة بك.

@@ -15,15 +15,9 @@ direct par le moteur pingo.
 ## Utilisation
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { AspectRatio } from "@dopejs/pingo-ui";
 
-root.render(
-  createElement(AspectRatio, {
-    ratio: 16 / 9,
-    children: coverImage,
-  }),
-);
+root.render(<AspectRatio ratio={16 / 9}>{coverImage}</AspectRatio>);
 ```
 
 Le composant occupe 100 % de la largeur du parent ; `ratio` vaut largeur divisée par hauteur —

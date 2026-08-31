@@ -15,32 +15,26 @@ Toast es una notificación ligera que aparece brevemente en una esquina, adecuad
 Toast debe usarse junto con `ToastViewport`. El viewport es un contenedor de esquina con posicionamiento absoluto (arriba a la derecha de forma predeterminada) y **debe montarse bajo un contenedor cercano a la raíz**; en este motor, el bloque contenedor es el nodo padre y no el ancestro posicionado más cercano, así que si se monta dentro de un contenedor pequeño solo cubrirá ese contenedor pequeño.
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Button, Toast, ToastViewport } from "@dopejs/pingo-ui";
 
 let open = false;
 
 function scene() {
-  return createElement("container", {
-    width: surfaceWidth,
-    height: surfaceHeight,
-    children: [
-      createElement(Button, {
-        children: "保存",
-        onPress: () => {
+  return (
+    <container width={surfaceWidth} height={surfaceHeight}>
+      <Button
+        onPress={() => {
           open = true;
           root.render(scene());
-        },
-      }),
-      createElement(ToastViewport, {
-        children: createElement(Toast, {
-          open,
-          title: "已保存",
-          description: "配置已写入本地。",
-        }),
-      }),
-    ],
-  });
+        }}
+      >
+        保存
+      </Button>
+      <ToastViewport>
+        <Toast open={open} title="已保存" description="配置已写入本地。" />
+      </ToastViewport>
+    </container>
+  );
 }
 ```
 

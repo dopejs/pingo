@@ -13,25 +13,17 @@ description: شريط قوائم بنمط تنقل الموقع، سلوكه م�
 ## الاستخدام
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { MenubarMenu, NavigationMenu } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(NavigationMenu, {
-    onValueChange: (value) => {},
-    children: [
-      createElement(MenubarMenu, {
-        value: "products",
-        label: "المنتجات",
-        children: createElement("text", { value: "محرك العرض" }),
-      }),
-      createElement(MenubarMenu, {
-        value: "docs",
-        label: "المستندات",
-        children: createElement("text", { value: "البدء السريع" }),
-      }),
-    ],
-  }),
+  <NavigationMenu onValueChange={(value) => {}}>
+    <MenubarMenu value="products" label="المنتجات">
+      <text value="محرك العرض" />
+    </MenubarMenu>
+    <MenubarMenu value="docs" label="المستندات">
+      <text value="البدء السريع" />
+    </MenubarMenu>
+  </NavigationMenu>,
 );
 ```
 

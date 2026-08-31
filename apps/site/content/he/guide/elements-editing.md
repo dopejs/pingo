@@ -18,7 +18,7 @@ description: פרימיטיבים מובנים-במנוע של טקסט ניתן
 כתיבה מבוקרת: `value` + `revision` עולה מונוטונית, ואישור הטרנזקציות מהליבה ב-`onTransaction`:
 
 ```tsx
-import { createElement, Input, type EditTransaction } from "@dopejs/pingo";
+import { Input, type EditTransaction } from "@dopejs/pingo";
 
 let value = "הערת הזמנה";
 let revision = 1n;
@@ -30,15 +30,15 @@ function applyDelta(current: string, transaction: EditTransaction): string {
     : current.slice(0, delta.range.start) + delta.text + current.slice(delta.range.end);
 }
 
-createElement(Input, {
-  value,
-  revision,
-  semanticLabel: "הערת הזמנה",
-  onTransaction: (transaction) => {
+<Input
+  value={value}
+  revision={revision}
+  semanticLabel="הערת הזמנה"
+  onTransaction={(transaction) => {
     value = applyDelta(value, transaction);
     revision = transaction.revision;
-  },
-});
+  }}
+/>;
 ```
 
 למצב מקומי בלבד אפשר להשמיט את `value` / `revision` ולהשתמש ב-`TextEditingController`

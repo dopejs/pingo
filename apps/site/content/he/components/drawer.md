@@ -13,16 +13,12 @@ description: לוח מגירה שנגלש פנימה מהקצה העליון א�
 ## שימוש
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Drawer } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Drawer, {
-    open,
-    onOpenChange: (next) => setOpen(next),
-    side: "bottom",
-    children: createElement("text", { value: "תוכן המגירה" }),
-  }),
+  <Drawer open={open} onOpenChange={(next) => setOpen(next)} side="bottom">
+    <text value="תוכן המגירה" />
+  </Drawer>,
 );
 ```
 

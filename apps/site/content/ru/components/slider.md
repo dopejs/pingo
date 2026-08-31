@@ -13,22 +13,21 @@ description: Числовой ползунок с перетаскиванием
 ## Использование
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Slider } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Slider, {
-    defaultValue: 40,
-    min: 0,
-    max: 100,
-    step: 1,
-    semanticLabel: "音量",
-    onValueChange: (value) => console.log(value),
-  }),
+  <Slider
+    defaultValue={40}
+    min={0}
+    max={100}
+    step={1}
+    semanticLabel="音量"
+    onValueChange={(value) => console.log(value)}
+  />,
 );
 ```
 
-`Slider` хранит состояние перетаскивания внутри через hooks, поэтому его нужно монтировать как компонент через `createElement`. Передача `value` переводит компонент в контролируемый режим; иначе используйте `defaultValue`, чтобы компонент хранил состояние сам.
+`Slider` хранит состояние перетаскивания внутри через hooks, поэтому его нужно монтировать как компонент через JSX. Передача `value` переводит компонент в контролируемый режим; иначе используйте `defaultValue`, чтобы компонент хранил состояние сам.
 
 ## Примеры
 

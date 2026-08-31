@@ -13,29 +13,21 @@ description: כרטיסיות מחליפות קבוצת לוחות באותה ר
 ## שימוש
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Tabs, {
-    defaultValue: "account",
-    children: [
-      createElement(TabsList, {
-        children: [
-          createElement(TabsTrigger, { value: "account", children: "חשבון" }),
-          createElement(TabsTrigger, { value: "password", children: "סיסמה" }),
-        ],
-      }),
-      createElement(TabsContent, {
-        value: "account",
-        children: createElement("text", { value: "נהל את פרטי החשבון שלך." }),
-      }),
-      createElement(TabsContent, {
-        value: "password",
-        children: createElement("text", { value: "שנה את סיסמת הכניסה שלך." }),
-      }),
-    ],
-  }),
+  <Tabs defaultValue="account">
+    <TabsList>
+      <TabsTrigger value="account">חשבון</TabsTrigger>
+      <TabsTrigger value="password">סיסמה</TabsTrigger>
+    </TabsList>
+    <TabsContent value="account">
+      <text value="נהל את פרטי החשבון שלך." />
+    </TabsContent>
+    <TabsContent value="password">
+      <text value="שנה את סיסמת הכניסה שלך." />
+    </TabsContent>
+  </Tabs>,
 );
 ```
 

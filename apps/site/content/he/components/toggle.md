@@ -13,19 +13,16 @@ description: כפתור החלפה דו־מצבי למיתוג מיידי כגו
 ## שימוש
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Toggle } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Toggle, {
-    children: "הדגשה",
-    defaultPressed: true,
-    onPressedChange: (pressed) => console.log(pressed),
-  }),
+  <Toggle defaultPressed onPressedChange={(pressed) => console.log(pressed)}>
+    הדגשה
+  </Toggle>,
 );
 ```
 
-`Toggle` מחזיק מצב פנימי באמצעות hooks, ויש לעטוף אותו כרכיב באמצעות `createElement`. העברת `pressed` מעבירה את הרכיב למצב נשלט; אחרת, השתמשו ב־`defaultPressed` כדי שהרכיב ינהל את מצבו בעצמו.
+`Toggle` מחזיק מצב פנימי באמצעות hooks, ויש לעטוף אותו כרכיב באמצעות JSX. העברת `pressed` מעבירה את הרכיב למצב נשלט; אחרת, השתמשו ב־`defaultPressed` כדי שהרכיב ינהל את מצבו בעצמו.
 
 ## דוגמאות
 

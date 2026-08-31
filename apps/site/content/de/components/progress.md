@@ -13,19 +13,17 @@ Progress stellt deterministischen Fortschritt – etwa bei Downloads, Uploads od
 ## Verwendung
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Progress } from "@dopejs/pingo-ui";
 
-root.render(createElement(Progress, { value: 60 }));
+root.render(<Progress value={60} />);
 ```
 
 Die Spurbreite wird vom übergeordneten Container übernommen. Platziere Progress in einem Container mit fester Breite, um die Länge der Leiste zu steuern:
 
 ```tsx
-createElement("container", {
-  width: 320,
-  children: createElement(Progress, { value: 60 }),
-});
+<container width={320}>
+  <Progress value={60} />
+</container>
 ```
 
 ## Beispiele
@@ -35,7 +33,7 @@ createElement("container", {
 `max` ist standardmäßig 100. Wenn ein Wert übergeben wird, wird der Füllprozentsatz als `value / max` berechnet und stets auf den Bereich 0–100 begrenzt:
 
 ```tsx
-createElement(Progress, { value: 3, max: 10 }); // 30%
+<Progress value={3} max={10} /> // 30%
 ```
 
 ## Props

@@ -13,22 +13,21 @@ description: פס ערך מספרי, תומך בגרירה ובכיוונון ע
 ## שימוש
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Slider } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Slider, {
-    defaultValue: 40,
-    min: 0,
-    max: 100,
-    step: 1,
-    semanticLabel: "עוצמת שמע",
-    onValueChange: (value) => console.log(value),
-  }),
+  <Slider
+    defaultValue={40}
+    min={0}
+    max={100}
+    step={1}
+    semanticLabel="עוצמת שמע"
+    onValueChange={(value) => console.log(value)}
+  />,
 );
 ```
 
-`Slider` מחזיק את מצב הגרירה באופן פנימי באמצעות hooks, ויש לטעון אותו כרכיב באמצעות `createElement`. העברת `value` מעבירה את הרכיב למצב נשלט; אחרת יש להשתמש ב־`defaultValue` כדי שהרכיב ינהל את המצב בעצמו.
+`Slider` מחזיק את מצב הגרירה באופן פנימי באמצעות hooks, ויש לטעון אותו כרכיב באמצעות JSX. העברת `value` מעבירה את הרכיב למצב נשלט; אחרת יש להשתמש ב־`defaultValue` כדי שהרכיב ינהל את המצב בעצמו.
 
 ## דוגמאות
 

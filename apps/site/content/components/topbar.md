@@ -15,19 +15,18 @@ TopBar 是 pingo 特有的产品分子：把标题与 `leading`（logo、返回�
 ## 用法
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Avatar, Button, TopBar } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(TopBar, {
-    title: "仪表盘",
-    leading: createElement(Avatar, { fallback: "P", size: 28 }),
-    actions: createElement(Button, {
-      children: "新建",
-      variant: "outline",
-      onPress: () => create(),
-    }),
-  }),
+  <TopBar
+    title="仪表盘"
+    leading={<Avatar fallback="P" size={28} />}
+    actions={
+      <Button variant="outline" onPress={() => create()}>
+        新建
+      </Button>
+    }
+  />,
 );
 ```
 
@@ -38,9 +37,7 @@ root.render(
 省略 `title` 时标题列仍会渲染（一个空的伸缩列），actions 依旧被推到右端；适合只有操作区的工具条。
 
 ```tsx
-createElement(TopBar, {
-  actions: createElement(Button, { children: "导出", onPress: () => {} }),
-});
+<TopBar actions={<Button onPress={() => {}}>导出</Button>} />
 ```
 
 ## Props

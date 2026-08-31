@@ -15,16 +15,18 @@ description: تقويم شهري بنمط shadcn، بشبكة ثابتة من س
 حالة التحديد **مُتحكَّم بها**: النقر على تاريخ يُطلق `onSelect`، وعليك كتابة `value` من جديد. أما الشهر فيمكن إدارته داخليًا في المكوّن (`defaultMonth`)، أو التحكم به كليًا عبر `month` و`onMonthChange`.
 
 ```tsx
-import { createElement, useSignal, type PingoNode } from "@dopejs/pingo";
+import { useSignal, type PingoNode } from "@dopejs/pingo";
 import { Calendar, type CalendarDate } from "@dopejs/pingo-ui";
 
 function DateField(): PingoNode {
   const selected = useSignal<CalendarDate>({ year: 2026, month: 8, day: 22 });
-  return createElement(Calendar, {
-    defaultMonth: { year: 2026, month: 8, day: 1 },
-    value: selected.get(),
-    onSelect: (date) => selected.set(date),
-  });
+  return (
+    <Calendar
+      defaultMonth={{ year: 2026, month: 8, day: 1 }}
+      value={selected.get()}
+      onSelect={(date) => selected.set(date)}
+    />
+  );
 }
 ```
 

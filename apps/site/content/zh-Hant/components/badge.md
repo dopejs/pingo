@@ -13,10 +13,9 @@ Badge 是一個非互動的狀態標籤，用來標註狀態、分類或數量�
 ## 用法
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Badge } from "@dopejs/pingo-ui";
 
-root.render(createElement(Badge, { children: "Beta" }));
+root.render(<Badge>Beta</Badge>);
 ```
 
 ## 示例
@@ -26,7 +25,7 @@ root.render(createElement(Badge, { children: "Beta" }));
 四種變體覆蓋常見語義：`default`（強調）、`secondary`（弱化）、`destructive`（錯誤/危險）、`outline`（描邊）。預覽中已按順序展示。
 
 ```tsx
-createElement(Badge, { children: "只读", variant: "secondary" });
+<Badge variant="secondary">只读</Badge>
 ```
 
 ### 搭配其他元件
@@ -34,12 +33,12 @@ createElement(Badge, { children: "只读", variant: "secondary" });
 Badge 常作為列表行或卡片的 trailing 元素，與 `Avatar`、`ListRow` 組合使用：
 
 ```tsx
-createElement(ListRow, {
-  title: "张三",
-  leading: createElement(Avatar, { fallback: "张", size: 32 }),
-  trailing: createElement(Badge, { children: "管理员" }),
-  onPress: () => {},
-});
+<ListRow
+  title="张三"
+  leading={<Avatar fallback="张" size={32} />}
+  trailing={<Badge>管理员</Badge>}
+  onPress={() => {}}
+/>
 ```
 
 ## Props

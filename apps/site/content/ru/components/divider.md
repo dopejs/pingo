@@ -13,10 +13,9 @@ description: Горизонтальная или вертикальная виз
 ## Использование
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Divider } from "@dopejs/pingo-ui";
 
-root.render(createElement(Divider, {}));
+root.render(<Divider />);
 ```
 
 ## Примеры

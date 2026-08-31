@@ -15,16 +15,12 @@ description: Пагинация в стиле shadcn со сворачивани
 Номер страницы — **контролируемый**: `page` начинается с 1, перелистывание сообщается через `onPageChange`, а записываете его обратно вы.
 
 ```tsx
-import { createElement, useSignal, type PingoNode } from "@dopejs/pingo";
+import { useSignal, type PingoNode } from "@dopejs/pingo";
 import { Pagination } from "@dopejs/pingo-ui";
 
 function PagedList(): PingoNode {
   const page = useSignal(1);
-  return createElement(Pagination, {
-    page: page.get(),
-    pageCount: 12,
-    onPageChange: (next) => page.set(next),
-  });
+  return <Pagination page={page.get()} pageCount={12} onPageChange={(next) => page.set(next)} />;
 }
 ```
 

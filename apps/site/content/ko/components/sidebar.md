@@ -13,27 +13,18 @@ Sidebar는 애플리케이션 수준의 내비게이션 열로, 그룹(Section)�
 ## 사용법
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Sidebar, SidebarItem, SidebarSection } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Sidebar, {
-    defaultValue: "stats",
-    onValueChange: (value) => navigate(value),
-    children: [
-      createElement(SidebarSection, {
-        title: "작업 공간",
-        children: [
-          createElement(SidebarItem, { value: "home", label: "홈" }),
-          createElement(SidebarItem, { value: "stats", label: "통계" }),
-        ],
-      }),
-      createElement(SidebarSection, {
-        title: "시스템",
-        children: createElement(SidebarItem, { value: "settings", label: "설정" }),
-      }),
-    ],
-  }),
+  <Sidebar defaultValue="stats" onValueChange={(value) => navigate(value)}>
+    <SidebarSection title="작업 공간">
+      <SidebarItem value="home" label="홈" />
+      <SidebarItem value="stats" label="통계" />
+    </SidebarSection>
+    <SidebarSection title="시스템">
+      <SidebarItem value="settings" label="설정" />
+    </SidebarSection>
+  </Sidebar>,
 );
 ```
 

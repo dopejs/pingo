@@ -15,7 +15,7 @@ description: 仮想スクロールのデータテーブル。列定義がヘッ�
 `Table` は memo コンポーネントではなく純粋な構築関数です。直接呼び出すとシーンノードを返します。コンポーネントの描画スコープ内で呼び出すことで（下記の関数コンポーネントのように）、テーマの読み取りがサイトテーマの切り替えをサブスクライブします。
 
 ```tsx
-import { createElement, type PingoNode } from "@dopejs/pingo";
+import type { PingoNode } from "@dopejs/pingo";
 import { Table } from "@dopejs/pingo-ui";
 
 type FileRow = { name: string; size: string };
@@ -26,14 +26,14 @@ function FileTable(): PingoNode {
       {
         key: "name",
         header: "名称",
-        cell: (row) => createElement("text", { value: row.name }),
+        cell: (row) => <text value={row.name} />,
       },
       {
         key: "size",
         header: "大小",
         width: 96,
         align: "end",
-        cell: (row) => createElement("text", { value: row.size }),
+        cell: (row) => <text value={row.size} />,
       },
     ],
     rowCount: files.length,

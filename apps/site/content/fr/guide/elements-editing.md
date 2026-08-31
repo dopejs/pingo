@@ -21,7 +21,7 @@ et Ctrl+Z.
 `onTransaction` les transactions envoyées par le Core :
 
 ```tsx
-import { createElement, Input, type EditTransaction } from "@dopejs/pingo";
+import { Input, type EditTransaction } from "@dopejs/pingo";
 
 let value = "订单备注";
 let revision = 1n;
@@ -33,15 +33,15 @@ function applyDelta(current: string, transaction: EditTransaction): string {
     : current.slice(0, delta.range.start) + delta.text + current.slice(delta.range.end);
 }
 
-createElement(Input, {
-  value,
-  revision,
-  semanticLabel: "订单备注",
-  onTransaction: (transaction) => {
+<Input
+  value={value}
+  revision={revision}
+  semanticLabel="订单备注"
+  onTransaction={(transaction) => {
     value = applyDelta(value, transaction);
     revision = transaction.revision;
-  },
-});
+  }}
+/>;
 ```
 
 Pour un état purement local, vous pouvez omettre `value` / `revision` et utiliser un

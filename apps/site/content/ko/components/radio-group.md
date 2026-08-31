@@ -13,23 +13,18 @@ description: 단일 선택 옵션 그룹으로, 방향키 탐색을 지원하며
 ## 사용법
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { RadioGroup, RadioGroupItem } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(RadioGroup, {
-    defaultValue: "b",
-    onValueChange: (value) => console.log(value),
-    children: [
-      createElement(RadioGroupItem, { value: "a", label: "옵션 A" }),
-      createElement(RadioGroupItem, { value: "b", label: "옵션 B" }),
-      createElement(RadioGroupItem, { value: "c", label: "옵션 C" }),
-    ],
-  }),
+  <RadioGroup defaultValue="b" onValueChange={(value) => console.log(value)}>
+    <RadioGroupItem value="a" label="옵션 A" />
+    <RadioGroupItem value="b" label="옵션 B" />
+    <RadioGroupItem value="c" label="옵션 C" />
+  </RadioGroup>,
 );
 ```
 
-`RadioGroup`은 context를 통해 `RadioGroupItem`에 현재 값을 전달하므로, 둘 다 `createElement`로 컴포넌트 형태로 마운트해야 합니다. `value`를 전달하면 제어 모드가 되고, 그렇지 않으면 `defaultValue`를 사용해 컴포넌트가 자체적으로 상태를 유지합니다.
+`RadioGroup`은 context를 통해 `RadioGroupItem`에 현재 값을 전달하므로, 둘 다 JSX로 컴포넌트 형태로 마운트해야 합니다. `value`를 전달하면 제어 모드가 되고, 그렇지 않으면 `defaultValue`를 사용해 컴포넌트가 자체적으로 상태를 유지합니다.
 
 ## 예제
 

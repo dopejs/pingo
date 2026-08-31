@@ -15,19 +15,18 @@ Relation de composition avec les primitives shadcn : TopBar ne fournit pas lui-m
 ## Utilisation
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Avatar, Button, TopBar } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(TopBar, {
-    title: "仪表盘",
-    leading: createElement(Avatar, { fallback: "P", size: 28 }),
-    actions: createElement(Button, {
-      children: "新建",
-      variant: "outline",
-      onPress: () => create(),
-    }),
-  }),
+  <TopBar
+    title="仪表盘"
+    leading={<Avatar fallback="P" size={28} />}
+    actions={
+      <Button variant="outline" onPress={() => create()}>
+        新建
+      </Button>
+    }
+  />,
 );
 ```
 
@@ -38,9 +37,7 @@ root.render(
 Lorsque `title` est omis, la colonne de titre est tout de même rendue (une colonne extensible vide), et les actions sont toujours poussées à droite ; cela convient aux barres d'outils ne contenant qu'une zone d'actions.
 
 ```tsx
-createElement(TopBar, {
-  actions: createElement(Button, { children: "导出", onPress: () => {} }),
-});
+<TopBar actions={<Button onPress={() => {}}>导出</Button>} />
 ```
 
 ## Props

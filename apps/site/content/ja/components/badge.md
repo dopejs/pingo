@@ -15,10 +15,9 @@ Badge は非インタラクティブなステータスラベルで、状態・�
 ## 使い方
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Badge } from "@dopejs/pingo-ui";
 
-root.render(createElement(Badge, { children: "Beta" }));
+root.render(<Badge>Beta</Badge>);
 ```
 
 ## 例
@@ -29,7 +28,7 @@ root.render(createElement(Badge, { children: "Beta" }));
 `destructive`（エラー/危険）、`outline`（アウトライン）。プレビューではこの順に表示しています。
 
 ```tsx
-createElement(Badge, { children: "読み取り専用", variant: "secondary" });
+<Badge variant="secondary">読み取り専用</Badge>
 ```
 
 ### 他のコンポーネントとの組み合わせ
@@ -37,12 +36,12 @@ createElement(Badge, { children: "読み取り専用", variant: "secondary" });
 Badge はリスト行やカードの trailing 要素として、`Avatar` や `ListRow` と組み合わせてよく使われます。
 
 ```tsx
-createElement(ListRow, {
-  title: "田中太郎",
-  leading: createElement(Avatar, { fallback: "田", size: 32 }),
-  trailing: createElement(Badge, { children: "管理者" }),
-  onPress: () => {},
-});
+<ListRow
+  title="田中太郎"
+  leading={<Avatar fallback="田" size={32} />}
+  trailing={<Badge>管理者</Badge>}
+  onPress={() => {}}
+/>
 ```
 
 ## Props

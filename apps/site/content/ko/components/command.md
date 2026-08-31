@@ -13,18 +13,17 @@ Command는 검색창이 있는 명령 팔레트입니다. 입력 즉시 항목�
 ## 사용법
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Command } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Command, {
-    items: [
+  <Command
+    items={[
       { value: "open", label: "파일 열기" },
       { value: "save", label: "파일 저장" },
-    ],
-    onSelect: (value) => run(value),
-    onDismiss: () => closePalette(),
-  }),
+    ]}
+    onSelect={(value) => run(value)}
+    onDismiss={() => closePalette()}
+  />,
 );
 ```
 

@@ -14,15 +14,12 @@ Ein Button löst eine Aktion aus. Die Vorschau unten wird von der pingo-Engine i
 ## Verwendung
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Button } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Button, {
-    children: "保存",
-    variant: "default",
-    onPress: () => save(),
-  }),
+  <Button variant="default" onPress={() => save()}>
+    保存
+  </Button>,
 );
 ```
 

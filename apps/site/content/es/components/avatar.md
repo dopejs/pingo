@@ -15,17 +15,16 @@ renderiza en vivo con el motor pingo y sigue el tema del sitio al cambiar entre 
 ## Uso
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Avatar } from "@dopejs/pingo-ui";
 
-root.render(createElement(Avatar, { fallback: "张" }));
+root.render(<Avatar fallback="张" />);
 ```
 
 Cuando hay imagen, pasa el recurso `PingoImage` predecodificado; la imagen rellena con
 `object-fit: cover` y se recorta en círculo:
 
 ```tsx
-createElement(Avatar, { image: decodedImage, fallback: "张" });
+<Avatar image={decodedImage} fallback="张" />
 ```
 
 ## Ejemplos
@@ -37,7 +36,7 @@ usa el valor por defecto de la piel, 40 px. En la vista previa aparecen, en orde
 por defecto y 56.
 
 ```tsx
-createElement(Avatar, { fallback: "李", size: 32 });
+<Avatar fallback="李" size={32} />
 ```
 
 ## Props

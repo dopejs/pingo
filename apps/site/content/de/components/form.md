@@ -13,21 +13,14 @@ description: Formularcontainer und Feld-Wrapper, zuständig für Layout, Semanti
 ## Verwendung
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Form, FormField, Input } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Form, {
-    children: createElement(FormField, {
-      label: "E-Mail",
-      required: true,
-      error: emailError, // Validierungsregeln liegen beim Aufrufer
-      children: createElement(Input, {
-        semanticLabel: "E-Mail",
-        onValueChange: (value) => validate(value),
-      }),
-    }),
-  }),
+  <Form>
+    <FormField label="E-Mail" required error={emailError}>
+      <Input semanticLabel="E-Mail" onValueChange={(value) => validate(value)} />
+    </FormField>
+  </Form>,
 );
 ```
 

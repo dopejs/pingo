@@ -13,7 +13,6 @@ Das Dropdown-Menü klappt unterhalb des Triggers eine Reihe von Aktionspunkten a
 ## Verwendung
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import {
   Button,
   DropdownMenu,
@@ -23,20 +22,15 @@ import {
 } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(DropdownMenu, {
-    onValueChange: (value) => run(value),
-    children: [
-      createElement(DropdownMenuTrigger, {
-        children: createElement(Button, { children: "Menü öffnen", onPress: () => {} }),
-      }),
-      createElement(DropdownMenuContent, {
-        children: [
-          createElement(DropdownMenuItem, { value: "profile", children: "Profil" }),
-          createElement(DropdownMenuItem, { value: "settings", children: "Einstellungen" }),
-        ],
-      }),
-    ],
-  }),
+  <DropdownMenu onValueChange={(value) => run(value)}>
+    <DropdownMenuTrigger>
+      <Button onPress={() => {}}>Menü öffnen</Button>
+    </DropdownMenuTrigger>
+    <DropdownMenuContent>
+      <DropdownMenuItem value="profile">Profil</DropdownMenuItem>
+      <DropdownMenuItem value="settings">Einstellungen</DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>,
 );
 ```
 

@@ -13,20 +13,22 @@ description: 즉시 적용되는 불리언 설정을 위한 제어형 스위치 
 ## 사용법
 
 ```tsx
-import { createElement, useSignal, type PingoNode } from "@dopejs/pingo";
+import { useSignal, type PingoNode } from "@dopejs/pingo";
 import { Switch } from "@dopejs/pingo-ui";
 
 // useSignal은 hook이므로 컴포넌트 스코프 안에서 실행해야 합니다.
 function AirplaneMode(): PingoNode {
   const on = useSignal(false);
-  return createElement(Switch, {
-    checked: on.get(),
-    semanticLabel: "비행기 모드",
-    onCheckedChange: (next) => on.set(next),
-  });
+  return (
+    <Switch
+      checked={on.get()}
+      semanticLabel="비행기 모드"
+      onCheckedChange={(next) => on.set(next)}
+    />
+  );
 }
 
-root.render(createElement(AirplaneMode));
+root.render(<AirplaneMode />);
 ```
 
 `checked`는 부모 컴포넌트가 보유하며, `onCheckedChange`가 이를 업데이트합니다. 컴포넌트 자체는 상태를 저장하지 않습니다.

@@ -13,15 +13,12 @@ El botón dispara una acción. La vista previa a continuación se renderiza en t
 ## Uso
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Button } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Button, {
-    children: "Guardar",
-    variant: "default",
-    onPress: () => save(),
-  }),
+  <Button variant="default" onPress={() => save()}>
+    Guardar
+  </Button>,
 );
 ```
 

@@ -13,20 +13,19 @@ description: 여러 줄 텍스트 입력란으로, pingo 편집 엔진에 의해
 ## 사용법
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { TextArea } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(TextArea, {
-    semanticLabel: "개인 소개",
-    width: 360,
-    rows: 4,
-    onValueChange: (value) => console.log(value),
-  }),
+  <TextArea
+    semanticLabel="개인 소개"
+    width={360}
+    rows={4}
+    onValueChange={(value) => console.log(value)}
+  />,
 );
 ```
 
-`rows`는 표시할 행 수를 결정하고 셸의 최소 높이를 고정합니다(`rows × 행 높이 + 위아래 안쪽 여백`). [Input](/components/input)과 마찬가지로 `TextArea`는 반드시 `createElement`를 사용하여 컴포넌트 형태로 마운트해야 합니다. 편집 세부 사항은 [텍스트 편집 가이드](/guide/editing)를 참조하십시오.
+`rows`는 표시할 행 수를 결정하고 셸의 최소 높이를 고정합니다(`rows × 행 높이 + 위아래 안쪽 여백`). [Input](/components/input)과 마찬가지로 `TextArea`는 반드시 JSX를 사용하여 컴포넌트 형태로 마운트해야 합니다. 편집 세부 사항은 [텍스트 편집 가이드](/guide/editing)를 참조하십시오.
 
 ## 예제
 

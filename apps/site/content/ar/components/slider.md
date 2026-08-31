@@ -13,22 +13,21 @@ description: منزلق رقمي يدعم السحب والضبط الدقيق �
 ## الاستخدام
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Slider } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Slider, {
-    defaultValue: 40,
-    min: 0,
-    max: 100,
-    step: 1,
-    semanticLabel: "مستوى الصوت",
-    onValueChange: (value) => console.log(value),
-  }),
+  <Slider
+    defaultValue={40}
+    min={0}
+    max={100}
+    step={1}
+    semanticLabel="مستوى الصوت"
+    onValueChange={(value) => console.log(value)}
+  />,
 );
 ```
 
-يحتفظ `Slider` داخليًا بحالة السحب عبر hooks، ويجب تركيبه كمكوّن باستخدام `createElement`. عند تمرير `value` يدخل في الوضع المُتحكَّم به؛ وإلا فاستخدم `defaultValue` ليتولى المكوّن الحالة بنفسه.
+يحتفظ `Slider` داخليًا بحالة السحب عبر hooks، ويجب تركيبه كمكوّن باستخدام JSX. عند تمرير `value` يدخل في الوضع المُتحكَّم به؛ وإلا فاستخدم `defaultValue` ليتولى المكوّن الحالة بنفسه.
 
 ## أمثلة
 

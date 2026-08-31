@@ -19,7 +19,7 @@ Core가 구현하므로 **canvas 위에 어떤 HTML 입력 컨트롤도 덮을 �
 트랜잭션을 확인합니다.
 
 ```tsx
-import { createElement, Input, type EditTransaction } from "@dopejs/pingo";
+import { Input, type EditTransaction } from "@dopejs/pingo";
 
 let value = "주문 메모";
 let revision = 1n;
@@ -31,15 +31,15 @@ function applyDelta(current: string, transaction: EditTransaction): string {
     : current.slice(0, delta.range.start) + delta.text + current.slice(delta.range.end);
 }
 
-createElement(Input, {
-  value,
-  revision,
-  semanticLabel: "주문 메모",
-  onTransaction: (transaction) => {
+<Input
+  value={value}
+  revision={revision}
+  semanticLabel="주문 메모"
+  onTransaction={(transaction) => {
     value = applyDelta(value, transaction);
     revision = transaction.revision;
-  },
-});
+  }}
+/>;
 ```
 
 순수 로컬 상태라면 `value` / `revision`을 넘기지 않고 `TextEditingController`를 쓸 수도 있습니다

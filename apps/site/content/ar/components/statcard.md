@@ -15,17 +15,16 @@ StatCard هو جزيء منتج خاص بـ pingo: بلاطة مؤشر تتكو�
 ## الاستخدام
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { StatCard } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(StatCard, {
-    label: "إيرادات هذا الشهر",
-    value: "¥128,400",
-    delta: "+12.5%",
-    trend: "up",
-    description: "مقارنة بالشهر السابق",
-  }),
+  <StatCard
+    label="إيرادات هذا الشهر"
+    value="¥128,400"
+    delta="+12.5%"
+    trend="up"
+    description="مقارنة بالشهر السابق"
+  />,
 );
 ```
 
@@ -40,7 +39,7 @@ root.render(
 عند حذف `delta` تحتل القيمة سطرًا بمفردها، ولا يسري `trend`؛ ويمكن حذف `description` أيضًا.
 
 ```tsx
-createElement(StatCard, { label: "الأجهزة المتصلة", value: "1,024" });
+<StatCard label="الأجهزة المتصلة" value="1,024" />
 ```
 
 ## Props

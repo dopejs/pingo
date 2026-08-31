@@ -13,16 +13,16 @@ description: بطاقة محتوى غنية تتوسع عند التمرير، �
 ## الاستخدام
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { HoverCard } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(HoverCard, {
-    openDelayMs: 300,
-    closeDelayMs: 200,
-    children: createElement("text", { value: "@pingo" }),
-    content: createElement("text", { value: "محرك عرض Canvas ومكتبة مكونات واجهة." }),
-  }),
+  <HoverCard
+    openDelayMs={300}
+    closeDelayMs={200}
+    content={<text value="محرك عرض Canvas ومكتبة مكونات واجهة." />}
+  >
+    <text value="@pingo" />
+  </HoverCard>,
 );
 ```
 

@@ -13,20 +13,19 @@ description: 複数行テキスト入力欄。pingo 編集エンジンによっ�
 ## 使い方
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { TextArea } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(TextArea, {
-    semanticLabel: "個人プロフィール",
-    width: 360,
-    rows: 4,
-    onValueChange: (value) => console.log(value),
-  }),
+  <TextArea
+    semanticLabel="個人プロフィール"
+    width={360}
+    rows={4}
+    onValueChange={(value) => console.log(value)}
+  />,
 );
 ```
 
-`rows` は表示行数を決定し、外枠の最小高さを固定します（`rows × 行の高さ + 上下の内側余白`）。[Input](/components/input) と同様に、`TextArea` は `createElement` を使ってコンポーネントとしてマウントする必要があります。編集の詳細は[テキスト編集ガイド](/guide/editing)を参照してください。
+`rows` は表示行数を決定し、外枠の最小高さを固定します（`rows × 行の高さ + 上下の内側余白`）。[Input](/components/input) と同様に、`TextArea` は JSX を使ってコンポーネントとしてマウントする必要があります。編集の詳細は[テキスト編集ガイド](/guide/editing)を参照してください。
 
 ## 例
 

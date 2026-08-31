@@ -15,16 +15,12 @@ description: shadcn 风格的分页控件，带页码省略与边界禁用态，
 页码是**受控**的：`page` 从 1 开始，翻页通过 `onPageChange` 上报，由你回写。
 
 ```tsx
-import { createElement, useSignal, type PingoNode } from "@dopejs/pingo";
+import { useSignal, type PingoNode } from "@dopejs/pingo";
 import { Pagination } from "@dopejs/pingo-ui";
 
 function PagedList(): PingoNode {
   const page = useSignal(1);
-  return createElement(Pagination, {
-    page: page.get(),
-    pageCount: 12,
-    onPageChange: (next) => page.set(next),
-  });
+  return <Pagination page={page.get()} pageCount={12} onPageChange={(next) => page.set(next)} />;
 }
 ```
 

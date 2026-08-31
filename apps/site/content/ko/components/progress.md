@@ -13,19 +13,17 @@ Progress는 다운로드, 업로드 또는 여러 단계의 작업과 같은 결
 ## 사용법
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Progress } from "@dopejs/pingo-ui";
 
-root.render(createElement(Progress, { value: 60 }));
+root.render(<Progress value={60} />);
 ```
 
 트랙 너비는 부모 컨테이너를 상속하므로, Progress를 고정 너비의 컨테이너 안에 배치하여 막대 길이를 제어합니다.
 
 ```tsx
-createElement("container", {
-  width: 320,
-  children: createElement(Progress, { value: 60 }),
-});
+<container width={320}>
+  <Progress value={60} />
+</container>
 ```
 
 ## 예시
@@ -35,7 +33,7 @@ createElement("container", {
 `max`의 기본값은 100입니다. 값을 전달하면 `value / max`로 채움 비율을 계산하며, 항상 0–100 사이로 고정합니다.
 
 ```tsx
-createElement(Progress, { value: 3, max: 10 }); // 30%
+<Progress value={3} max={10} /> // 30%
 ```
 
 ## Props

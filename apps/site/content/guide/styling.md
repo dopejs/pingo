@@ -14,8 +14,8 @@ Core 只消费规范化后的类型化值——CSS 文本和选择器匹配永�
 用 `createStyleSheet` 编译 CSS 文本（输入非法时抛 `StyleSheetCompileError`），
 在创建 root 时注册：
 
-```ts
-import { createElement, createHostedCanvasRoot, createStyleSheet } from "@dopejs/pingo";
+```tsx
+import { createHostedCanvasRoot, createStyleSheet } from "@dopejs/pingo";
 
 const sheet = createStyleSheet(
   `
@@ -31,11 +31,9 @@ const sheet = createStyleSheet(
 const root = await createHostedCanvasRoot(canvas, { styleSheets: [sheet] });
 
 root.render(
-  createElement("container", {
-    className: "card",
-    width: 320,
-    children: createElement("text", { value: "你好", fontSize: 14 }),
-  }),
+  <container className="card" width={320}>
+    <text value="你好" fontSize={14} />
+  </container>,
 );
 ```
 

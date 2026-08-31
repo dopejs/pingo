@@ -13,15 +13,12 @@ Collapsible은 Accordion의 단일 항목 프리미티브입니다. 하나의 �
 ## 사용법
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Collapsible } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Collapsible, {
-    trigger: "고급 옵션",
-    defaultOpen: true,
-    children: createElement("text", { value: "접힘 영역 콘텐츠." }),
-  }),
+  <Collapsible trigger="고급 옵션" defaultOpen>
+    <text value="접힘 영역 콘텐츠." />
+  </Collapsible>,
 );
 ```
 

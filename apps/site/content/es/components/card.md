@@ -15,7 +15,6 @@ tema del sitio al cambiar entre claro y oscuro.
 ## Uso
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import {
   Button,
   Card,
@@ -27,22 +26,18 @@ import {
 } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Card, {
-    children: [
-      createElement(CardHeader, {
-        children: [
-          createElement(CardTitle, { children: "账户设置" }),
-          createElement(CardDescription, { children: "管理你的账户偏好与通知。" }),
-        ],
-      }),
-      createElement(CardContent, {
-        children: createElement("text", { value: "卡片正文内容。" }),
-      }),
-      createElement(CardFooter, {
-        children: createElement(Button, { children: "保存", onPress: () => {} }),
-      }),
-    ],
-  }),
+  <Card>
+    <CardHeader>
+      <CardTitle>账户设置</CardTitle>
+      <CardDescription>管理你的账户偏好与通知。</CardDescription>
+    </CardHeader>
+    <CardContent>
+      <text value="卡片正文内容。" />
+    </CardContent>
+    <CardFooter>
+      <Button onPress={() => {}}>保存</Button>
+    </CardFooter>
+  </Card>,
 );
 ```
 

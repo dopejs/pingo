@@ -13,14 +13,12 @@ description: نص توضيحي قصير يظهر عند التحويم، مثب�
 ## الاستخدام
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Button, Tooltip } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Tooltip, {
-    content: "حفظ إلى السحابة",
-    children: createElement(Button, { children: "حفظ", onPress: () => save() }),
-  }),
+  <Tooltip content="حفظ إلى السحابة">
+    <Button onPress={() => save()}>حفظ</Button>
+  </Tooltip>,
 );
 ```
 

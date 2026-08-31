@@ -13,27 +13,20 @@ Le sélecteur déroulant est composé de `Select`, `SelectTrigger`, `SelectConte
 ## Utilisation
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Select, {
-    value: "pingo-ui",
-    onValueChange: (value) => console.log(value),
-    children: [
-      createElement(SelectTrigger, { placeholder: "选择一个包" }),
-      createElement(SelectContent, {
-        children: [
-          createElement(SelectItem, { value: "pingo", children: "@dopejs/pingo" }),
-          createElement(SelectItem, { value: "pingo-ui", children: "@dopejs/pingo-ui" }),
-        ],
-      }),
-    ],
-  }),
+  <Select value="pingo-ui" onValueChange={(value) => console.log(value)}>
+    <SelectTrigger placeholder="选择一个包" />
+    <SelectContent>
+      <SelectItem value="pingo">@dopejs/pingo</SelectItem>
+      <SelectItem value="pingo-ui">@dopejs/pingo-ui</SelectItem>
+    </SelectContent>
+  </Select>,
 );
 ```
 
-Toutes les parties collaborent via le context et doivent être montées sous forme de composants avec `createElement`. Le déclencheur affiche la `value` actuellement sélectionnée ; lorsqu'aucune valeur n'est sélectionnée, il affiche le `placeholder`.
+Toutes les parties collaborent via le context et doivent être montées sous forme de composants avec JSX. Le déclencheur affiche la `value` actuellement sélectionnée ; lorsqu'aucune valeur n'est sélectionnée, il affiche le `placeholder`.
 
 ## Exemples
 

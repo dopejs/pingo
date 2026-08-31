@@ -13,27 +13,18 @@ description: "شريط التنقل الجانبي للمنتج: المجموع�
 ## الاستخدام
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Sidebar, SidebarItem, SidebarSection } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Sidebar, {
-    defaultValue: "stats",
-    onValueChange: (value) => navigate(value),
-    children: [
-      createElement(SidebarSection, {
-        title: "مساحة العمل",
-        children: [
-          createElement(SidebarItem, { value: "home", label: "الرئيسية" }),
-          createElement(SidebarItem, { value: "stats", label: "الإحصائيات" }),
-        ],
-      }),
-      createElement(SidebarSection, {
-        title: "النظام",
-        children: createElement(SidebarItem, { value: "settings", label: "الإعدادات" }),
-      }),
-    ],
-  }),
+  <Sidebar defaultValue="stats" onValueChange={(value) => navigate(value)}>
+    <SidebarSection title="مساحة العمل">
+      <SidebarItem value="home" label="الرئيسية" />
+      <SidebarItem value="stats" label="الإحصائيات" />
+    </SidebarSection>
+    <SidebarSection title="النظام">
+      <SidebarItem value="settings" label="الإعدادات" />
+    </SidebarSection>
+  </Sidebar>,
 );
 ```
 

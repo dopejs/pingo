@@ -13,10 +13,9 @@ description: 水平或垂直的视觉分隔线，渲染在 pingo canvas 上。
 ## 用法
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Divider } from "@dopejs/pingo-ui";
 
-root.render(createElement(Divider, {}));
+root.render(<Divider />);
 ```
 
 ## 示例

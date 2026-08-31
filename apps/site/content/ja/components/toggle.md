@@ -13,19 +13,16 @@ description: 太字や斜体などの即時切り替えに使う、2状態を切
 ## 使い方
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Toggle } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Toggle, {
-    children: "加粗",
-    defaultPressed: true,
-    onPressedChange: (pressed) => console.log(pressed),
-  }),
+  <Toggle defaultPressed onPressedChange={(pressed) => console.log(pressed)}>
+    加粗
+  </Toggle>,
 );
 ```
 
-`Toggle` は内部で hooks により状態を保持するため、`createElement` を使ってコンポーネントとしてマウントする必要があります。`pressed` を渡すと制御モードになります。それ以外の場合は `defaultPressed` を使ってコンポーネント自身に状態を保持させます。
+`Toggle` は内部で hooks により状態を保持するため、JSX を使ってコンポーネントとしてマウントする必要があります。`pressed` を渡すと制御モードになります。それ以外の場合は `defaultPressed` を使ってコンポーネント自身に状態を保持させます。
 
 ## 例
 

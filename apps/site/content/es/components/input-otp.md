@@ -13,16 +13,15 @@ Entrada de código de un solo uso, compuesta por varias casillas de longitud fij
 ## Uso
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { InputOTP } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(InputOTP, {
-    length: 6,
-    semanticLabel: "Código de un solo uso",
-    onValueChange: (value) => console.log(value),
-    onComplete: (code) => verify(code),
-  }),
+  <InputOTP
+    length={6}
+    semanticLabel="Código de un solo uso"
+    onValueChange={(value) => console.log(value)}
+    onComplete={(code) => verify(code)}
+  />,
 );
 ```
 

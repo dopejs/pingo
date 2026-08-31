@@ -13,23 +13,18 @@ description: 單選選項組，支援方向鍵導航，渲染在 pingo canvas �
 ## 用法
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { RadioGroup, RadioGroupItem } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(RadioGroup, {
-    defaultValue: "b",
-    onValueChange: (value) => console.log(value),
-    children: [
-      createElement(RadioGroupItem, { value: "a", label: "选项 A" }),
-      createElement(RadioGroupItem, { value: "b", label: "选项 B" }),
-      createElement(RadioGroupItem, { value: "c", label: "选项 C" }),
-    ],
-  }),
+  <RadioGroup defaultValue="b" onValueChange={(value) => console.log(value)}>
+    <RadioGroupItem value="a" label="选项 A" />
+    <RadioGroupItem value="b" label="选项 B" />
+    <RadioGroupItem value="c" label="选项 C" />
+  </RadioGroup>,
 );
 ```
 
-`RadioGroup` 透過 context 向 `RadioGroupItem` 發佈當前值，因此兩者都必須用 `createElement` 以元件形式掛載。傳入 `value` 即進入受控模式；否則用 `defaultValue` 讓元件自持狀態。
+`RadioGroup` 透過 context 向 `RadioGroupItem` 發佈當前值，因此兩者都必須用 JSX 以元件形式掛載。傳入 `value` 即進入受控模式；否則用 `defaultValue` 讓元件自持狀態。
 
 ## 示例
 

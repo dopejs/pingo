@@ -15,19 +15,18 @@ Kombinationsbeziehung zu den shadcn-Basiskomponenten: TopBar selbst stellt keine
 ## Verwendung
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Avatar, Button, TopBar } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(TopBar, {
-    title: "Dashboard",
-    leading: createElement(Avatar, { fallback: "P", size: 28 }),
-    actions: createElement(Button, {
-      children: "Neu",
-      variant: "outline",
-      onPress: () => create(),
-    }),
-  }),
+  <TopBar
+    title="Dashboard"
+    leading={<Avatar fallback="P" size={28} />}
+    actions={
+      <Button variant="outline" onPress={() => create()}>
+        Neu
+      </Button>
+    }
+  />,
 );
 ```
 
@@ -38,9 +37,7 @@ root.render(
 Wird `title` weggelassen, wird die Titelspalte dennoch gerendert (eine leere Flex-Spalte), und die Aktionen werden weiterhin nach rechts geschoben; geeignet für Werkzeugleisten, die nur einen Aktionsbereich enthalten.
 
 ```tsx
-createElement(TopBar, {
-  actions: createElement(Button, { children: "Exportieren", onPress: () => {} }),
-});
+<TopBar actions={<Button onPress={() => {}}>Exportieren</Button>} />
 ```
 
 ## Props

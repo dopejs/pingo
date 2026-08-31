@@ -29,27 +29,27 @@ TextArea({ value: description, revision, rows: 4 });
 
 ## Usar la primitiva
 
-```ts
-createElement("editableText", {
-  value,
-  revision,
-  multiline: false,
-  readOnly: false,
-  password: false,
-  maxGraphemes: 200,
-  inputMode: "email",
-  onTransaction: (transaction) => apply(transaction),
-  onSubmit: () => moveToNextCell(),
-});
+```tsx
+<editableText
+  value={value}
+  revision={revision}
+  multiline={false}
+  readOnly={false}
+  password={false}
+  maxGraphemes={200}
+  inputMode="email"
+  onTransaction={(transaction) => apply(transaction)}
+  onSubmit={() => moveToNextCell()}
+/>
 ```
 
 O con un controlador local:
 
-```ts
+```tsx
 import { useTextEditingController } from "@dopejs/pingo";
 
 const editor = useTextEditingController({ value: cell.value });
-createElement("editableText", { controller: editor });
+<editableText controller={editor} />;
 ```
 
 ## Puente de entrada y degradación

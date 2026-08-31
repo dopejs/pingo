@@ -15,10 +15,9 @@ dem Hell-/Dunkel-Theme der Website.
 ## Verwendung
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Badge } from "@dopejs/pingo-ui";
 
-root.render(createElement(Badge, { children: "Beta" }));
+root.render(<Badge>Beta</Badge>);
 ```
 
 ## Beispiele
@@ -29,7 +28,7 @@ Vier Varianten decken die üblichen Bedeutungen ab: `default` (betont), `seconda
 `destructive` (Fehler/Gefahr), `outline` (umrandet). Die Vorschau zeigt sie in dieser Reihenfolge.
 
 ```tsx
-createElement(Badge, { children: "只读", variant: "secondary" });
+<Badge variant="secondary">只读</Badge>
 ```
 
 ### Kombination mit anderen Komponenten
@@ -38,12 +37,12 @@ Badge wird oft als Trailing-Element einer Listenzeile oder Karte verwendet und m
 `ListRow` kombiniert:
 
 ```tsx
-createElement(ListRow, {
-  title: "张三",
-  leading: createElement(Avatar, { fallback: "张", size: 32 }),
-  trailing: createElement(Badge, { children: "管理员" }),
-  onPress: () => {},
-});
+<ListRow
+  title="张三"
+  leading={<Avatar fallback="张" size={32} />}
+  trailing={<Badge>管理员</Badge>}
+  onPress={() => {}}
+/>
 ```
 
 ## Props

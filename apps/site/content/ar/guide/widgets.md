@@ -32,16 +32,16 @@ description: "@dopejs/pingo-widgets يوفر TextField وTextArea وPressable و
 [للعناصر القابلة للتحرير](/guide/elements-editing) — لا يقدم المكوّن مسار إدخال جديدًا.
 
 ```tsx
-import { createElement, TextField } from "@dopejs/pingo";
+import { TextField } from "@dopejs/pingo";
 
-createElement(TextField, {
-  value,
-  revision,
-  semanticLabel: "المستلم",
-  width: 320,
-  error: value === "" ? "لا يمكن ترك المستلم فارغًا" : undefined,
-  onTransaction: (t) => apply(t),
-});
+<TextField
+  value={value}
+  revision={revision}
+  semanticLabel="المستلم"
+  width={320}
+  error={value === "" ? "لا يمكن ترك المستلم فارغًا" : undefined}
+  onTransaction={(t) => apply(t)}
+/>;
 ```
 
 ### Props (TextField)

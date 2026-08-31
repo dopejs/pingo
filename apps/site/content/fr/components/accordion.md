@@ -15,25 +15,17 @@ sur les en-têtes pour basculer, ou déplacez le focus avec les flèches et ouvr
 ## Utilisation
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Accordion, AccordionItem } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Accordion, {
-    defaultOpenValue: "intro",
-    children: [
-      createElement(AccordionItem, {
-        value: "intro",
-        title: "什么是 pingo-ui？",
-        children: createElement("text", { value: "渲染在 pingo canvas 上的组件库。" }),
-      }),
-      createElement(AccordionItem, {
-        value: "theme",
-        title: "支持暗色主题吗？",
-        children: createElement("text", { value: "支持，跟随主题自动切换。" }),
-      }),
-    ],
-  }),
+  <Accordion defaultOpenValue="intro">
+    <AccordionItem value="intro" title="什么是 pingo-ui？">
+      <text value="渲染在 pingo canvas 上的组件库。" />
+    </AccordionItem>
+    <AccordionItem value="theme" title="支持暗色主题吗？">
+      <text value="支持，跟随主题自动切换。" />
+    </AccordionItem>
+  </Accordion>,
 );
 ```
 

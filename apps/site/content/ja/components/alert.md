@@ -14,15 +14,9 @@ Alert は、ユーザーの注意を引く必要があるがフローを中断�
 ## 使い方
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Alert } from "@dopejs/pingo-ui";
 
-root.render(
-  createElement(Alert, {
-    title: "お知らせ",
-    children: "設定は自動的に保存されました。",
-  }),
-);
+root.render(<Alert title="お知らせ">設定は自動的に保存されました。</Alert>);
 ```
 
 ## 例
@@ -33,11 +27,9 @@ root.render(
 可読性を保つため通常の前景色のままです。
 
 ```tsx
-createElement(Alert, {
-  title: "同期に失敗しました",
-  variant: "destructive",
-  children: "ネットワーク接続を確認してから再試行してください。",
-});
+<Alert title="同期に失敗しました" variant="destructive">
+  ネットワーク接続を確認してから再試行してください。
+</Alert>
 ```
 
 ## Props

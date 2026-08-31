@@ -15,16 +15,12 @@ description: shadcn 스타일의 페이지네이션 컨트롤로, 페이지 번�
 페이지 번호는 **제어 방식**입니다. `page`는 1부터 시작하며, 페이지 전환은 `onPageChange`로 보고되므로 직접 값을 다시 기록해야 합니다.
 
 ```tsx
-import { createElement, useSignal, type PingoNode } from "@dopejs/pingo";
+import { useSignal, type PingoNode } from "@dopejs/pingo";
 import { Pagination } from "@dopejs/pingo-ui";
 
 function PagedList(): PingoNode {
   const page = useSignal(1);
-  return createElement(Pagination, {
-    page: page.get(),
-    pageCount: 12,
-    onPageChange: (next) => page.set(next),
-  });
+  return <Pagination page={page.get()} pageCount={12} onPageChange={(next) => page.set(next)} />;
 }
 ```
 

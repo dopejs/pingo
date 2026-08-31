@@ -13,17 +13,16 @@ description: شريط تنقل متسلسل بنمط shadcn، العنصر ال�
 ## الاستخدام
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Breadcrumb } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Breadcrumb, {
-    items: [
+  <Breadcrumb
+    items={[
       { label: "الرئيسية", onNavigate: () => navigate("/") },
       { label: "المكونات", onNavigate: () => navigate("/components") },
       { label: "Breadcrumb" }, // العنصر الأخير هو الصفحة الحالية، لا حاجة لـ onNavigate
-    ],
-  }),
+    ]}
+  />,
 );
 ```
 

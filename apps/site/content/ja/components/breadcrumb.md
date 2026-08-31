@@ -16,17 +16,16 @@ pingo エンジンによるリアルタイムレンダリングです。前の�
 ## 使い方
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Breadcrumb } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Breadcrumb, {
-    items: [
+  <Breadcrumb
+    items={[
       { label: "ホーム", onNavigate: () => navigate("/") },
       { label: "コンポーネント", onNavigate: () => navigate("/components") },
       { label: "Breadcrumb" }, // 末尾項目は現在のページなので onNavigate は不要
-    ],
-  }),
+    ]}
+  />,
 );
 ```
 

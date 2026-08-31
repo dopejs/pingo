@@ -15,19 +15,18 @@ shadcn 기본 컴포넌트와의 조합 관계: TopBar 자체는 버튼이나 �
 ## 사용법
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Avatar, Button, TopBar } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(TopBar, {
-    title: "대시보드",
-    leading: createElement(Avatar, { fallback: "P", size: 28 }),
-    actions: createElement(Button, {
-      children: "새로 만들기",
-      variant: "outline",
-      onPress: () => create(),
-    }),
-  }),
+  <TopBar
+    title="대시보드"
+    leading={<Avatar fallback="P" size={28} />}
+    actions={
+      <Button variant="outline" onPress={() => create()}>
+        새로 만들기
+      </Button>
+    }
+  />,
 );
 ```
 
@@ -38,9 +37,7 @@ root.render(
 `title`을 생략해도 제목 열은 렌더링되며(빈 가변 열), actions는 여전히 가장 오른쪽으로 밀립니다. 작업 영역만 있는 도구 모음에 적합합니다.
 
 ```tsx
-createElement(TopBar, {
-  actions: createElement(Button, { children: "내보내기", onPress: () => {} }),
-});
+<TopBar actions={<Button onPress={() => {}}>내보내기</Button>} />
 ```
 
 ## Props

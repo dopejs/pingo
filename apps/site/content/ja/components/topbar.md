@@ -15,19 +15,18 @@ shadcn の基本部品との組み合わせ関係: TopBar 自体はボタンや�
 ## 使い方
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Avatar, Button, TopBar } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(TopBar, {
-    title: "仪表盘",
-    leading: createElement(Avatar, { fallback: "P", size: 28 }),
-    actions: createElement(Button, {
-      children: "新建",
-      variant: "outline",
-      onPress: () => create(),
-    }),
-  }),
+  <TopBar
+    title="仪表盘"
+    leading={<Avatar fallback="P" size={28} />}
+    actions={
+      <Button variant="outline" onPress={() => create()}>
+        新建
+      </Button>
+    }
+  />,
 );
 ```
 
@@ -38,9 +37,7 @@ root.render(
 `title` を省略した場合もタイトル列は描画されます（空の伸縮列）。actions は引き続き右端に押し出されます。操作領域のみのツールバーに適しています。
 
 ```tsx
-createElement(TopBar, {
-  actions: createElement(Button, { children: "导出", onPress: () => {} }),
-});
+<TopBar actions={<Button onPress={() => {}}>导出</Button>} />
 ```
 
 ## Props

@@ -13,16 +13,15 @@ description: زر يحمل أيقونة فقط، يجب توفير اسم لإم
 ## الاستخدام
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { IconButton } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(IconButton, {
-    icon: createElement("text", { value: "★" }),
-    semanticLabel: "مفضلة",
-    variant: "outline",
-    onPress: () => toggleFavorite(),
-  }),
+  <IconButton
+    icon={<text value="★" />}
+    semanticLabel="مفضلة"
+    variant="outline"
+    onPress={() => toggleFavorite()}
+  />,
 );
 ```
 

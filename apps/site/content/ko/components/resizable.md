@@ -13,16 +13,9 @@ Resizable은 컨테이너를 두 개의 패널로 나누며, 가운데의 드래
 ## 사용법
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Resizable } from "@dopejs/pingo-ui";
 
-root.render(
-  createElement(Resizable, {
-    defaultSplit: 0.4,
-    first: sidebar,
-    second: content,
-  }),
-);
+root.render(<Resizable defaultSplit={0.4} first={sidebar} second={content} />);
 ```
 
 컴포넌트 자체의 너비와 높이는 부모 컨테이너의 100%이므로, 크기가 정해진 부모 컨테이너가 필요합니다. 비제어(`defaultSplit`)와 제어(`split` + `onSplitChange`) 두 가지 방식을 모두 지원합니다.

@@ -15,7 +15,7 @@ description: 가상 스크롤 데이터 테이블, 열 정의가 헤더와 행�
 `Table`은 memo 컴포넌트가 아닌 순수 빌더 함수이므로 직접 호출하면 씬 노드를 반환합니다. 컴포넌트 렌더링 스코프 안에서 호출해야(아래 함수 컴포넌트처럼) 테마 읽기가 사이트 테마 전환을 구독합니다.
 
 ```tsx
-import { createElement, type PingoNode } from "@dopejs/pingo";
+import type { PingoNode } from "@dopejs/pingo";
 import { Table } from "@dopejs/pingo-ui";
 
 type FileRow = { name: string; size: string };
@@ -26,14 +26,14 @@ function FileTable(): PingoNode {
       {
         key: "name",
         header: "名称",
-        cell: (row) => createElement("text", { value: row.name }),
+        cell: (row) => <text value={row.name} />,
       },
       {
         key: "size",
         header: "大小",
         width: 96,
         align: "end",
-        cell: (row) => createElement("text", { value: row.size }),
+        cell: (row) => <text value={row.size} />,
       },
     ],
     rowCount: files.length,

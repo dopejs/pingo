@@ -13,7 +13,6 @@ El menú desplegable expande un conjunto de elementos de acción debajo del acti
 ## Uso
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import {
   Button,
   DropdownMenu,
@@ -23,20 +22,15 @@ import {
 } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(DropdownMenu, {
-    onValueChange: (value) => run(value),
-    children: [
-      createElement(DropdownMenuTrigger, {
-        children: createElement(Button, { children: "打开菜单", onPress: () => {} }),
-      }),
-      createElement(DropdownMenuContent, {
-        children: [
-          createElement(DropdownMenuItem, { value: "profile", children: "个人资料" }),
-          createElement(DropdownMenuItem, { value: "settings", children: "设置" }),
-        ],
-      }),
-    ],
-  }),
+  <DropdownMenu onValueChange={(value) => run(value)}>
+    <DropdownMenuTrigger>
+      <Button onPress={() => {}}>打开菜单</Button>
+    </DropdownMenuTrigger>
+    <DropdownMenuContent>
+      <DropdownMenuItem value="profile">个人资料</DropdownMenuItem>
+      <DropdownMenuItem value="settings">设置</DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>,
 );
 ```
 

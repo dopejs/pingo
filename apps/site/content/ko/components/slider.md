@@ -13,22 +13,21 @@ description: 수치 슬라이더입니다. 드래그와 키보드 미세 조정�
 ## 사용법
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Slider } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Slider, {
-    defaultValue: 40,
-    min: 0,
-    max: 100,
-    step: 1,
-    semanticLabel: "音量",
-    onValueChange: (value) => console.log(value),
-  }),
+  <Slider
+    defaultValue={40}
+    min={0}
+    max={100}
+    step={1}
+    semanticLabel="音量"
+    onValueChange={(value) => console.log(value)}
+  />,
 );
 ```
 
-`Slider`는 내부에서 hooks로 드래그 상태를 보유하므로 반드시 `createElement`를 사용해 컴포넌트 형태로 마운트해야 합니다. `value`를 전달하면 제어 모드로 동작하며, 그렇지 않으면 `defaultValue`를 사용해 컴포넌트가 스스로 상태를 관리하게 합니다.
+`Slider`는 내부에서 hooks로 드래그 상태를 보유하므로 반드시 JSX를 사용해 컴포넌트 형태로 마운트해야 합니다. `value`를 전달하면 제어 모드로 동작하며, 그렇지 않으면 `defaultValue`를 사용해 컴포넌트가 스스로 상태를 관리하게 합니다.
 
 ## 예제
 

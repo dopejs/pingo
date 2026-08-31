@@ -13,25 +13,17 @@ Menubar היא שורת תפריטים החולקים נקודת פתיחה אח
 ## שימוש
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Menubar, MenubarMenu } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Menubar, {
-    onValueChange: (value) => {},
-    children: [
-      createElement(MenubarMenu, {
-        value: "file",
-        label: "קובץ",
-        children: createElement("text", { value: "חדש" }),
-      }),
-      createElement(MenubarMenu, {
-        value: "edit",
-        label: "עריכה",
-        children: createElement("text", { value: "בטל" }),
-      }),
-    ],
-  }),
+  <Menubar onValueChange={(value) => {}}>
+    <MenubarMenu value="file" label="קובץ">
+      <text value="חדש" />
+    </MenubarMenu>
+    <MenubarMenu value="edit" label="עריכה">
+      <text value="בטל" />
+    </MenubarMenu>
+  </Menubar>,
 );
 ```
 

@@ -15,19 +15,18 @@ TopBar הוא מולקולת מוצר ייחודית של pingo: שילוב של
 ## שימוש
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Avatar, Button, TopBar } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(TopBar, {
-    title: "לוח מחוונים",
-    leading: createElement(Avatar, { fallback: "P", size: 28 }),
-    actions: createElement(Button, {
-      children: "חדש",
-      variant: "outline",
-      onPress: () => create(),
-    }),
-  }),
+  <TopBar
+    title="לוח מחוונים"
+    leading={<Avatar fallback="P" size={28} />}
+    actions={
+      <Button variant="outline" onPress={() => create()}>
+        חדש
+      </Button>
+    }
+  />,
 );
 ```
 
@@ -38,9 +37,7 @@ root.render(
 כאשר משמיטים את `title`, עמודת הכותרת עדיין מרונדרת (עמודה גמישה ריקה), וה-actions עדיין נדחפים לקצה הימני; מתאים לסרגל כלים המכיל רק אזור פעולות.
 
 ```tsx
-createElement(TopBar, {
-  actions: createElement(Button, { children: "ייצוא", onPress: () => {} }),
-});
+<TopBar actions={<Button onPress={() => {}}>ייצוא</Button>} />
 ```
 
 ## Props

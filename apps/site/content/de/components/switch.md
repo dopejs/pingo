@@ -13,20 +13,18 @@ Schalter werden für sofort wirksame boolesche Einstellungen verwendet. Die folg
 ## Verwendung
 
 ```tsx
-import { createElement, useSignal, type PingoNode } from "@dopejs/pingo";
+import { useSignal, type PingoNode } from "@dopejs/pingo";
 import { Switch } from "@dopejs/pingo-ui";
 
 // useSignal ist ein Hook und muss innerhalb des Komponenten-Scopes ausgeführt werden.
 function AirplaneMode(): PingoNode {
   const on = useSignal(false);
-  return createElement(Switch, {
-    checked: on.get(),
-    semanticLabel: "Flugmodus",
-    onCheckedChange: (next) => on.set(next),
-  });
+  return (
+    <Switch checked={on.get()} semanticLabel="Flugmodus" onCheckedChange={(next) => on.set(next)} />
+  );
 }
 
-root.render(createElement(AirplaneMode));
+root.render(<AirplaneMode />);
 ```
 
 `checked` wird von der übergeordneten Komponente gehalten, und `onCheckedChange` ist dafür verantwortlich, sie zu aktualisieren – die Komponente selbst speichert keinen Zustand.

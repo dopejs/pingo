@@ -21,17 +21,16 @@ shadcn の基本部品との組み合わせ関係：ListRow は行のレイア�
 ## 使い方
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Avatar, Badge, ListRow } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(ListRow, {
-    title: "田中太郎",
-    description: "tanaka@example.com",
-    leading: createElement(Avatar, { fallback: "田", size: 32 }),
-    trailing: createElement(Badge, { children: "管理者" }),
-    onPress: () => openMember("tanaka"),
-  }),
+  <ListRow
+    title="田中太郎"
+    description="tanaka@example.com"
+    leading={<Avatar fallback="田" size={32} />}
+    trailing={<Badge>管理者</Badge>}
+    onPress={() => openMember("tanaka")}
+  />,
 );
 ```
 

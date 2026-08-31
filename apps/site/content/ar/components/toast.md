@@ -15,32 +15,26 @@ Toast هو إشعار خفيف يظهر لفترة وجيزة في الزاوي�
 يجب استخدام Toast مع `ToastViewport`. منفذ العرض هو حاوية زاوية بموضع مطلق (الزاوية العلوية اليمنى افتراضيًا)، **ويجب وضعه تحت حاوية قريبة من الجذر** — الكتلة الحاوية في هذا المحرك هي العقدة الأصل وليست أقرب سلف ذي موضع، فإذا وُضع داخل حاوية صغيرة فلن يغطي سوى تلك الحاوية الصغيرة.
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Button, Toast, ToastViewport } from "@dopejs/pingo-ui";
 
 let open = false;
 
 function scene() {
-  return createElement("container", {
-    width: surfaceWidth,
-    height: surfaceHeight,
-    children: [
-      createElement(Button, {
-        children: "حفظ",
-        onPress: () => {
+  return (
+    <container width={surfaceWidth} height={surfaceHeight}>
+      <Button
+        onPress={() => {
           open = true;
           root.render(scene());
-        },
-      }),
-      createElement(ToastViewport, {
-        children: createElement(Toast, {
-          open,
-          title: "تم الحفظ",
-          description: "تمت كتابة الإعدادات محليًا.",
-        }),
-      }),
-    ],
-  });
+        }}
+      >
+        حفظ
+      </Button>
+      <ToastViewport>
+        <Toast open={open} title="تم الحفظ" description="تمت كتابة الإعدادات محليًا." />
+      </ToastViewport>
+    </container>
+  );
 }
 ```
 

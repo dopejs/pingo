@@ -13,29 +13,21 @@ Las pestañas alternan varios paneles de contenido del mismo nivel dentro de una
 ## Uso
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Tabs, {
-    defaultValue: "account",
-    children: [
-      createElement(TabsList, {
-        children: [
-          createElement(TabsTrigger, { value: "account", children: "Cuenta" }),
-          createElement(TabsTrigger, { value: "password", children: "Contraseña" }),
-        ],
-      }),
-      createElement(TabsContent, {
-        value: "account",
-        children: createElement("text", { value: "Administra la información de tu cuenta." }),
-      }),
-      createElement(TabsContent, {
-        value: "password",
-        children: createElement("text", { value: "Cambia tu contraseña de acceso." }),
-      }),
-    ],
-  }),
+  <Tabs defaultValue="account">
+    <TabsList>
+      <TabsTrigger value="account">Cuenta</TabsTrigger>
+      <TabsTrigger value="password">Contraseña</TabsTrigger>
+    </TabsList>
+    <TabsContent value="account">
+      <text value="Administra la información de tu cuenta." />
+    </TabsContent>
+    <TabsContent value="password">
+      <text value="Cambia tu contraseña de acceso." />
+    </TabsContent>
+  </Tabs>,
 );
 ```
 

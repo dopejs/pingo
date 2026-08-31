@@ -13,29 +13,21 @@ Tabs wechseln innerhalb desselben Bereichs zwischen mehreren gleichrangigen Inha
 ## Verwendung
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Tabs, {
-    defaultValue: "account",
-    children: [
-      createElement(TabsList, {
-        children: [
-          createElement(TabsTrigger, { value: "account", children: "Konto" }),
-          createElement(TabsTrigger, { value: "password", children: "Passwort" }),
-        ],
-      }),
-      createElement(TabsContent, {
-        value: "account",
-        children: createElement("text", { value: "Verwalten Sie Ihre Kontoinformationen." }),
-      }),
-      createElement(TabsContent, {
-        value: "password",
-        children: createElement("text", { value: "Ändern Sie Ihr Anmeldepasswort." }),
-      }),
-    ],
-  }),
+  <Tabs defaultValue="account">
+    <TabsList>
+      <TabsTrigger value="account">Konto</TabsTrigger>
+      <TabsTrigger value="password">Passwort</TabsTrigger>
+    </TabsList>
+    <TabsContent value="account">
+      <text value="Verwalten Sie Ihre Kontoinformationen." />
+    </TabsContent>
+    <TabsContent value="password">
+      <text value="Ändern Sie Ihr Anmeldepasswort." />
+    </TabsContent>
+  </Tabs>,
 );
 ```
 

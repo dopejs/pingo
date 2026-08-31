@@ -13,15 +13,12 @@ Collapsible היא הפרימיטיבה הבודדת של Accordion: טריגר 
 ## שימוש
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Collapsible } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Collapsible, {
-    trigger: "אפשרויות מתקדמות",
-    defaultOpen: true,
-    children: createElement("text", { value: "תוכן אזור הקיפול." }),
-  }),
+  <Collapsible trigger="אפשרויות מתקדמות" defaultOpen>
+    <text value="תוכן אזור הקיפול." />
+  </Collapsible>,
 );
 ```
 

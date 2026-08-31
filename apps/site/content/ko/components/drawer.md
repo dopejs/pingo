@@ -13,16 +13,12 @@ description: 상하 가장자리에서 슬라이드되는 드로어 패널로, �
 ## 사용법
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Drawer } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Drawer, {
-    open,
-    onOpenChange: (next) => setOpen(next),
-    side: "bottom",
-    children: createElement("text", { value: "抽屉内容" }),
-  }),
+  <Drawer open={open} onOpenChange={(next) => setOpen(next)} side="bottom">
+    <text value="抽屉内容" />
+  </Drawer>,
 );
 ```
 

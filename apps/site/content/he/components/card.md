@@ -13,7 +13,6 @@ description: "מיכל כרטיס מורכב: Header, Title, Description, Conten
 ## שימוש
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import {
   Button,
   Card,
@@ -25,22 +24,18 @@ import {
 } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Card, {
-    children: [
-      createElement(CardHeader, {
-        children: [
-          createElement(CardTitle, { children: "הגדרות חשבון" }),
-          createElement(CardDescription, { children: "נהל את העדפות החשבון וההתראות שלך." }),
-        ],
-      }),
-      createElement(CardContent, {
-        children: createElement("text", { value: "תוכן גוף הכרטיס." }),
-      }),
-      createElement(CardFooter, {
-        children: createElement(Button, { children: "שמור", onPress: () => {} }),
-      }),
-    ],
-  }),
+  <Card>
+    <CardHeader>
+      <CardTitle>הגדרות חשבון</CardTitle>
+      <CardDescription>נהל את העדפות החשבון וההתראות שלך.</CardDescription>
+    </CardHeader>
+    <CardContent>
+      <text value="תוכן גוף הכרטיס." />
+    </CardContent>
+    <CardFooter>
+      <Button onPress={() => {}}>שמור</Button>
+    </CardFooter>
+  </Card>,
 );
 ```
 

@@ -9,14 +9,14 @@ description: مكتبة مكوّنات pingo لواجهة المستخدم بذ�
 
 ## الاستخدام
 
-```ts
+```tsx
 import { createHostedCanvasRoot } from "@dopejs/pingo";
 import { Button, createPingoUiStyleSheet } from "@dopejs/pingo-ui";
 
 const root = await createHostedCanvasRoot(canvas, {
   styleSheets: [createPingoUiStyleSheet()],
 });
-root.render(createElement(Button, { children: "حفظ" }));
+root.render(<Button>حفظ</Button>);
 ```
 
 يجب تسجيل أوراق الأنماط المخصصة للمستخدم **بعد** ورقة أنماط pingo-ui، إذ تتجاوز القواعد ذات الأولوية المتساوية بعضها وفق ترتيب التسجيل. للاطلاع على تخصيص المظهر والعلامة التجارية راجع [دليل التنسيق](/guide/styling) و[SCSS و Less](/guide/scss-less).

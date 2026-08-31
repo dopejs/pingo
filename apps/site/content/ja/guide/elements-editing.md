@@ -18,7 +18,7 @@ description: エンジンネイティブの編集可能テキストプリミテ�
 制御された書き方：`value` + 単調増加する `revision` を用い、`onTransaction` で Core から送られるトランザクションを確認します。
 
 ```tsx
-import { createElement, Input, type EditTransaction } from "@dopejs/pingo";
+import { Input, type EditTransaction } from "@dopejs/pingo";
 
 let value = "注文メモ";
 let revision = 1n;
@@ -30,15 +30,15 @@ function applyDelta(current: string, transaction: EditTransaction): string {
     : current.slice(0, delta.range.start) + delta.text + current.slice(delta.range.end);
 }
 
-createElement(Input, {
-  value,
-  revision,
-  semanticLabel: "注文メモ",
-  onTransaction: (transaction) => {
+<Input
+  value={value}
+  revision={revision}
+  semanticLabel="注文メモ"
+  onTransaction={(transaction) => {
     value = applyDelta(value, transaction);
     revision = transaction.revision;
-  },
-});
+  }}
+/>;
 ```
 
 純粋なローカル状態では `value` / `revision` を渡さず、`TextEditingController`

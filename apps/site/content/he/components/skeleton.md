@@ -13,10 +13,9 @@ Skeleton מציג בלוקים למילוי מקום שצורתם קרובה ל�
 ## שימוש
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Skeleton } from "@dopejs/pingo-ui";
 
-root.render(createElement(Skeleton, { width: 320, height: 16 }));
+root.render(<Skeleton width={320} height={16} />);
 ```
 
 ניתן להשמיט גם את `width` וגם את `height` — במקרה כזה הממדים נקבעים במלואם על ידי הפריסה החיצונית וגיליון הסגנונות שלך.

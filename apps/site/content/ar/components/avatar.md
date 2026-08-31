@@ -13,16 +13,15 @@ description: صورة رمزية دائرية، تعود إلى الأحرف ا�
 ## الاستخدام
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Avatar } from "@dopejs/pingo-ui";
 
-root.render(createElement(Avatar, { fallback: "张" }));
+root.render(<Avatar fallback="张" />);
 ```
 
 عند توفر صورة، مرِّر مورد `PingoImage` مفكوك الترميز مسبقًا، حيث تُملأ الصورة وتُقصّ دائريًا باستخدام `object-fit: cover`:
 
 ```tsx
-createElement(Avatar, { image: decodedImage, fallback: "张" });
+<Avatar image={decodedImage} fallback="张" />
 ```
 
 ## أمثلة
@@ -32,7 +31,7 @@ createElement(Avatar, { image: decodedImage, fallback: "张" });
 `size` هو طول ضلع المربع (بالبكسل)، مع ضبط نصف قطر الانحناء على `size / 2`. عند الإغفال، يُستخدم الحجم الافتراضي للقالب وهو 40 بكسل. تظهر المعاينة بالترتيب: 32، الافتراضي، 56.
 
 ```tsx
-createElement(Avatar, { fallback: "李", size: 32 });
+<Avatar fallback="李" size={32} />
 ```
 
 ## Props

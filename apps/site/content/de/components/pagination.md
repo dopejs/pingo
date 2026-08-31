@@ -15,16 +15,12 @@ Paginierungssteuerelement: Die aktuelle Seite wird hervorgehoben, zu lange Seite
 Die Seitenzahl ist **kontrolliert**: `page` beginnt bei 1, das Blättern wird über `onPageChange` gemeldet und von Ihnen zurückgeschrieben.
 
 ```tsx
-import { createElement, useSignal, type PingoNode } from "@dopejs/pingo";
+import { useSignal, type PingoNode } from "@dopejs/pingo";
 import { Pagination } from "@dopejs/pingo-ui";
 
 function PagedList(): PingoNode {
   const page = useSignal(1);
-  return createElement(Pagination, {
-    page: page.get(),
-    pageCount: 12,
-    onPageChange: (next) => page.set(next),
-  });
+  return <Pagination page={page.get()} pageCount={12} onPageChange={(next) => page.set(next)} />;
 }
 ```
 

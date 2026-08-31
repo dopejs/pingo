@@ -13,16 +13,15 @@ Avatar מציג אווטאר של משתמש: כשהועבר משאב תמונה
 ## שימוש
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Avatar } from "@dopejs/pingo-ui";
 
-root.render(createElement(Avatar, { fallback: "张" }));
+root.render(<Avatar fallback="张" />);
 ```
 
 כשיש תמונה, העבירו משאב `PingoImage` מפוענח מראש; התמונה ממולאת ב-`object-fit: cover` ונחתכת לעיגול:
 
 ```tsx
-createElement(Avatar, { image: decodedImage, fallback: "张" });
+<Avatar image={decodedImage} fallback="张" />
 ```
 
 ## דוגמאות
@@ -32,7 +31,7 @@ createElement(Avatar, { image: decodedImage, fallback: "张" });
 `size` הוא אורך הצלע של הריבוע (px), ובמקביל מגדיר את רדיוס הפינות כ-`size / 2`. כשהוא מושמט נעשה שימוש בערך ברירת המחדל של הערכת העיצוב, 40px. בתצוגה המקדימה: 32, ברירת מחדל, 56.
 
 ```tsx
-createElement(Avatar, { fallback: "李", size: 32 });
+<Avatar fallback="李" size={32} />
 ```
 
 ## Props

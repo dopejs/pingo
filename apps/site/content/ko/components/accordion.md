@@ -15,27 +15,17 @@ description: 한 번에 한 항목만 펼치는 수직 스택 아코디언. ping
 ## 사용법
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Accordion, AccordionItem } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Accordion, {
-    defaultOpenValue: "intro",
-    children: [
-      createElement(AccordionItem, {
-        value: "intro",
-        title: "pingo-ui란 무엇인가요?",
-        children: createElement("text", {
-          value: "pingo canvas에 렌더링되는 컴포넌트 라이브러리입니다.",
-        }),
-      }),
-      createElement(AccordionItem, {
-        value: "theme",
-        title: "다크 테마를 지원하나요?",
-        children: createElement("text", { value: "지원합니다. 테마를 따라 자동으로 전환됩니다." }),
-      }),
-    ],
-  }),
+  <Accordion defaultOpenValue="intro">
+    <AccordionItem value="intro" title="pingo-ui란 무엇인가요?">
+      <text value="pingo canvas에 렌더링되는 컴포넌트 라이브러리입니다." />
+    </AccordionItem>
+    <AccordionItem value="theme" title="다크 테마를 지원하나요?">
+      <text value="지원합니다. 테마를 따라 자동으로 전환됩니다." />
+    </AccordionItem>
+  </Accordion>,
 );
 ```
 

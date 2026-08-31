@@ -14,7 +14,6 @@ Dropdown Menu はトリガーの下にアクション項目のセットを展開
 ## 使い方
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import {
   Button,
   DropdownMenu,
@@ -24,20 +23,15 @@ import {
 } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(DropdownMenu, {
-    onValueChange: (value) => run(value),
-    children: [
-      createElement(DropdownMenuTrigger, {
-        children: createElement(Button, { children: "メニューを開く", onPress: () => {} }),
-      }),
-      createElement(DropdownMenuContent, {
-        children: [
-          createElement(DropdownMenuItem, { value: "profile", children: "プロフィール" }),
-          createElement(DropdownMenuItem, { value: "settings", children: "設定" }),
-        ],
-      }),
-    ],
-  }),
+  <DropdownMenu onValueChange={(value) => run(value)}>
+    <DropdownMenuTrigger>
+      <Button onPress={() => {}}>メニューを開く</Button>
+    </DropdownMenuTrigger>
+    <DropdownMenuContent>
+      <DropdownMenuItem value="profile">プロフィール</DropdownMenuItem>
+      <DropdownMenuItem value="settings">設定</DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>,
 );
 ```
 

@@ -13,20 +13,22 @@ La casilla de verificación se usa como interruptor booleano independiente. La v
 ## Uso
 
 ```tsx
-import { createElement, useSignal, type PingoNode } from "@dopejs/pingo";
+import { useSignal, type PingoNode } from "@dopejs/pingo";
 import { Checkbox } from "@dopejs/pingo-ui";
 
 // useSignal es un hook y debe ejecutarse dentro del ámbito del componente.
 function NotificationSetting(): PingoNode {
   const enabled = useSignal(false);
-  return createElement(Checkbox, {
-    checked: enabled.get(),
-    label: "Notificaciones activadas",
-    onCheckedChange: (next) => enabled.set(next),
-  });
+  return (
+    <Checkbox
+      checked={enabled.get()}
+      label="Notificaciones activadas"
+      onCheckedChange={(next) => enabled.set(next)}
+    />
+  );
 }
 
-root.render(createElement(NotificationSetting));
+root.render(<NotificationSetting />);
 ```
 
 `checked` lo posee el componente padre y `onCheckedChange` se encarga de actualizarlo; el componente en sí no guarda estado. `label` es opcional y, si se proporciona, renderiza el texto a la derecha de la casilla.

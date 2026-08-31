@@ -13,26 +13,24 @@ description: 可受控也可自持状态的开关控件，用于即时生效的�
 ## 用法
 
 ```tsx
-import { createElement, useSignal, type PingoNode } from "@dopejs/pingo";
+import { useSignal, type PingoNode } from "@dopejs/pingo";
 import { Switch } from "@dopejs/pingo-ui";
 
 // useSignal 是 hook，必须运行在组件作用域内。
 function AirplaneMode(): PingoNode {
   const on = useSignal(false);
-  return createElement(Switch, {
-    checked: on.get(),
-    semanticLabel: "飞行模式",
-    onCheckedChange: (next) => on.set(next),
-  });
+  return (
+    <Switch checked={on.get()} semanticLabel="飞行模式" onCheckedChange={(next) => on.set(next)} />
+  );
 }
 
-root.render(createElement(AirplaneMode));
+root.render(<AirplaneMode />);
 ```
 
 `checked` 由父组件持有，`onCheckedChange` 负责更新它。不需要外部状态时省略 `checked`，组件会自己记住，与 Slider、Tabs、Collapsible 一致：
 
 ```tsx
-createElement(Switch, { defaultChecked: true, semanticLabel: "飞行模式" });
+<Switch defaultChecked semanticLabel="飞行模式" />
 ```
 
 注意受控用法必须真的更新 `checked`：传了 `checked` 却忽略 `onCheckedChange`，开关永远不会动，看上去就像点不动。

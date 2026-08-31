@@ -15,7 +15,7 @@ description: جدول بيانات بالتمرير الافتراضي، تعر�
 `Table` هي دالة بناء خالصة وليست مكوّن memo؛ باستدعائها مباشرة تحصل على عقدة المشهد. عند استدعائها داخل نطاق رسم المكوّن (كما في المكوّن الدالّي أدناه)، تشترك قراءة السمة في تبديل سمة الموقع.
 
 ```tsx
-import { createElement, type PingoNode } from "@dopejs/pingo";
+import type { PingoNode } from "@dopejs/pingo";
 import { Table } from "@dopejs/pingo-ui";
 
 type FileRow = { name: string; size: string };
@@ -26,14 +26,14 @@ function FileTable(): PingoNode {
       {
         key: "name",
         header: "الاسم",
-        cell: (row) => createElement("text", { value: row.name }),
+        cell: (row) => <text value={row.name} />,
       },
       {
         key: "size",
         header: "الحجم",
         width: 96,
         align: "end",
-        cell: (row) => createElement("text", { value: row.size }),
+        cell: (row) => <text value={row.size} />,
       },
     ],
     rowCount: files.length,

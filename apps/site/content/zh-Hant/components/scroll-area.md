@@ -13,13 +13,14 @@ Scroll Area 在固定尺寸的視口內捲動過長的內容，並繪製一條�
 ## 用法
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { ScrollArea } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(ScrollArea, {
-    children: items.map((item) => createElement("text", { value: item })),
-  }),
+  <ScrollArea>
+    {items.map((item) => (
+      <text value={item} />
+    ))}
+  </ScrollArea>,
 );
 ```
 

@@ -13,15 +13,12 @@ Collapsible 是 Accordion 的單項原語：一個觸發器控制一塊內容的
 ## 用法
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Collapsible } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Collapsible, {
-    trigger: "高级选项",
-    defaultOpen: true,
-    children: createElement("text", { value: "折叠区内容。" }),
-  }),
+  <Collapsible trigger="高级选项" defaultOpen>
+    <text value="折叠区内容。" />
+  </Collapsible>,
 );
 ```
 

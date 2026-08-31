@@ -15,17 +15,16 @@ Avatar はユーザーのアバターを表示します。デコード済みの�
 ## 使い方
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Avatar } from "@dopejs/pingo-ui";
 
-root.render(createElement(Avatar, { fallback: "田" }));
+root.render(<Avatar fallback="田" />);
 ```
 
 画像がある場合は、事前デコードした `PingoImage` リソースを渡します。画像は `object-fit: cover` で
 フィットされ、円形に切り抜かれます。
 
 ```tsx
-createElement(Avatar, { image: decodedImage, fallback: "田" });
+<Avatar image={decodedImage} fallback="田" />
 ```
 
 ## 例
@@ -36,7 +35,7 @@ createElement(Avatar, { image: decodedImage, fallback: "田" });
 です。プレビューでは順に 32、デフォルト、56 を表示しています。
 
 ```tsx
-createElement(Avatar, { fallback: "佐", size: 32 });
+<Avatar fallback="佐" size={32} />
 ```
 
 ## Props

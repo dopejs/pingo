@@ -13,20 +13,18 @@ description: פקד מתג נשלט עבור הגדרות בוליאניות ש�
 ## שימוש
 
 ```tsx
-import { createElement, useSignal, type PingoNode } from "@dopejs/pingo";
+import { useSignal, type PingoNode } from "@dopejs/pingo";
 import { Switch } from "@dopejs/pingo-ui";
 
 // useSignal הוא hook, וחייב לרוץ בתוך תחום הרכיב.
 function AirplaneMode(): PingoNode {
   const on = useSignal(false);
-  return createElement(Switch, {
-    checked: on.get(),
-    semanticLabel: "מצב טיסה",
-    onCheckedChange: (next) => on.set(next),
-  });
+  return (
+    <Switch checked={on.get()} semanticLabel="מצב טיסה" onCheckedChange={(next) => on.set(next)} />
+  );
 }
 
-root.render(createElement(AirplaneMode));
+root.render(<AirplaneMode />);
 ```
 
 `checked` מוחזק על ידי רכיב האב, ו-`onCheckedChange` אחראי לעדכונו — הרכיב עצמו אינו שומר מצב.

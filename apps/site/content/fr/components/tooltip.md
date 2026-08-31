@@ -13,14 +13,12 @@ Tooltip affiche un court texte explicatif au survol du pointeur, ancré par déf
 ## Utilisation
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Button, Tooltip } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Tooltip, {
-    content: "Enregistrer dans le cloud",
-    children: createElement(Button, { children: "Enregistrer", onPress: () => save() }),
-  }),
+  <Tooltip content="Enregistrer dans le cloud">
+    <Button onPress={() => save()}>Enregistrer</Button>
+  </Tooltip>,
 );
 ```
 

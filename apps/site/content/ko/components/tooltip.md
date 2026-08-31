@@ -13,14 +13,12 @@ Tooltip은 포인터를 올렸을 때 짧은 설명 텍스트를 표시하며, �
 ## 사용법
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Button, Tooltip } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Tooltip, {
-    content: "클라우드에 저장",
-    children: createElement(Button, { children: "저장", onPress: () => save() }),
-  }),
+  <Tooltip content="클라우드에 저장">
+    <Button onPress={() => save()}>저장</Button>
+  </Tooltip>,
 );
 ```
 

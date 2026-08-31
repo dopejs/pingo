@@ -13,10 +13,9 @@ Skeleton zeigt vor Abschluss des Ladens Platzhalterblöcke, deren Form dem endg�
 ## Verwendung
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Skeleton } from "@dopejs/pingo-ui";
 
-root.render(createElement(Skeleton, { width: 320, height: 16 }));
+root.render(<Skeleton width={320} height={16} />);
 ```
 
 `width` / `height` können beide weggelassen werden; in diesem Fall wird die Größe vollständig dem äußeren Layout und deinem Stylesheet überlassen.

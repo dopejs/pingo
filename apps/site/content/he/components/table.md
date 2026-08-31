@@ -15,7 +15,7 @@ description: טבלת נתונים עם גלילה וירטואלית, הגדר�
 `Table` היא פונקציית בנייה טהורה ולא רכיב memo, קריאה ישירה מחזירה צומת סצנה. כאשר קוראים לה בתוך טווח הרינדור של רכיב (כמו רכיב הפונקציה שלהלן), קריאת הנושא שלה תירשם להחלפות נושא האתר.
 
 ```tsx
-import { createElement, type PingoNode } from "@dopejs/pingo";
+import type { PingoNode } from "@dopejs/pingo";
 import { Table } from "@dopejs/pingo-ui";
 
 type FileRow = { name: string; size: string };
@@ -26,14 +26,14 @@ function FileTable(): PingoNode {
       {
         key: "name",
         header: "שם",
-        cell: (row) => createElement("text", { value: row.name }),
+        cell: (row) => <text value={row.name} />,
       },
       {
         key: "size",
         header: "גודל",
         width: 96,
         align: "end",
-        cell: (row) => createElement("text", { value: row.size }),
+        cell: (row) => <text value={row.size} />,
       },
     ],
     rowCount: files.length,

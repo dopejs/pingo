@@ -18,7 +18,7 @@ description: 引擎原生可编辑文本原语——受控 revision 事务契约
 受控写法：`value` + 单调递增的 `revision`，在 `onTransaction` 里确认 Core 发来的事务：
 
 ```tsx
-import { createElement, Input, type EditTransaction } from "@dopejs/pingo";
+import { Input, type EditTransaction } from "@dopejs/pingo";
 
 let value = "订单备注";
 let revision = 1n;
@@ -30,15 +30,15 @@ function applyDelta(current: string, transaction: EditTransaction): string {
     : current.slice(0, delta.range.start) + delta.text + current.slice(delta.range.end);
 }
 
-createElement(Input, {
-  value,
-  revision,
-  semanticLabel: "订单备注",
-  onTransaction: (transaction) => {
+<Input
+  value={value}
+  revision={revision}
+  semanticLabel="订单备注"
+  onTransaction={(transaction) => {
     value = applyDelta(value, transaction);
     revision = transaction.revision;
-  },
-});
+  }}
+/>;
 ```
 
 纯本地状态也可以不传 `value` / `revision`，改用 `TextEditingController`

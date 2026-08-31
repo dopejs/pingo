@@ -13,15 +13,12 @@ description: منطقة محتوى واحدة قابلة للطي والفتح،
 ## الاستخدام
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Collapsible } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Collapsible, {
-    trigger: "خيارات متقدمة",
-    defaultOpen: true,
-    children: createElement("text", { value: "محتوى المنطقة القابلة للطي." }),
-  }),
+  <Collapsible trigger="خيارات متقدمة" defaultOpen>
+    <text value="محتوى المنطقة القابلة للطي." />
+  </Collapsible>,
 );
 ```
 

@@ -13,24 +13,22 @@ Eine Umschaltgruppe fasst mehrere [Toggle](/components/toggle) zu einer Einfach-
 ## Verwendung
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { ToggleGroup, ToggleGroupItem } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(ToggleGroup, {
-    type: "single",
-    defaultValue: ["center"],
-    onValueChange: (value) => console.log(value),
-    children: [
-      createElement(ToggleGroupItem, { value: "left", children: "左对齐" }),
-      createElement(ToggleGroupItem, { value: "center", children: "居中" }),
-      createElement(ToggleGroupItem, { value: "right", children: "右对齐" }),
-    ],
-  }),
+  <ToggleGroup
+    type="single"
+    defaultValue={["center"]}
+    onValueChange={(value) => console.log(value)}
+  >
+    <ToggleGroupItem value="left">左对齐</ToggleGroupItem>
+    <ToggleGroupItem value="center">居中</ToggleGroupItem>
+    <ToggleGroupItem value="right">右对齐</ToggleGroupItem>
+  </ToggleGroup>,
 );
 ```
 
-`ToggleGroup` veröffentlicht die Auswahlmenge über einen Kontext an `ToggleGroupItem`; beide müssen mit `createElement` als Komponenten eingebunden werden. Bei `type: "single"` ersetzt eine neue Auswahl die vorherige; bei `"multiple"` werden die Elemente einzeln hinzugefügt.
+`ToggleGroup` veröffentlicht die Auswahlmenge über einen Kontext an `ToggleGroupItem`; beide müssen mit JSX als Komponenten eingebunden werden. Bei `type: "single"` ersetzt eine neue Auswahl die vorherige; bei `"multiple"` werden die Elemente einzeln hinzugefügt.
 
 ## Beispiele
 

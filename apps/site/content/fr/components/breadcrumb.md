@@ -17,17 +17,16 @@ clair/sombre du site.
 ## Utilisation
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Breadcrumb } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Breadcrumb, {
-    items: [
+  <Breadcrumb
+    items={[
       { label: "首页", onNavigate: () => navigate("/") },
       { label: "组件", onNavigate: () => navigate("/components") },
       { label: "Breadcrumb" }, // 末项是当前页，无需 onNavigate
-    ],
-  }),
+    ]}
+  />,
 );
 ```
 

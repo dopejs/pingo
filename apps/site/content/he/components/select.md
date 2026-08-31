@@ -13,27 +13,20 @@ description: בורר רשימה נפתחת מודולרי, תומך בניוו�
 ## שימוש
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Select, {
-    value: "pingo-ui",
-    onValueChange: (value) => console.log(value),
-    children: [
-      createElement(SelectTrigger, { placeholder: "בחר חבילה" }),
-      createElement(SelectContent, {
-        children: [
-          createElement(SelectItem, { value: "pingo", children: "@dopejs/pingo" }),
-          createElement(SelectItem, { value: "pingo-ui", children: "@dopejs/pingo-ui" }),
-        ],
-      }),
-    ],
-  }),
+  <Select value="pingo-ui" onValueChange={(value) => console.log(value)}>
+    <SelectTrigger placeholder="בחר חבילה" />
+    <SelectContent>
+      <SelectItem value="pingo">@dopejs/pingo</SelectItem>
+      <SelectItem value="pingo-ui">@dopejs/pingo-ui</SelectItem>
+    </SelectContent>
+  </Select>,
 );
 ```
 
-כל החלקים משתפים פעולה דרך context, ויש לטעון את כולם כרכיבים באמצעות `createElement`. הטריגר מציג את ה-`value` שנבחר; כשאין בחירה מוצג ה-`placeholder`.
+כל החלקים משתפים פעולה דרך context, ויש לטעון את כולם כרכיבים באמצעות JSX. הטריגר מציג את ה-`value` שנבחר; כשאין בחירה מוצג ה-`placeholder`.
 
 ## דוגמאות
 

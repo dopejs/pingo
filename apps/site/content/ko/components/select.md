@@ -13,27 +13,20 @@ description: 조합형 드롭다운 선택기로 키보드 탐색을 지원하�
 ## 사용법
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Select, {
-    value: "pingo-ui",
-    onValueChange: (value) => console.log(value),
-    children: [
-      createElement(SelectTrigger, { placeholder: "패키지 선택" }),
-      createElement(SelectContent, {
-        children: [
-          createElement(SelectItem, { value: "pingo", children: "@dopejs/pingo" }),
-          createElement(SelectItem, { value: "pingo-ui", children: "@dopejs/pingo-ui" }),
-        ],
-      }),
-    ],
-  }),
+  <Select value="pingo-ui" onValueChange={(value) => console.log(value)}>
+    <SelectTrigger placeholder="패키지 선택" />
+    <SelectContent>
+      <SelectItem value="pingo">@dopejs/pingo</SelectItem>
+      <SelectItem value="pingo-ui">@dopejs/pingo-ui</SelectItem>
+    </SelectContent>
+  </Select>,
 );
 ```
 
-모든 부분은 context를 통해 협력하며, 반드시 `createElement`를 사용해 컴포넌트 형태로 마운트해야 합니다. 트리거는 현재 선택된 `value`를 표시합니다. 선택되지 않은 경우 `placeholder`를 표시합니다.
+모든 부분은 context를 통해 협력하며, 반드시 JSX를 사용해 컴포넌트 형태로 마운트해야 합니다. 트리거는 현재 선택된 `value`를 표시합니다. 선택되지 않은 경우 `placeholder`를 표시합니다.
 
 ## 예시
 

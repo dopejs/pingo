@@ -13,25 +13,17 @@ Le Menu de navigation est la version sémantique de navigation du [Menubar](/com
 ## Utilisation
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { MenubarMenu, NavigationMenu } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(NavigationMenu, {
-    onValueChange: (value) => {},
-    children: [
-      createElement(MenubarMenu, {
-        value: "products",
-        label: "产品",
-        children: createElement("text", { value: "渲染引擎" }),
-      }),
-      createElement(MenubarMenu, {
-        value: "docs",
-        label: "文档",
-        children: createElement("text", { value: "快速开始" }),
-      }),
-    ],
-  }),
+  <NavigationMenu onValueChange={(value) => {}}>
+    <MenubarMenu value="products" label="产品">
+      <text value="渲染引擎" />
+    </MenubarMenu>
+    <MenubarMenu value="docs" label="文档">
+      <text value="快速开始" />
+    </MenubarMenu>
+  </NavigationMenu>,
 );
 ```
 

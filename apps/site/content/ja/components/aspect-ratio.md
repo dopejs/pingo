@@ -14,15 +14,9 @@ Aspect Ratio はコンテンツを固定のアスペクト比に保ちます。�
 ## 使い方
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { AspectRatio } from "@dopejs/pingo-ui";
 
-root.render(
-  createElement(AspectRatio, {
-    ratio: 16 / 9,
-    children: coverImage,
-  }),
-);
+root.render(<AspectRatio ratio={16 / 9}>{coverImage}</AspectRatio>);
 ```
 
 コンポーネントの幅は親コンテナの 100% です。`ratio` は幅÷高さで、たとえば `16 / 9` はワイド画面を表します。

@@ -13,20 +13,19 @@ Entrada de texto multilínea para contenido más extenso, como notas o biografí
 ## Uso
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { TextArea } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(TextArea, {
-    semanticLabel: "Biografía personal",
-    width: 360,
-    rows: 4,
-    onValueChange: (value) => console.log(value),
-  }),
+  <TextArea
+    semanticLabel="Biografía personal"
+    width={360}
+    rows={4}
+    onValueChange={(value) => console.log(value)}
+  />,
 );
 ```
 
-`rows` determina el número de líneas visibles y fija la altura mínima del contenedor (`rows × altura de línea + relleno superior e inferior`). Al igual que [Input](/components/input), `TextArea` debe montarse como componente mediante `createElement`. Consulte los detalles de edición en la [guía de edición de texto](/guide/editing).
+`rows` determina el número de líneas visibles y fija la altura mínima del contenedor (`rows × altura de línea + relleno superior e inferior`). Al igual que [Input](/components/input), `TextArea` debe montarse como componente mediante JSX. Consulte los detalles de edición en la [guía de edición de texto](/guide/editing).
 
 ## Ejemplos
 

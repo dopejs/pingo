@@ -23,20 +23,19 @@ pingoのホスト要素はSceneノードに直接対応し、CSSカスケード�
 ## 使用例
 
 ```tsx
-import { createElement, Text, View } from "@dopejs/pingo";
+import { Text, View } from "@dopejs/pingo";
 
 root.render(
-  createElement(View, {
-    width: 420,
-    padding: 16,
-    backgroundColor: "#ffffffff",
-    style: { flexDirection: "column", borderRadius: 10 },
-    children: [
-      createElement(Text, { value: "标题", fontSize: 24, lineHeight: 32, fontWeight: 700 }),
-      createElement(View, { height: 8 }),
-      createElement(Text, { value: "正文", fontSize: 14, lineHeight: 22 }),
-    ],
-  }),
+  <View
+    width={420}
+    padding={16}
+    backgroundColor="#ffffffff"
+    style={{ flexDirection: "column", borderRadius: 10 }}
+  >
+    <Text value="标题" fontSize={24} lineHeight={32} fontWeight={700} />
+    <View height={8} />
+    <Text value="正文" fontSize={14} lineHeight={22} />
+  </View>,
 );
 ```
 
@@ -67,11 +66,11 @@ root.render(
 
 `Image` の `source` は `PingoImage`——Shell側が保持する**不変のRGBA8ビットマップ**であり、コミット境界でSceneリソースとしてインライン同期される。`createImage` で生成し、ピクセルをコピーして検証する。
 
-```ts
+```tsx
 import { createImage, Image } from "@dopejs/pingo";
 
 const icon = createImage(pixels, 96, 96, { label: "应用图标" });
-createElement(Image, { source: icon, width: 48, height: 48 });
+<Image source={icon} width={48} height={48} />;
 ```
 
 `width` / `height` を渡さない場合、ノードは画像のピクセルサイズを採用する。渡した場合はノードボックスにスケーリングされる。`label` はアクセシビリティ名であり、空にすると装飾画像として扱われる。
@@ -85,13 +84,13 @@ createElement(Image, { source: icon, width: 48, height: 48 });
 
 `Text` / 編集可能要素の `font` propは、明示的な不変SFNTフォント（TTF/OTF/TTC）を受け取り、Coreが決定的にシェーピングする。`createFont` はデコード済みのSFNTバイト列を受け取る。`loadFont` はさらにネットワーク読み込みとWOFF/WOFF2デコードを処理する。
 
-```ts
+```tsx
 import { loadFont } from "@dopejs/pingo";
 
 const inter = await loadFont("/fonts/Inter-Regular.woff2", {
   fallbackFamily: "sans-serif",
 });
-createElement(Text, { value: "Hello", font: inter, fontSize: 16 });
+<Text value="Hello" font={inter} fontSize={16} />;
 ```
 
 `PingoFontOptions`：`faceIndex`（TTCコレクション内のフェイスインデックス。デフォルト `0`）と

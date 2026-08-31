@@ -13,16 +13,15 @@ description: 정길이 일회용 인증번호 입력으로, 칸별 입력과 전
 ## 사용법
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { InputOTP } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(InputOTP, {
-    length: 6,
-    semanticLabel: "일회용 인증번호",
-    onValueChange: (value) => console.log(value),
-    onComplete: (code) => verify(code),
-  }),
+  <InputOTP
+    length={6}
+    semanticLabel="일회용 인증번호"
+    onValueChange={(value) => console.log(value)}
+    onComplete={(code) => verify(code)}
+  />,
 );
 ```
 

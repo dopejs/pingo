@@ -15,16 +15,12 @@ description: 上下の端からスライドインするドロワーパネル。�
 ## 使い方
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Drawer } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Drawer, {
-    open,
-    onOpenChange: (next) => setOpen(next),
-    side: "bottom",
-    children: createElement("text", { value: "ドロワーのコンテンツ" }),
-  }),
+  <Drawer open={open} onOpenChange={(next) => setOpen(next)} side="bottom">
+    <text value="ドロワーのコンテンツ" />
+  </Drawer>,
 );
 ```
 

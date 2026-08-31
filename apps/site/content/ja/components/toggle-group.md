@@ -13,24 +13,22 @@ description: 二状態を切り替えるボタンのグループ。単一選択�
 ## 使い方
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { ToggleGroup, ToggleGroupItem } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(ToggleGroup, {
-    type: "single",
-    defaultValue: ["center"],
-    onValueChange: (value) => console.log(value),
-    children: [
-      createElement(ToggleGroupItem, { value: "left", children: "左揃え" }),
-      createElement(ToggleGroupItem, { value: "center", children: "中央揃え" }),
-      createElement(ToggleGroupItem, { value: "right", children: "右揃え" }),
-    ],
-  }),
+  <ToggleGroup
+    type="single"
+    defaultValue={["center"]}
+    onValueChange={(value) => console.log(value)}
+  >
+    <ToggleGroupItem value="left">左揃え</ToggleGroupItem>
+    <ToggleGroupItem value="center">中央揃え</ToggleGroupItem>
+    <ToggleGroupItem value="right">右揃え</ToggleGroupItem>
+  </ToggleGroup>,
 );
 ```
 
-`ToggleGroup` は context を通じて `ToggleGroupItem` に選択集合を配信します。どちらも `createElement` でコンポーネントとしてマウントする必要があります。`type: "single"` の場合、新しい選択によって前の選択は解除されます。`"multiple"` の場合は項目ごとに追加選択されます。
+`ToggleGroup` は context を通じて `ToggleGroupItem` に選択集合を配信します。どちらも JSX でコンポーネントとしてマウントする必要があります。`type: "single"` の場合、新しい選択によって前の選択は解除されます。`"multiple"` の場合は項目ごとに追加選択されます。
 
 ## 例
 

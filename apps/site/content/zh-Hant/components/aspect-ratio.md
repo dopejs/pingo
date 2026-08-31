@@ -13,15 +13,9 @@ Aspect Ratio 讓內容保持固定的寬高比：寬度由版面決定，高度�
 ## 用法
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { AspectRatio } from "@dopejs/pingo-ui";
 
-root.render(
-  createElement(AspectRatio, {
-    ratio: 16 / 9,
-    children: coverImage,
-  }),
-);
+root.render(<AspectRatio ratio={16 / 9}>{coverImage}</AspectRatio>);
 ```
 
 元件寬度為父容器的 100%；`ratio` 為寬除以高，例如 `16 / 9` 表示寬屏。

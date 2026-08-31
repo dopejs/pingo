@@ -13,14 +13,12 @@ Tooltip 在指標懸停時顯示一小段說明文字，預設錨定在目標上
 ## 用法
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Button, Tooltip } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Tooltip, {
-    content: "保存到云端",
-    children: createElement(Button, { children: "保存", onPress: () => save() }),
-  }),
+  <Tooltip content="保存到云端">
+    <Button onPress={() => save()}>保存</Button>
+  </Tooltip>,
 );
 ```
 

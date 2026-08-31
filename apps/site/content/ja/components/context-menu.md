@@ -15,19 +15,19 @@ Context Menu は、対象領域上で右クリック（`contextmenu` イベン�
 ## 使い方
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { ContextMenu } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(ContextMenu, {
-    items: [
+  <ContextMenu
+    items={[
       { value: "copy", label: "コピー" },
       { value: "paste", label: "貼り付け", disabled: true },
       { value: "delete", label: "削除" },
-    ],
-    onSelect: (value) => run(value),
-    children: createElement("text", { value: "ここで右クリック" }),
-  }),
+    ]}
+    onSelect={(value) => run(value)}
+  >
+    <text value="ここで右クリック" />
+  </ContextMenu>,
 );
 ```
 

@@ -13,10 +13,9 @@ Las líneas divisorias proporcionan agrupación visual entre contenidos. La vist
 ## Uso
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Divider } from "@dopejs/pingo-ui";
 
-root.render(createElement(Divider, {}));
+root.render(<Divider />);
 ```
 
 ## Ejemplos

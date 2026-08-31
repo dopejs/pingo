@@ -15,18 +15,17 @@ Command は検索ボックス付きのコマンドパレットです。入力で
 ## 使い方
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Command } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Command, {
-    items: [
+  <Command
+    items={[
       { value: "open", label: "ファイルを開く" },
       { value: "save", label: "ファイルを保存" },
-    ],
-    onSelect: (value) => run(value),
-    onDismiss: () => closePalette(),
-  }),
+    ]}
+    onSelect={(value) => run(value)}
+    onDismiss={() => closePalette()}
+  />,
 );
 ```
 

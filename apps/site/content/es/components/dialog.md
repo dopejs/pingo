@@ -13,7 +13,6 @@ El diálogo abre un panel modal sobre el contenido actual, con un fondo de super
 ## Uso
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import {
   Button,
   Dialog,
@@ -24,21 +23,15 @@ import {
 } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Dialog, {
-    open,
-    onOpenChange: (next) => setOpen(next),
-    children: [
-      createElement(DialogHeader, {
-        children: [
-          createElement(DialogTitle, { children: "编辑资料" }),
-          createElement(DialogDescription, { children: "修改会立即同步。" }),
-        ],
-      }),
-      createElement(DialogFooter, {
-        children: createElement(Button, { children: "保存", onPress: () => save() }),
-      }),
-    ],
-  }),
+  <Dialog open={open} onOpenChange={(next) => setOpen(next)}>
+    <DialogHeader>
+      <DialogTitle>编辑资料</DialogTitle>
+      <DialogDescription>修改会立即同步。</DialogDescription>
+    </DialogHeader>
+    <DialogFooter>
+      <Button onPress={() => save()}>保存</Button>
+    </DialogFooter>
+  </Dialog>,
 );
 ```
 

@@ -13,25 +13,17 @@ Menubar는 하나의 열림 위치를 공유하는 메뉴 모음으로, 데스�
 ## 사용법
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Menubar, MenubarMenu } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Menubar, {
-    onValueChange: (value) => {},
-    children: [
-      createElement(MenubarMenu, {
-        value: "file",
-        label: "파일",
-        children: createElement("text", { value: "새로 만들기" }),
-      }),
-      createElement(MenubarMenu, {
-        value: "edit",
-        label: "편집",
-        children: createElement("text", { value: "실행 취소" }),
-      }),
-    ],
-  }),
+  <Menubar onValueChange={(value) => {}}>
+    <MenubarMenu value="file" label="파일">
+      <text value="새로 만들기" />
+    </MenubarMenu>
+    <MenubarMenu value="edit" label="편집">
+      <text value="실행 취소" />
+    </MenubarMenu>
+  </Menubar>,
 );
 ```
 

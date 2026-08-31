@@ -13,24 +13,22 @@ Le groupe de boutons de bascule combine plusieurs [Toggle](/components/toggle) e
 ## Utilisation
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { ToggleGroup, ToggleGroupItem } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(ToggleGroup, {
-    type: "single",
-    defaultValue: ["center"],
-    onValueChange: (value) => console.log(value),
-    children: [
-      createElement(ToggleGroupItem, { value: "left", children: "左对齐" }),
-      createElement(ToggleGroupItem, { value: "center", children: "居中" }),
-      createElement(ToggleGroupItem, { value: "right", children: "右对齐" }),
-    ],
-  }),
+  <ToggleGroup
+    type="single"
+    defaultValue={["center"]}
+    onValueChange={(value) => console.log(value)}
+  >
+    <ToggleGroupItem value="left">左对齐</ToggleGroupItem>
+    <ToggleGroupItem value="center">居中</ToggleGroupItem>
+    <ToggleGroupItem value="right">右对齐</ToggleGroupItem>
+  </ToggleGroup>,
 );
 ```
 
-`ToggleGroup` publie l’ensemble sélectionné vers les `ToggleGroupItem` via le contexte ; les deux doivent être montés en tant que composants avec `createElement`. Avec `type: "single"`, une nouvelle sélection efface la précédente ; avec `"multiple"`, les éléments s’ajoutent un à un.
+`ToggleGroup` publie l’ensemble sélectionné vers les `ToggleGroupItem` via le contexte ; les deux doivent être montés en tant que composants avec JSX. Avec `type: "single"`, une nouvelle sélection efface la précédente ; avec `"multiple"`, les éléments s’ajoutent un à un.
 
 ## Exemples
 

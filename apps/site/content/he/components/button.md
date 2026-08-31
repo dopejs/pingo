@@ -13,15 +13,12 @@ description: כפתור להפעלת פעולות או אירועים, המרו�
 ## שימוש
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Button } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Button, {
-    children: "שמור",
-    variant: "default",
-    onPress: () => save(),
-  }),
+  <Button variant="default" onPress={() => save()}>
+    שמור
+  </Button>,
 );
 ```
 

@@ -13,15 +13,9 @@ description: حاوية تقيّد المحتوى بنسبة عرض إلى ار�
 ## الاستخدام
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { AspectRatio } from "@dopejs/pingo-ui";
 
-root.render(
-  createElement(AspectRatio, {
-    ratio: 16 / 9,
-    children: coverImage,
-  }),
-);
+root.render(<AspectRatio ratio={16 / 9}>{coverImage}</AspectRatio>);
 ```
 
 يكون عرض المكوّن 100% من عرض العنصر الأب؛ و`ratio` هو العرض مقسومًا على الارتفاع، فمثلًا `16 / 9` تعني شاشة عريضة.

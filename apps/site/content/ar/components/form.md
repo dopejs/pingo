@@ -13,21 +13,14 @@ description: حاوية النموذج ومغلّف الحقل، مسؤولة ع
 ## الاستخدام
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Form, FormField, Input } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Form, {
-    children: createElement(FormField, {
-      label: "البريد الإلكتروني",
-      required: true,
-      error: emailError, // قواعد التحقق يملكها الطرف المستدعي
-      children: createElement(Input, {
-        semanticLabel: "البريد الإلكتروني",
-        onValueChange: (value) => validate(value),
-      }),
-    }),
-  }),
+  <Form>
+    <FormField label="البريد الإلكتروني" required error={emailError}>
+      <Input semanticLabel="البريد الإلكتروني" onValueChange={(value) => validate(value)} />
+    </FormField>
+  </Form>,
 );
 ```
 

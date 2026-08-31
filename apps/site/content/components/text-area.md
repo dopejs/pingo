@@ -13,20 +13,19 @@ description: 多行文本输入框，由 pingo 编辑引擎驱动，渲染在 ca
 ## 用法
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { TextArea } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(TextArea, {
-    semanticLabel: "个人简介",
-    width: 360,
-    rows: 4,
-    onValueChange: (value) => console.log(value),
-  }),
+  <TextArea
+    semanticLabel="个人简介"
+    width={360}
+    rows={4}
+    onValueChange={(value) => console.log(value)}
+  />,
 );
 ```
 
-`rows` 决定可见行数并锁定外壳最小高度（`rows × 行高 + 上下内边距`）。与 [Input](/components/input) 一样，`TextArea` 必须用 `createElement` 以组件形式挂载。编辑细节见[文本编辑指南](/guide/editing)。
+`rows` 决定可见行数并锁定外壳最小高度（`rows × 行高 + 上下内边距`）。与 [Input](/components/input) 一样，`TextArea` 必须用 JSX 以组件形式挂载。编辑细节见[文本编辑指南](/guide/editing)。
 
 ## 示例
 

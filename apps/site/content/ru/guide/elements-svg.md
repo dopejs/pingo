@@ -17,18 +17,11 @@ SVG path data; `Svg` принимает целый документ, разоб�
 ## Path: одиночный контур
 
 ```tsx
-import { createElement, Path, View } from "@dopejs/pingo";
+import { Path, View } from "@dopejs/pingo";
 
-createElement(View, {
-  style: { color: "#3157dfff" }, // контур рисуется цветом узла и наследуется, как у текста
-  children: createElement(Path, {
-    d: "M20 6 9 17l-5-5",
-    viewBox: [0, 0, 24, 24],
-    width: 24,
-    height: 24,
-    strokeWidth: 2,
-  }),
-});
+<View style={{ color: "#3157dfff" }}>
+  <Path d="M20 6 9 17l-5-5" viewBox={[0, 0, 24, 24]} width={24} height={24} strokeWidth={2} />
+</View>;
 ```
 
 - `d` поддерживает полный синтаксис SVG path (`M L H V C S Q T A Z` и строчные
@@ -71,11 +64,11 @@ createElement(View, {
 обведена, становится двумя узлами — заливка и обводка это два вида paint, а не две
 половины одного узла.
 
-```ts
+```tsx
 import { createSvg, loadSvg, Svg } from "@dopejs/pingo";
 
 const icon = createSvg(`<svg viewBox="0 0 24 24" stroke="currentColor" …>…</svg>`);
-createElement(Svg, { source: icon, width: 24, height: 24, style: { color: "#3157df" } });
+<Svg source={icon} width={24} height={24} style={{ color: "#3157df" }} />;
 
 const remote = await loadSvg("/assets/logo.svg");
 ```

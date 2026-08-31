@@ -15,16 +15,15 @@ description: 固定長のワンタイムコード入力。1 マスずつの入�
 ## 使い方
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { InputOTP } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(InputOTP, {
-    length: 6,
-    semanticLabel: "ワンタイムコード",
-    onValueChange: (value) => console.log(value),
-    onComplete: (code) => verify(code),
-  }),
+  <InputOTP
+    length={6}
+    semanticLabel="ワンタイムコード"
+    onValueChange={(value) => console.log(value)}
+    onComplete={(code) => verify(code)}
+  />,
 );
 ```
 

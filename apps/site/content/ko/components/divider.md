@@ -13,10 +13,9 @@ description: pingo canvas에 렌더링되는 수평 또는 수직 시각적 구�
 ## 사용법
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Divider } from "@dopejs/pingo-ui";
 
-root.render(createElement(Divider, {}));
+root.render(<Divider />);
 ```
 
 ## 예시

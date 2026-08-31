@@ -13,22 +13,17 @@ Popover는 트리거 옆에 플로팅 패널을 열며, 페이지를 스크롤�
 ## 사용법
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Button, Popover, PopoverContent, PopoverTrigger } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Popover, {
-    defaultOpen: false,
-    onOpenChange: (open) => {},
-    children: [
-      createElement(PopoverTrigger, {
-        children: createElement(Button, { children: "패널 열기", onPress: () => {} }),
-      }),
-      createElement(PopoverContent, {
-        children: createElement("text", { value: "임의의 내용" }),
-      }),
-    ],
-  }),
+  <Popover defaultOpen={false} onOpenChange={(open) => {}}>
+    <PopoverTrigger>
+      <Button onPress={() => {}}>패널 열기</Button>
+    </PopoverTrigger>
+    <PopoverContent>
+      <text value="임의의 내용" />
+    </PopoverContent>
+  </Popover>,
 );
 ```
 

@@ -16,8 +16,8 @@ los límites.
 Compila texto CSS con `createStyleSheet` (lanza `StyleSheetCompileError` ante entrada inválida) y
 regístralo al crear el root:
 
-```ts
-import { createElement, createHostedCanvasRoot, createStyleSheet } from "@dopejs/pingo";
+```tsx
+import { createHostedCanvasRoot, createStyleSheet } from "@dopejs/pingo";
 
 const sheet = createStyleSheet(
   `
@@ -33,11 +33,9 @@ const sheet = createStyleSheet(
 const root = await createHostedCanvasRoot(canvas, { styleSheets: [sheet] });
 
 root.render(
-  createElement("container", {
-    className: "card",
-    width: 320,
-    children: createElement("text", { value: "你好", fontSize: 14 }),
-  }),
+  <container className="card" width={320}>
+    <text value="你好" fontSize={14} />
+  </container>,
 );
 ```
 

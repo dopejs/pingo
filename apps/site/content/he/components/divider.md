@@ -13,10 +13,9 @@ description: קו הפרדה ויזואלי אופקי או אנכי, המרונ
 ## שימוש
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Divider } from "@dopejs/pingo-ui";
 
-root.render(createElement(Divider, {}));
+root.render(<Divider />);
 ```
 
 ## דוגמאות

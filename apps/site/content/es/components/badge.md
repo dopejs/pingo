@@ -15,10 +15,9 @@ pingo y sigue el tema del sitio al cambiar entre claro y oscuro.
 ## Uso
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Badge } from "@dopejs/pingo-ui";
 
-root.render(createElement(Badge, { children: "Beta" }));
+root.render(<Badge>Beta</Badge>);
 ```
 
 ## Ejemplos
@@ -29,7 +28,7 @@ Cuatro variantes cubren la semántica habitual: `default` (énfasis), `secondary
 `destructive` (error/peligro) y `outline` (contorno). La vista previa las muestra en ese orden.
 
 ```tsx
-createElement(Badge, { children: "只读", variant: "secondary" });
+<Badge variant="secondary">只读</Badge>
 ```
 
 ### Combinación con otros componentes
@@ -38,12 +37,12 @@ Badge suele usarse como elemento trailing de una fila de lista o de una tarjeta,
 `Avatar` y `ListRow`:
 
 ```tsx
-createElement(ListRow, {
-  title: "张三",
-  leading: createElement(Avatar, { fallback: "张", size: 32 }),
-  trailing: createElement(Badge, { children: "管理员" }),
-  onPress: () => {},
-});
+<ListRow
+  title="张三"
+  leading={<Avatar fallback="张" size={32} />}
+  trailing={<Badge>管理员</Badge>}
+  onPress={() => {}}
+/>
 ```
 
 ## Props

@@ -13,19 +13,14 @@ description: 單行文字輸入框，由 pingo 編輯引擎驅動，渲染在 ca
 ## 用法
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Input } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Input, {
-    semanticLabel: "邮箱",
-    width: 320,
-    onValueChange: (value) => console.log(value),
-  }),
+  <Input semanticLabel="邮箱" width={320} onValueChange={(value) => console.log(value)} />,
 );
 ```
 
-`Input` 內部透過 hooks 維護一個穩定的 `TextEditingController`，因此必須用 `createElement(Input, props)` 以元件形式掛載，不能直接當函式呼叫。編輯細節見[文字編輯指南](/guide/editing)。
+`Input` 內部透過 hooks 維護一個穩定的 `TextEditingController`，因此必須用 `<Input … />` 以元素形式掛載，不能直接當函式呼叫——直接呼叫會以「hooks may only run in a function component」失敗。編輯細節見[文字編輯指南](/guide/editing)。
 
 ## 示例
 

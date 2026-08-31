@@ -13,21 +13,14 @@ description: 表单容器与字段包装器，负责布局、语义与错误/描
 ## 用法
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Form, FormField, Input } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Form, {
-    children: createElement(FormField, {
-      label: "邮箱",
-      required: true,
-      error: emailError, // 校验规则由调用方持有
-      children: createElement(Input, {
-        semanticLabel: "邮箱",
-        onValueChange: (value) => validate(value),
-      }),
-    }),
-  }),
+  <Form>
+    <FormField label="邮箱" required error={emailError}>
+      <Input semanticLabel="邮箱" onValueChange={(value) => validate(value)} />
+    </FormField>
+  </Form>,
 );
 ```
 

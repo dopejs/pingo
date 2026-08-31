@@ -13,20 +13,22 @@ L'interrupteur sert aux réglages booléens à effet immédiat. L'aperçu ci-des
 ## Utilisation
 
 ```tsx
-import { createElement, useSignal, type PingoNode } from "@dopejs/pingo";
+import { useSignal, type PingoNode } from "@dopejs/pingo";
 import { Switch } from "@dopejs/pingo-ui";
 
 // useSignal est un hook, il doit s'exécuter dans la portée d'un composant.
 function AirplaneMode(): PingoNode {
   const on = useSignal(false);
-  return createElement(Switch, {
-    checked: on.get(),
-    semanticLabel: "Mode avion",
-    onCheckedChange: (next) => on.set(next),
-  });
+  return (
+    <Switch
+      checked={on.get()}
+      semanticLabel="Mode avion"
+      onCheckedChange={(next) => on.set(next)}
+    />
+  );
 }
 
-root.render(createElement(AirplaneMode));
+root.render(<AirplaneMode />);
 ```
 
 `checked` est détenu par le composant parent, `onCheckedChange` se charge de le mettre à jour — le composant lui-même ne conserve aucun état.

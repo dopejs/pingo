@@ -28,20 +28,19 @@ Scene:
 ## שימוש
 
 ```tsx
-import { createElement, Text, View } from "@dopejs/pingo";
+import { Text, View } from "@dopejs/pingo";
 
 root.render(
-  createElement(View, {
-    width: 420,
-    padding: 16,
-    backgroundColor: "#ffffffff",
-    style: { flexDirection: "column", borderRadius: 10 },
-    children: [
-      createElement(Text, { value: "כותרת", fontSize: 24, lineHeight: 32, fontWeight: 700 }),
-      createElement(View, { height: 8 }),
-      createElement(Text, { value: "גוף", fontSize: 14, lineHeight: 22 }),
-    ],
-  }),
+  <View
+    width={420}
+    padding={16}
+    backgroundColor="#ffffffff"
+    style={{ flexDirection: "column", borderRadius: 10 }}
+  >
+    <Text value="כותרת" fontSize={24} lineHeight={32} fontWeight={700} />
+    <View height={8} />
+    <Text value="גוף" fontSize={14} lineHeight={22} />
+  </View>,
 );
 ```
 
@@ -75,11 +74,11 @@ root.render(
 ומוטמעת כמשאב Scene באופן סינכרוני בגבול ה-commit. יוצרים עם `createImage`, שמעתיק ומאמת את
 הפיקסלים:
 
-```ts
+```tsx
 import { createImage, Image } from "@dopejs/pingo";
 
 const icon = createImage(pixels, 96, 96, { label: "אייקון האפליקציה" });
-createElement(Image, { source: icon, width: 48, height: 48 });
+<Image source={icon} width={48} height={48} />;
 ```
 
 בלי `width` / `height` הצומת לוקח את ממדי הפיקסלים של התמונה; אם הועברו, התמונה מותאמת לקופסת
@@ -98,13 +97,13 @@ createElement(Image, { source: icon, width: 48, height: 48 });
 (TTF/OTF/TTC) שהליבה מעצבת באופן דטרמיניסטי. `createFont` מקבל בתי SFNT שכבר פוענחו; `loadFont`
 מטפל גם בטעינת רשת ובפענוח WOFF/WOFF2:
 
-```ts
+```tsx
 import { loadFont } from "@dopejs/pingo";
 
 const inter = await loadFont("/fonts/Inter-Regular.woff2", {
   fallbackFamily: "sans-serif",
 });
-createElement(Text, { value: "Hello", font: inter, fontSize: 16 });
+<Text value="Hello" font={inter} fontSize={16} />;
 ```
 
 ‏`PingoFontOptions`: `faceIndex` (אינדקס הפנים באוסף TTC, ברירת מחדל `0`) ו-`fallbackFamily`

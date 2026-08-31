@@ -15,14 +15,10 @@ description: 日付に紐付いたポップアップカレンダー選択器。p
 ## 使い方
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { DatePicker, type CalendarDate } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(DatePicker, {
-    placeholder: "日付を選択",
-    onSelect: (date: CalendarDate) => console.log(date),
-  }),
+  <DatePicker placeholder="日付を選択" onSelect={(date: CalendarDate) => console.log(date)} />,
 );
 ```
 

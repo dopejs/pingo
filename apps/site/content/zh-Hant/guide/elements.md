@@ -25,20 +25,19 @@ pingo 的主機元素直接對應 Scene 節點，不存在 CSS 層疊或選擇�
 ## 用法
 
 ```tsx
-import { createElement, Text, View } from "@dopejs/pingo";
+import { Text, View } from "@dopejs/pingo";
 
 root.render(
-  createElement(View, {
-    width: 420,
-    padding: 16,
-    backgroundColor: "#ffffffff",
-    style: { flexDirection: "column", borderRadius: 10 },
-    children: [
-      createElement(Text, { value: "标题", fontSize: 24, lineHeight: 32, fontWeight: 700 }),
-      createElement(View, { height: 8 }),
-      createElement(Text, { value: "正文", fontSize: 14, lineHeight: 22 }),
-    ],
-  }),
+  <View
+    width={420}
+    padding={16}
+    backgroundColor="#ffffffff"
+    style={{ flexDirection: "column", borderRadius: 10 }}
+  >
+    <Text value="标题" fontSize={24} lineHeight={32} fontWeight={700} />
+    <View height={8} />
+    <Text value="正文" fontSize={14} lineHeight={22} />
+  </View>,
 );
 ```
 
@@ -71,11 +70,11 @@ Shell 參與。內容用 `value` 或字串 `children` 給出。
 `Image` 的 `source` 是一張 `PingoImage`——Shell 側持有的**不可變 RGBA8 點陣圖**，在提交
 邊界同步內聯為 Scene 資源。用 `createImage` 建立，它會複製並校驗畫素：
 
-```ts
+```tsx
 import { createImage, Image } from "@dopejs/pingo";
 
 const icon = createImage(pixels, 96, 96, { label: "应用图标" });
-createElement(Image, { source: icon, width: 48, height: 48 });
+<Image source={icon} width={48} height={48} />;
 ```
 
 不傳 `width` / `height` 時節點取影象的畫素尺寸；傳入則縮放進節點盒。`label` 即無障礙
@@ -93,13 +92,13 @@ createElement(Image, { source: icon, width: 48, height: 48 });
 Core 確定性 shaping。`createFont` 接收已解碼的 SFNT 位元組；`loadFont` 額外處理網路載入
 與 WOFF/WOFF2 解碼：
 
-```ts
+```tsx
 import { loadFont } from "@dopejs/pingo";
 
 const inter = await loadFont("/fonts/Inter-Regular.woff2", {
   fallbackFamily: "sans-serif",
 });
-createElement(Text, { value: "Hello", font: inter, fontSize: 16 });
+<Text value="Hello" font={inter} fontSize={16} />;
 ```
 
 `PingoFontOptions`：`faceIndex`（TTC 集合中的字面索引，預設 `0`）與

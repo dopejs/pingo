@@ -13,27 +13,20 @@ description: 组合式下拉选择器，支持键盘导航，渲染在 pingo can
 ## 用法
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Select, {
-    value: "pingo-ui",
-    onValueChange: (value) => console.log(value),
-    children: [
-      createElement(SelectTrigger, { placeholder: "选择一个包" }),
-      createElement(SelectContent, {
-        children: [
-          createElement(SelectItem, { value: "pingo", children: "@dopejs/pingo" }),
-          createElement(SelectItem, { value: "pingo-ui", children: "@dopejs/pingo-ui" }),
-        ],
-      }),
-    ],
-  }),
+  <Select value="pingo-ui" onValueChange={(value) => console.log(value)}>
+    <SelectTrigger placeholder="选择一个包" />
+    <SelectContent>
+      <SelectItem value="pingo">@dopejs/pingo</SelectItem>
+      <SelectItem value="pingo-ui">@dopejs/pingo-ui</SelectItem>
+    </SelectContent>
+  </Select>,
 );
 ```
 
-所有部分通过 context 协作，都必须用 `createElement` 以组件形式挂载。触发器显示当前选中的 `value`；未选中时显示 `placeholder`。
+所有部分通过 context 协作，都必须用 JSX 以组件形式挂载。触发器显示当前选中的 `value`；未选中时显示 `placeholder`。
 
 ## 示例
 

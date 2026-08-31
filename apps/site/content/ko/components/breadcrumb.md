@@ -13,17 +13,16 @@ description: shadcn 스타일의 브레드크럼 내비게이션으로, 마지�
 ## 사용법
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Breadcrumb } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Breadcrumb, {
-    items: [
+  <Breadcrumb
+    items={[
       { label: "홈", onNavigate: () => navigate("/") },
       { label: "컴포넌트", onNavigate: () => navigate("/components") },
       { label: "Breadcrumb" }, // 마지막 항목은 현재 페이지이므로 onNavigate가 필요 없습니다
-    ],
-  }),
+    ]}
+  />,
 );
 ```
 

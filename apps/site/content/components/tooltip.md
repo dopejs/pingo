@@ -13,14 +13,12 @@ Tooltip 在指针悬停时显示一小段说明文字，默认锚定在目标上
 ## 用法
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Button, Tooltip } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Tooltip, {
-    content: "保存到云端",
-    children: createElement(Button, { children: "保存", onPress: () => save() }),
-  }),
+  <Tooltip content="保存到云端">
+    <Button onPress={() => save()}>保存</Button>
+  </Tooltip>,
 );
 ```
 

@@ -15,7 +15,7 @@ description: 虚拟滚动的数据表格，列定义同时驱动表头与行，�
 `Table` 是纯构建函数而非 memo 组件，直接调用即可返回场景节点。在组件渲染作用域内调用（如下方的函数组件），其主题读取才会订阅站点主题切换。
 
 ```tsx
-import { createElement, type PingoNode } from "@dopejs/pingo";
+import type { PingoNode } from "@dopejs/pingo";
 import { Table } from "@dopejs/pingo-ui";
 
 type FileRow = { name: string; size: string };
@@ -26,14 +26,14 @@ function FileTable(): PingoNode {
       {
         key: "name",
         header: "名称",
-        cell: (row) => createElement("text", { value: row.name }),
+        cell: (row) => <text value={row.name} />,
       },
       {
         key: "size",
         header: "大小",
         width: 96,
         align: "end",
-        cell: (row) => createElement("text", { value: row.size }),
+        cell: (row) => <text value={row.size} />,
       },
     ],
     rowCount: files.length,

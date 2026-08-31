@@ -13,24 +13,22 @@ description: קבוצת כפתורי מיתוג דו־מצביים, בחירה �
 ## שימוש
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { ToggleGroup, ToggleGroupItem } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(ToggleGroup, {
-    type: "single",
-    defaultValue: ["center"],
-    onValueChange: (value) => console.log(value),
-    children: [
-      createElement(ToggleGroupItem, { value: "left", children: "יישור שמאלה" }),
-      createElement(ToggleGroupItem, { value: "center", children: "ממורכז" }),
-      createElement(ToggleGroupItem, { value: "right", children: "יישור ימינה" }),
-    ],
-  }),
+  <ToggleGroup
+    type="single"
+    defaultValue={["center"]}
+    onValueChange={(value) => console.log(value)}
+  >
+    <ToggleGroupItem value="left">יישור שמאלה</ToggleGroupItem>
+    <ToggleGroupItem value="center">ממורכז</ToggleGroupItem>
+    <ToggleGroupItem value="right">יישור ימינה</ToggleGroupItem>
+  </ToggleGroup>,
 );
 ```
 
-`ToggleGroup` מפרסם דרך context את אוסף הבחירה אל `ToggleGroupItem`, ושניהם חייבים להיות מורכבים כרכיבים באמצעות `createElement`. במצב `type: "single"` בחירה חדשה מנקה את הקודמת; במצב `"multiple"` פריטים מצטברים זה לזה.
+`ToggleGroup` מפרסם דרך context את אוסף הבחירה אל `ToggleGroupItem`, ושניהם חייבים להיות מורכבים כרכיבים באמצעות JSX. במצב `type: "single"` בחירה חדשה מנקה את הקודמת; במצב `"multiple"` פריטים מצטברים זה לזה.
 
 ## דוגמאות
 

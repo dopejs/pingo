@@ -11,14 +11,14 @@ pingo canvas 引擎而非 DOM。下方每個元件頁都包含**即時渲染**�
 
 ## 使用
 
-```ts
+```tsx
 import { createHostedCanvasRoot } from "@dopejs/pingo";
 import { Button, createPingoUiStyleSheet } from "@dopejs/pingo-ui";
 
 const root = await createHostedCanvasRoot(canvas, {
   styleSheets: [createPingoUiStyleSheet()],
 });
-root.render(createElement(Button, { children: "保存" }));
+root.render(<Button>保存</Button>);
 ```
 
 使用者自訂樣式表必須在 pingo-ui 樣式表**之後**註冊，同優先順序規則按註冊順序覆蓋。

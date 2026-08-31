@@ -15,19 +15,18 @@ TopBar هو جزيء منتج خاص بـ pingo: يجمع العنوان مع ف
 ## الاستخدام
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Avatar, Button, TopBar } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(TopBar, {
-    title: "لوحة التحكم",
-    leading: createElement(Avatar, { fallback: "P", size: 28 }),
-    actions: createElement(Button, {
-      children: "جديد",
-      variant: "outline",
-      onPress: () => create(),
-    }),
-  }),
+  <TopBar
+    title="لوحة التحكم"
+    leading={<Avatar fallback="P" size={28} />}
+    actions={
+      <Button variant="outline" onPress={() => create()}>
+        جديد
+      </Button>
+    }
+  />,
 );
 ```
 
@@ -38,9 +37,7 @@ root.render(
 عند حذف `title`، سيظل عمود العنوان يُعرض (عمود مرن فارغ)، وتبقى الإجراءات مدفوعة إلى أقصى اليمين؛ وهذا مناسب لأشرطة الأدوات التي تحتوي على منطقة عمليات فقط.
 
 ```tsx
-createElement(TopBar, {
-  actions: createElement(Button, { children: "تصدير", onPress: () => {} }),
-});
+<TopBar actions={<Button onPress={() => {}}>تصدير</Button>} />
 ```
 
 ## Props

@@ -13,10 +13,9 @@ Le séparateur fournit un regroupement visuel entre les contenus. L’aperçu ci
 ## Utilisation
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Divider } from "@dopejs/pingo-ui";
 
-root.render(createElement(Divider, {}));
+root.render(<Divider />);
 ```
 
 ## Exemples

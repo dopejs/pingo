@@ -13,16 +13,12 @@ description: 從上下邊緣滑入的抽屜面板，適合移動端風格的底�
 ## 用法
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Drawer } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Drawer, {
-    open,
-    onOpenChange: (next) => setOpen(next),
-    side: "bottom",
-    children: createElement("text", { value: "抽屉内容" }),
-  }),
+  <Drawer open={open} onOpenChange={(next) => setOpen(next)} side="bottom">
+    <text value="抽屉内容" />
+  </Drawer>,
 );
 ```
 

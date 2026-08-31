@@ -34,16 +34,16 @@ description: "@dopejs/pingo-widgets מספק TextField, ‏TextArea, ‏Pressabl
 מכניס נתיב קלט חדש.
 
 ```tsx
-import { createElement, TextField } from "@dopejs/pingo";
+import { TextField } from "@dopejs/pingo";
 
-createElement(TextField, {
-  value,
-  revision,
-  semanticLabel: "נמען",
-  width: 320,
-  error: value === "" ? "נמען הוא שדה חובה" : undefined,
-  onTransaction: (t) => apply(t),
-});
+<TextField
+  value={value}
+  revision={revision}
+  semanticLabel="נמען"
+  width={320}
+  error={value === "" ? "נמען הוא שדה חובה" : undefined}
+  onTransaction={(t) => apply(t)}
+/>;
 ```
 
 ### Props ‏(TextField)

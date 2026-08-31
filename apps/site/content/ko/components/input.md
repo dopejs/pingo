@@ -13,19 +13,14 @@ description: pingo 편집 엔진이 구동하며 캔버스에 렌더링되는 �
 ## 사용법
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Input } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Input, {
-    semanticLabel: "邮箱",
-    width: 320,
-    onValueChange: (value) => console.log(value),
-  }),
+  <Input semanticLabel="邮箱" width={320} onValueChange={(value) => console.log(value)} />,
 );
 ```
 
-`Input`은 내부적으로 hooks를 통해 안정적인 `TextEditingController`를 유지합니다. 따라서 반드시 `createElement(Input, props)` 형태로 컴포넌트로 마운트해야 하며, 직접 함수처럼 호출할 수 없습니다. 편집 세부 사항은 [텍스트 편집 가이드](/guide/editing)를 참조하십시오.
+`Input`은 내부적으로 hooks를 통해 안정적인 `TextEditingController`를 유지합니다. 따라서 반드시 `<Input … />` 형태로 요소로 마운트해야 하며, 직접 함수처럼 호출할 수 없습니다. 직접 호출하면 “hooks may only run in a function component”로 실패합니다. 편집 세부 사항은 [텍스트 편집 가이드](/guide/editing)를 참조하십시오.
 
 ## 예시
 

@@ -13,19 +13,18 @@ description: حقل إدخال نصي من سطر واحد، مدفوع بمحر
 ## الاستخدام
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Input } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Input, {
-    semanticLabel: "البريد الإلكتروني",
-    width: 320,
-    onValueChange: (value) => console.log(value),
-  }),
+  <Input
+    semanticLabel="البريد الإلكتروني"
+    width={320}
+    onValueChange={(value) => console.log(value)}
+  />,
 );
 ```
 
-يحافظ `Input` داخليًا عبر الخطافات على `TextEditingController` مستقر، لذلك يجب تركيبه كمكوّن باستخدام `createElement(Input, props)`، ولا يمكن استدعاؤه مباشرة كدالة. تفاصيل التحرير موجودة في [دليل تحرير النصوص](/guide/editing).
+يحافظ `Input` داخليًا عبر الخطافات على `TextEditingController` مستقر، لذلك يجب تركيبه كعنصر باستخدام `<Input … />`، ولا يمكن استدعاؤه مباشرة كدالة؛ فالاستدعاء المباشر يفشل بـ «hooks may only run in a function component». تفاصيل التحرير موجودة في [دليل تحرير النصوص](/guide/editing).
 
 ## أمثلة
 

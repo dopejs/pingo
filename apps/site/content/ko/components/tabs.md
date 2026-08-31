@@ -13,29 +13,21 @@ description: 탭은 동일한 영역에서 여러 동위 콘텐츠 패널을 전
 ## 사용법
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Tabs, {
-    defaultValue: "account",
-    children: [
-      createElement(TabsList, {
-        children: [
-          createElement(TabsTrigger, { value: "account", children: "账户" }),
-          createElement(TabsTrigger, { value: "password", children: "密码" }),
-        ],
-      }),
-      createElement(TabsContent, {
-        value: "account",
-        children: createElement("text", { value: "管理你的账户信息。" }),
-      }),
-      createElement(TabsContent, {
-        value: "password",
-        children: createElement("text", { value: "修改你的登录密码。" }),
-      }),
-    ],
-  }),
+  <Tabs defaultValue="account">
+    <TabsList>
+      <TabsTrigger value="account">账户</TabsTrigger>
+      <TabsTrigger value="password">密码</TabsTrigger>
+    </TabsList>
+    <TabsContent value="account">
+      <text value="管理你的账户信息。" />
+    </TabsContent>
+    <TabsContent value="password">
+      <text value="修改你的登录密码。" />
+    </TabsContent>
+  </Tabs>,
 );
 ```
 

@@ -13,18 +13,14 @@ description: نص تسمية النموذج، يُستخدم مع عناصر ا�
 ## الاستخدام
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Input, Label } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement("container", {
-    style: { flexDirection: "column" },
-    children: [
-      createElement(Label, { children: "البريد الإلكتروني" }),
-      createElement("container", { height: 8 }),
-      createElement(Input, { semanticLabel: "البريد الإلكتروني", width: 320 }),
-    ],
-  }),
+  <container style={{ flexDirection: "column" }}>
+    <Label>البريد الإلكتروني</Label>
+    <container height={8} />
+    <Input semanticLabel="البريد الإلكتروني" width={320} />
+  </container>,
 );
 ```
 

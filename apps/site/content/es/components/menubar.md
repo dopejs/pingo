@@ -13,25 +13,17 @@ Menubar es una fila de menús que comparten un único punto de apertura, similar
 ## Uso
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Menubar, MenubarMenu } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Menubar, {
-    onValueChange: (value) => {},
-    children: [
-      createElement(MenubarMenu, {
-        value: "file",
-        label: "Archivo",
-        children: createElement("text", { value: "Nuevo" }),
-      }),
-      createElement(MenubarMenu, {
-        value: "edit",
-        label: "Edición",
-        children: createElement("text", { value: "Deshacer" }),
-      }),
-    ],
-  }),
+  <Menubar onValueChange={(value) => {}}>
+    <MenubarMenu value="file" label="Archivo">
+      <text value="Nuevo" />
+    </MenubarMenu>
+    <MenubarMenu value="edit" label="Edición">
+      <text value="Deshacer" />
+    </MenubarMenu>
+  </Menubar>,
 );
 ```
 

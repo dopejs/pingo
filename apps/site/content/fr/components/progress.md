@@ -13,19 +13,17 @@ Progress affiche une progression déterministe à l'aide d'une piste remplie, pa
 ## Utilisation
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Progress } from "@dopejs/pingo-ui";
 
-root.render(createElement(Progress, { value: 60 }));
+root.render(<Progress value={60} />);
 ```
 
 La largeur de la piste hérite du conteneur parent. Placez Progress dans un conteneur de largeur fixe pour contrôler la longueur de la barre :
 
 ```tsx
-createElement("container", {
-  width: 320,
-  children: createElement(Progress, { value: 60 }),
-});
+<container width={320}>
+  <Progress value={60} />
+</container>
 ```
 
 ## Exemples
@@ -35,7 +33,7 @@ createElement("container", {
 `max` vaut 100 par défaut. Lorsqu'elle est fournie, le pourcentage de remplissage est calculé selon `value / max`, toujours borné entre 0 et 100 :
 
 ```tsx
-createElement(Progress, { value: 3, max: 10 }); // 30%
+<Progress value={3} max={10} /> // 30%
 ```
 
 ## Props

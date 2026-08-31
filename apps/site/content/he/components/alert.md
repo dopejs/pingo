@@ -13,15 +13,9 @@ Alert משמש להצגת מידע הדורש תשומת לב משתמש, אך �
 ## שימוש
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Alert } from "@dopejs/pingo-ui";
 
-root.render(
-  createElement(Alert, {
-    title: "提示",
-    children: "你的配置已自动保存。",
-  }),
-);
+root.render(<Alert title="提示">你的配置已自动保存。</Alert>);
 ```
 
 ## דוגמאות
@@ -31,11 +25,9 @@ root.render(
 `variant="destructive"` משמש לתרחישי שגיאה או כשל: המסגרת והכותרת משתנות לצבעוניות הרסנית, וטקסט התיאור נשאר בצבע קדמי רגיל כדי לשמור על קריאות.
 
 ```tsx
-createElement(Alert, {
-  title: "同步失败",
-  variant: "destructive",
-  children: "请检查网络连接后重试。",
-});
+<Alert title="同步失败" variant="destructive">
+  请检查网络连接后重试。
+</Alert>
 ```
 
 ## Props

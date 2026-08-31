@@ -13,17 +13,16 @@ description: shadcn 风格的面包屑导航，末项为当前页不可点击，
 ## 用法
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Breadcrumb } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Breadcrumb, {
-    items: [
+  <Breadcrumb
+    items={[
       { label: "首页", onNavigate: () => navigate("/") },
       { label: "组件", onNavigate: () => navigate("/components") },
       { label: "Breadcrumb" }, // 末项是当前页，无需 onNavigate
-    ],
-  }),
+    ]}
+  />,
 );
 ```
 

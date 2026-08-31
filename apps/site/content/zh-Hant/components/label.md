@@ -13,18 +13,14 @@ description: 表單標籤文字，配合輸入控制項使用，渲染在 pingo 
 ## 用法
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Input, Label } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement("container", {
-    style: { flexDirection: "column" },
-    children: [
-      createElement(Label, { children: "邮箱" }),
-      createElement("container", { height: 8 }),
-      createElement(Input, { semanticLabel: "邮箱", width: 320 }),
-    ],
-  }),
+  <container style={{ flexDirection: "column" }}>
+    <Label>邮箱</Label>
+    <container height={8} />
+    <Input semanticLabel="邮箱" width={320} />
+  </container>,
 );
 ```
 

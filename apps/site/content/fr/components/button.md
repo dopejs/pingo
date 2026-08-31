@@ -14,15 +14,12 @@ pouvez cliquer, donner le focus, et il suit le thème clair/sombre du site.
 ## Utilisation
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Button } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Button, {
-    children: "保存",
-    variant: "default",
-    onPress: () => save(),
-  }),
+  <Button variant="default" onPress={() => save()}>
+    保存
+  </Button>,
 );
 ```
 

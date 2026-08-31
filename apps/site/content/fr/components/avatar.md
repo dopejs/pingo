@@ -15,17 +15,16 @@ est rendu en direct par le moteur pingo et suit le thème clair/sombre du site.
 ## Utilisation
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Avatar } from "@dopejs/pingo-ui";
 
-root.render(createElement(Avatar, { fallback: "张" }));
+root.render(<Avatar fallback="张" />);
 ```
 
 Avec une image, passez la ressource `PingoImage` pré-décodée ; l'image est remplie en
 `object-fit: cover` et rognée en cercle :
 
 ```tsx
-createElement(Avatar, { image: decodedImage, fallback: "张" });
+<Avatar image={decodedImage} fallback="张" />
 ```
 
 ## Exemples
@@ -36,7 +35,7 @@ createElement(Avatar, { image: decodedImage, fallback: "张" });
 c'est le 40 px par défaut de l'habillage. L'aperçu montre dans l'ordre 32, défaut, 56.
 
 ```tsx
-createElement(Avatar, { fallback: "李", size: 32 });
+<Avatar fallback="李" size={32} />
 ```
 
 ## Props

@@ -13,10 +13,9 @@ Badge هي شارة حالة غير تفاعلية تُستخدم لتوضيح �
 ## الاستخدام
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Badge } from "@dopejs/pingo-ui";
 
-root.render(createElement(Badge, { children: "Beta" }));
+root.render(<Badge>Beta</Badge>);
 ```
 
 ## أمثلة
@@ -26,7 +25,7 @@ root.render(createElement(Badge, { children: "Beta" }));
 تغطي أربعة أنماط الدلالات الشائعة: `default` (إبراز)، و`secondary` (تخفيف)، و`destructive` (خطأ/خطر)، و`outline` (حدود). تظهر في المعاينة بالترتيب.
 
 ```tsx
-createElement(Badge, { children: "للقراءة فقط", variant: "secondary" });
+<Badge variant="secondary">للقراءة فقط</Badge>
 ```
 
 ### الدمج مع مكونات أخرى
@@ -34,12 +33,12 @@ createElement(Badge, { children: "للقراءة فقط", variant: "secondary" }
 تُستخدم Badge غالبًا كعنصر trailing في صفوف القوائم أو البطاقات، بالدمج مع `Avatar` و`ListRow`:
 
 ```tsx
-createElement(ListRow, {
-  title: "张三",
-  leading: createElement(Avatar, { fallback: "张", size: 32 }),
-  trailing: createElement(Badge, { children: "مدير" }),
-  onPress: () => {},
-});
+<ListRow
+  title="张三"
+  leading={<Avatar fallback="张" size={32} />}
+  trailing={<Badge>مدير</Badge>}
+  onPress={() => {}}
+/>
 ```
 
 ## Props

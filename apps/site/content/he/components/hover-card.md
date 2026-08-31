@@ -13,16 +13,16 @@ Hover Card פותח כרטיס תוכן עשיר כאשר מרחפים (או מ�
 ## שימוש
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { HoverCard } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(HoverCard, {
-    openDelayMs: 300,
-    closeDelayMs: 200,
-    children: createElement("text", { value: "@pingo" }),
-    content: createElement("text", { value: "מנוע רינדור Canvas וספריית רכיבי UI." }),
-  }),
+  <HoverCard
+    openDelayMs={300}
+    closeDelayMs={200}
+    content={<text value="מנוע רינדור Canvas וספריית רכיבי UI." />}
+  >
+    <text value="@pingo" />
+  </HoverCard>,
 );
 ```
 

@@ -30,20 +30,19 @@ introduce ninguna clase nueva de nodo de Scene:
 ## Uso
 
 ```tsx
-import { createElement, Text, View } from "@dopejs/pingo";
+import { Text, View } from "@dopejs/pingo";
 
 root.render(
-  createElement(View, {
-    width: 420,
-    padding: 16,
-    backgroundColor: "#ffffffff",
-    style: { flexDirection: "column", borderRadius: 10 },
-    children: [
-      createElement(Text, { value: "Título", fontSize: 24, lineHeight: 32, fontWeight: 700 }),
-      createElement(View, { height: 8 }),
-      createElement(Text, { value: "Cuerpo", fontSize: 14, lineHeight: 22 }),
-    ],
-  }),
+  <View
+    width={420}
+    padding={16}
+    backgroundColor="#ffffffff"
+    style={{ flexDirection: "column", borderRadius: 10 }}
+  >
+    <Text value="Título" fontSize={24} lineHeight={32} fontWeight={700} />
+    <View height={8} />
+    <Text value="Cuerpo" fontSize={14} lineHeight={22} />
+  </View>,
 );
 ```
 
@@ -78,11 +77,11 @@ El `source` de `Image` es un `PingoImage`: un **mapa de bits RGBA8 inmutable** q
 mantiene y que se incorpora en línea como recurso del Scene en el límite de commit. Se crea con
 `createImage`, que copia y valida los píxeles:
 
-```ts
+```tsx
 import { createImage, Image } from "@dopejs/pingo";
 
 const icon = createImage(pixels, 96, 96, { label: "Icono de la aplicación" });
-createElement(Image, { source: icon, width: 48, height: 48 });
+<Image source={icon} width={48} height={48} />;
 ```
 
 Sin `width` / `height`, el nodo toma el tamaño en píxeles de la imagen; si se pasan, la imagen se
@@ -103,13 +102,13 @@ La prop `font` de `Text` y de los elementos editables acepta una fuente SFNT exp
 inmutable (TTF/OTF/TTC), con shaping determinista en el Core. `createFont` recibe bytes SFNT ya
 decodificados; `loadFont` se ocupa además de la carga por red y la decodificación WOFF/WOFF2:
 
-```ts
+```tsx
 import { loadFont } from "@dopejs/pingo";
 
 const inter = await loadFont("/fonts/Inter-Regular.woff2", {
   fallbackFamily: "sans-serif",
 });
-createElement(Text, { value: "Hello", font: inter, fontSize: 16 });
+<Text value="Hello" font={inter} fontSize={16} />;
 ```
 
 `PingoFontOptions`: `faceIndex` (índice de la cara dentro de una colección TTC, por defecto `0`)

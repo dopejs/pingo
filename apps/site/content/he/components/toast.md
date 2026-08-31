@@ -15,32 +15,26 @@ Toast היא התראה קלה המופיעה לזמן קצר בפינה, מתא
 Toast דורשת שימוש יחד עם `ToastViewport`. ה-viewport הוא מיכל פינתי במיקום אבסולוטי (ברירת מחדל: פינה עליונה ימנית), **וחייב להיות ממוקם תחת מיכל קרוב לשורש** — בלוק ההכלה במנוע זה הוא צומת האב ולא ה-ancestor המיוחס הקרוב ביותר; אם תמקמו אותו במיכל קטן, הוא יכסה רק את אותו מיכל קטן.
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Button, Toast, ToastViewport } from "@dopejs/pingo-ui";
 
 let open = false;
 
 function scene() {
-  return createElement("container", {
-    width: surfaceWidth,
-    height: surfaceHeight,
-    children: [
-      createElement(Button, {
-        children: "שמירה",
-        onPress: () => {
+  return (
+    <container width={surfaceWidth} height={surfaceHeight}>
+      <Button
+        onPress={() => {
           open = true;
           root.render(scene());
-        },
-      }),
-      createElement(ToastViewport, {
-        children: createElement(Toast, {
-          open,
-          title: "נשמר",
-          description: "ההגדרה נכתבה למקומי.",
-        }),
-      }),
-    ],
-  });
+        }}
+      >
+        שמירה
+      </Button>
+      <ToastViewport>
+        <Toast open={open} title="נשמר" description="ההגדרה נכתבה למקומי." />
+      </ToastViewport>
+    </container>
+  );
 }
 ```
 

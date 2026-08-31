@@ -9,14 +9,14 @@ description: shadcn 마인드의 pingo 네이티브 UI 컴포넌트 라이브러
 
 ## 사용법
 
-```ts
+```tsx
 import { createHostedCanvasRoot } from "@dopejs/pingo";
 import { Button, createPingoUiStyleSheet } from "@dopejs/pingo-ui";
 
 const root = await createHostedCanvasRoot(canvas, {
   styleSheets: [createPingoUiStyleSheet()],
 });
-root.render(createElement(Button, { children: "保存" }));
+root.render(<Button>保存</Button>);
 ```
 
 사용자 정의 스타일시트는 반드시 pingo-ui 스타일시트 **다음에** 등록해야 하며, 동일 우선순위 규칙은 등록 순서대로 덮어씁니다. 테마 및 브랜드 커스터마이징은 [스타일 가이드](/guide/styling)와 [SCSS 및 Less](/guide/scss-less)를 참조하십시오.

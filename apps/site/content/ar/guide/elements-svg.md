@@ -13,18 +13,11 @@ description: مسارات Path المتجهة ومجموعة فرعية من م�
 ## Path: محيط منفرد
 
 ```tsx
-import { createElement, Path, View } from "@dopejs/pingo";
+import { Path, View } from "@dopejs/pingo";
 
-createElement(View, {
-  style: { color: "#3157dfff" }, // يُرسم المحيط بلون العقدة، ويُورَّث مثل النص
-  children: createElement(Path, {
-    d: "M20 6 9 17l-5-5",
-    viewBox: [0, 0, 24, 24],
-    width: 24,
-    height: 24,
-    strokeWidth: 2,
-  }),
-});
+<View style={{ color: "#3157dfff" }}>
+  <Path d="M20 6 9 17l-5-5" viewBox={[0, 0, 24, 24]} width={24} height={24} strokeWidth={2} />
+</View>;
 ```
 
 - يدعم `d` صياغة مسار SVG الكاملة (`M L H V C S Q T A Z` والصيغ النسبية بالأحرف الصغيرة)؛ يُحوَّل القوس `A` إلى منحنيات بيزيه تكعيبية عند التحليل، ولا يحتاج Core إلى نوع منحنٍ منفصل.
@@ -48,11 +41,11 @@ createElement(View, {
 
 يفرد مكوِّن `Svg` المستند إلى **عقدة path لكل شكل**، وتُكدَّس الأشكال فوق بعضها بتموضع مطلق؛ الشكل الذي يُملأ ويُحدَّد معًا يصبح عقدتين — فالملء والتحديد عمليتا طلاء مختلفتان، وليستا نصفين لعقدة واحدة.
 
-```ts
+```tsx
 import { createSvg, loadSvg, Svg } from "@dopejs/pingo";
 
 const icon = createSvg(`<svg viewBox="0 0 24 24" stroke="currentColor" …>…</svg>`);
-createElement(Svg, { source: icon, width: 24, height: 24, style: { color: "#3157df" } });
+<Svg source={icon} width={24} height={24} style={{ color: "#3157df" }} />;
 
 const remote = await loadSvg("/assets/logo.svg");
 ```

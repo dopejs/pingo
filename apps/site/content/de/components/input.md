@@ -13,19 +13,14 @@ Einzeilige Texteingabe. Die folgende Vorschau wird von der pingo-Engine in Echtz
 ## Verwendung
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Input } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Input, {
-    semanticLabel: "E-Mail",
-    width: 320,
-    onValueChange: (value) => console.log(value),
-  }),
+  <Input semanticLabel="E-Mail" width={320} onValueChange={(value) => console.log(value)} />,
 );
 ```
 
-`Input` pflegt intern über Hooks einen stabilen `TextEditingController`. Daher muss die Komponente mit `createElement(Input, props)` als Komponente gemountet werden und darf nicht direkt als Funktion aufgerufen werden. Details zum Bearbeiten finden Sie im [Leitfaden zur Textbearbeitung](/guide/editing).
+`Input` pflegt intern über Hooks einen stabilen `TextEditingController`. Daher muss sie als Element mit `<Input … />` gemountet werden und darf nicht direkt als Funktion aufgerufen werden; ein direkter Aufruf scheitert mit „hooks may only run in a function component“. Details zum Bearbeiten finden Sie im [Leitfaden zur Textbearbeitung](/guide/editing).
 
 ## Beispiele
 

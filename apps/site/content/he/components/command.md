@@ -13,18 +13,17 @@ Command הוא לוח פקודות עם תיבת חיפוש: הקלדה מסננ
 ## שימוש
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Command } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Command, {
-    items: [
+  <Command
+    items={[
       { value: "open", label: "פתח קובץ" },
       { value: "save", label: "שמור קובץ" },
-    ],
-    onSelect: (value) => run(value),
-    onDismiss: () => closePalette(),
-  }),
+    ]}
+    onSelect={(value) => run(value)}
+    onDismiss={() => closePalette()}
+  />,
 );
 ```
 

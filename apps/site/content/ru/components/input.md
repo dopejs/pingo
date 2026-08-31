@@ -13,19 +13,14 @@ description: Однострочное поле ввода текста, упра
 ## Использование
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Input } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Input, {
-    semanticLabel: "邮箱",
-    width: 320,
-    onValueChange: (value) => console.log(value),
-  }),
+  <Input semanticLabel="邮箱" width={320} onValueChange={(value) => console.log(value)} />,
 );
 ```
 
-`Input` внутренне поддерживает стабильный `TextEditingController` через hooks, поэтому его нужно монтировать как компонент с помощью `createElement(Input, props)`, а не вызывать напрямую как функцию. Подробнее о редактировании см. в [руководстве по редактированию текста](/guide/editing).
+`Input` внутренне поддерживает стабильный `TextEditingController` через hooks, поэтому его нужно монтировать как элемент — `<Input … />`, а не вызывать напрямую как функцию: прямой вызов падает с «hooks may only run in a function component». Подробнее о редактировании см. в [руководстве по редактированию текста](/guide/editing).
 
 ## Примеры
 

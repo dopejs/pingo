@@ -13,19 +13,19 @@ description: قائمة سياق تُستدعى بالنقر بزر الفأرة
 ## الاستخدام
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { ContextMenu } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(ContextMenu, {
-    items: [
+  <ContextMenu
+    items={[
       { value: "copy", label: "نسخ" },
       { value: "paste", label: "لصق", disabled: true },
       { value: "delete", label: "حذف" },
-    ],
-    onSelect: (value) => run(value),
-    children: createElement("text", { value: "انقر بزر الفأرة الأيمن هنا" }),
-  }),
+    ]}
+    onSelect={(value) => run(value)}
+  >
+    <text value="انقر بزر الفأرة الأيمن هنا" />
+  </ContextMenu>,
 );
 ```
 

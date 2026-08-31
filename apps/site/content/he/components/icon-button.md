@@ -13,16 +13,15 @@ description: כפתור הנושא רק סמל, חייב לספק שם נגיש,
 ## שימוש
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { IconButton } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(IconButton, {
-    icon: createElement("text", { value: "★" }),
-    semanticLabel: "מועדפים",
-    variant: "outline",
-    onPress: () => toggleFavorite(),
-  }),
+  <IconButton
+    icon={<text value="★" />}
+    semanticLabel="מועדפים"
+    variant="outline"
+    onPress={() => toggleFavorite()}
+  />,
 );
 ```
 

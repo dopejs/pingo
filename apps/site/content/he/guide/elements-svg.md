@@ -17,18 +17,11 @@ description: קווי מתאר וקטוריים של Path ותת-קבוצת מס
 ## Path: קו מתאר בודד
 
 ```tsx
-import { createElement, Path, View } from "@dopejs/pingo";
+import { Path, View } from "@dopejs/pingo";
 
-createElement(View, {
-  style: { color: "#3157dfff" }, // קו המתאר נצבע ב-color של הצומת, ועובר בירושה כמו טקסט
-  children: createElement(Path, {
-    d: "M20 6 9 17l-5-5",
-    viewBox: [0, 0, 24, 24],
-    width: 24,
-    height: 24,
-    strokeWidth: 2,
-  }),
-});
+<View style={{ color: "#3157dfff" }}>
+  <Path d="M20 6 9 17l-5-5" viewBox={[0, 0, 24, 24]} width={24} height={24} strokeWidth={2} />
+</View>;
 ```
 
 - `d` תומך בתחביר SVG path המלא (`M L H V C S Q T A Z` וצורות יחסיות באותיות קטנות); קשתות `A`
@@ -63,11 +56,11 @@ createElement(View, {
 ממולאת וגם בעלת קו מתאר הופכת לשני צמתים — מילוי וקו מתאר הם שני paint-ים, לא שני חצאים של צומת
 אחד.
 
-```ts
+```tsx
 import { createSvg, loadSvg, Svg } from "@dopejs/pingo";
 
 const icon = createSvg(`<svg viewBox="0 0 24 24" stroke="currentColor" …>…</svg>`);
-createElement(Svg, { source: icon, width: 24, height: 24, style: { color: "#3157df" } });
+<Svg source={icon} width={24} height={24} style={{ color: "#3157df" }} />;
 
 const remote = await loadSvg("/assets/logo.svg");
 ```

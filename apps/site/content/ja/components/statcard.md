@@ -15,17 +15,10 @@ shadcn の基本部品との組み合わせ関係:StatCard は自己完結型の
 ## 使い方
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { StatCard } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(StatCard, {
-    label: "今月の売上",
-    value: "¥128,400",
-    delta: "+12.5%",
-    trend: "up",
-    description: "前月比",
-  }),
+  <StatCard label="今月の売上" value="¥128,400" delta="+12.5%" trend="up" description="前月比" />,
 );
 ```
 
@@ -40,7 +33,7 @@ root.render(
 `delta` を省略すると数値が単独で 1 行を占め、`trend` は効力を失います。`description` も同様に省略できます。
 
 ```tsx
-createElement(StatCard, { label: "オンラインデバイス", value: "1,024" });
+<StatCard label="オンラインデバイス" value="1,024" />
 ```
 
 ## Props

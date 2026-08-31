@@ -13,16 +13,9 @@ Resizable 把容器分成两个面板，中间的夹拖手柄可以拖动调整�
 ## 用法
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Resizable } from "@dopejs/pingo-ui";
 
-root.render(
-  createElement(Resizable, {
-    defaultSplit: 0.4,
-    first: sidebar,
-    second: content,
-  }),
-);
+root.render(<Resizable defaultSplit={0.4} first={sidebar} second={content} />);
 ```
 
 组件自身宽高为父容器的 100%，需要一个有确定尺寸的父容器。既支持非受控（`defaultSplit`）也支持受控（`split` + `onSplitChange`）两种用法。

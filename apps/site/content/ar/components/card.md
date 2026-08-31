@@ -13,7 +13,6 @@ description: "حاوية بطاقة تركيبية: الترويسة والعن�
 ## الاستخدام
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import {
   Button,
   Card,
@@ -25,22 +24,18 @@ import {
 } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Card, {
-    children: [
-      createElement(CardHeader, {
-        children: [
-          createElement(CardTitle, { children: "إعدادات الحساب" }),
-          createElement(CardDescription, { children: "إدارة تفضيلات حسابك والإشعارات." }),
-        ],
-      }),
-      createElement(CardContent, {
-        children: createElement("text", { value: "محتوى نص البطاقة." }),
-      }),
-      createElement(CardFooter, {
-        children: createElement(Button, { children: "حفظ", onPress: () => {} }),
-      }),
-    ],
-  }),
+  <Card>
+    <CardHeader>
+      <CardTitle>إعدادات الحساب</CardTitle>
+      <CardDescription>إدارة تفضيلات حسابك والإشعارات.</CardDescription>
+    </CardHeader>
+    <CardContent>
+      <text value="محتوى نص البطاقة." />
+    </CardContent>
+    <CardFooter>
+      <Button onPress={() => {}}>حفظ</Button>
+    </CardFooter>
+  </Card>,
 );
 ```
 

@@ -13,24 +13,22 @@ description: مجموعة من أزرار التبديل ثنائية الحال
 ## الاستخدام
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { ToggleGroup, ToggleGroupItem } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(ToggleGroup, {
-    type: "single",
-    defaultValue: ["center"],
-    onValueChange: (value) => console.log(value),
-    children: [
-      createElement(ToggleGroupItem, { value: "left", children: "محاذاة لليسار" }),
-      createElement(ToggleGroupItem, { value: "center", children: "توسيط" }),
-      createElement(ToggleGroupItem, { value: "right", children: "محاذاة لليمين" }),
-    ],
-  }),
+  <ToggleGroup
+    type="single"
+    defaultValue={["center"]}
+    onValueChange={(value) => console.log(value)}
+  >
+    <ToggleGroupItem value="left">محاذاة لليسار</ToggleGroupItem>
+    <ToggleGroupItem value="center">توسيط</ToggleGroupItem>
+    <ToggleGroupItem value="right">محاذاة لليمين</ToggleGroupItem>
+  </ToggleGroup>,
 );
 ```
 
-ينشر `ToggleGroup` مجموعة العناصر المحددة إلى `ToggleGroupItem` عبر context، ويجب تركيب كليهما كمكوّنين باستخدام `createElement`. عند ضبط `type: "single"` يلغي الاختيار الجديد الاختيار السابق؛ أما `"multiple"` فيُضيف العناصر واحدًا تلو الآخر.
+ينشر `ToggleGroup` مجموعة العناصر المحددة إلى `ToggleGroupItem` عبر context، ويجب تركيب كليهما كمكوّنين باستخدام JSX. عند ضبط `type: "single"` يلغي الاختيار الجديد الاختيار السابق؛ أما `"multiple"` فيُضيف العناصر واحدًا تلو الآخر.
 
 ## أمثلة
 

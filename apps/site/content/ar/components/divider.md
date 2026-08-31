@@ -13,10 +13,9 @@ description: فاصل بصري أفقي أو رأسي يُعرض على لوحة
 ## الاستخدام
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Divider } from "@dopejs/pingo-ui";
 
-root.render(createElement(Divider, {}));
+root.render(<Divider />);
 ```
 
 ## أمثلة

@@ -15,7 +15,7 @@ Tabla con desplazamiento virtual: las definiciones de columna controlan tanto el
 `Table` es una función de construcción pura y no un componente memo; se llama directamente y devuelve el nodo de escena. Si se invoca dentro del ámbito de renderizado de un componente (como en el componente de función siguiente), su lectura de tema se suscribirá al cambio de tema del sitio.
 
 ```tsx
-import { createElement, type PingoNode } from "@dopejs/pingo";
+import type { PingoNode } from "@dopejs/pingo";
 import { Table } from "@dopejs/pingo-ui";
 
 type FileRow = { name: string; size: string };
@@ -26,14 +26,14 @@ function FileTable(): PingoNode {
       {
         key: "name",
         header: "Nombre",
-        cell: (row) => createElement("text", { value: row.name }),
+        cell: (row) => <text value={row.name} />,
       },
       {
         key: "size",
         header: "Tamaño",
         width: 96,
         align: "end",
-        cell: (row) => createElement("text", { value: row.size }),
+        cell: (row) => <text value={row.size} />,
       },
     ],
     rowCount: files.length,

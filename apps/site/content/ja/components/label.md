@@ -14,18 +14,14 @@ description: フォームのラベルテキスト。入力コントロールと�
 ## 使い方
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Input, Label } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement("container", {
-    style: { flexDirection: "column" },
-    children: [
-      createElement(Label, { children: "メールアドレス" }),
-      createElement("container", { height: 8 }),
-      createElement(Input, { semanticLabel: "メールアドレス", width: 320 }),
-    ],
-  }),
+  <container style={{ flexDirection: "column" }}>
+    <Label>メールアドレス</Label>
+    <container height={8} />
+    <Input semanticLabel="メールアドレス" width={320} />
+  </container>,
 );
 ```
 

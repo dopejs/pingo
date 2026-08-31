@@ -13,10 +13,9 @@ Skeleton показывает до завершения загрузки сод�
 ## Использование
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Skeleton } from "@dopejs/pingo-ui";
 
-root.render(createElement(Skeleton, { width: 320, height: 16 }));
+root.render(<Skeleton width={320} height={16} />);
 ```
 
 `width` и `height` можно опустить — тогда размеры полностью определяются внешней раскладкой и вашей таблицей стилей.

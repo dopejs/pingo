@@ -12,14 +12,14 @@ description: Библиотека нативных UI-компонентов pin
 
 ## Использование
 
-```ts
+```tsx
 import { createHostedCanvasRoot } from "@dopejs/pingo";
 import { Button, createPingoUiStyleSheet } from "@dopejs/pingo-ui";
 
 const root = await createHostedCanvasRoot(canvas, {
   styleSheets: [createPingoUiStyleSheet()],
 });
-root.render(createElement(Button, { children: "保存" }));
+root.render(<Button>保存</Button>);
 ```
 
 Пользовательские таблицы стилей должны регистрироваться **после** таблицы стилей pingo-ui: правила

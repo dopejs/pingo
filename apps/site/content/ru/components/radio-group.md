@@ -13,23 +13,18 @@ description: Группа переключателей с выбором одн�
 ## Использование
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { RadioGroup, RadioGroupItem } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(RadioGroup, {
-    defaultValue: "b",
-    onValueChange: (value) => console.log(value),
-    children: [
-      createElement(RadioGroupItem, { value: "a", label: "选项 A" }),
-      createElement(RadioGroupItem, { value: "b", label: "选项 B" }),
-      createElement(RadioGroupItem, { value: "c", label: "选项 C" }),
-    ],
-  }),
+  <RadioGroup defaultValue="b" onValueChange={(value) => console.log(value)}>
+    <RadioGroupItem value="a" label="选项 A" />
+    <RadioGroupItem value="b" label="选项 B" />
+    <RadioGroupItem value="c" label="选项 C" />
+  </RadioGroup>,
 );
 ```
 
-`RadioGroup` публикует текущее значение для `RadioGroupItem` через context, поэтому оба должны монтироваться как компоненты через `createElement`. Передача `value` переводит компонент в контролируемый режим; иначе используйте `defaultValue`, чтобы компонент хранил состояние сам.
+`RadioGroup` публикует текущее значение для `RadioGroupItem` через context, поэтому оба должны монтироваться как компоненты через JSX. Передача `value` переводит компонент в контролируемый режим; иначе используйте `defaultValue`, чтобы компонент хранил состояние сам.
 
 ## Примеры
 

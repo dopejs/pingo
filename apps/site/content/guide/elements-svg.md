@@ -15,18 +15,11 @@ pingo 的矢量图形是引擎绘制的一等能力：路径作为不可变资�
 ## Path：单条轮廓
 
 ```tsx
-import { createElement, Path, View } from "@dopejs/pingo";
+import { Path, View } from "@dopejs/pingo";
 
-createElement(View, {
-  style: { color: "#3157dfff" }, // 轮廓画在节点的 color 里，像文字一样继承
-  children: createElement(Path, {
-    d: "M20 6 9 17l-5-5",
-    viewBox: [0, 0, 24, 24],
-    width: 24,
-    height: 24,
-    strokeWidth: 2,
-  }),
-});
+<View style={{ color: "#3157dfff" }}>
+  <Path d="M20 6 9 17l-5-5" viewBox={[0, 0, 24, 24]} width={24} height={24} strokeWidth={2} />
+</View>;
 ```
 
 - `d` 支持完整 SVG path 语法（`M L H V C S Q T A Z` 及小写相对形式）；圆弧 `A` 在解析时
@@ -60,11 +53,11 @@ createElement(View, {
 `Svg` 组件把文档展开成**每个形状一个 path 节点**，形状之间用绝对定位叠加；既填充又
 描边的形状会变成两个节点——填充与描边是两种 paint，不是一个节点的两半。
 
-```ts
+```tsx
 import { createSvg, loadSvg, Svg } from "@dopejs/pingo";
 
 const icon = createSvg(`<svg viewBox="0 0 24 24" stroke="currentColor" …>…</svg>`);
-createElement(Svg, { source: icon, width: 24, height: 24, style: { color: "#3157df" } });
+<Svg source={icon} width={24} height={24} style={{ color: "#3157df" }} />;
 
 const remote = await loadSvg("/assets/logo.svg");
 ```

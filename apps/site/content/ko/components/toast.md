@@ -15,32 +15,26 @@ Toast는 모서리에 잠깐 나타나는 가벼운 알림으로, 저장 성공,
 Toast는 `ToastViewport`와 함께 사용해야 합니다. 뷰포트는 절대 위치로 배치된 모서리 컨테이너(기본값: 오른쪽 위)이며, **반드시 루트에 가까운 컨테이너 아래에 배치해야 합니다**. 본 엔진의 포함 블록은 가장 가까운 positioned 조상이 아니라 부모 노드이므로, 작은 컨테이너 안에 배치하면 해당 작은 컨테이너만 덮게 됩니다.
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Button, Toast, ToastViewport } from "@dopejs/pingo-ui";
 
 let open = false;
 
 function scene() {
-  return createElement("container", {
-    width: surfaceWidth,
-    height: surfaceHeight,
-    children: [
-      createElement(Button, {
-        children: "저장",
-        onPress: () => {
+  return (
+    <container width={surfaceWidth} height={surfaceHeight}>
+      <Button
+        onPress={() => {
           open = true;
           root.render(scene());
-        },
-      }),
-      createElement(ToastViewport, {
-        children: createElement(Toast, {
-          open,
-          title: "저장됨",
-          description: "구성이 로컬에 기록되었습니다.",
-        }),
-      }),
-    ],
-  });
+        }}
+      >
+        저장
+      </Button>
+      <ToastViewport>
+        <Toast open={open} title="저장됨" description="구성이 로컬에 기록되었습니다." />
+      </ToastViewport>
+    </container>
+  );
 }
 ```
 

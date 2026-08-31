@@ -13,16 +13,9 @@ Resizable делит контейнер на две панели, а перет�
 ## Использование
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Resizable } from "@dopejs/pingo-ui";
 
-root.render(
-  createElement(Resizable, {
-    defaultSplit: 0.4,
-    first: sidebar,
-    second: content,
-  }),
-);
+root.render(<Resizable defaultSplit={0.4} first={sidebar} second={content} />);
 ```
 
 Ширина и высота компонента составляют 100% родительского контейнера — нужен родитель с определёнными размерами. Поддерживаются оба режима: неконтролируемый (`defaultSplit`) и контролируемый (`split` + `onSplitChange`).

@@ -29,27 +29,27 @@ TextArea({ value: description, revision, rows: 4 });
 
 ## استخدام البدائية
 
-```ts
-createElement("editableText", {
-  value,
-  revision,
-  multiline: false,
-  readOnly: false,
-  password: false,
-  maxGraphemes: 200,
-  inputMode: "email",
-  onTransaction: (transaction) => apply(transaction),
-  onSubmit: () => moveToNextCell(),
-});
+```tsx
+<editableText
+  value={value}
+  revision={revision}
+  multiline={false}
+  readOnly={false}
+  password={false}
+  maxGraphemes={200}
+  inputMode="email"
+  onTransaction={(transaction) => apply(transaction)}
+  onSubmit={() => moveToNextCell()}
+/>
 ```
 
 أو عبر متحكّم محلّي:
 
-```ts
+```tsx
 import { useTextEditingController } from "@dopejs/pingo";
 
 const editor = useTextEditingController({ value: cell.value });
-createElement("editableText", { controller: editor });
+<editableText controller={editor} />;
 ```
 
 ## جسر الإدخال والتراجع

@@ -13,15 +13,9 @@ Alert 用於在頁面中展示需要使用者注意、但不打斷流程的提�
 ## 用法
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Alert } from "@dopejs/pingo-ui";
 
-root.render(
-  createElement(Alert, {
-    title: "提示",
-    children: "你的配置已自动保存。",
-  }),
-);
+root.render(<Alert title="提示">你的配置已自动保存。</Alert>);
 ```
 
 ## 示例
@@ -31,11 +25,9 @@ root.render(
 `variant="destructive"` 用於錯誤或失敗場景：邊框與標題變為破壞性配色，描述文字保持常規前景色以保證可讀性。
 
 ```tsx
-createElement(Alert, {
-  title: "同步失败",
-  variant: "destructive",
-  children: "请检查网络连接后重试。",
-});
+<Alert title="同步失败" variant="destructive">
+  请检查网络连接后重试。
+</Alert>
 ```
 
 ## Props

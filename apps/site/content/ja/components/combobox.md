@@ -15,19 +15,18 @@ pingo エンジンによるリアルタイムレンダリングです。リス�
 ## 使い方
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Combobox } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Combobox, {
-    items: [
+  <Combobox
+    items={[
       { value: "next", label: "Next.js" },
       { value: "remix", label: "Remix" },
       { value: "astro", label: "Astro" },
-    ],
-    placeholder: "フレームワークを選択",
-    onValueChange: (value) => console.log(value),
-  }),
+    ]}
+    placeholder="フレームワークを選択"
+    onValueChange={(value) => console.log(value)}
+  />,
 );
 ```
 

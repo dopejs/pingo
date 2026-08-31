@@ -13,19 +13,16 @@ Umschaltknopf mit zwei Zuständen: Einmal drücken hält ihn aktiv, erneutes Dr�
 ## Verwendung
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Toggle } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Toggle, {
-    children: "加粗",
-    defaultPressed: true,
-    onPressedChange: (pressed) => console.log(pressed),
-  }),
+  <Toggle defaultPressed onPressedChange={(pressed) => console.log(pressed)}>
+    加粗
+  </Toggle>,
 );
 ```
 
-`Toggle` hält seinen Zustand intern über Hooks und muss mit `createElement` als Komponente eingebunden werden. Wird `pressed` übergeben, befindet sich die Komponente im kontrollierten Modus; andernfalls verwaltet sie ihren Zustand über `defaultPressed` selbst.
+`Toggle` hält seinen Zustand intern über Hooks und muss mit JSX als Komponente eingebunden werden. Wird `pressed` übergeben, befindet sich die Komponente im kontrollierten Modus; andernfalls verwaltet sie ihren Zustand über `defaultPressed` selbst.
 
 ## Beispiele
 

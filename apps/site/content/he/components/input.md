@@ -13,19 +13,14 @@ description: שדה קלט טקסט חד-שורתי, המונע על ידי מנ
 ## שימוש
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Input } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Input, {
-    semanticLabel: "דוא״ל",
-    width: 320,
-    onValueChange: (value) => console.log(value),
-  }),
+  <Input semanticLabel="דוא״ל" width={320} onValueChange={(value) => console.log(value)} />,
 );
 ```
 
-`Input` מתחזק באופן פנימי `TextEditingController` יציב באמצעות hooks, ולכן יש לעטוף אותו כרכיב עם `createElement(Input, props)` ולא לקרוא לו ישירות כפונקציה. פרטי עריכה נוספים זמינים ב[מדריך עריכת טקסט](/guide/editing).
+`Input` מתחזק באופן פנימי `TextEditingController` יציב באמצעות hooks, ולכן יש למקם אותו כאלמנט עם `<Input … />` ולא לקרוא לו ישירות כפונקציה; קריאה ישירה נכשלת עם ״hooks may only run in a function component״. פרטי עריכה נוספים זמינים ב[מדריך עריכת טקסט](/guide/editing).
 
 ## דוגמאות
 

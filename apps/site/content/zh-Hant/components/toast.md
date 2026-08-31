@@ -15,32 +15,26 @@ Toast 是在角落短暫出現的輕量通知，適合儲存成功、同步失�
 Toast 需要配合 `ToastViewport` 使用。視口是絕對定位的角落容器（預設右上角），**必須掛在靠近根的容器下**——本引擎的包含區塊是父節點而非最近的 positioned 祖先，掛在小容器裡它就只覆蓋那個小容器。
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Button, Toast, ToastViewport } from "@dopejs/pingo-ui";
 
 let open = false;
 
 function scene() {
-  return createElement("container", {
-    width: surfaceWidth,
-    height: surfaceHeight,
-    children: [
-      createElement(Button, {
-        children: "保存",
-        onPress: () => {
+  return (
+    <container width={surfaceWidth} height={surfaceHeight}>
+      <Button
+        onPress={() => {
           open = true;
           root.render(scene());
-        },
-      }),
-      createElement(ToastViewport, {
-        children: createElement(Toast, {
-          open,
-          title: "已保存",
-          description: "配置已写入本地。",
-        }),
-      }),
-    ],
-  });
+        }}
+      >
+        保存
+      </Button>
+      <ToastViewport>
+        <Toast open={open} title="已保存" description="配置已写入本地。" />
+      </ToastViewport>
+    </container>
+  );
 }
 ```
 

@@ -15,22 +15,17 @@ Popover はトリガーの横に浮遊パネルを開きます。ページがス
 ## 使い方
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Button, Popover, PopoverContent, PopoverTrigger } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Popover, {
-    defaultOpen: false,
-    onOpenChange: (open) => {},
-    children: [
-      createElement(PopoverTrigger, {
-        children: createElement(Button, { children: "ポップオーバーを開く", onPress: () => {} }),
-      }),
-      createElement(PopoverContent, {
-        children: createElement("text", { value: "任意のコンテンツ" }),
-      }),
-    ],
-  }),
+  <Popover defaultOpen={false} onOpenChange={(open) => {}}>
+    <PopoverTrigger>
+      <Button onPress={() => {}}>ポップオーバーを開く</Button>
+    </PopoverTrigger>
+    <PopoverContent>
+      <text value="任意のコンテンツ" />
+    </PopoverContent>
+  </Popover>,
 );
 ```
 

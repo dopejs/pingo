@@ -15,19 +15,19 @@ description: 파괴적 작업을 위한 확인 대화 상자. 취소/확인 버�
 ## 사용법
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { AlertDialog } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(AlertDialog, {
-    open,
-    onOpenChange: (next) => setOpen(next),
-    title: "종료하시겠습니까?",
-    description: "저장하지 않은 변경 사항은 사라집니다.",
-    onCancel: () => {},
-    onAction: () => quit(),
-    children: null,
-  }),
+  <AlertDialog
+    open={open}
+    onOpenChange={(next) => setOpen(next)}
+    title="종료하시겠습니까?"
+    description="저장하지 않은 변경 사항은 사라집니다."
+    onCancel={() => {}}
+    onAction={() => quit()}
+  >
+    {null}
+  </AlertDialog>,
 );
 ```
 

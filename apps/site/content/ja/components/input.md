@@ -14,21 +14,20 @@ description: 単一行テキスト入力ボックス。pingo 編集エンジン�
 ## 使い方
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Input } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Input, {
-    semanticLabel: "メールアドレス",
-    width: 320,
-    onValueChange: (value) => console.log(value),
-  }),
+  <Input
+    semanticLabel="メールアドレス"
+    width={320}
+    onValueChange={(value) => console.log(value)}
+  />,
 );
 ```
 
 `Input` は内部で hooks を使って安定した `TextEditingController` を保持するため、必ず
-`createElement(Input, props)` でコンポーネントとしてマウントする必要があり、直接関数として呼び出すことは
-できません。編集の詳細は[テキスト編集ガイド](/ja/guide/editing)を参照してください。
+`<Input … />` の形で要素としてマウントする必要があり、直接関数として呼び出すことはできません。直接呼び出すと
+「hooks may only run in a function component」で失敗します。編集の詳細は[テキスト編集ガイド](/ja/guide/editing)を参照してください。
 
 ## 例
 

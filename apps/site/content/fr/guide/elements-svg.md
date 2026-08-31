@@ -17,18 +17,11 @@ est rendu en direct par le moteur, et la couleur des icônes suit le thème du s
 ## Path : un contour unique
 
 ```tsx
-import { createElement, Path, View } from "@dopejs/pingo";
+import { Path, View } from "@dopejs/pingo";
 
-createElement(View, {
-  style: { color: "#3157dfff" }, // le contour est peint dans la color du nœud et hérite comme le texte
-  children: createElement(Path, {
-    d: "M20 6 9 17l-5-5",
-    viewBox: [0, 0, 24, 24],
-    width: 24,
-    height: 24,
-    strokeWidth: 2,
-  }),
-});
+<View style={{ color: "#3157dfff" }}>
+  <Path d="M20 6 9 17l-5-5" viewBox={[0, 0, 24, 24]} width={24} height={24} strokeWidth={2} />
+</View>;
 ```
 
 - `d` prend en charge la syntaxe complète des paths SVG (`M L H V C S Q T A Z` et leurs formes
@@ -70,11 +63,11 @@ Le composant `Svg` déploie le document en **un nœud path par forme**, empilée
 absolu ; une forme à la fois remplie et tracée devient deux nœuds — remplissage et contour sont
 deux paints, pas les deux moitiés d'un même nœud.
 
-```ts
+```tsx
 import { createSvg, loadSvg, Svg } from "@dopejs/pingo";
 
 const icon = createSvg(`<svg viewBox="0 0 24 24" stroke="currentColor" …>…</svg>`);
-createElement(Svg, { source: icon, width: 24, height: 24, style: { color: "#3157df" } });
+<Svg source={icon} width={24} height={24} style={{ color: "#3157df" }} />;
 
 const remote = await loadSvg("/assets/logo.svg");
 ```

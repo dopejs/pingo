@@ -15,8 +15,8 @@ description: תת-קבוצת ה-CSS של pingo — בוררי מחלקה, מפל
 מדרים טקסט CSS בעזרת `createStyleSheet` (קלט לא חוקי זורק `StyleSheetCompileError`), ומרשימים
 בעת יצירת ה-root:
 
-```ts
-import { createElement, createHostedCanvasRoot, createStyleSheet } from "@dopejs/pingo";
+```tsx
+import { createHostedCanvasRoot, createStyleSheet } from "@dopejs/pingo";
 
 const sheet = createStyleSheet(
   `
@@ -32,11 +32,9 @@ const sheet = createStyleSheet(
 const root = await createHostedCanvasRoot(canvas, { styleSheets: [sheet] });
 
 root.render(
-  createElement("container", {
-    className: "card",
-    width: 320,
-    children: createElement("text", { value: "שלום", fontSize: 14 }),
-  }),
+  <container className="card" width={320}>
+    <text value="שלום" fontSize={14} />
+  </container>,
 );
 ```
 

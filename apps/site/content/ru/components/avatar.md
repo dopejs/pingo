@@ -13,16 +13,15 @@ Avatar показывает аватар пользователя: если пе
 ## Использование
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Avatar } from "@dopejs/pingo-ui";
 
-root.render(createElement(Avatar, { fallback: "张" }));
+root.render(<Avatar fallback="张" />);
 ```
 
 Если изображение есть, передайте предварительно декодированный ресурс `PingoImage`: оно заполняется в режиме `object-fit: cover` и обрезается в круг:
 
 ```tsx
-createElement(Avatar, { image: decodedImage, fallback: "张" });
+<Avatar image={decodedImage} fallback="张" />
 ```
 
 ## Примеры
@@ -32,7 +31,7 @@ createElement(Avatar, { image: decodedImage, fallback: "张" });
 `size` — длина стороны квадрата (px); радиус скругления при этом устанавливается в `size / 2`. Если опустить, используется скиновское значение по умолчанию 40px. В превью показаны подряд 32, значение по умолчанию и 56.
 
 ```tsx
-createElement(Avatar, { fallback: "李", size: 32 });
+<Avatar fallback="李" size={32} />
 ```
 
 ## Пропсы

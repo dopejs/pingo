@@ -13,14 +13,12 @@ Tooltip מציג טקסט הסבר קצר בעת ריחוף המצביע, ומע
 ## שימוש
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Button, Tooltip } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Tooltip, {
-    content: "שמירה לענן",
-    children: createElement(Button, { children: "שמור", onPress: () => save() }),
-  }),
+  <Tooltip content="שמירה לענן">
+    <Button onPress={() => save()}>שמור</Button>
+  </Tooltip>,
 );
 ```
 

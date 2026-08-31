@@ -15,7 +15,6 @@ description: 組み合わせ式のカードコンテナ：Header、Title、Descr
 ## 使い方
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import {
   Button,
   Card,
@@ -27,22 +26,18 @@ import {
 } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Card, {
-    children: [
-      createElement(CardHeader, {
-        children: [
-          createElement(CardTitle, { children: "アカウント設定" }),
-          createElement(CardDescription, { children: "アカウントの設定と通知を管理します。" }),
-        ],
-      }),
-      createElement(CardContent, {
-        children: createElement("text", { value: "カードの本文コンテンツ。" }),
-      }),
-      createElement(CardFooter, {
-        children: createElement(Button, { children: "保存", onPress: () => {} }),
-      }),
-    ],
-  }),
+  <Card>
+    <CardHeader>
+      <CardTitle>アカウント設定</CardTitle>
+      <CardDescription>アカウントの設定と通知を管理します。</CardDescription>
+    </CardHeader>
+    <CardContent>
+      <text value="カードの本文コンテンツ。" />
+    </CardContent>
+    <CardFooter>
+      <Button onPress={() => {}}>保存</Button>
+    </CardFooter>
+  </Card>,
 );
 ```
 

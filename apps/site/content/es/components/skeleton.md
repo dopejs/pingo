@@ -13,10 +13,9 @@ Skeleton muestra bloques de marcador de posición con una forma similar al dise�
 ## Uso
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Skeleton } from "@dopejs/pingo-ui";
 
-root.render(createElement(Skeleton, { width: 320, height: 16 }));
+root.render(<Skeleton width={320} height={16} />);
 ```
 
 Tanto `width` como `height` pueden omitirse; en ese caso, el tamaño queda completamente a cargo del layout exterior y de tu hoja de estilos.

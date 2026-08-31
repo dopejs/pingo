@@ -13,22 +13,17 @@ Popover 在觸發器旁邊開啟一個浮動面板，頁面捲動時面板保持
 ## 用法
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Button, Popover, PopoverContent, PopoverTrigger } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Popover, {
-    defaultOpen: false,
-    onOpenChange: (open) => {},
-    children: [
-      createElement(PopoverTrigger, {
-        children: createElement(Button, { children: "打开浮层", onPress: () => {} }),
-      }),
-      createElement(PopoverContent, {
-        children: createElement("text", { value: "任意内容" }),
-      }),
-    ],
-  }),
+  <Popover defaultOpen={false} onOpenChange={(open) => {}}>
+    <PopoverTrigger>
+      <Button onPress={() => {}}>打开浮层</Button>
+    </PopoverTrigger>
+    <PopoverContent>
+      <text value="任意内容" />
+    </PopoverContent>
+  </Popover>,
 );
 ```
 

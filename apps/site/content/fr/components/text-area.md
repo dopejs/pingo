@@ -13,20 +13,19 @@ Saisie de texte multiligne, destinée aux remarques, biographies et autres conte
 ## Utilisation
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { TextArea } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(TextArea, {
-    semanticLabel: "个人简介",
-    width: 360,
-    rows: 4,
-    onValueChange: (value) => console.log(value),
-  }),
+  <TextArea
+    semanticLabel="个人简介"
+    width={360}
+    rows={4}
+    onValueChange={(value) => console.log(value)}
+  />,
 );
 ```
 
-`rows` détermine le nombre de lignes visibles et verrouille la hauteur minimale de l’enveloppe (`rows × hauteur de ligne + remplissage vertical`). Comme pour [Input](/components/input), `TextArea` doit être monté en tant que composant via `createElement`. Consultez le [guide d’édition de texte](/guide/editing) pour les détails d’édition.
+`rows` détermine le nombre de lignes visibles et verrouille la hauteur minimale de l’enveloppe (`rows × hauteur de ligne + remplissage vertical`). Comme pour [Input](/components/input), `TextArea` doit être monté en tant que composant via JSX. Consultez le [guide d’édition de texte](/guide/editing) pour les détails d’édition.
 
 ## Exemples
 

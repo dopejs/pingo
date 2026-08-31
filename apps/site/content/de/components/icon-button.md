@@ -13,16 +13,15 @@ Symbolschaltflächen werden für kompakte Aktionen ohne Textbeschriftung verwend
 ## Verwendung
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { IconButton } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(IconButton, {
-    icon: createElement("text", { value: "★" }),
-    semanticLabel: "Favorit",
-    variant: "outline",
-    onPress: () => toggleFavorite(),
-  }),
+  <IconButton
+    icon={<text value="★" />}
+    semanticLabel="Favorit"
+    variant="outline"
+    onPress={() => toggleFavorite()}
+  />,
 );
 ```
 

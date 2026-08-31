@@ -15,21 +15,14 @@ description: フォームコンテナとフィールドラッパー。レイア�
 ## 使い方
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Form, FormField, Input } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Form, {
-    children: createElement(FormField, {
-      label: "メールアドレス",
-      required: true,
-      error: emailError, // バリデーションルールは呼び出し側が保持
-      children: createElement(Input, {
-        semanticLabel: "メールアドレス",
-        onValueChange: (value) => validate(value),
-      }),
-    }),
-  }),
+  <Form>
+    <FormField label="メールアドレス" required error={emailError}>
+      <Input semanticLabel="メールアドレス" onValueChange={(value) => validate(value)} />
+    </FormField>
+  </Form>,
 );
 ```
 

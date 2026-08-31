@@ -13,25 +13,17 @@ description: أكورديون رأسي يوسّع عنصرًا واحدًا في
 ## الاستخدام
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Accordion, AccordionItem } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Accordion, {
-    defaultOpenValue: "intro",
-    children: [
-      createElement(AccordionItem, {
-        value: "intro",
-        title: "ما هو pingo-ui؟",
-        children: createElement("text", { value: "مكتبة مكوّنات تُعرض على لوحة pingo." }),
-      }),
-      createElement(AccordionItem, {
-        value: "theme",
-        title: "هل يدعم الوضع الداكن؟",
-        children: createElement("text", { value: "نعم، يتبع السمة ويتبدل تلقائيًا." }),
-      }),
-    ],
-  }),
+  <Accordion defaultOpenValue="intro">
+    <AccordionItem value="intro" title="ما هو pingo-ui؟">
+      <text value="مكتبة مكوّنات تُعرض على لوحة pingo." />
+    </AccordionItem>
+    <AccordionItem value="theme" title="هل يدعم الوضع الداكن؟">
+      <text value="نعم، يتبع السمة ويتبدل تلقائيًا." />
+    </AccordionItem>
+  </Accordion>,
 );
 ```
 

@@ -13,20 +13,22 @@ description: pingo 캔버스에 렌더링되는, 텍스트 라벨을 지원하�
 ## 사용법
 
 ```tsx
-import { createElement, useSignal, type PingoNode } from "@dopejs/pingo";
+import { useSignal, type PingoNode } from "@dopejs/pingo";
 import { Checkbox } from "@dopejs/pingo-ui";
 
 // useSignal은 훅이므로 컴포넌트 스코프 안에서 실행해야 합니다.
 function NotificationSetting(): PingoNode {
   const enabled = useSignal(false);
-  return createElement(Checkbox, {
-    checked: enabled.get(),
-    label: "알림 사용",
-    onCheckedChange: (next) => enabled.set(next),
-  });
+  return (
+    <Checkbox
+      checked={enabled.get()}
+      label="알림 사용"
+      onCheckedChange={(next) => enabled.set(next)}
+    />
+  );
 }
 
-root.render(createElement(NotificationSetting));
+root.render(<NotificationSetting />);
 ```
 
 `checked`는 부모 컴포넌트가 보유하며 `onCheckedChange`가 이를 갱신합니다. 컴포넌트 자체는 상태를 저장하지 않습니다. `label`은 선택 사항이며 제공하면 선택 상자 오른쪽에 텍스트를 렌더링합니다.

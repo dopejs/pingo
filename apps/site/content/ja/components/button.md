@@ -14,15 +14,12 @@ description: 操作やイベントをトリガーするボタン。pingo canvas 
 ## 使い方
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Button } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Button, {
-    children: "保存",
-    variant: "default",
-    onPress: () => save(),
-  }),
+  <Button variant="default" onPress={() => save()}>
+    保存
+  </Button>,
 );
 ```
 

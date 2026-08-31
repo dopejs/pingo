@@ -13,16 +13,15 @@ description: 只承载图标的按钮，必须提供无障碍名称，渲染在 
 ## 用法
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { IconButton } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(IconButton, {
-    icon: createElement("text", { value: "★" }),
-    semanticLabel: "收藏",
-    variant: "outline",
-    onPress: () => toggleFavorite(),
-  }),
+  <IconButton
+    icon={<text value="★" />}
+    semanticLabel="收藏"
+    variant="outline"
+    onPress={() => toggleFavorite()}
+  />,
 );
 ```
 

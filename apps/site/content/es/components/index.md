@@ -9,14 +9,14 @@ description: Biblioteca de componentes UI nativos de pingo con la mentalidad de 
 
 ## Uso
 
-```ts
+```tsx
 import { createHostedCanvasRoot } from "@dopejs/pingo";
 import { Button, createPingoUiStyleSheet } from "@dopejs/pingo-ui";
 
 const root = await createHostedCanvasRoot(canvas, {
   styleSheets: [createPingoUiStyleSheet()],
 });
-root.render(createElement(Button, { children: "Guardar" }));
+root.render(<Button>Guardar</Button>);
 ```
 
 Las hojas de estilo personalizadas del usuario deben registrarse **después** de la hoja de estilos de pingo-ui; las reglas con la misma prioridad se sobrescriben según el orden de registro. Para personalización de temas y marca, consulta la [guía de estilos](/guide/styling) y [SCSS y Less](/guide/scss-less).

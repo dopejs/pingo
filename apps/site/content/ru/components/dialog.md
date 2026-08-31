@@ -13,7 +13,6 @@ description: Модальное диалоговое окно, прерываю�
 ## Использование
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import {
   Button,
   Dialog,
@@ -24,21 +23,15 @@ import {
 } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Dialog, {
-    open,
-    onOpenChange: (next) => setOpen(next),
-    children: [
-      createElement(DialogHeader, {
-        children: [
-          createElement(DialogTitle, { children: "Редактировать профиль" }),
-          createElement(DialogDescription, { children: "Изменения синхронизируются сразу." }),
-        ],
-      }),
-      createElement(DialogFooter, {
-        children: createElement(Button, { children: "Сохранить", onPress: () => save() }),
-      }),
-    ],
-  }),
+  <Dialog open={open} onOpenChange={(next) => setOpen(next)}>
+    <DialogHeader>
+      <DialogTitle>Редактировать профиль</DialogTitle>
+      <DialogDescription>Изменения синхронизируются сразу.</DialogDescription>
+    </DialogHeader>
+    <DialogFooter>
+      <Button onPress={() => save()}>Сохранить</Button>
+    </DialogFooter>
+  </Dialog>,
 );
 ```
 

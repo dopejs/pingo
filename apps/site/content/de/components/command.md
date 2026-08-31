@@ -13,18 +13,17 @@ Command ist eine Befehlspalette mit Suchfeld: Eingaben filtern Einträge sofort,
 ## Verwendung
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Command } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Command, {
-    items: [
+  <Command
+    items={[
       { value: "open", label: "打开文件" },
       { value: "save", label: "保存文件" },
-    ],
-    onSelect: (value) => run(value),
-    onDismiss: () => closePalette(),
-  }),
+    ]}
+    onSelect={(value) => run(value)}
+    onDismiss={() => closePalette()}
+  />,
 );
 ```
 

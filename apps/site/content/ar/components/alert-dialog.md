@@ -13,19 +13,19 @@ description: مربع حوار تأكيد للعمليات التدميرية، 
 ## الاستخدام
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { AlertDialog } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(AlertDialog, {
-    open,
-    onOpenChange: (next) => setOpen(next),
-    title: "تأكيد الخروج؟",
-    description: "ستُفقد التعديلات غير المحفوظة.",
-    onCancel: () => {},
-    onAction: () => quit(),
-    children: null,
-  }),
+  <AlertDialog
+    open={open}
+    onOpenChange={(next) => setOpen(next)}
+    title="تأكيد الخروج؟"
+    description="ستُفقد التعديلات غير المحفوظة."
+    onCancel={() => {}}
+    onAction={() => quit()}
+  >
+    {null}
+  </AlertDialog>,
 );
 ```
 

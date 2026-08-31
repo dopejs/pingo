@@ -15,16 +15,12 @@ description: عنصر تحكم ترقيم صفحات بأسلوب shadcn مع ط
 رقم الصفحة **مُتحكَّم به**: يبدأ `page` من 1، ويُبلَّغ عن تغيير الصفحة عبر `onPageChange`، وتقوم أنت بإعادة كتابته.
 
 ```tsx
-import { createElement, useSignal, type PingoNode } from "@dopejs/pingo";
+import { useSignal, type PingoNode } from "@dopejs/pingo";
 import { Pagination } from "@dopejs/pingo-ui";
 
 function PagedList(): PingoNode {
   const page = useSignal(1);
-  return createElement(Pagination, {
-    page: page.get(),
-    pageCount: 12,
-    onPageChange: (next) => page.set(next),
-  });
+  return <Pagination page={page.get()} pageCount={12} onPageChange={(next) => page.set(next)} />;
 }
 ```
 

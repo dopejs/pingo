@@ -13,10 +13,9 @@ Skeleton は、コンテンツの読み込み完了前に最終レイアウト�
 ## 使い方
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Skeleton } from "@dopejs/pingo-ui";
 
-root.render(createElement(Skeleton, { width: 320, height: 16 }));
+root.render(<Skeleton width={320} height={16} />);
 ```
 
 `width` / `height` はどちらも省略可能です。省略した場合、サイズは外側のレイアウトとスタイルシートに完全に委ねられます。

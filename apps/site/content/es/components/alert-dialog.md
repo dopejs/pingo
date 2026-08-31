@@ -15,19 +15,19 @@ renderiza en vivo con el motor pingo y sigue el tema del sitio al cambiar entre 
 ## Uso
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { AlertDialog } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(AlertDialog, {
-    open,
-    onOpenChange: (next) => setOpen(next),
-    title: "确认退出？",
-    description: "未保存的修改将会丢失。",
-    onCancel: () => {},
-    onAction: () => quit(),
-    children: null,
-  }),
+  <AlertDialog
+    open={open}
+    onOpenChange={(next) => setOpen(next)}
+    title="确认退出？"
+    description="未保存的修改将会丢失。"
+    onCancel={() => {}}
+    onAction={() => quit()}
+  >
+    {null}
+  </AlertDialog>,
 );
 ```
 

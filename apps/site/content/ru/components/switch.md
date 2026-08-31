@@ -13,20 +13,18 @@ description: Контролируемый переключатель для бу
 ## Использование
 
 ```tsx
-import { createElement, useSignal, type PingoNode } from "@dopejs/pingo";
+import { useSignal, type PingoNode } from "@dopejs/pingo";
 import { Switch } from "@dopejs/pingo-ui";
 
 // useSignal 是 hook，必须运行在组件作用域内。
 function AirplaneMode(): PingoNode {
   const on = useSignal(false);
-  return createElement(Switch, {
-    checked: on.get(),
-    semanticLabel: "飞行模式",
-    onCheckedChange: (next) => on.set(next),
-  });
+  return (
+    <Switch checked={on.get()} semanticLabel="飞行模式" onCheckedChange={(next) => on.set(next)} />
+  );
 }
 
-root.render(createElement(AirplaneMode));
+root.render(<AirplaneMode />);
 ```
 
 `checked` хранится в родительском компоненте, а `onCheckedChange` обновляет его — сам компонент состояния не хранит.

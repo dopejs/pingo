@@ -13,24 +13,22 @@ description: 두 가지 상태를 전환하는 버튼 모음으로, 단일 선�
 ## 사용법
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { ToggleGroup, ToggleGroupItem } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(ToggleGroup, {
-    type: "single",
-    defaultValue: ["center"],
-    onValueChange: (value) => console.log(value),
-    children: [
-      createElement(ToggleGroupItem, { value: "left", children: "左对齐" }),
-      createElement(ToggleGroupItem, { value: "center", children: "居中" }),
-      createElement(ToggleGroupItem, { value: "right", children: "右对齐" }),
-    ],
-  }),
+  <ToggleGroup
+    type="single"
+    defaultValue={["center"]}
+    onValueChange={(value) => console.log(value)}
+  >
+    <ToggleGroupItem value="left">左对齐</ToggleGroupItem>
+    <ToggleGroupItem value="center">居中</ToggleGroupItem>
+    <ToggleGroupItem value="right">右对齐</ToggleGroupItem>
+  </ToggleGroup>,
 );
 ```
 
-`ToggleGroup`은 context를 통해 `ToggleGroupItem`에 선택 모음을 전달하며, 둘 다 반드시 `createElement`로 컴포넌트 형태로 마운트해야 합니다. `type: "single"`이면 새 선택이 이전 선택을 지우고, `"multiple"`이면 항목별로 추가됩니다.
+`ToggleGroup`은 context를 통해 `ToggleGroupItem`에 선택 모음을 전달하며, 둘 다 반드시 JSX로 컴포넌트 형태로 마운트해야 합니다. `type: "single"`이면 새 선택이 이전 선택을 지우고, `"multiple"`이면 항목별로 추가됩니다.
 
 ## 예제
 

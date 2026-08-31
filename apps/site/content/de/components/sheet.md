@@ -13,16 +13,12 @@ Sheet lässt ein Panel vom Rand des Containers hereingleiten und wird häufig f�
 ## Verwendung
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Sheet } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Sheet, {
-    open,
-    onOpenChange: (next) => setOpen(next),
-    side: "right",
-    children: createElement("text", { value: "面板内容" }),
-  }),
+  <Sheet open={open} onOpenChange={(next) => setOpen(next)} side="right">
+    <text value="面板内容" />
+  </Sheet>,
 );
 ```
 

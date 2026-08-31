@@ -27,20 +27,19 @@ description: حاوية View وتخطيط flex، ورسم النصّ مع Text،
 ## الاستخدام
 
 ```tsx
-import { createElement, Text, View } from "@dopejs/pingo";
+import { Text, View } from "@dopejs/pingo";
 
 root.render(
-  createElement(View, {
-    width: 420,
-    padding: 16,
-    backgroundColor: "#ffffffff",
-    style: { flexDirection: "column", borderRadius: 10 },
-    children: [
-      createElement(Text, { value: "标题", fontSize: 24, lineHeight: 32, fontWeight: 700 }),
-      createElement(View, { height: 8 }),
-      createElement(Text, { value: "正文", fontSize: 14, lineHeight: 22 }),
-    ],
-  }),
+  <View
+    width={420}
+    padding={16}
+    backgroundColor="#ffffffff"
+    style={{ flexDirection: "column", borderRadius: 10 }}
+  >
+    <Text value="标题" fontSize={24} lineHeight={32} fontWeight={700} />
+    <View height={8} />
+    <Text value="正文" fontSize={14} lineHeight={22} />
+  </View>,
 );
 ```
 
@@ -75,11 +74,11 @@ root.render(
 الغلاف وتُضمَّن تزامنيًا كمورد Scene عند حدود التسليم (commit). تُنشَأ بـ `createImage` التي تنسخ
 البكسلات وتتحقّق منها:
 
-```ts
+```tsx
 import { createImage, Image } from "@dopejs/pingo";
 
 const icon = createImage(pixels, 96, 96, { label: "应用图标" });
-createElement(Image, { source: icon, width: 48, height: 48 });
+<Image source={icon} width={48} height={48} />;
 ```
 
 دون `width` / `height` تأخذ العقدة مقاس الصورة بالبكسل؛ ومعهما تُقاس الصورة إلى صندوق العقدة.
@@ -98,13 +97,13 @@ createElement(Image, { source: icon, width: 48, height: 48 });
 (TTF/OTF/TTC) تشكّله النواة حتميًا. تستقبل `createFont` بايتات SFNT المفكوكة؛ وتضيف `loadFont`
 التحميل عبر الشبكة وفكّ ترميز WOFF/WOFF2:
 
-```ts
+```tsx
 import { loadFont } from "@dopejs/pingo";
 
 const inter = await loadFont("/fonts/Inter-Regular.woff2", {
   fallbackFamily: "sans-serif",
 });
-createElement(Text, { value: "Hello", font: inter, fontSize: 16 });
+<Text value="Hello" font={inter} fontSize={16} />;
 ```
 
 ‏`PingoFontOptions`: ‏`faceIndex` (فهرس الوجه في مجموعة TTC، الافتراضي `0`) و`fallbackFamily`

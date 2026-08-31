@@ -13,15 +13,12 @@ description: 작업이나 이벤트를 트리거하는 버튼으로, pingo canva
 ## 사용법
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Button } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Button, {
-    children: "저장",
-    variant: "default",
-    onPress: () => save(),
-  }),
+  <Button variant="default" onPress={() => save()}>
+    저장
+  </Button>,
 );
 ```
 

@@ -13,16 +13,9 @@ Resizable teilt einen Container in zwei Panels. Der Griff dazwischen lässt sich
 ## Verwendung
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Resizable } from "@dopejs/pingo-ui";
 
-root.render(
-  createElement(Resizable, {
-    defaultSplit: 0.4,
-    first: sidebar,
-    second: content,
-  }),
-);
+root.render(<Resizable defaultSplit={0.4} first={sidebar} second={content} />);
 ```
 
 Die Komponente selbst nimmt 100 % der Breite und Höhe des übergeordneten Containers ein und benötigt einen übergeordneten Container mit definierter Größe. Sie unterstützt sowohl den unkontrollierten (`defaultSplit`) als auch den kontrollierten (`split` + `onSplitChange`) Modus.

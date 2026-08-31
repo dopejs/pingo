@@ -20,7 +20,7 @@ Kontrollierte Schreibweise: `value` plus eine monoton wachsende `revision`; die 
 Transaktionen werden in `onTransaction` bestätigt:
 
 ```tsx
-import { createElement, Input, type EditTransaction } from "@dopejs/pingo";
+import { Input, type EditTransaction } from "@dopejs/pingo";
 
 let value = "Bestellnotiz";
 let revision = 1n;
@@ -32,15 +32,15 @@ function applyDelta(current: string, transaction: EditTransaction): string {
     : current.slice(0, delta.range.start) + delta.text + current.slice(delta.range.end);
 }
 
-createElement(Input, {
-  value,
-  revision,
-  semanticLabel: "Bestellnotiz",
-  onTransaction: (transaction) => {
+<Input
+  value={value}
+  revision={revision}
+  semanticLabel="Bestellnotiz"
+  onTransaction={(transaction) => {
     value = applyDelta(value, transaction);
     revision = transaction.revision;
-  },
-});
+  }}
+/>;
 ```
 
 Für rein lokalen Zustand können `value` / `revision` auch weggelassen und stattdessen ein

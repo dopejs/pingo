@@ -13,20 +13,22 @@ description: 即時に反映されるブール設定のための制御された�
 ## 使い方
 
 ```tsx
-import { createElement, useSignal, type PingoNode } from "@dopejs/pingo";
+import { useSignal, type PingoNode } from "@dopejs/pingo";
 import { Switch } from "@dopejs/pingo-ui";
 
 // useSignal はフックであり、コンポーネントスコープ内で実行する必要があります。
 function AirplaneMode(): PingoNode {
   const on = useSignal(false);
-  return createElement(Switch, {
-    checked: on.get(),
-    semanticLabel: "機内モード",
-    onCheckedChange: (next) => on.set(next),
-  });
+  return (
+    <Switch
+      checked={on.get()}
+      semanticLabel="機内モード"
+      onCheckedChange={(next) => on.set(next)}
+    />
+  );
 }
 
-root.render(createElement(AirplaneMode));
+root.render(<AirplaneMode />);
 ```
 
 `checked` は親コンポーネントが保持し、`onCheckedChange` がそれを更新します。コンポーネント自体は状態を保存しません。

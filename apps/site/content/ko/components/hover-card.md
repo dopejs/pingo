@@ -13,16 +13,16 @@ Hover Card는 트리거에 호버(또는 포커스)하면 리치 콘텐츠 카�
 ## 사용법
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { HoverCard } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(HoverCard, {
-    openDelayMs: 300,
-    closeDelayMs: 200,
-    children: createElement("text", { value: "@pingo" }),
-    content: createElement("text", { value: "Canvas 렌더링 엔진 및 UI 컴포넌트 라이브러리." }),
-  }),
+  <HoverCard
+    openDelayMs={300}
+    closeDelayMs={200}
+    content={<text value="Canvas 렌더링 엔진 및 UI 컴포넌트 라이브러리." />}
+  >
+    <text value="@pingo" />
+  </HoverCard>,
 );
 ```
 

@@ -15,29 +15,17 @@ description: 一度に 1 項目だけ展開する垂直スタックのアコー�
 ## 使い方
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Accordion, AccordionItem } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Accordion, {
-    defaultOpenValue: "intro",
-    children: [
-      createElement(AccordionItem, {
-        value: "intro",
-        title: "pingo-ui とは？",
-        children: createElement("text", {
-          value: "pingo canvas 上にレンダリングされるコンポーネントライブラリ。",
-        }),
-      }),
-      createElement(AccordionItem, {
-        value: "theme",
-        title: "ダークテーマに対応していますか？",
-        children: createElement("text", {
-          value: "対応しています。テーマに合わせて自動で切り替わります。",
-        }),
-      }),
-    ],
-  }),
+  <Accordion defaultOpenValue="intro">
+    <AccordionItem value="intro" title="pingo-ui とは？">
+      <text value="pingo canvas 上にレンダリングされるコンポーネントライブラリ。" />
+    </AccordionItem>
+    <AccordionItem value="theme" title="ダークテーマに対応していますか？">
+      <text value="対応しています。テーマに合わせて自動で切り替わります。" />
+    </AccordionItem>
+  </Accordion>,
 );
 ```
 

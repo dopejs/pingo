@@ -13,16 +13,9 @@ Resizable מחלק את המכולה לשני לוחות, כשהידית המר�
 ## שימוש
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Resizable } from "@dopejs/pingo-ui";
 
-root.render(
-  createElement(Resizable, {
-    defaultSplit: 0.4,
-    first: sidebar,
-    second: content,
-  }),
-);
+root.render(<Resizable defaultSplit={0.4} first={sidebar} second={content} />);
 ```
 
 רוחב וגובה הרכיב הם 100% ממכולת האב, ונדרשת מכולת אב בעלת ממדים מוגדרים. הרכיב תומך הן בשימוש לא־מבוקר (`defaultSplit`) והן בשימוש מבוקר (`split` + `onSplitChange`).

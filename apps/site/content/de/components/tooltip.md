@@ -13,14 +13,12 @@ Tooltip zeigt beim Überfahren mit dem Zeiger einen kurzen Hinweistext an, der s
 ## Verwendung
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Button, Tooltip } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Tooltip, {
-    content: "In der Cloud speichern",
-    children: createElement(Button, { children: "Speichern", onPress: () => save() }),
-  }),
+  <Tooltip content="In der Cloud speichern">
+    <Button onPress={() => save()}>Speichern</Button>
+  </Tooltip>,
 );
 ```
 

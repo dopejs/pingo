@@ -13,17 +13,16 @@ description: ניווט פירורי לחם בסגנון shadcn, הפריט הא
 ## שימוש
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Breadcrumb } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Breadcrumb, {
-    items: [
+  <Breadcrumb
+    items={[
       { label: "דף הבית", onNavigate: () => navigate("/") },
       { label: "רכיבים", onNavigate: () => navigate("/components") },
       { label: "Breadcrumb" }, // הפריט האחרון הוא העמוד הנוכחי, אין צורך ב-onNavigate
-    ],
-  }),
+    ]}
+  />,
 );
 ```
 

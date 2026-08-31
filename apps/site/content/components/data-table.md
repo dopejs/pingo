@@ -13,7 +13,7 @@ description: 带可排序表头的虚拟滚动表格，排序以回调形式上�
 ## 用法
 
 ```tsx
-import { createElement, useSignal, type PingoNode } from "@dopejs/pingo";
+import { useSignal, type PingoNode } from "@dopejs/pingo";
 import { DataTable, type SortState } from "@dopejs/pingo-ui";
 
 function MemberTable(): PingoNode {
@@ -26,7 +26,7 @@ function MemberTable(): PingoNode {
         key: "name",
         header: "成员",
         sortable: true,
-        cell: (row) => createElement("text", { value: row.name }),
+        cell: (row) => <text value={row.name} />,
       },
       {
         key: "commits",
@@ -34,7 +34,7 @@ function MemberTable(): PingoNode {
         width: 80,
         align: "end",
         sortable: true,
-        cell: (row) => createElement("text", { value: String(row.commits) }),
+        cell: (row) => <text value={String(row.commits)} />,
       },
     ],
     sort: current,

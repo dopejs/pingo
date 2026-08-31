@@ -15,16 +15,12 @@ description: פקד פָּגִינַצְיָה בסגנון shadcn, עם השמ�
 מספר העמוד הוא **מבוקר**: `page` מתחיל מ-1, והדפדוף מדווח באמצעות `onPageChange`, ועליך לכתוב אותו בחזרה.
 
 ```tsx
-import { createElement, useSignal, type PingoNode } from "@dopejs/pingo";
+import { useSignal, type PingoNode } from "@dopejs/pingo";
 import { Pagination } from "@dopejs/pingo-ui";
 
 function PagedList(): PingoNode {
   const page = useSignal(1);
-  return createElement(Pagination, {
-    page: page.get(),
-    pageCount: 12,
-    onPageChange: (next) => page.set(next),
-  });
+  return <Pagination page={page.get()} pageCount={12} onPageChange={(next) => page.set(next)} />;
 }
 ```
 

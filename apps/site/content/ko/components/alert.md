@@ -14,15 +14,9 @@ Alert는 사용자의 주의가 필요하지만 흐름을 끊지 않는 알림 �
 ## 사용법
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Alert } from "@dopejs/pingo-ui";
 
-root.render(
-  createElement(Alert, {
-    title: "알림",
-    children: "설정이 자동으로 저장되었습니다.",
-  }),
-);
+root.render(<Alert title="알림">설정이 자동으로 저장되었습니다.</Alert>);
 ```
 
 ## 예제
@@ -33,11 +27,9 @@ root.render(
 텍스트는 가독성을 위해 일반 전경색을 유지합니다.
 
 ```tsx
-createElement(Alert, {
-  title: "동기화 실패",
-  variant: "destructive",
-  children: "네트워크 연결을 확인한 뒤 다시 시도하십시오.",
-});
+<Alert title="동기화 실패" variant="destructive">
+  네트워크 연결을 확인한 뒤 다시 시도하십시오.
+</Alert>
 ```
 
 ## Props

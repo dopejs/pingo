@@ -13,10 +13,9 @@ Badge היא תגית סטטוס לא אינטראקטיבית, המשמשת ל�
 ## שימוש
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Badge } from "@dopejs/pingo-ui";
 
-root.render(createElement(Badge, { children: "Beta" }));
+root.render(<Badge>Beta</Badge>);
 ```
 
 ## דוגמאות
@@ -26,7 +25,7 @@ root.render(createElement(Badge, { children: "Beta" }));
 ארבעה וריאנטים מכסים סמנטיקה נפוצה: `default` (הדגשה), `secondary` (החלשה), `destructive` (שגיאה/סכנה), `outline` (קו מתאר). בתצוגה המקדימה הם מוצגים לפי הסדר.
 
 ```tsx
-createElement(Badge, { children: "קריאה בלבד", variant: "secondary" });
+<Badge variant="secondary">קריאה בלבד</Badge>
 ```
 
 ### שילוב עם רכיבים אחרים
@@ -34,12 +33,12 @@ createElement(Badge, { children: "קריאה בלבד", variant: "secondary" });
 Badge משמשת לעיתים קרובות כרכיב trailing בשורת רשימה או בכרטיס, בשילוב עם `Avatar` ו־`ListRow`:
 
 ```tsx
-createElement(ListRow, {
-  title: "ג'אנג סאן",
-  leading: createElement(Avatar, { fallback: "ג'", size: 32 }),
-  trailing: createElement(Badge, { children: "מנהל" }),
-  onPress: () => {},
-});
+<ListRow
+  title="ג'אנג סאן"
+  leading={<Avatar fallback="ג'" size={32} />}
+  trailing={<Badge>מנהל</Badge>}
+  onPress={() => {}}
+/>
 ```
 
 ## Props

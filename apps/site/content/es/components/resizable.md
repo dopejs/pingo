@@ -13,16 +13,9 @@ Resizable divide el contenedor en dos paneles; el control de arrastre central pe
 ## Uso
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Resizable } from "@dopejs/pingo-ui";
 
-root.render(
-  createElement(Resizable, {
-    defaultSplit: 0.4,
-    first: sidebar,
-    second: content,
-  }),
-);
+root.render(<Resizable defaultSplit={0.4} first={sidebar} second={content} />);
 ```
 
 El componente ocupa el 100 % del ancho y alto de su contenedor padre, que debe tener un tamaño definido. Admite tanto el modo no controlado (`defaultSplit`) como el controlado (`split` + `onSplitChange`).

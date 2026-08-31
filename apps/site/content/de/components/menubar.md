@@ -13,25 +13,17 @@ Menubar ist eine Reihe von Menüs, die sich eine einzige Öffnungsposition teile
 ## Verwendung
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Menubar, MenubarMenu } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Menubar, {
-    onValueChange: (value) => {},
-    children: [
-      createElement(MenubarMenu, {
-        value: "file",
-        label: "Datei",
-        children: createElement("text", { value: "Neu" }),
-      }),
-      createElement(MenubarMenu, {
-        value: "edit",
-        label: "Bearbeiten",
-        children: createElement("text", { value: "Rückgängig" }),
-      }),
-    ],
-  }),
+  <Menubar onValueChange={(value) => {}}>
+    <MenubarMenu value="file" label="Datei">
+      <text value="Neu" />
+    </MenubarMenu>
+    <MenubarMenu value="edit" label="Bearbeiten">
+      <text value="Rückgängig" />
+    </MenubarMenu>
+  </Menubar>,
 );
 ```
 

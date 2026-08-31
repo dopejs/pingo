@@ -13,14 +13,12 @@ Tooltip muestra un texto breve de ayuda cuando el puntero pasa por encima, ancla
 ## Uso
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Button, Tooltip } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Tooltip, {
-    content: "Guardar en la nube",
-    children: createElement(Button, { children: "Guardar", onPress: () => save() }),
-  }),
+  <Tooltip content="Guardar en la nube">
+    <Button onPress={() => save()}>Guardar</Button>
+  </Tooltip>,
 );
 ```
 

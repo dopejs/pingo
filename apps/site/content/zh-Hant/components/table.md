@@ -15,7 +15,7 @@ description: 虛擬捲動的資料表格，列定義同時驅動表頭與行，�
 `Table` 是純建構函式而非 memo 元件，直接呼叫即可回傳場景節點。在元件渲染作用域內呼叫（如下方的函式元件），其主題讀取才會訂閱網站主題切換。
 
 ```tsx
-import { createElement, type PingoNode } from "@dopejs/pingo";
+import type { PingoNode } from "@dopejs/pingo";
 import { Table } from "@dopejs/pingo-ui";
 
 type FileRow = { name: string; size: string };
@@ -26,14 +26,14 @@ function FileTable(): PingoNode {
       {
         key: "name",
         header: "名称",
-        cell: (row) => createElement("text", { value: row.name }),
+        cell: (row) => <text value={row.name} />,
       },
       {
         key: "size",
         header: "大小",
         width: 96,
         align: "end",
-        cell: (row) => createElement("text", { value: row.size }),
+        cell: (row) => <text value={row.size} />,
       },
     ],
     rowCount: files.length,

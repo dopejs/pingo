@@ -14,10 +14,9 @@ description: 水平または垂直の視覚的な区切り線。pingo canvas 上
 ## 使い方
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Divider } from "@dopejs/pingo-ui";
 
-root.render(createElement(Divider, {}));
+root.render(<Divider />);
 ```
 
 ## 例

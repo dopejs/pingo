@@ -13,26 +13,28 @@ description: 可受控也可自持状态的多选框，可带文字标签，渲�
 ## 用法
 
 ```tsx
-import { createElement, useSignal, type PingoNode } from "@dopejs/pingo";
+import { useSignal, type PingoNode } from "@dopejs/pingo";
 import { Checkbox } from "@dopejs/pingo-ui";
 
 // useSignal 是 hook，必须运行在组件作用域内。
 function NotificationSetting(): PingoNode {
   const enabled = useSignal(false);
-  return createElement(Checkbox, {
-    checked: enabled.get(),
-    label: "已启用通知",
-    onCheckedChange: (next) => enabled.set(next),
-  });
+  return (
+    <Checkbox
+      checked={enabled.get()}
+      label="已启用通知"
+      onCheckedChange={(next) => enabled.set(next)}
+    />
+  );
 }
 
-root.render(createElement(NotificationSetting));
+root.render(<NotificationSetting />);
 ```
 
 `checked` 由父组件持有，`onCheckedChange` 负责更新它。不需要外部状态时省略 `checked`，组件会自己记住，与 Slider、Tabs、Collapsible 一致：
 
 ```tsx
-createElement(Checkbox, { defaultChecked: true, label: "已启用通知" });
+<Checkbox defaultChecked label="已启用通知" />
 ```
 
 注意受控用法必须真的更新 `checked`：传了 `checked` 却忽略 `onCheckedChange`，控件永远不会变化，看上去就像点不动。`label` 可选，提供后会在选框右侧渲染文字。

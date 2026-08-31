@@ -16,20 +16,22 @@ Interaktion wird von Zustand des Aufrufers getrieben.
 ## Verwendung
 
 ```tsx
-import { createElement, useSignal, type PingoNode } from "@dopejs/pingo";
+import { useSignal, type PingoNode } from "@dopejs/pingo";
 import { Checkbox } from "@dopejs/pingo-ui";
 
 // useSignal 是 hook，必须运行在组件作用域内。
 function NotificationSetting(): PingoNode {
   const enabled = useSignal(false);
-  return createElement(Checkbox, {
-    checked: enabled.get(),
-    label: "已启用通知",
-    onCheckedChange: (next) => enabled.set(next),
-  });
+  return (
+    <Checkbox
+      checked={enabled.get()}
+      label="已启用通知"
+      onCheckedChange={(next) => enabled.set(next)}
+    />
+  );
 }
 
-root.render(createElement(NotificationSetting));
+root.render(<NotificationSetting />);
 ```
 
 `checked` liegt bei der Elternkomponente, `onCheckedChange` aktualisiert es — die Komponente selbst

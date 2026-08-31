@@ -13,23 +13,18 @@ Eine Optionsfeldgruppe wird verwendet, um eine Option aus einer Menge sich gegen
 ## Verwendung
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { RadioGroup, RadioGroupItem } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(RadioGroup, {
-    defaultValue: "b",
-    onValueChange: (value) => console.log(value),
-    children: [
-      createElement(RadioGroupItem, { value: "a", label: "选项 A" }),
-      createElement(RadioGroupItem, { value: "b", label: "选项 B" }),
-      createElement(RadioGroupItem, { value: "c", label: "选项 C" }),
-    ],
-  }),
+  <RadioGroup defaultValue="b" onValueChange={(value) => console.log(value)}>
+    <RadioGroupItem value="a" label="选项 A" />
+    <RadioGroupItem value="b" label="选项 B" />
+    <RadioGroupItem value="c" label="选项 C" />
+  </RadioGroup>,
 );
 ```
 
-`RadioGroup` veröffentlicht den aktuellen Wert über den Kontext an `RadioGroupItem`, daher müssen beide mit `createElement` als Komponenten eingebunden werden. Wird `value` übergeben, befindet sich die Komponente im kontrollierten Modus; andernfalls verwaltet sie ihren Zustand über `defaultValue` selbst.
+`RadioGroup` veröffentlicht den aktuellen Wert über den Kontext an `RadioGroupItem`, daher müssen beide mit JSX als Komponenten eingebunden werden. Wird `value` übergeben, befindet sich die Komponente im kontrollierten Modus; andernfalls verwaltet sie ihren Zustand über `defaultValue` selbst.
 
 ## Beispiele
 

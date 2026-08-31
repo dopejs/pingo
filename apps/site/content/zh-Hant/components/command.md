@@ -13,18 +13,17 @@ Command 是帶搜尋框的命令面板：輸入即時過濾條目，方向鍵移
 ## 用法
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Command } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Command, {
-    items: [
+  <Command
+    items={[
       { value: "open", label: "打开文件" },
       { value: "save", label: "保存文件" },
-    ],
-    onSelect: (value) => run(value),
-    onDismiss: () => closePalette(),
-  }),
+    ]}
+    onSelect={(value) => run(value)}
+    onDismiss={() => closePalette()}
+  />,
 );
 ```
 

@@ -13,29 +13,21 @@ description: تتنقل علامات التبويب بين مجموعة من ا�
 ## الاستخدام
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Tabs, {
-    defaultValue: "account",
-    children: [
-      createElement(TabsList, {
-        children: [
-          createElement(TabsTrigger, { value: "account", children: "الحساب" }),
-          createElement(TabsTrigger, { value: "password", children: "كلمة المرور" }),
-        ],
-      }),
-      createElement(TabsContent, {
-        value: "account",
-        children: createElement("text", { value: "إدارة معلومات حسابك." }),
-      }),
-      createElement(TabsContent, {
-        value: "password",
-        children: createElement("text", { value: "تغيير كلمة مرور تسجيل الدخول." }),
-      }),
-    ],
-  }),
+  <Tabs defaultValue="account">
+    <TabsList>
+      <TabsTrigger value="account">الحساب</TabsTrigger>
+      <TabsTrigger value="password">كلمة المرور</TabsTrigger>
+    </TabsList>
+    <TabsContent value="account">
+      <text value="إدارة معلومات حسابك." />
+    </TabsContent>
+    <TabsContent value="password">
+      <text value="تغيير كلمة مرور تسجيل الدخول." />
+    </TabsContent>
+  </Tabs>,
 );
 ```
 

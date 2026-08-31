@@ -13,20 +13,19 @@ description: حقل إدخال نصي متعدد الأسطر، مدفوع بم�
 ## الاستخدام
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { TextArea } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(TextArea, {
-    semanticLabel: "نبذة شخصية",
-    width: 360,
-    rows: 4,
-    onValueChange: (value) => console.log(value),
-  }),
+  <TextArea
+    semanticLabel="نبذة شخصية"
+    width={360}
+    rows={4}
+    onValueChange={(value) => console.log(value)}
+  />,
 );
 ```
 
-يحدد `rows` عدد الأسطر المرئية ويثبّت الحد الأدنى لارتفاع الهيكل (`rows × ارتفاع السطر + الحشوة العلوية والسفلية`). وكما هو الحال مع [Input](/components/input)، يجب تركيب `TextArea` كمكوّن باستخدام `createElement`. لمزيد من تفاصيل التحرير راجع [دليل التحرير النصي](/guide/editing).
+يحدد `rows` عدد الأسطر المرئية ويثبّت الحد الأدنى لارتفاع الهيكل (`rows × ارتفاع السطر + الحشوة العلوية والسفلية`). وكما هو الحال مع [Input](/components/input)، يجب تركيب `TextArea` كمكوّن باستخدام JSX. لمزيد من تفاصيل التحرير راجع [دليل التحرير النصي](/guide/editing).
 
 ## أمثلة
 

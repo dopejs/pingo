@@ -13,16 +13,15 @@ Avatar는 사용자 아바타를 표시합니다. 디코딩된 이미지 리소�
 ## 사용법
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Avatar } from "@dopejs/pingo-ui";
 
-root.render(createElement(Avatar, { fallback: "张" }));
+root.render(<Avatar fallback="张" />);
 ```
 
 이미지가 있으면 미리 디코딩된 `PingoImage` 리소스를 전달합니다. 이미지는 `object-fit: cover`로 채워지고 원형으로 잘립니다.
 
 ```tsx
-createElement(Avatar, { image: decodedImage, fallback: "张" });
+<Avatar image={decodedImage} fallback="张" />
 ```
 
 ## 예제
@@ -32,7 +31,7 @@ createElement(Avatar, { image: decodedImage, fallback: "张" });
 `size`는 정사각형 한 변의 길이(px)이며, 동시에 둥근 모서리를 `size / 2`로 설정합니다. 생략하면 스킨 기본값인 40px를 사용합니다. 미리보기에는 순서대로 32, 기본값, 56이 표시됩니다.
 
 ```tsx
-createElement(Avatar, { fallback: "李", size: 32 });
+<Avatar fallback="李" size={32} />
 ```
 
 ## Props

@@ -11,8 +11,8 @@ ils ne font pas partie du contrat public — le [scanner de migration](/guide/mi
 
 ## Monter votre premier canvas
 
-```ts
-import { createElement, createHostedCanvasRoot } from "@dopejs/pingo";
+```tsx
+import { createHostedCanvasRoot } from "@dopejs/pingo";
 
 const canvas = document.querySelector<HTMLCanvasElement>("#app")!;
 canvas.width = 800;
@@ -21,18 +21,9 @@ canvas.height = 600;
 const root = await createHostedCanvasRoot(canvas);
 
 root.render(
-  createElement("container", {
-    width: 800,
-    height: 600,
-    backgroundColor: "#ffffffff",
-    padding: 24,
-    children: createElement("text", {
-      value: "Hello pingo",
-      fontSize: 24,
-      lineHeight: 32,
-      color: "#1f2329ff",
-    }),
-  }),
+  <container width={800} height={600} backgroundColor="#ffffffff" padding={24}>
+    <text value="Hello pingo" fontSize={24} lineHeight={32} color="#1f2329ff" />
+  </container>,
 );
 ```
 
@@ -82,7 +73,7 @@ ils n'introduisent pas de nouveau chemin d'entrée.
 
 ## État et effets
 
-```ts
+```tsx
 import { signal, useEffect, useSignal, useState } from "@dopejs/pingo";
 
 function Counter() {
@@ -91,7 +82,7 @@ function Counter() {
     const timer = setInterval(() => setCount((value) => value + 1), 1000);
     return () => clearInterval(timer);
   }, []);
-  return createElement("text", { value: `已过 ${count} 秒` });
+  return <text value={`已过 ${count} 秒`} />;
 }
 ```
 

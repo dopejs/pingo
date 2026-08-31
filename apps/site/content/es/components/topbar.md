@@ -15,19 +15,18 @@ Relación de composición con los componentes básicos de shadcn: TopBar no prop
 ## Uso
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Avatar, Button, TopBar } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(TopBar, {
-    title: "仪表盘",
-    leading: createElement(Avatar, { fallback: "P", size: 28 }),
-    actions: createElement(Button, {
-      children: "新建",
-      variant: "outline",
-      onPress: () => create(),
-    }),
-  }),
+  <TopBar
+    title="仪表盘"
+    leading={<Avatar fallback="P" size={28} />}
+    actions={
+      <Button variant="outline" onPress={() => create()}>
+        新建
+      </Button>
+    }
+  />,
 );
 ```
 
@@ -38,9 +37,7 @@ root.render(
 Al omitir `title`, la columna del título se renderiza igualmente (una columna flexible vacía) y las acciones siguen empujadas al extremo derecho; adecuado para barras de herramientas que solo contienen una zona de acciones.
 
 ```tsx
-createElement(TopBar, {
-  actions: createElement(Button, { children: "导出", onPress: () => {} }),
-});
+<TopBar actions={<Button onPress={() => {}}>导出</Button>} />
 ```
 
 ## Props

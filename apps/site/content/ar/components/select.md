@@ -13,27 +13,20 @@ description: قائمة منسدلة مركّبة تدعم التنقل بلوح
 ## الاستخدام
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Select, {
-    value: "pingo-ui",
-    onValueChange: (value) => console.log(value),
-    children: [
-      createElement(SelectTrigger, { placeholder: "اختر حزمة" }),
-      createElement(SelectContent, {
-        children: [
-          createElement(SelectItem, { value: "pingo", children: "@dopejs/pingo" }),
-          createElement(SelectItem, { value: "pingo-ui", children: "@dopejs/pingo-ui" }),
-        ],
-      }),
-    ],
-  }),
+  <Select value="pingo-ui" onValueChange={(value) => console.log(value)}>
+    <SelectTrigger placeholder="اختر حزمة" />
+    <SelectContent>
+      <SelectItem value="pingo">@dopejs/pingo</SelectItem>
+      <SelectItem value="pingo-ui">@dopejs/pingo-ui</SelectItem>
+    </SelectContent>
+  </Select>,
 );
 ```
 
-تتعاون جميع الأجزاء عبر context، ويجب تركيبها جميعًا كمكوّنات باستخدام `createElement`. يعرض الزناد `value` المحدد حاليًا؛ وعند عدم وجود تحديد يعرض `placeholder`.
+تتعاون جميع الأجزاء عبر context، ويجب تركيبها جميعًا كمكوّنات باستخدام JSX. يعرض الزناد `value` المحدد حاليًا؛ وعند عدم وجود تحديد يعرض `placeholder`.
 
 ## أمثلة
 

@@ -13,16 +13,12 @@ Sheet는 컨테이너 가장자리에서 패널을 슬라이드 인 시키며, �
 ## 사용법
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Sheet } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Sheet, {
-    open,
-    onOpenChange: (next) => setOpen(next),
-    side: "right",
-    children: createElement("text", { value: "패널 콘텐츠" }),
-  }),
+  <Sheet open={open} onOpenChange={(next) => setOpen(next)} side="right">
+    <text value="패널 콘텐츠" />
+  </Sheet>,
 );
 ```
 

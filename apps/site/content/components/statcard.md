@@ -15,17 +15,10 @@ StatCard 是 pingo 特有的产品分子：一块指标瓦片，由标签、数�
 ## 用法
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { StatCard } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(StatCard, {
-    label: "本月营收",
-    value: "¥128,400",
-    delta: "+12.5%",
-    trend: "up",
-    description: "较上月",
-  }),
+  <StatCard label="本月营收" value="¥128,400" delta="+12.5%" trend="up" description="较上月" />,
 );
 ```
 
@@ -40,7 +33,7 @@ root.render(
 省略 `delta` 时数值独占一行，`trend` 不生效；`description` 同样可省略。
 
 ```tsx
-createElement(StatCard, { label: "在线设备", value: "1,024" });
+<StatCard label="在线设备" value="1,024" />
 ```
 
 ## Props

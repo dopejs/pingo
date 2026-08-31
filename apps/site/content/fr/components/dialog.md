@@ -13,7 +13,6 @@ La boîte de dialogue ouvre un panneau modal au-dessus du contenu actuel, accomp
 ## Utilisation
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import {
   Button,
   Dialog,
@@ -24,23 +23,15 @@ import {
 } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Dialog, {
-    open,
-    onOpenChange: (next) => setOpen(next),
-    children: [
-      createElement(DialogHeader, {
-        children: [
-          createElement(DialogTitle, { children: "Modifier le profil" }),
-          createElement(DialogDescription, {
-            children: "Les modifications sont synchronisées immédiatement.",
-          }),
-        ],
-      }),
-      createElement(DialogFooter, {
-        children: createElement(Button, { children: "Enregistrer", onPress: () => save() }),
-      }),
-    ],
-  }),
+  <Dialog open={open} onOpenChange={(next) => setOpen(next)}>
+    <DialogHeader>
+      <DialogTitle>Modifier le profil</DialogTitle>
+      <DialogDescription>Les modifications sont synchronisées immédiatement.</DialogDescription>
+    </DialogHeader>
+    <DialogFooter>
+      <Button onPress={() => save()}>Enregistrer</Button>
+    </DialogFooter>
+  </Dialog>,
 );
 ```
 

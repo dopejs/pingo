@@ -30,20 +30,19 @@ neue Art von Scene-Knoten ein:
 ## Verwendung
 
 ```tsx
-import { createElement, Text, View } from "@dopejs/pingo";
+import { Text, View } from "@dopejs/pingo";
 
 root.render(
-  createElement(View, {
-    width: 420,
-    padding: 16,
-    backgroundColor: "#ffffffff",
-    style: { flexDirection: "column", borderRadius: 10 },
-    children: [
-      createElement(Text, { value: "Überschrift", fontSize: 24, lineHeight: 32, fontWeight: 700 }),
-      createElement(View, { height: 8 }),
-      createElement(Text, { value: "Fließtext", fontSize: 14, lineHeight: 22 }),
-    ],
-  }),
+  <View
+    width={420}
+    padding={16}
+    backgroundColor="#ffffffff"
+    style={{ flexDirection: "column", borderRadius: 10 }}
+  >
+    <Text value="Überschrift" fontSize={24} lineHeight={32} fontWeight={700} />
+    <View height={8} />
+    <Text value="Fließtext" fontSize={14} lineHeight={22} />
+  </View>,
 );
 ```
 
@@ -78,11 +77,11 @@ Die `source` von `Image` ist ein `PingoImage` — eine auf Shell-Seite gehaltene
 RGBA8-Bitmap**, die an der Commit-Grenze synchron als Scene-Ressource inline übergeben wird. Erzeugt
 wird sie mit `createImage`, das die Pixel kopiert und validiert:
 
-```ts
+```tsx
 import { createImage, Image } from "@dopejs/pingo";
 
 const icon = createImage(pixels, 96, 96, { label: "App-Symbol" });
-createElement(Image, { source: icon, width: 48, height: 48 });
+<Image source={icon} width={48} height={48} />;
 ```
 
 Ohne `width` / `height` übernimmt der Knoten die Pixelgröße des Bildes; mit Angaben wird das Bild in
@@ -104,13 +103,13 @@ unveränderliche SFNT-Schrift (TTF/OTF/TTC), die der Core deterministisch shapet
 bereits dekodierte SFNT-Bytes entgegen; `loadFont` übernimmt zusätzlich das Laden übers Netz und das
 Dekodieren von WOFF/WOFF2:
 
-```ts
+```tsx
 import { loadFont } from "@dopejs/pingo";
 
 const inter = await loadFont("/fonts/Inter-Regular.woff2", {
   fallbackFamily: "sans-serif",
 });
-createElement(Text, { value: "Hello", font: inter, fontSize: 16 });
+<Text value="Hello" font={inter} fontSize={16} />;
 ```
 
 `PingoFontOptions`: `faceIndex` (Index des Schriftschnitts in einer TTC-Sammlung, Standard `0`) und

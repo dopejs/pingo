@@ -13,19 +13,19 @@ Context Menu는 대상 영역에서 우클릭(`contextmenu` 이벤트) 시 포�
 ## 사용법
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { ContextMenu } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(ContextMenu, {
-    items: [
+  <ContextMenu
+    items={[
       { value: "copy", label: "复制" },
       { value: "paste", label: "粘贴", disabled: true },
       { value: "delete", label: "删除" },
-    ],
-    onSelect: (value) => run(value),
-    children: createElement("text", { value: "在此右键" }),
-  }),
+    ]}
+    onSelect={(value) => run(value)}
+  >
+    <text value="在此右键" />
+  </ContextMenu>,
 );
 ```
 

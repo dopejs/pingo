@@ -15,23 +15,18 @@ description: 単一選択のオプショングループ。矢印キーナビゲ�
 ## 使い方
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { RadioGroup, RadioGroupItem } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(RadioGroup, {
-    defaultValue: "b",
-    onValueChange: (value) => console.log(value),
-    children: [
-      createElement(RadioGroupItem, { value: "a", label: "選択肢 A" }),
-      createElement(RadioGroupItem, { value: "b", label: "選択肢 B" }),
-      createElement(RadioGroupItem, { value: "c", label: "選択肢 C" }),
-    ],
-  }),
+  <RadioGroup defaultValue="b" onValueChange={(value) => console.log(value)}>
+    <RadioGroupItem value="a" label="選択肢 A" />
+    <RadioGroupItem value="b" label="選択肢 B" />
+    <RadioGroupItem value="c" label="選択肢 C" />
+  </RadioGroup>,
 );
 ```
 
-`RadioGroup` はコンテキスト経由で現在の値を `RadioGroupItem` に配信するため、両方とも `createElement` で
+`RadioGroup` はコンテキスト経由で現在の値を `RadioGroupItem` に配信するため、両方とも JSX で
 コンポーネントとしてマウントする必要があります。`value` を渡すと制御モードになり、それ以外では
 `defaultValue` でコンポーネントが状態を自己管理します。
 

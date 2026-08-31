@@ -15,15 +15,9 @@ renderiza en vivo con el motor pingo.
 ## Uso
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { AspectRatio } from "@dopejs/pingo-ui";
 
-root.render(
-  createElement(AspectRatio, {
-    ratio: 16 / 9,
-    children: coverImage,
-  }),
-);
+root.render(<AspectRatio ratio={16 / 9}>{coverImage}</AspectRatio>);
 ```
 
 La anchura del componente es el 100 % del contenedor padre; `ratio` es ancho dividido entre alto,

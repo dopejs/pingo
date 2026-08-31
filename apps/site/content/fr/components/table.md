@@ -15,7 +15,7 @@ Table à défilement virtuel : la définition des colonnes pilote à la fois l�
 `Table` est une fonction de construction pure et non un composant mémo : il suffit de l’appeler directement pour obtenir un nœud de scène. Appelée dans la portée de rendu d’un composant (comme le composant fonction ci-dessous), sa lecture du thème s’abonne alors à la bascule de thème du site.
 
 ```tsx
-import { createElement, type PingoNode } from "@dopejs/pingo";
+import type { PingoNode } from "@dopejs/pingo";
 import { Table } from "@dopejs/pingo-ui";
 
 type FileRow = { name: string; size: string };
@@ -26,14 +26,14 @@ function FileTable(): PingoNode {
       {
         key: "name",
         header: "名称",
-        cell: (row) => createElement("text", { value: row.name }),
+        cell: (row) => <text value={row.name} />,
       },
       {
         key: "size",
         header: "大小",
         width: 96,
         align: "end",
-        cell: (row) => createElement("text", { value: row.size }),
+        cell: (row) => <text value={row.size} />,
       },
     ],
     rowCount: files.length,

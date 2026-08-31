@@ -15,16 +15,18 @@ shadcn 风格的月历。日期用 `{ year, month, day }` 三个部分表示（`
 选中态是**受控**的：点击日期触发 `onSelect`，由你回写 `value`。月份则可以在组件内部自管理（`defaultMonth`），也可以通过 `month` + `onMonthChange` 完全受控。
 
 ```tsx
-import { createElement, useSignal, type PingoNode } from "@dopejs/pingo";
+import { useSignal, type PingoNode } from "@dopejs/pingo";
 import { Calendar, type CalendarDate } from "@dopejs/pingo-ui";
 
 function DateField(): PingoNode {
   const selected = useSignal<CalendarDate>({ year: 2026, month: 8, day: 22 });
-  return createElement(Calendar, {
-    defaultMonth: { year: 2026, month: 8, day: 1 },
-    value: selected.get(),
-    onSelect: (date) => selected.set(date),
-  });
+  return (
+    <Calendar
+      defaultMonth={{ year: 2026, month: 8, day: 1 }}
+      value={selected.get()}
+      onSelect={(date) => selected.set(date)}
+    />
+  );
 }
 ```
 

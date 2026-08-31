@@ -13,27 +13,20 @@ El selector desplegable se compone de `Select`, `SelectTrigger`, `SelectContent`
 ## Uso
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Select, {
-    value: "pingo-ui",
-    onValueChange: (value) => console.log(value),
-    children: [
-      createElement(SelectTrigger, { placeholder: "选择一个包" }),
-      createElement(SelectContent, {
-        children: [
-          createElement(SelectItem, { value: "pingo", children: "@dopejs/pingo" }),
-          createElement(SelectItem, { value: "pingo-ui", children: "@dopejs/pingo-ui" }),
-        ],
-      }),
-    ],
-  }),
+  <Select value="pingo-ui" onValueChange={(value) => console.log(value)}>
+    <SelectTrigger placeholder="选择一个包" />
+    <SelectContent>
+      <SelectItem value="pingo">@dopejs/pingo</SelectItem>
+      <SelectItem value="pingo-ui">@dopejs/pingo-ui</SelectItem>
+    </SelectContent>
+  </Select>,
 );
 ```
 
-Todas las partes colaboran mediante contexto y deben montarse como componentes con `createElement`. El disparador muestra el `value` seleccionado actualmente; cuando no hay selección, muestra el `placeholder`.
+Todas las partes colaboran mediante contexto y deben montarse como componentes con JSX. El disparador muestra el `value` seleccionado actualmente; cuando no hay selección, muestra el `placeholder`.
 
 ## Ejemplos
 

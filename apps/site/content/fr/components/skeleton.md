@@ -13,10 +13,9 @@ Skeleton affiche des blocs de substitution dont la forme se rapproche de la mise
 ## Utilisation
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Skeleton } from "@dopejs/pingo-ui";
 
-root.render(createElement(Skeleton, { width: 320, height: 16 }));
+root.render(<Skeleton width={320} height={16} />);
 ```
 
 `width` / `height` peuvent tous deux être omis ; dans ce cas, les dimensions sont entièrement déterminées par la mise en page extérieure et votre feuille de style.

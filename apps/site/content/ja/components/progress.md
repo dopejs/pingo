@@ -15,19 +15,17 @@ Progress は、ダウンロード、アップロード、マルチステップ�
 ## 使い方
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Progress } from "@dopejs/pingo-ui";
 
-root.render(createElement(Progress, { value: 60 }));
+root.render(<Progress value={60} />);
 ```
 
 トラックの幅は親コンテナを継承します。Progress を固定幅のコンテナに入れればバーの長さを制御できます。
 
 ```tsx
-createElement("container", {
-  width: 320,
-  children: createElement(Progress, { value: 60 }),
-});
+<container width={320}>
+  <Progress value={60} />
+</container>
 ```
 
 ## 例
@@ -38,7 +36,7 @@ createElement("container", {
 クランプされます。
 
 ```tsx
-createElement(Progress, { value: 3, max: 10 }); // 30%
+<Progress value={3} max={10} /> // 30%
 ```
 
 ## Props

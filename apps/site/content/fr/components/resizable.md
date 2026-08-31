@@ -13,16 +13,9 @@ Resizable divise le conteneur en deux panneaux. La poignée centrale permet d'aj
 ## Utilisation
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Resizable } from "@dopejs/pingo-ui";
 
-root.render(
-  createElement(Resizable, {
-    defaultSplit: 0.4,
-    first: sidebar,
-    second: content,
-  }),
-);
+root.render(<Resizable defaultSplit={0.4} first={sidebar} second={content} />);
 ```
 
 Le composant occupe 100 % de la largeur et de la hauteur de son parent, qui doit donc avoir une taille définie. Il prend en charge à la fois l'utilisation non contrôlée (`defaultSplit`) et contrôlée (`split` + `onSplitChange`).

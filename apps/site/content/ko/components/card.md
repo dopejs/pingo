@@ -13,7 +13,6 @@ description: "조합형 카드 컨테이너: Header, Title, Description, Content
 ## 사용법
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import {
   Button,
   Card,
@@ -25,22 +24,18 @@ import {
 } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Card, {
-    children: [
-      createElement(CardHeader, {
-        children: [
-          createElement(CardTitle, { children: "계정 설정" }),
-          createElement(CardDescription, { children: "계정 환경설정과 알림을 관리합니다." }),
-        ],
-      }),
-      createElement(CardContent, {
-        children: createElement("text", { value: "카드 본문 내용입니다." }),
-      }),
-      createElement(CardFooter, {
-        children: createElement(Button, { children: "저장", onPress: () => {} }),
-      }),
-    ],
-  }),
+  <Card>
+    <CardHeader>
+      <CardTitle>계정 설정</CardTitle>
+      <CardDescription>계정 환경설정과 알림을 관리합니다.</CardDescription>
+    </CardHeader>
+    <CardContent>
+      <text value="카드 본문 내용입니다." />
+    </CardContent>
+    <CardFooter>
+      <Button onPress={() => {}}>저장</Button>
+    </CardFooter>
+  </Card>,
 );
 ```
 

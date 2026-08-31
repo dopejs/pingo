@@ -13,25 +13,17 @@ Menubar هو صف من القوائم يتشارك في موضع فتح واحد
 ## الاستخدام
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Menubar, MenubarMenu } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Menubar, {
-    onValueChange: (value) => {},
-    children: [
-      createElement(MenubarMenu, {
-        value: "file",
-        label: "ملف",
-        children: createElement("text", { value: "جديد" }),
-      }),
-      createElement(MenubarMenu, {
-        value: "edit",
-        label: "تحرير",
-        children: createElement("text", { value: "تراجع" }),
-      }),
-    ],
-  }),
+  <Menubar onValueChange={(value) => {}}>
+    <MenubarMenu value="file" label="ملف">
+      <text value="جديد" />
+    </MenubarMenu>
+    <MenubarMenu value="edit" label="تحرير">
+      <text value="تراجع" />
+    </MenubarMenu>
+  </Menubar>,
 );
 ```
 

@@ -13,10 +13,9 @@ Badge는 상태, 분류 또는 수량을 표시하는 비상호작용 상태 라
 ## 사용법
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Badge } from "@dopejs/pingo-ui";
 
-root.render(createElement(Badge, { children: "Beta" }));
+root.render(<Badge>Beta</Badge>);
 ```
 
 ## 예시
@@ -26,7 +25,7 @@ root.render(createElement(Badge, { children: "Beta" }));
 네 가지 변형이 일반적인 의미를 다룹니다: `default`(강조), `secondary`(약화), `destructive`(오류/위험), `outline`(외곽선). 미리보기에 순서대로 표시되어 있습니다.
 
 ```tsx
-createElement(Badge, { children: "읽기 전용", variant: "secondary" });
+<Badge variant="secondary">읽기 전용</Badge>
 ```
 
 ### 다른 컴포넌트와 함께 사용
@@ -34,12 +33,12 @@ createElement(Badge, { children: "읽기 전용", variant: "secondary" });
 Badge는 목록 행이나 카드의 trailing 요소로 자주 사용되며, `Avatar`, `ListRow`와 조합하여 사용합니다:
 
 ```tsx
-createElement(ListRow, {
-  title: "장삼",
-  leading: createElement(Avatar, { fallback: "장", size: 32 }),
-  trailing: createElement(Badge, { children: "관리자" }),
-  onPress: () => {},
-});
+<ListRow
+  title="장삼"
+  leading={<Avatar fallback="장" size={32} />}
+  trailing={<Badge>관리자</Badge>}
+  onPress={() => {}}
+/>
 ```
 
 ## Props

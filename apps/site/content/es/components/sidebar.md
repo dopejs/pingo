@@ -13,27 +13,18 @@ Sidebar es una columna de navegación a nivel de aplicación compuesta por secci
 ## Uso
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Sidebar, SidebarItem, SidebarSection } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Sidebar, {
-    defaultValue: "stats",
-    onValueChange: (value) => navigate(value),
-    children: [
-      createElement(SidebarSection, {
-        title: "工作区",
-        children: [
-          createElement(SidebarItem, { value: "home", label: "首页" }),
-          createElement(SidebarItem, { value: "stats", label: "统计" }),
-        ],
-      }),
-      createElement(SidebarSection, {
-        title: "系统",
-        children: createElement(SidebarItem, { value: "settings", label: "设置" }),
-      }),
-    ],
-  }),
+  <Sidebar defaultValue="stats" onValueChange={(value) => navigate(value)}>
+    <SidebarSection title="工作区">
+      <SidebarItem value="home" label="首页" />
+      <SidebarItem value="stats" label="统计" />
+    </SidebarSection>
+    <SidebarSection title="系统">
+      <SidebarItem value="settings" label="设置" />
+    </SidebarSection>
+  </Sidebar>,
 );
 ```
 

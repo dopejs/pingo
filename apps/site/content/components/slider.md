@@ -13,22 +13,21 @@ description: 数值滑杆，支持拖拽与键盘微调，渲染在 pingo canvas
 ## 用法
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Slider } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Slider, {
-    defaultValue: 40,
-    min: 0,
-    max: 100,
-    step: 1,
-    semanticLabel: "音量",
-    onValueChange: (value) => console.log(value),
-  }),
+  <Slider
+    defaultValue={40}
+    min={0}
+    max={100}
+    step={1}
+    semanticLabel="音量"
+    onValueChange={(value) => console.log(value)}
+  />,
 );
 ```
 
-`Slider` 内部通过 hooks 持有拖拽状态，必须用 `createElement` 以组件形式挂载。传入 `value` 即进入受控模式；否则用 `defaultValue` 让组件自持状态。
+`Slider` 内部通过 hooks 持有拖拽状态，必须用 JSX 以组件形式挂载。传入 `value` 即进入受控模式；否则用 `defaultValue` 让组件自持状态。
 
 ## 示例
 

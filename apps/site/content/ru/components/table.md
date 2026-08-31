@@ -15,7 +15,7 @@ description: Таблица данных с виртуальной прокру�
 `Table` — это чистая функция-конструктор, а не memo-компонент; при вызове она сразу возвращает узел сцены. Если вызывать её внутри области рендеринга компонента (как в функциональном компоненте ниже), чтение темы будет подписываться на переключение темы сайта.
 
 ```tsx
-import { createElement, type PingoNode } from "@dopejs/pingo";
+import type { PingoNode } from "@dopejs/pingo";
 import { Table } from "@dopejs/pingo-ui";
 
 type FileRow = { name: string; size: string };
@@ -26,14 +26,14 @@ function FileTable(): PingoNode {
       {
         key: "name",
         header: "Название",
-        cell: (row) => createElement("text", { value: row.name }),
+        cell: (row) => <text value={row.name} />,
       },
       {
         key: "size",
         header: "Размер",
         width: 96,
         align: "end",
-        cell: (row) => createElement("text", { value: row.size }),
+        cell: (row) => <text value={row.size} />,
       },
     ],
     rowCount: files.length,

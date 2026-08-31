@@ -13,7 +13,7 @@ Ajoute des en-têtes triables au-dessus de [Table](/components/table). Le tri es
 ## Utilisation
 
 ```tsx
-import { createElement, useSignal, type PingoNode } from "@dopejs/pingo";
+import { useSignal, type PingoNode } from "@dopejs/pingo";
 import { DataTable, type SortState } from "@dopejs/pingo-ui";
 
 function MemberTable(): PingoNode {
@@ -26,7 +26,7 @@ function MemberTable(): PingoNode {
         key: "name",
         header: "Membre",
         sortable: true,
-        cell: (row) => createElement("text", { value: row.name }),
+        cell: (row) => <text value={row.name} />,
       },
       {
         key: "commits",
@@ -34,7 +34,7 @@ function MemberTable(): PingoNode {
         width: 80,
         align: "end",
         sortable: true,
-        cell: (row) => createElement("text", { value: String(row.commits) }),
+        cell: (row) => <text value={String(row.commits)} />,
       },
     ],
     sort: current,

@@ -15,17 +15,16 @@ StatCard היא מולקולת מוצר ייחודית ל־pingo: אריח מד�
 ## שימוש
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { StatCard } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(StatCard, {
-    label: "הכנסות החודש",
-    value: "¥128,400",
-    delta: "+12.5%",
-    trend: "up",
-    description: "לעומת החודש הקודם",
-  }),
+  <StatCard
+    label="הכנסות החודש"
+    value="¥128,400"
+    delta="+12.5%"
+    trend="up"
+    description="לעומת החודש הקודם"
+  />,
 );
 ```
 
@@ -40,7 +39,7 @@ root.render(
 כאשר משמיטים את `delta`, הערך תופס שורה לבדו ו־`trend` אינו משפיע; ניתן להשמיט גם את `description`.
 
 ```tsx
-createElement(StatCard, { label: "מכשירים מקוונים", value: "1,024" });
+<StatCard label="מכשירים מקוונים" value="1,024" />
 ```
 
 ## Props

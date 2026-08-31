@@ -13,15 +13,9 @@ Aspect Ratio сохраняет для контента фиксированно
 ## Использование
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { AspectRatio } from "@dopejs/pingo-ui";
 
-root.render(
-  createElement(AspectRatio, {
-    ratio: 16 / 9,
-    children: coverImage,
-  }),
-);
+root.render(<AspectRatio ratio={16 / 9}>{coverImage}</AspectRatio>);
 ```
 
 Ширина компонента составляет 100% родительского контейнера; `ratio` — это ширина, делённая на высоту, например `16 / 9` означает широкоэкранный формат.

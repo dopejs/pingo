@@ -13,15 +13,9 @@ description: מיכל המגביל תוכן לפי יחס גובה-רוחב קב
 ## שימוש
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { AspectRatio } from "@dopejs/pingo-ui";
 
-root.render(
-  createElement(AspectRatio, {
-    ratio: 16 / 9,
-    children: coverImage,
-  }),
-);
+root.render(<AspectRatio ratio={16 / 9}>{coverImage}</AspectRatio>);
 ```
 
 רוחב הרכיב הוא 100% ממיכל האב; `ratio` הוא רוחב חלקי גובה, לדוגמה `16 / 9` מציין מסך רחב.

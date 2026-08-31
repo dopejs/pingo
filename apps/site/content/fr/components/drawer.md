@@ -13,16 +13,12 @@ Le Drawer est un panneau qui glisse depuis un bord horizontal — l’équivalen
 ## Utilisation
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Drawer } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Drawer, {
-    open,
-    onOpenChange: (next) => setOpen(next),
-    side: "bottom",
-    children: createElement("text", { value: "抽屉内容" }),
-  }),
+  <Drawer open={open} onOpenChange={(next) => setOpen(next)} side="bottom">
+    <text value="抽屉内容" />
+  </Drawer>,
 );
 ```
 

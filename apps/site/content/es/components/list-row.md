@@ -15,17 +15,16 @@ Relación de composición con los componentes básicos de shadcn: ListRow define
 ## Uso
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Avatar, Badge, ListRow } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(ListRow, {
-    title: "张三",
-    description: "zhangsan@example.com",
-    leading: createElement(Avatar, { fallback: "张", size: 32 }),
-    trailing: createElement(Badge, { children: "管理员" }),
-    onPress: () => openMember("zhangsan"),
-  }),
+  <ListRow
+    title="张三"
+    description="zhangsan@example.com"
+    leading={<Avatar fallback="张" size={32} />}
+    trailing={<Badge>管理员</Badge>}
+    onPress={() => openMember("zhangsan")}
+  />,
 );
 ```
 

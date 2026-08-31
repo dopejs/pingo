@@ -13,15 +13,9 @@ description: كتلة تنبيه لعرض رسائل هامة، تُرسم عل�
 ## الاستخدام
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Alert } from "@dopejs/pingo-ui";
 
-root.render(
-  createElement(Alert, {
-    title: "تنبيه",
-    children: "تم حفظ إعداداتك تلقائيًا.",
-  }),
-);
+root.render(<Alert title="تنبيه">تم حفظ إعداداتك تلقائيًا.</Alert>);
 ```
 
 ## أمثلة
@@ -31,11 +25,9 @@ root.render(
 يُستخدم `variant="destructive"` في سيناريوهات الخطأ أو الفشل: يتحول الحد والعنوان إلى ألوان تحذيرية، بينما يبقى نص الوصف بلون المقدمة العادي لضمان سهولة القراءة.
 
 ```tsx
-createElement(Alert, {
-  title: "فشل المزامنة",
-  variant: "destructive",
-  children: "يرجى التحقق من اتصال الشبكة ثم إعادة المحاولة.",
-});
+<Alert title="فشل المزامنة" variant="destructive">
+  يرجى التحقق من اتصال الشبكة ثم إعادة المحاولة.
+</Alert>
 ```
 
 ## Props

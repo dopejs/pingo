@@ -32,16 +32,16 @@ description: "@dopejs/pingo-widgets は TextField、TextArea、Pressable、Butto
 [編集可能要素](/guide/elements-editing)と完全に同じです。ウィジェットが新しい入力経路を持ち込むことはありません。
 
 ```tsx
-import { createElement, TextField } from "@dopejs/pingo";
+import { TextField } from "@dopejs/pingo";
 
-createElement(TextField, {
-  value,
-  revision,
-  semanticLabel: "宛先",
-  width: 320,
-  error: value === "" ? "宛先は必須です" : undefined,
-  onTransaction: (t) => apply(t),
-});
+<TextField
+  value={value}
+  revision={revision}
+  semanticLabel="宛先"
+  width={320}
+  error={value === "" ? "宛先は必須です" : undefined}
+  onTransaction={(t) => apply(t)}
+/>;
 ```
 
 ### Props（TextField）

@@ -13,16 +13,15 @@ description: קלט קוד אימות חד-פעמי באורך קבוע, תומ�
 ## שימוש
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { InputOTP } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(InputOTP, {
-    length: 6,
-    semanticLabel: "קוד אימות חד-פעמי",
-    onValueChange: (value) => console.log(value),
-    onComplete: (code) => verify(code),
-  }),
+  <InputOTP
+    length={6}
+    semanticLabel="קוד אימות חד-פעמי"
+    onValueChange={(value) => console.log(value)}
+    onComplete={(code) => verify(code)}
+  />,
 );
 ```
 

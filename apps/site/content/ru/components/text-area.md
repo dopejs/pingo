@@ -13,20 +13,19 @@ description: Многострочное поле ввода текста на д
 ## Использование
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { TextArea } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(TextArea, {
-    semanticLabel: "个人简介",
-    width: 360,
-    rows: 4,
-    onValueChange: (value) => console.log(value),
-  }),
+  <TextArea
+    semanticLabel="个人简介"
+    width={360}
+    rows={4}
+    onValueChange={(value) => console.log(value)}
+  />,
 );
 ```
 
-`rows` задаёт число видимых строк и фиксирует минимальную высоту оболочки (`rows × высота строки + верхний и нижний внутренние отступы`). Как и [Input](/components/input), `TextArea` нужно монтировать как компонент через `createElement`. Подробности редактирования — в [руководстве по редактированию текста](/guide/editing).
+`rows` задаёт число видимых строк и фиксирует минимальную высоту оболочки (`rows × высота строки + верхний и нижний внутренние отступы`). Как и [Input](/components/input), `TextArea` нужно монтировать как компонент через JSX. Подробности редактирования — в [руководстве по редактированию текста](/guide/editing).
 
 ## Примеры
 

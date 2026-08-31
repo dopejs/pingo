@@ -16,8 +16,8 @@ Verwendung und Grenzen.
 Kompilieren Sie CSS-Text mit `createStyleSheet` (wirft `StyleSheetCompileError` bei ungültiger
 Eingabe) und registrieren Sie das Ergebnis beim Erstellen des Root:
 
-```ts
-import { createElement, createHostedCanvasRoot, createStyleSheet } from "@dopejs/pingo";
+```tsx
+import { createHostedCanvasRoot, createStyleSheet } from "@dopejs/pingo";
 
 const sheet = createStyleSheet(
   `
@@ -33,11 +33,9 @@ const sheet = createStyleSheet(
 const root = await createHostedCanvasRoot(canvas, { styleSheets: [sheet] });
 
 root.render(
-  createElement("container", {
-    className: "card",
-    width: 320,
-    children: createElement("text", { value: "Hallo", fontSize: 14 }),
-  }),
+  <container className="card" width={320}>
+    <text value="Hallo" fontSize={14} />
+  </container>,
 );
 ```
 

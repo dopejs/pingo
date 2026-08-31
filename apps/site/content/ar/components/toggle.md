@@ -13,19 +13,16 @@ description: زر تبديل ثنائي الحالة يُستخدم للتبدي
 ## الاستخدام
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Toggle } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Toggle, {
-    children: "加粗",
-    defaultPressed: true,
-    onPressedChange: (pressed) => console.log(pressed),
-  }),
+  <Toggle defaultPressed onPressedChange={(pressed) => console.log(pressed)}>
+    加粗
+  </Toggle>,
 );
 ```
 
-يحتفظ `Toggle` بالحالة داخليًا عبر الخطافات، ويجب تركيبه كمكوّن باستخدام `createElement`. عند تمرير `pressed` يدخل في الوضع المُتحكَّم به؛ وإلا فاستخدم `defaultPressed` ليجعل المكوّن يحتفظ بحالته ذاتيًا.
+يحتفظ `Toggle` بالحالة داخليًا عبر الخطافات، ويجب تركيبه كمكوّن باستخدام JSX. عند تمرير `pressed` يدخل في الوضع المُتحكَّم به؛ وإلا فاستخدم `defaultPressed` ليجعل المكوّن يحتفظ بحالته ذاتيًا.
 
 ## أمثلة
 

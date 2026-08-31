@@ -13,16 +13,15 @@ Saisie de code de vérification à usage unique, composée de plusieurs cases de
 ## Utilisation
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { InputOTP } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(InputOTP, {
-    length: 6,
-    semanticLabel: "一次性验证码",
-    onValueChange: (value) => console.log(value),
-    onComplete: (code) => verify(code),
-  }),
+  <InputOTP
+    length={6}
+    semanticLabel="一次性验证码"
+    onValueChange={(value) => console.log(value)}
+    onComplete={(code) => verify(code)}
+  />,
 );
 ```
 

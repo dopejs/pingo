@@ -13,18 +13,11 @@ pingo のベクターグラフィックスは、エンジンが描画する第�
 ## Path：単一の輪郭
 
 ```tsx
-import { createElement, Path, View } from "@dopejs/pingo";
+import { Path, View } from "@dopejs/pingo";
 
-createElement(View, {
-  style: { color: "#3157dfff" }, // 輪郭はノードの color で描画され、テキストと同様に継承される
-  children: createElement(Path, {
-    d: "M20 6 9 17l-5-5",
-    viewBox: [0, 0, 24, 24],
-    width: 24,
-    height: 24,
-    strokeWidth: 2,
-  }),
-});
+<View style={{ color: "#3157dfff" }}>
+  <Path d="M20 6 9 17l-5-5" viewBox={[0, 0, 24, 24]} width={24} height={24} strokeWidth={2} />
+</View>;
 ```
 
 - `d` は完全な SVG path 構文（`M L H V C S Q T A Z` および小文字の相対形式）をサポートします。円弧 `A` は解析時に 3 次ベジェ曲線へ変換されるため、Core に個別の曲線タイプは必要ありません。
@@ -47,11 +40,11 @@ createElement(View, {
 
 `Svg` コンポーネントはドキュメントを**図形ごとに 1 つの path ノード**へ展開し、図形同士は絶対配置で重ねられます。塗りつぶしとストロークの両方を持つ図形は 2 つのノードになります。塗りつぶしとストロークは 2 種類のペイントであり、1 つのノードの半分ではありません。
 
-```ts
+```tsx
 import { createSvg, loadSvg, Svg } from "@dopejs/pingo";
 
 const icon = createSvg(`<svg viewBox="0 0 24 24" stroke="currentColor" …>…</svg>`);
-createElement(Svg, { source: icon, width: 24, height: 24, style: { color: "#3157df" } });
+<Svg source={icon} width={24} height={24} style={{ color: "#3157df" }} />;
 
 const remote = await loadSvg("/assets/logo.svg");
 ```

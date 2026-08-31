@@ -13,20 +13,22 @@ description: תיבת סימון נשלטת, יכולה לכלול תווית ט
 ## שימוש
 
 ```tsx
-import { createElement, useSignal, type PingoNode } from "@dopejs/pingo";
+import { useSignal, type PingoNode } from "@dopejs/pingo";
 import { Checkbox } from "@dopejs/pingo-ui";
 
 // useSignal הוא hook, חייב לרוץ בתוך תחום רכיב.
 function NotificationSetting(): PingoNode {
   const enabled = useSignal(false);
-  return createElement(Checkbox, {
-    checked: enabled.get(),
-    label: "התראות הופעלו",
-    onCheckedChange: (next) => enabled.set(next),
-  });
+  return (
+    <Checkbox
+      checked={enabled.get()}
+      label="התראות הופעלו"
+      onCheckedChange={(next) => enabled.set(next)}
+    />
+  );
 }
 
-root.render(createElement(NotificationSetting));
+root.render(<NotificationSetting />);
 ```
 
 `checked` מוחזק על ידי רכיב האב, ו-`onCheckedChange` אחראי לעדכן אותו — הרכיב עצמו אינו שומר מצב. `label` הוא אופציונלי, וכאשר מסופק, טקסט ירונדר מימין לתיבה.

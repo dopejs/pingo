@@ -13,19 +13,17 @@ Progress показывает детерминированный прогрес�
 ## Использование
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Progress } from "@dopejs/pingo-ui";
 
-root.render(createElement(Progress, { value: 60 }));
+root.render(<Progress value={60} />);
 ```
 
 Ширина дорожки наследуется от родительского контейнера; чтобы управлять длиной полосы, поместите Progress в контейнер с фиксированной шириной:
 
 ```tsx
-createElement("container", {
-  width: 320,
-  children: createElement(Progress, { value: 60 }),
-});
+<container width={320}>
+  <Progress value={60} />
+</container>
 ```
 
 ## Примеры
@@ -35,7 +33,7 @@ createElement("container", {
 `max` по умолчанию равен 100. Если его передать, процент заполнения вычисляется как `value / max` и всегда ограничивается диапазоном 0–100:
 
 ```tsx
-createElement(Progress, { value: 3, max: 10 }); // 30%
+<Progress value={3} max={10} /> // 30%
 ```
 
 ## Пропсы

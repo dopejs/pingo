@@ -9,14 +9,14 @@ description: Pingo-native UI-Komponentenbibliothek im shadcn-Geist, alle in Echt
 
 ## Verwendung
 
-```ts
+```tsx
 import { createHostedCanvasRoot } from "@dopejs/pingo";
 import { Button, createPingoUiStyleSheet } from "@dopejs/pingo-ui";
 
 const root = await createHostedCanvasRoot(canvas, {
   styleSheets: [createPingoUiStyleSheet()],
 });
-root.render(createElement(Button, { children: "保存" }));
+root.render(<Button>保存</Button>);
 ```
 
 Benutzerdefinierte Stylesheets müssen **nach** dem pingo-ui-Stylesheet registriert werden; Regeln gleicher Spezifität überschreiben sich in Registrierungsreihenfolge. Theme- und Branding-Anpassungen finden Sie im [Styling-Guide](/guide/styling) und unter [SCSS und Less](/guide/scss-less).

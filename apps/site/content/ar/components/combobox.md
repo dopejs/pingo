@@ -13,19 +13,18 @@ description: قائمة منسدلة قابلة للبحث، تُصفّي قائ
 ## الاستخدام
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Combobox } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Combobox, {
-    items: [
+  <Combobox
+    items={[
       { value: "next", label: "Next.js" },
       { value: "remix", label: "Remix" },
       { value: "astro", label: "Astro" },
-    ],
-    placeholder: "اختر إطار عمل",
-    onValueChange: (value) => console.log(value),
-  }),
+    ]}
+    placeholder="اختر إطار عمل"
+    onValueChange={(value) => console.log(value)}
+  />,
 );
 ```
 

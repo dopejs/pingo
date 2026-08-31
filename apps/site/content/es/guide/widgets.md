@@ -37,16 +37,16 @@ que el de los [elementos editables](/guide/elements-editing): el widget no intro
 de entrada nueva.
 
 ```tsx
-import { createElement, TextField } from "@dopejs/pingo";
+import { TextField } from "@dopejs/pingo";
 
-createElement(TextField, {
-  value,
-  revision,
-  semanticLabel: "Destinatario",
-  width: 320,
-  error: value === "" ? "El destinatario no puede estar vacío" : undefined,
-  onTransaction: (t) => apply(t),
-});
+<TextField
+  value={value}
+  revision={revision}
+  semanticLabel="Destinatario"
+  width={320}
+  error={value === "" ? "El destinatario no puede estar vacío" : undefined}
+  onTransaction={(t) => apply(t)}
+/>;
 ```
 
 ### Props (TextField)

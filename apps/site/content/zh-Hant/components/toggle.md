@@ -13,19 +13,16 @@ description: 兩態切換按鈕，用於加粗、斜體等即時開關，渲染�
 ## 用法
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Toggle } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Toggle, {
-    children: "加粗",
-    defaultPressed: true,
-    onPressedChange: (pressed) => console.log(pressed),
-  }),
+  <Toggle defaultPressed onPressedChange={(pressed) => console.log(pressed)}>
+    加粗
+  </Toggle>,
 );
 ```
 
-`Toggle` 內部透過 hooks 持有狀態，必須用 `createElement` 以元件形式掛載。傳入 `pressed` 即進入受控模式；否則用 `defaultPressed` 讓元件自持狀態。
+`Toggle` 內部透過 hooks 持有狀態，必須用 JSX 以元件形式掛載。傳入 `pressed` 即進入受控模式；否則用 `defaultPressed` 讓元件自持狀態。
 
 ## 示例
 

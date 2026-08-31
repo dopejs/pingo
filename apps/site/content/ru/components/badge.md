@@ -13,10 +13,9 @@ Badge — неинтерактивный статусный ярлык для о
 ## Использование
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Badge } from "@dopejs/pingo-ui";
 
-root.render(createElement(Badge, { children: "Beta" }));
+root.render(<Badge>Beta</Badge>);
 ```
 
 ## Примеры
@@ -26,7 +25,7 @@ root.render(createElement(Badge, { children: "Beta" }));
 Четыре варианта покрывают типовую семантику: `default` (акцент), `secondary` (приглушённый), `destructive` (ошибка/опасность), `outline` (контурный). В превью они показаны по порядку.
 
 ```tsx
-createElement(Badge, { children: "只读", variant: "secondary" });
+<Badge variant="secondary">只读</Badge>
 ```
 
 ### Сочетание с другими компонентами
@@ -34,12 +33,12 @@ createElement(Badge, { children: "只读", variant: "secondary" });
 Badge часто выступает trailing-элементом строки списка или карточки и сочетается с `Avatar`, `ListRow`:
 
 ```tsx
-createElement(ListRow, {
-  title: "张三",
-  leading: createElement(Avatar, { fallback: "张", size: 32 }),
-  trailing: createElement(Badge, { children: "管理员" }),
-  onPress: () => {},
-});
+<ListRow
+  title="张三"
+  leading={<Avatar fallback="张" size={32} />}
+  trailing={<Badge>管理员</Badge>}
+  onPress={() => {}}
+/>
 ```
 
 ## Пропсы

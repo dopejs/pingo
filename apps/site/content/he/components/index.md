@@ -9,14 +9,14 @@ description: ספריית רכיבי UI מקורית של pingo ברוח shadcn,
 
 ## שימוש
 
-```ts
+```tsx
 import { createHostedCanvasRoot } from "@dopejs/pingo";
 import { Button, createPingoUiStyleSheet } from "@dopejs/pingo-ui";
 
 const root = await createHostedCanvasRoot(canvas, {
   styleSheets: [createPingoUiStyleSheet()],
 });
-root.render(createElement(Button, { children: "שמירה" }));
+root.render(<Button>שמירה</Button>);
 ```
 
 גיליונות סגנון מותאמים אישית חייבים להירשם **אחרי** גיליון הסגנון של pingo-ui; כללים בעלי עדיפות זהה נדרסים לפי סדר הרישום. להתאמת ערכת נושא ומיתוג ראו [מדריך העיצוב](/guide/styling) ו-[SCSS ו-Less](/guide/scss-less).

@@ -13,14 +13,10 @@ description: 繫結日期的彈出式日曆選擇器，渲染在 pingo canvas �
 ## 用法
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { DatePicker, type CalendarDate } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(DatePicker, {
-    placeholder: "选择日期",
-    onSelect: (date: CalendarDate) => console.log(date),
-  }),
+  <DatePicker placeholder="选择日期" onSelect={(date: CalendarDate) => console.log(date)} />,
 );
 ```
 

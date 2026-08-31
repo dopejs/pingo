@@ -13,19 +13,19 @@ Context Menu abre un menú en la posición del puntero al hacer clic derecho (ev
 ## Uso
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { ContextMenu } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(ContextMenu, {
-    items: [
+  <ContextMenu
+    items={[
       { value: "copy", label: "复制" },
       { value: "paste", label: "粘贴", disabled: true },
       { value: "delete", label: "删除" },
-    ],
-    onSelect: (value) => run(value),
-    children: createElement("text", { value: "在此右键" }),
-  }),
+    ]}
+    onSelect={(value) => run(value)}
+  >
+    <text value="在此右键" />
+  </ContextMenu>,
 );
 ```
 

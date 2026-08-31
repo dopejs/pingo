@@ -15,32 +15,26 @@ Toast は、隅に一時的に表示される軽量な通知であり、保存�
 Toast は `ToastViewport` と組み合わせて使用する。ビューポートは絶対配置される隅のコンテナ（デフォルトは右上）であり、**必ずルートに近いコンテナの下に配置する必要がある**。本エンジンの包含ブロックは親ノードであり、直近の positioned 祖先ではない。小さいコンテナ内に配置すると、その小さいコンテナのみを覆うことになる。
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Button, Toast, ToastViewport } from "@dopejs/pingo-ui";
 
 let open = false;
 
 function scene() {
-  return createElement("container", {
-    width: surfaceWidth,
-    height: surfaceHeight,
-    children: [
-      createElement(Button, {
-        children: "保存",
-        onPress: () => {
+  return (
+    <container width={surfaceWidth} height={surfaceHeight}>
+      <Button
+        onPress={() => {
           open = true;
           root.render(scene());
-        },
-      }),
-      createElement(ToastViewport, {
-        children: createElement(Toast, {
-          open,
-          title: "保存しました",
-          description: "設定をローカルに書き込みました。",
-        }),
-      }),
-    ],
-  });
+        }}
+      >
+        保存
+      </Button>
+      <ToastViewport>
+        <Toast open={open} title="保存しました" description="設定をローカルに書き込みました。" />
+      </ToastViewport>
+    </container>
+  );
 }
 ```
 

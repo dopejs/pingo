@@ -34,16 +34,16 @@ description: "@dopejs/pingo-widgets가 제공하는 TextField, TextArea, Pressab
 않습니다.
 
 ```tsx
-import { createElement, TextField } from "@dopejs/pingo";
+import { TextField } from "@dopejs/pingo";
 
-createElement(TextField, {
-  value,
-  revision,
-  semanticLabel: "수신자",
-  width: 320,
-  error: value === "" ? "수신자는 비워 둘 수 없습니다" : undefined,
-  onTransaction: (t) => apply(t),
-});
+<TextField
+  value={value}
+  revision={revision}
+  semanticLabel="수신자"
+  width={320}
+  error={value === "" ? "수신자는 비워 둘 수 없습니다" : undefined}
+  onTransaction={(t) => apply(t)}
+/>;
 ```
 
 ### Props(TextField)

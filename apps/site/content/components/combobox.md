@@ -13,19 +13,18 @@ description: 可搜索的下拉选择器，输入过滤选项列表，渲染在 
 ## 用法
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Combobox } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Combobox, {
-    items: [
+  <Combobox
+    items={[
       { value: "next", label: "Next.js" },
       { value: "remix", label: "Remix" },
       { value: "astro", label: "Astro" },
-    ],
-    placeholder: "选择框架",
-    onValueChange: (value) => console.log(value),
-  }),
+    ]}
+    placeholder="选择框架"
+    onValueChange={(value) => console.log(value)}
+  />,
 );
 ```
 

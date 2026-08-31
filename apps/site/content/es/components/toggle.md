@@ -13,19 +13,16 @@ Botón de conmutación de dos estados: se pulsa una vez para activarlo y se vuel
 ## Uso
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Toggle } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Toggle, {
-    children: "加粗",
-    defaultPressed: true,
-    onPressedChange: (pressed) => console.log(pressed),
-  }),
+  <Toggle defaultPressed onPressedChange={(pressed) => console.log(pressed)}>
+    加粗
+  </Toggle>,
 );
 ```
 
-`Toggle` mantiene internamente su estado mediante hooks y debe montarse como componente con `createElement`. Al pasar `pressed` se entra en modo controlado; en caso contrario, usa `defaultPressed` para que el componente gestione su propio estado.
+`Toggle` mantiene internamente su estado mediante hooks y debe montarse como componente con JSX. Al pasar `pressed` se entra en modo controlado; en caso contrario, usa `defaultPressed` para que el componente gestione su propio estado.
 
 ## Ejemplos
 

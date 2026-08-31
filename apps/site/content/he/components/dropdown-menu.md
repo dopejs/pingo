@@ -13,7 +13,6 @@ Dropdown Menu פורס קבוצת פריטי פעולה מתחת לטריגר. �
 ## שימוש
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import {
   Button,
   DropdownMenu,
@@ -23,20 +22,15 @@ import {
 } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(DropdownMenu, {
-    onValueChange: (value) => run(value),
-    children: [
-      createElement(DropdownMenuTrigger, {
-        children: createElement(Button, { children: "פתח תפריט", onPress: () => {} }),
-      }),
-      createElement(DropdownMenuContent, {
-        children: [
-          createElement(DropdownMenuItem, { value: "profile", children: "פרופיל אישי" }),
-          createElement(DropdownMenuItem, { value: "settings", children: "הגדרות" }),
-        ],
-      }),
-    ],
-  }),
+  <DropdownMenu onValueChange={(value) => run(value)}>
+    <DropdownMenuTrigger>
+      <Button onPress={() => {}}>פתח תפריט</Button>
+    </DropdownMenuTrigger>
+    <DropdownMenuContent>
+      <DropdownMenuItem value="profile">פרופיל אישי</DropdownMenuItem>
+      <DropdownMenuItem value="settings">הגדרות</DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>,
 );
 ```
 

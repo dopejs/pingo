@@ -13,19 +13,17 @@ Progress מציג התקדמות דטרמיניסטית באמצעות מסלו�
 ## שימוש
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Progress } from "@dopejs/pingo-ui";
 
-root.render(createElement(Progress, { value: 60 }));
+root.render(<Progress value={60} />);
 ```
 
 רוחב המסלול יורש את מיכל האב. הצבת Progress בתוך מיכל ברוחב קבוע תשלוט באורך הפס:
 
 ```tsx
-createElement("container", {
-  width: 320,
-  children: createElement(Progress, { value: 60 }),
-});
+<container width={320}>
+  <Progress value={60} />
+</container>
 ```
 
 ## דוגמאות
@@ -35,7 +33,7 @@ createElement("container", {
 ברירת המחדל של `max` היא 100. כאשר מועבר ערך, אחוז המילוי מחושב לפי `value / max`, ותמיד נצמד לטווח 0–100:
 
 ```tsx
-createElement(Progress, { value: 3, max: 10 }); // 30%
+<Progress value={3} max={10} /> // 30%
 ```
 
 ## Props

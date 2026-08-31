@@ -13,19 +13,17 @@ description: شريط تقدم يعرض نسبة اكتمال المهمة، ي�
 ## الاستخدام
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Progress } from "@dopejs/pingo-ui";
 
-root.render(createElement(Progress, { value: 60 }));
+root.render(<Progress value={60} />);
 ```
 
 يرث عرض المسار الحاوية الأصل، لذا ضع Progress داخل حاوية بعرض ثابت للتحكم في طول الشريط:
 
 ```tsx
-createElement("container", {
-  width: 320,
-  children: createElement(Progress, { value: 60 }),
-});
+<container width={320}>
+  <Progress value={60} />
+</container>
 ```
 
 ## أمثلة
@@ -35,7 +33,7 @@ createElement("container", {
 القيمة الافتراضية لـ `max` هي 100. عند تمريرها تُحسب نسبة التعبئة وفق `value / max`، وتُقيَّد دائمًا بين 0 و100:
 
 ```tsx
-createElement(Progress, { value: 3, max: 10 }); // 30%
+<Progress value={3} max={10} /> // 30%
 ```
 
 ## Props

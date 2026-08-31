@@ -13,19 +13,17 @@ Progress 用一條填充軌道展示確定性進度，如下載、上傳或多�
 ## 用法
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Progress } from "@dopejs/pingo-ui";
 
-root.render(createElement(Progress, { value: 60 }));
+root.render(<Progress value={60} />);
 ```
 
 軌道寬度繼承父容器，把 Progress 放在一個固定寬度的容器裡即可控制條長：
 
 ```tsx
-createElement("container", {
-  width: 320,
-  children: createElement(Progress, { value: 60 }),
-});
+<container width={320}>
+  <Progress value={60} />
+</container>
 ```
 
 ## 示例
@@ -35,7 +33,7 @@ createElement("container", {
 `max` 預設 100。傳入後按 `value / max` 計算填充百分比，並始終鉗制在 0–100 之間：
 
 ```tsx
-createElement(Progress, { value: 3, max: 10 }); // 30%
+<Progress value={3} max={10} /> // 30%
 ```
 
 ## Props

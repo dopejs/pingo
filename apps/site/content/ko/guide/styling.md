@@ -14,8 +14,8 @@ Core는 정규화된 타입 값만 소비합니다——CSS 텍스트와 셀렉�
 `createStyleSheet`로 CSS 텍스트를 컴파일하고(입력이 잘못되면 `StyleSheetCompileError`를 던집니다),
 root를 만들 때 등록합니다.
 
-```ts
-import { createElement, createHostedCanvasRoot, createStyleSheet } from "@dopejs/pingo";
+```tsx
+import { createHostedCanvasRoot, createStyleSheet } from "@dopejs/pingo";
 
 const sheet = createStyleSheet(
   `
@@ -31,11 +31,9 @@ const sheet = createStyleSheet(
 const root = await createHostedCanvasRoot(canvas, { styleSheets: [sheet] });
 
 root.render(
-  createElement("container", {
-    className: "card",
-    width: 320,
-    children: createElement("text", { value: "안녕하세요", fontSize: 14 }),
-  }),
+  <container className="card" width={320}>
+    <text value="안녕하세요" fontSize={14} />
+  </container>,
 );
 ```
 

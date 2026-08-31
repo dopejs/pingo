@@ -28,27 +28,27 @@ TextArea({ value: description, revision, rows: 4 });
 
 ## 프리미티브 사용하기
 
-```ts
-createElement("editableText", {
-  value,
-  revision,
-  multiline: false,
-  readOnly: false,
-  password: false,
-  maxGraphemes: 200,
-  inputMode: "email",
-  onTransaction: (transaction) => apply(transaction),
-  onSubmit: () => moveToNextCell(),
-});
+```tsx
+<editableText
+  value={value}
+  revision={revision}
+  multiline={false}
+  readOnly={false}
+  password={false}
+  maxGraphemes={200}
+  inputMode="email"
+  onTransaction={(transaction) => apply(transaction)}
+  onSubmit={() => moveToNextCell()}
+/>
 ```
 
 로컬 컨트롤러를 쓸 수도 있습니다.
 
-```ts
+```tsx
 import { useTextEditingController } from "@dopejs/pingo";
 
 const editor = useTextEditingController({ value: cell.value });
-createElement("editableText", { controller: editor });
+<editableText controller={editor} />;
 ```
 
 ## 입력 브리지와 폴백

@@ -13,16 +13,15 @@ Avatar 展示使用者頭像：傳入已解碼的圖片資源時按圓形裁切�
 ## 用法
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Avatar } from "@dopejs/pingo-ui";
 
-root.render(createElement(Avatar, { fallback: "张" }));
+root.render(<Avatar fallback="张" />);
 ```
 
 有圖片時傳入預解碼的 `PingoImage` 資源，圖片以 `object-fit: cover` 填充並裁切為圓形：
 
 ```tsx
-createElement(Avatar, { image: decodedImage, fallback: "张" });
+<Avatar image={decodedImage} fallback="张" />
 ```
 
 ## 示例
@@ -32,7 +31,7 @@ createElement(Avatar, { image: decodedImage, fallback: "张" });
 `size` 是正方形邊長（px），同時把圓角設為 `size / 2`。省略時使用外觀預設的 40px。預覽中依次為 32、預設、56。
 
 ```tsx
-createElement(Avatar, { fallback: "李", size: 32 });
+<Avatar fallback="李" size={32} />
 ```
 
 ## Props

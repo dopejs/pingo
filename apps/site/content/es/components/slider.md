@@ -13,22 +13,21 @@ El control deslizante se utiliza para seleccionar un valor dentro de un rango. L
 ## Uso
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Slider } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Slider, {
-    defaultValue: 40,
-    min: 0,
-    max: 100,
-    step: 1,
-    semanticLabel: "Volumen",
-    onValueChange: (value) => console.log(value),
-  }),
+  <Slider
+    defaultValue={40}
+    min={0}
+    max={100}
+    step={1}
+    semanticLabel="Volumen"
+    onValueChange={(value) => console.log(value)}
+  />,
 );
 ```
 
-`Slider` mantiene internamente el estado de arrastre mediante hooks, por lo que debe montarse como componente con `createElement`. Al pasar `value` se activa el modo controlado; de lo contrario, usa `defaultValue` para que el componente gestione su propio estado.
+`Slider` mantiene internamente el estado de arrastre mediante hooks, por lo que debe montarse como componente con JSX. Al pasar `value` se activa el modo controlado; de lo contrario, usa `defaultValue` para que el componente gestione su propio estado.
 
 ## Ejemplos
 

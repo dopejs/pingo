@@ -13,13 +13,14 @@ Scroll Area прокручивает слишком длинное содерж�
 ## Использование
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { ScrollArea } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(ScrollArea, {
-    children: items.map((item) => createElement("text", { value: item })),
-  }),
+  <ScrollArea>
+    {items.map((item) => (
+      <text value={item} />
+    ))}
+  </ScrollArea>,
 );
 ```
 

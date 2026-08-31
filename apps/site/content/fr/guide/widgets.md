@@ -37,16 +37,16 @@ est exactement celui des [éléments éditables](/guide/elements-editing) — le
 aucun nouveau chemin de saisie.
 
 ```tsx
-import { createElement, TextField } from "@dopejs/pingo";
+import { TextField } from "@dopejs/pingo";
 
-createElement(TextField, {
-  value,
-  revision,
-  semanticLabel: "收件人",
-  width: 320,
-  error: value === "" ? "收件人不能为空" : undefined,
-  onTransaction: (t) => apply(t),
-});
+<TextField
+  value={value}
+  revision={revision}
+  semanticLabel="收件人"
+  width={320}
+  error={value === "" ? "收件人不能为空" : undefined}
+  onTransaction={(t) => apply(t)}
+/>;
 ```
 
 ### Props (TextField)

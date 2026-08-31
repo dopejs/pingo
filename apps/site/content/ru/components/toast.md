@@ -15,32 +15,26 @@ Toast — это легковесное уведомление, которое �
 Toast нужно использовать вместе с `ToastViewport`. Вьюпорт — это абсолютно позиционированный контейнер в углу (по умолчанию справа сверху), и его **обязательно размещать в контейнере, близком к корню** — в этом движке содержащим блоком является родительский узел, а не ближайший позиционированный предок, поэтому если поместить его в маленький контейнер, он перекроет только этот маленький контейнер.
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Button, Toast, ToastViewport } from "@dopejs/pingo-ui";
 
 let open = false;
 
 function scene() {
-  return createElement("container", {
-    width: surfaceWidth,
-    height: surfaceHeight,
-    children: [
-      createElement(Button, {
-        children: "Сохранить",
-        onPress: () => {
+  return (
+    <container width={surfaceWidth} height={surfaceHeight}>
+      <Button
+        onPress={() => {
           open = true;
           root.render(scene());
-        },
-      }),
-      createElement(ToastViewport, {
-        children: createElement(Toast, {
-          open,
-          title: "Сохранено",
-          description: "Конфигурация записана локально.",
-        }),
-      }),
-    ],
-  });
+        }}
+      >
+        Сохранить
+      </Button>
+      <ToastViewport>
+        <Toast open={open} title="Сохранено" description="Конфигурация записана локально." />
+      </ToastViewport>
+    </container>
+  );
 }
 ```
 

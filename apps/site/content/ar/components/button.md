@@ -13,15 +13,12 @@ description: زر لتشغيل إجراء أو حدث، يُعرض على لوح
 ## الاستخدام
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Button } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Button, {
-    children: "حفظ",
-    variant: "default",
-    onPress: () => save(),
-  }),
+  <Button variant="default" onPress={() => save()}>
+    حفظ
+  </Button>,
 );
 ```
 

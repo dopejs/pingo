@@ -13,7 +13,6 @@ description: 모달 대화상자로, 사용자 입력이나 확인을 받기 위
 ## 사용법
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import {
   Button,
   Dialog,
@@ -24,21 +23,15 @@ import {
 } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Dialog, {
-    open,
-    onOpenChange: (next) => setOpen(next),
-    children: [
-      createElement(DialogHeader, {
-        children: [
-          createElement(DialogTitle, { children: "프로필 편집" }),
-          createElement(DialogDescription, { children: "변경 사항은 즉시 동기화됩니다." }),
-        ],
-      }),
-      createElement(DialogFooter, {
-        children: createElement(Button, { children: "저장", onPress: () => save() }),
-      }),
-    ],
-  }),
+  <Dialog open={open} onOpenChange={(next) => setOpen(next)}>
+    <DialogHeader>
+      <DialogTitle>프로필 편집</DialogTitle>
+      <DialogDescription>변경 사항은 즉시 동기화됩니다.</DialogDescription>
+    </DialogHeader>
+    <DialogFooter>
+      <Button onPress={() => save()}>저장</Button>
+    </DialogFooter>
+  </Dialog>,
 );
 ```
 

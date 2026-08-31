@@ -13,21 +13,14 @@ description: 폼 컨테이너와 필드 래퍼로, 레이아웃·시맨틱·오�
 ## 사용법
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Form, FormField, Input } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Form, {
-    children: createElement(FormField, {
-      label: "이메일",
-      required: true,
-      error: emailError, // 검증 규칙은 호출 측이 보유합니다
-      children: createElement(Input, {
-        semanticLabel: "이메일",
-        onValueChange: (value) => validate(value),
-      }),
-    }),
-  }),
+  <Form>
+    <FormField label="이메일" required error={emailError}>
+      <Input semanticLabel="이메일" onValueChange={(value) => validate(value)} />
+    </FormField>
+  </Form>,
 );
 ```
 

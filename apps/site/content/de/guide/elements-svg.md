@@ -17,18 +17,11 @@ in Echtzeit gerendert, und die Icon-Farben folgen dem Theme der Website.
 ## Path: ein einzelner Umriss
 
 ```tsx
-import { createElement, Path, View } from "@dopejs/pingo";
+import { Path, View } from "@dopejs/pingo";
 
-createElement(View, {
-  style: { color: "#3157dfff" }, // der Umriss zeichnet in der color des Knotens und erbt wie Text
-  children: createElement(Path, {
-    d: "M20 6 9 17l-5-5",
-    viewBox: [0, 0, 24, 24],
-    width: 24,
-    height: 24,
-    strokeWidth: 2,
-  }),
-});
+<View style={{ color: "#3157dfff" }}>
+  <Path d="M20 6 9 17l-5-5" viewBox={[0, 0, 24, 24]} width={24} height={24} strokeWidth={2} />
+</View>;
 ```
 
 - `d` unterstützt die vollständige SVG-Pfadsyntax (`M L H V C S Q T A Z` sowie die relativen
@@ -68,11 +61,11 @@ Die Komponente `Svg` expandiert das Dokument zu **einem Pfadknoten pro Form**, d
 Positionierung übereinanderliegen; eine Form mit Füllung und Stroke wird zu zwei Knoten — Füllung
 und Stroke sind zwei Paints, nicht zwei Hälften eines Knotens.
 
-```ts
+```tsx
 import { createSvg, loadSvg, Svg } from "@dopejs/pingo";
 
 const icon = createSvg(`<svg viewBox="0 0 24 24" stroke="currentColor" …>…</svg>`);
-createElement(Svg, { source: icon, width: 24, height: 24, style: { color: "#3157df" } });
+<Svg source={icon} width={24} height={24} style={{ color: "#3157df" }} />;
 
 const remote = await loadSvg("/assets/logo.svg");
 ```

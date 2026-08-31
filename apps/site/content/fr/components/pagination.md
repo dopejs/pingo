@@ -15,16 +15,12 @@ Contrôle de pagination : la page active est mise en surbrillance, les séries d
 Le numéro de page est **contrôlé** : `page` commence à 1, le changement de page est remonté via `onPageChange`, et c’est à vous de le réécrire.
 
 ```tsx
-import { createElement, useSignal, type PingoNode } from "@dopejs/pingo";
+import { useSignal, type PingoNode } from "@dopejs/pingo";
 import { Pagination } from "@dopejs/pingo-ui";
 
 function PagedList(): PingoNode {
   const page = useSignal(1);
-  return createElement(Pagination, {
-    page: page.get(),
-    pageCount: 12,
-    onPageChange: (next) => page.set(next),
-  });
+  return <Pagination page={page.get()} pageCount={12} onPageChange={(next) => page.set(next)} />;
 }
 ```
 

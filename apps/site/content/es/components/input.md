@@ -13,19 +13,14 @@ Entrada de texto de una sola línea. La siguiente vista previa se renderiza en t
 ## Uso
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Input } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Input, {
-    semanticLabel: "Correo",
-    width: 320,
-    onValueChange: (value) => console.log(value),
-  }),
+  <Input semanticLabel="Correo" width={320} onValueChange={(value) => console.log(value)} />,
 );
 ```
 
-`Input` mantiene internamente un `TextEditingController` estable mediante hooks, por lo que debe montarse como componente con `createElement(Input, props)` y no invocarse directamente como función. Para más detalles de edición, consulta la [guía de edición de texto](/guide/editing).
+`Input` mantiene internamente un `TextEditingController` estable mediante hooks, por lo que debe montarse como elemento con `<Input … />` y no invocarse directamente como función: hacerlo falla con «hooks may only run in a function component». Para más detalles de edición, consulta la [guía de edición de texto](/guide/editing).
 
 ## Ejemplos
 

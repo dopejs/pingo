@@ -37,16 +37,16 @@ mit der Rolle `alert` gerendert. Der kontrollierte Vertrag (`value` + `revision`
 Widget führt keinen neuen Eingabepfad ein.
 
 ```tsx
-import { createElement, TextField } from "@dopejs/pingo";
+import { TextField } from "@dopejs/pingo";
 
-createElement(TextField, {
-  value,
-  revision,
-  semanticLabel: "Empfänger",
-  width: 320,
-  error: value === "" ? "Empfänger darf nicht leer sein" : undefined,
-  onTransaction: (t) => apply(t),
-});
+<TextField
+  value={value}
+  revision={revision}
+  semanticLabel="Empfänger"
+  width={320}
+  error={value === "" ? "Empfänger darf nicht leer sein" : undefined}
+  onTransaction={(t) => apply(t)}
+/>;
 ```
 
 ### Props (TextField)

@@ -13,13 +13,14 @@ Scroll Area desplaza contenido demasiado largo dentro de una vista de tamaño fi
 ## Uso
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { ScrollArea } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(ScrollArea, {
-    children: items.map((item) => createElement("text", { value: item })),
-  }),
+  <ScrollArea>
+    {items.map((item) => (
+      <text value={item} />
+    ))}
+  </ScrollArea>,
 );
 ```
 

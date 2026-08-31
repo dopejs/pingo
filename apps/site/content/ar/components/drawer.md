@@ -13,16 +13,12 @@ description: لوحة درج تنزلق من الحافة العلوية أو ا
 ## الاستخدام
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Drawer } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Drawer, {
-    open,
-    onOpenChange: (next) => setOpen(next),
-    side: "bottom",
-    children: createElement("text", { value: "محتوى الدرج" }),
-  }),
+  <Drawer open={open} onOpenChange={(next) => setOpen(next)} side="bottom">
+    <text value="محتوى الدرج" />
+  </Drawer>,
 );
 ```
 

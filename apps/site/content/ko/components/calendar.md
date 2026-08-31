@@ -15,16 +15,18 @@ shadcn 스타일의 월간 달력입니다. 날짜는 `{ year, month, day }` 세
 선택 상태는 **제어형**입니다. 날짜를 클릭하면 `onSelect`가 발생하고, 사용자가 `value`를 다시 기록해야 합니다. 월은 컴포넌트 내부에서 자체 관리하거나(`defaultMonth`), `month` + `onMonthChange`로 완전히 제어할 수 있습니다.
 
 ```tsx
-import { createElement, useSignal, type PingoNode } from "@dopejs/pingo";
+import { useSignal, type PingoNode } from "@dopejs/pingo";
 import { Calendar, type CalendarDate } from "@dopejs/pingo-ui";
 
 function DateField(): PingoNode {
   const selected = useSignal<CalendarDate>({ year: 2026, month: 8, day: 22 });
-  return createElement(Calendar, {
-    defaultMonth: { year: 2026, month: 8, day: 1 },
-    value: selected.get(),
-    onSelect: (date) => selected.set(date),
-  });
+  return (
+    <Calendar
+      defaultMonth={{ year: 2026, month: 8, day: 1 }}
+      value={selected.get()}
+      onSelect={(date) => selected.set(date)}
+    />
+  );
 }
 ```
 

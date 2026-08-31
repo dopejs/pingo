@@ -16,18 +16,11 @@ pingo의 벡터 그래픽은 엔진이 그리는 일급 기능입니다. 경로�
 ## Path: 외곽선 하나
 
 ```tsx
-import { createElement, Path, View } from "@dopejs/pingo";
+import { Path, View } from "@dopejs/pingo";
 
-createElement(View, {
-  style: { color: "#3157dfff" }, // 외곽선은 노드의 color에 그려지며, 글자처럼 상속됩니다
-  children: createElement(Path, {
-    d: "M20 6 9 17l-5-5",
-    viewBox: [0, 0, 24, 24],
-    width: 24,
-    height: 24,
-    strokeWidth: 2,
-  }),
-});
+<View style={{ color: "#3157dfff" }}>
+  <Path d="M20 6 9 17l-5-5" viewBox={[0, 0, 24, 24]} width={24} height={24} strokeWidth={2} />
+</View>;
 ```
 
 - `d`는 완전한 SVG path 문법을 지원합니다(`M L H V C S Q T A Z`와 소문자 상대 형식). 원호 `A`는 파싱
@@ -63,11 +56,11 @@ subset 밖의 요소는 **이름을 보고 거부**하며 `PingoSvgError`를 던
 채우기와 스트로크를 모두 하는 도형은 두 개의 노드가 됩니다——채우기와 스트로크는 한 노드의 두 반쪽이
 아니라 두 종류의 paint이기 때문입니다.
 
-```ts
+```tsx
 import { createSvg, loadSvg, Svg } from "@dopejs/pingo";
 
 const icon = createSvg(`<svg viewBox="0 0 24 24" stroke="currentColor" …>…</svg>`);
-createElement(Svg, { source: icon, width: 24, height: 24, style: { color: "#3157df" } });
+<Svg source={icon} width={24} height={24} style={{ color: "#3157df" }} />;
 
 const remote = await loadSvg("/assets/logo.svg");
 ```

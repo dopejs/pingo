@@ -13,16 +13,12 @@ Sheet はコンテナの端からパネルをスライドインさせます。�
 ## 使い方
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Sheet } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Sheet, {
-    open,
-    onOpenChange: (next) => setOpen(next),
-    side: "right",
-    children: createElement("text", { value: "パネル内容" }),
-  }),
+  <Sheet open={open} onOpenChange={(next) => setOpen(next)} side="right">
+    <text value="パネル内容" />
+  </Sheet>,
 );
 ```
 

@@ -13,19 +13,19 @@ Le menu contextuel s'ouvre à la position du pointeur lors d'un clic droit (év�
 ## Utilisation
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { ContextMenu } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(ContextMenu, {
-    items: [
+  <ContextMenu
+    items={[
       { value: "copy", label: "Copier" },
       { value: "paste", label: "Coller", disabled: true },
       { value: "delete", label: "Supprimer" },
-    ],
-    onSelect: (value) => run(value),
-    children: createElement("text", { value: "Clic droit ici" }),
-  }),
+    ]}
+    onSelect={(value) => run(value)}
+  >
+    <text value="Clic droit ici" />
+  </ContextMenu>,
 );
 ```
 

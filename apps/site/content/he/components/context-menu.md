@@ -13,19 +13,19 @@ description: תפריט הקשר המופעל בלחיצת עכבר ימנית; 
 ## שימוש
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { ContextMenu } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(ContextMenu, {
-    items: [
+  <ContextMenu
+    items={[
       { value: "copy", label: "העתק" },
       { value: "paste", label: "הדבק", disabled: true },
       { value: "delete", label: "מחק" },
-    ],
-    onSelect: (value) => run(value),
-    children: createElement("text", { value: "לחץ כאן ימני" }),
-  }),
+    ]}
+    onSelect={(value) => run(value)}
+  >
+    <text value="לחץ כאן ימני" />
+  </ContextMenu>,
 );
 ```
 

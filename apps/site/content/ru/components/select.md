@@ -13,27 +13,20 @@ description: Композитный выпадающий селектор с н�
 ## Использование
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Select, {
-    value: "pingo-ui",
-    onValueChange: (value) => console.log(value),
-    children: [
-      createElement(SelectTrigger, { placeholder: "选择一个包" }),
-      createElement(SelectContent, {
-        children: [
-          createElement(SelectItem, { value: "pingo", children: "@dopejs/pingo" }),
-          createElement(SelectItem, { value: "pingo-ui", children: "@dopejs/pingo-ui" }),
-        ],
-      }),
-    ],
-  }),
+  <Select value="pingo-ui" onValueChange={(value) => console.log(value)}>
+    <SelectTrigger placeholder="选择一个包" />
+    <SelectContent>
+      <SelectItem value="pingo">@dopejs/pingo</SelectItem>
+      <SelectItem value="pingo-ui">@dopejs/pingo-ui</SelectItem>
+    </SelectContent>
+  </Select>,
 );
 ```
 
-Все части взаимодействуют через context и должны монтироваться как компоненты через `createElement`. Триггер показывает текущее выбранное `value`; когда ничего не выбрано, показывается `placeholder`.
+Все части взаимодействуют через context и должны монтироваться как компоненты через JSX. Триггер показывает текущее выбранное `value`; когда ничего не выбрано, показывается `placeholder`.
 
 ## Примеры
 

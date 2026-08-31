@@ -13,27 +13,18 @@ Sidebar ist eine Navigationsspalte auf Anwendungsebene, bestehend aus Gruppen (S
 ## Verwendung
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Sidebar, SidebarItem, SidebarSection } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Sidebar, {
-    defaultValue: "stats",
-    onValueChange: (value) => navigate(value),
-    children: [
-      createElement(SidebarSection, {
-        title: "Arbeitsbereich",
-        children: [
-          createElement(SidebarItem, { value: "home", label: "Startseite" }),
-          createElement(SidebarItem, { value: "stats", label: "Statistiken" }),
-        ],
-      }),
-      createElement(SidebarSection, {
-        title: "System",
-        children: createElement(SidebarItem, { value: "settings", label: "Einstellungen" }),
-      }),
-    ],
-  }),
+  <Sidebar defaultValue="stats" onValueChange={(value) => navigate(value)}>
+    <SidebarSection title="Arbeitsbereich">
+      <SidebarItem value="home" label="Startseite" />
+      <SidebarItem value="stats" label="Statistiken" />
+    </SidebarSection>
+    <SidebarSection title="System">
+      <SidebarItem value="settings" label="Einstellungen" />
+    </SidebarSection>
+  </Sidebar>,
 );
 ```
 

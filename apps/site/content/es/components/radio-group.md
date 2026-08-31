@@ -13,23 +13,18 @@ El grupo de radio se utiliza para seleccionar una opción de un conjunto de opci
 ## Uso
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { RadioGroup, RadioGroupItem } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(RadioGroup, {
-    defaultValue: "b",
-    onValueChange: (value) => console.log(value),
-    children: [
-      createElement(RadioGroupItem, { value: "a", label: "选项 A" }),
-      createElement(RadioGroupItem, { value: "b", label: "选项 B" }),
-      createElement(RadioGroupItem, { value: "c", label: "选项 C" }),
-    ],
-  }),
+  <RadioGroup defaultValue="b" onValueChange={(value) => console.log(value)}>
+    <RadioGroupItem value="a" label="选项 A" />
+    <RadioGroupItem value="b" label="选项 B" />
+    <RadioGroupItem value="c" label="选项 C" />
+  </RadioGroup>,
 );
 ```
 
-`RadioGroup` publica el valor actual a `RadioGroupItem` mediante context, por lo que ambos deben montarse como componentes con `createElement`. Al pasar `value` se entra en modo controlado; de lo contrario, use `defaultValue` para que el componente mantenga su propio estado.
+`RadioGroup` publica el valor actual a `RadioGroupItem` mediante context, por lo que ambos deben montarse como componentes con JSX. Al pasar `value` se entra en modo controlado; de lo contrario, use `defaultValue` para que el componente mantenga su propio estado.
 
 ## Ejemplos
 

@@ -13,19 +13,17 @@ Progress 用一条填充轨道展示确定性进度，如下载、上传或多�
 ## 用法
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Progress } from "@dopejs/pingo-ui";
 
-root.render(createElement(Progress, { value: 60 }));
+root.render(<Progress value={60} />);
 ```
 
 轨道宽度继承父容器，把 Progress 放在一个固定宽度的容器里即可控制条长：
 
 ```tsx
-createElement("container", {
-  width: 320,
-  children: createElement(Progress, { value: 60 }),
-});
+<container width={320}>
+  <Progress value={60} />
+</container>
 ```
 
 ## 示例
@@ -35,7 +33,7 @@ createElement("container", {
 `max` 默认 100。传入后按 `value / max` 计算填充百分比，并始终钳制在 0–100 之间：
 
 ```tsx
-createElement(Progress, { value: 3, max: 10 }); // 30%
+<Progress value={3} max={10} /> // 30%
 ```
 
 ## Props

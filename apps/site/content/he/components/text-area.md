@@ -13,20 +13,19 @@ description: שדה קלט רב־שורתי, מונע על ידי מנוע הע�
 ## שימוש
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { TextArea } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(TextArea, {
-    semanticLabel: "תיאור אישי",
-    width: 360,
-    rows: 4,
-    onValueChange: (value) => console.log(value),
-  }),
+  <TextArea
+    semanticLabel="תיאור אישי"
+    width={360}
+    rows={4}
+    onValueChange={(value) => console.log(value)}
+  />,
 );
 ```
 
-`rows` קובע את מספר השורות הגלויות ונועל את הגובה המינימלי של המעטפת (`rows × גובה שורה + ריפוד אנכי`). כמו ב-[Input](/components/input), יש לעגן את `TextArea` כרכיב באמצעות `createElement`. פרטי עריכה נוספים נמצאים ב[מדריך עריכת טקסט](/guide/editing).
+`rows` קובע את מספר השורות הגלויות ונועל את הגובה המינימלי של המעטפת (`rows × גובה שורה + ריפוד אנכי`). כמו ב-[Input](/components/input), יש לעגן את `TextArea` כרכיב באמצעות JSX. פרטי עריכה נוספים נמצאים ב[מדריך עריכת טקסט](/guide/editing).
 
 ## דוגמאות
 

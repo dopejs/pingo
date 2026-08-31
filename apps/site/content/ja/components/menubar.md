@@ -15,25 +15,17 @@ Menubar は同じオープンスロットを共有するメニューの列で、
 ## 使い方
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Menubar, MenubarMenu } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Menubar, {
-    onValueChange: (value) => {},
-    children: [
-      createElement(MenubarMenu, {
-        value: "file",
-        label: "ファイル",
-        children: createElement("text", { value: "新規作成" }),
-      }),
-      createElement(MenubarMenu, {
-        value: "edit",
-        label: "編集",
-        children: createElement("text", { value: "元に戻す" }),
-      }),
-    ],
-  }),
+  <Menubar onValueChange={(value) => {}}>
+    <MenubarMenu value="file" label="ファイル">
+      <text value="新規作成" />
+    </MenubarMenu>
+    <MenubarMenu value="edit" label="編集">
+      <text value="元に戻す" />
+    </MenubarMenu>
+  </Menubar>,
 );
 ```
 

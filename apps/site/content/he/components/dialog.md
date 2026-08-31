@@ -13,7 +13,6 @@ description: תיבת דו-שיח מודאלית, קוטעת את הזרימה �
 ## שימוש
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import {
   Button,
   Dialog,
@@ -24,21 +23,15 @@ import {
 } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Dialog, {
-    open,
-    onOpenChange: (next) => setOpen(next),
-    children: [
-      createElement(DialogHeader, {
-        children: [
-          createElement(DialogTitle, { children: "עריכת פרופיל" }),
-          createElement(DialogDescription, { children: "השינויים יסונכרנו מיד." }),
-        ],
-      }),
-      createElement(DialogFooter, {
-        children: createElement(Button, { children: "שמירה", onPress: () => save() }),
-      }),
-    ],
-  }),
+  <Dialog open={open} onOpenChange={(next) => setOpen(next)}>
+    <DialogHeader>
+      <DialogTitle>עריכת פרופיל</DialogTitle>
+      <DialogDescription>השינויים יסונכרנו מיד.</DialogDescription>
+    </DialogHeader>
+    <DialogFooter>
+      <Button onPress={() => save()}>שמירה</Button>
+    </DialogFooter>
+  </Dialog>,
 );
 ```
 

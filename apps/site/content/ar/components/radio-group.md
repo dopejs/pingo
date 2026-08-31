@@ -13,23 +13,18 @@ description: مجموعة خيارات أحادية الاختيار، تدعم 
 ## الاستخدام
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { RadioGroup, RadioGroupItem } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(RadioGroup, {
-    defaultValue: "b",
-    onValueChange: (value) => console.log(value),
-    children: [
-      createElement(RadioGroupItem, { value: "a", label: "选项 A" }),
-      createElement(RadioGroupItem, { value: "b", label: "选项 B" }),
-      createElement(RadioGroupItem, { value: "c", label: "选项 C" }),
-    ],
-  }),
+  <RadioGroup defaultValue="b" onValueChange={(value) => console.log(value)}>
+    <RadioGroupItem value="a" label="选项 A" />
+    <RadioGroupItem value="b" label="选项 B" />
+    <RadioGroupItem value="c" label="选项 C" />
+  </RadioGroup>,
 );
 ```
 
-تنشر `RadioGroup` القيمة الحالية إلى `RadioGroupItem` عبر context، لذا يجب تركيب كليهما كمكوّنين باستخدام `createElement`. عند تمرير `value` يدخل المكوّن في الوضع المُتحكَّم به؛ وإلا فاستخدم `defaultValue` ليتولى المكوّن حالته بنفسه.
+تنشر `RadioGroup` القيمة الحالية إلى `RadioGroupItem` عبر context، لذا يجب تركيب كليهما كمكوّنين باستخدام JSX. عند تمرير `value` يدخل المكوّن في الوضع المُتحكَّم به؛ وإلا فاستخدم `defaultValue` ليتولى المكوّن حالته بنفسه.
 
 ## أمثلة
 

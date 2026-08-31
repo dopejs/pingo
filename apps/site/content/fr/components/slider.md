@@ -13,22 +13,21 @@ Le curseur sert à sélectionner une valeur dans un intervalle. L’aperçu ci-d
 ## Utilisation
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Slider } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Slider, {
-    defaultValue: 40,
-    min: 0,
-    max: 100,
-    step: 1,
-    semanticLabel: "音量",
-    onValueChange: (value) => console.log(value),
-  }),
+  <Slider
+    defaultValue={40}
+    min={0}
+    max={100}
+    step={1}
+    semanticLabel="音量"
+    onValueChange={(value) => console.log(value)}
+  />,
 );
 ```
 
-`Slider` conserve en interne l’état de glissement via des hooks et doit être monté comme composant avec `createElement`. Fournir `value` active le mode contrôlé ; sinon, utiliser `defaultValue` pour que le composant gère lui-même son état.
+`Slider` conserve en interne l’état de glissement via des hooks et doit être monté comme composant avec JSX. Fournir `value` active le mode contrôlé ; sinon, utiliser `defaultValue` pour que le composant gère lui-même son état.
 
 ## Exemples
 

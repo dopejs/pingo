@@ -13,21 +13,14 @@ description: מיכל טופס ומעטפת שדה, האחראים על פריס
 ## שימוש
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Form, FormField, Input } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Form, {
-    children: createElement(FormField, {
-      label: "אימייל",
-      required: true,
-      error: emailError, // כללי האימות נמצאים בידי הקורא
-      children: createElement(Input, {
-        semanticLabel: "אימייל",
-        onValueChange: (value) => validate(value),
-      }),
-    }),
-  }),
+  <Form>
+    <FormField label="אימייל" required error={emailError}>
+      <Input semanticLabel="אימייל" onValueChange={(value) => validate(value)} />
+    </FormField>
+  </Form>,
 );
 ```
 

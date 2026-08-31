@@ -13,19 +13,16 @@ description: Двухпозиционная кнопка-переключате�
 ## Использование
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Toggle } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Toggle, {
-    children: "加粗",
-    defaultPressed: true,
-    onPressedChange: (pressed) => console.log(pressed),
-  }),
+  <Toggle defaultPressed onPressedChange={(pressed) => console.log(pressed)}>
+    加粗
+  </Toggle>,
 );
 ```
 
-`Toggle` хранит состояние внутри через hooks, поэтому его нужно монтировать как компонент через `createElement`. Передача `pressed` переводит компонент в контролируемый режим; иначе используйте `defaultPressed`, чтобы компонент хранил состояние сам.
+`Toggle` хранит состояние внутри через hooks, поэтому его нужно монтировать как компонент через JSX. Передача `pressed` переводит компонент в контролируемый режим; иначе используйте `defaultPressed`, чтобы компонент хранил состояние сам.
 
 ## Примеры
 

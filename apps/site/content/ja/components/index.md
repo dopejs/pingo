@@ -12,14 +12,14 @@ canvas で、インタラクティブに操作でき、テーマ切り替えに�
 
 ## 使い方
 
-```ts
+```tsx
 import { createHostedCanvasRoot } from "@dopejs/pingo";
 import { Button, createPingoUiStyleSheet } from "@dopejs/pingo-ui";
 
 const root = await createHostedCanvasRoot(canvas, {
   styleSheets: [createPingoUiStyleSheet()],
 });
-root.render(createElement(Button, { children: "保存" }));
+root.render(<Button>保存</Button>);
 ```
 
 ユーザー独自のスタイルシートは pingo-ui のスタイルシートの**後**に登録してください。同じ優先度の

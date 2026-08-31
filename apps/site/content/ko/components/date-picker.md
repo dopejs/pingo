@@ -13,14 +13,10 @@ description: 날짜를 바인딩하는 팝업형 캘린더 선택기로, pingo c
 ## 사용법
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { DatePicker, type CalendarDate } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(DatePicker, {
-    placeholder: "날짜 선택",
-    onSelect: (date: CalendarDate) => console.log(date),
-  }),
+  <DatePicker placeholder="날짜 선택" onSelect={(date: CalendarDate) => console.log(date)} />,
 );
 ```
 

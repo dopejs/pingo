@@ -13,14 +13,10 @@ description: בורר תאריכים קופץ בלוח שנה הקשור לער�
 ## שימוש
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { DatePicker, type CalendarDate } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(DatePicker, {
-    placeholder: "בחר תאריך",
-    onSelect: (date: CalendarDate) => console.log(date),
-  }),
+  <DatePicker placeholder="בחר תאריך" onSelect={(date: CalendarDate) => console.log(date)} />,
 );
 ```
 

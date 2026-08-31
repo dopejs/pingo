@@ -15,15 +15,9 @@ Echtzeit gerendert.
 ## Verwendung
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { AspectRatio } from "@dopejs/pingo-ui";
 
-root.render(
-  createElement(AspectRatio, {
-    ratio: 16 / 9,
-    children: coverImage,
-  }),
-);
+root.render(<AspectRatio ratio={16 / 9}>{coverImage}</AspectRatio>);
 ```
 
 Die Komponente ist 100 % so breit wie ihr Elterncontainer; `ratio` ist Breite geteilt durch Höhe,

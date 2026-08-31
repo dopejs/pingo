@@ -13,19 +13,19 @@ Das Kontextmenü öffnet sich an der Zeigerposition, wenn auf dem Zielbereich ei
 ## Verwendung
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { ContextMenu } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(ContextMenu, {
-    items: [
+  <ContextMenu
+    items={[
       { value: "copy", label: "Kopieren" },
       { value: "paste", label: "Einfügen", disabled: true },
       { value: "delete", label: "Löschen" },
-    ],
-    onSelect: (value) => run(value),
-    children: createElement("text", { value: "Hier rechtsklicken" }),
-  }),
+    ]}
+    onSelect={(value) => run(value)}
+  >
+    <text value="Hier rechtsklicken" />
+  </ContextMenu>,
 );
 ```
 

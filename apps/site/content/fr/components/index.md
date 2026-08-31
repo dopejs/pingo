@@ -12,14 +12,14 @@ aperçu est un canvas dessiné par le moteur, interactif et suivant le thème du
 
 ## Utilisation
 
-```ts
+```tsx
 import { createHostedCanvasRoot } from "@dopejs/pingo";
 import { Button, createPingoUiStyleSheet } from "@dopejs/pingo-ui";
 
 const root = await createHostedCanvasRoot(canvas, {
   styleSheets: [createPingoUiStyleSheet()],
 });
-root.render(createElement(Button, { children: "保存" }));
+root.render(<Button>保存</Button>);
 ```
 
 Les feuilles de style personnalisées doivent être enregistrées **après** la feuille pingo-ui : à

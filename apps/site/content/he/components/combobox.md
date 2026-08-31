@@ -13,19 +13,18 @@ description: בורר נפתח עם חיפוש, מסנן את רשימת האפ�
 ## שימוש
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Combobox } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Combobox, {
-    items: [
+  <Combobox
+    items={[
       { value: "next", label: "Next.js" },
       { value: "remix", label: "Remix" },
       { value: "astro", label: "Astro" },
-    ],
-    placeholder: "בחרו מסגרת",
-    onValueChange: (value) => console.log(value),
-  }),
+    ]}
+    placeholder="בחרו מסגרת"
+    onValueChange={(value) => console.log(value)}
+  />,
 );
 ```
 

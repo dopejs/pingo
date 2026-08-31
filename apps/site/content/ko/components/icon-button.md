@@ -13,16 +13,15 @@ description: 아이콘만 담는 버튼입니다. 접근성 이름을 반드시 
 ## 사용법
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { IconButton } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(IconButton, {
-    icon: createElement("text", { value: "★" }),
-    semanticLabel: "收藏",
-    variant: "outline",
-    onPress: () => toggleFavorite(),
-  }),
+  <IconButton
+    icon={<text value="★" />}
+    semanticLabel="收藏"
+    variant="outline"
+    onPress={() => toggleFavorite()}
+  />,
 );
 ```
 

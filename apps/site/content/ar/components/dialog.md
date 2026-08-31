@@ -13,7 +13,6 @@ description: مربع حوار نمطي، يقاطع التدفق للحصول �
 ## الاستخدام
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import {
   Button,
   Dialog,
@@ -24,21 +23,15 @@ import {
 } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Dialog, {
-    open,
-    onOpenChange: (next) => setOpen(next),
-    children: [
-      createElement(DialogHeader, {
-        children: [
-          createElement(DialogTitle, { children: "تعديل الملف الشخصي" }),
-          createElement(DialogDescription, { children: "ستتم المزامنة فورًا بعد التعديل." }),
-        ],
-      }),
-      createElement(DialogFooter, {
-        children: createElement(Button, { children: "حفظ", onPress: () => save() }),
-      }),
-    ],
-  }),
+  <Dialog open={open} onOpenChange={(next) => setOpen(next)}>
+    <DialogHeader>
+      <DialogTitle>تعديل الملف الشخصي</DialogTitle>
+      <DialogDescription>ستتم المزامنة فورًا بعد التعديل.</DialogDescription>
+    </DialogHeader>
+    <DialogFooter>
+      <Button onPress={() => save()}>حفظ</Button>
+    </DialogFooter>
+  </Dialog>,
 );
 ```
 

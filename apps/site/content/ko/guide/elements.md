@@ -27,20 +27,19 @@ pingo의 호스트 요소는 Scene 노드에 직접 대응하며, CSS 캐스케�
 ## 사용법
 
 ```tsx
-import { createElement, Text, View } from "@dopejs/pingo";
+import { Text, View } from "@dopejs/pingo";
 
 root.render(
-  createElement(View, {
-    width: 420,
-    padding: 16,
-    backgroundColor: "#ffffffff",
-    style: { flexDirection: "column", borderRadius: 10 },
-    children: [
-      createElement(Text, { value: "제목", fontSize: 24, lineHeight: 32, fontWeight: 700 }),
-      createElement(View, { height: 8 }),
-      createElement(Text, { value: "본문", fontSize: 14, lineHeight: 22 }),
-    ],
-  }),
+  <View
+    width={420}
+    padding={16}
+    backgroundColor="#ffffffff"
+    style={{ flexDirection: "column", borderRadius: 10 }}
+  >
+    <Text value="제목" fontSize={24} lineHeight={32} fontWeight={700} />
+    <View height={8} />
+    <Text value="본문" fontSize={14} lineHeight={22} />
+  </View>,
 );
 ```
 
@@ -73,11 +72,11 @@ root.render(
 `Image`의 `source`는 `PingoImage`입니다——Shell 쪽이 들고 있는 **불변 RGBA8 비트맵**으로, 커밋 경계에서
 동기적으로 Scene 리소스로 인라인됩니다. `createImage`로 만들며, 픽셀을 복사하고 검증합니다.
 
-```ts
+```tsx
 import { createImage, Image } from "@dopejs/pingo";
 
 const icon = createImage(pixels, 96, 96, { label: "앱 아이콘" });
-createElement(Image, { source: icon, width: 48, height: 48 });
+<Image source={icon} width={48} height={48} />;
 ```
 
 `width` / `height`를 넘기지 않으면 노드가 이미지의 픽셀 크기를 취하고, 넘기면 노드 박스에 맞게
@@ -96,13 +95,13 @@ createElement(Image, { source: icon, width: 48, height: 48 });
 셰이핑합니다. `createFont`는 이미 디코딩된 SFNT 바이트를 받고, `loadFont`는 네트워크 로딩과 WOFF/WOFF2
 디코딩까지 처리합니다.
 
-```ts
+```tsx
 import { loadFont } from "@dopejs/pingo";
 
 const inter = await loadFont("/fonts/Inter-Regular.woff2", {
   fallbackFamily: "sans-serif",
 });
-createElement(Text, { value: "Hello", font: inter, fontSize: 16 });
+<Text value="Hello" font={inter} fontSize={16} />;
 ```
 
 `PingoFontOptions`: `faceIndex`(TTC 컬렉션 안의 면 인덱스, 기본값 `0`)와 `fallbackFamily`(명시적 폰트

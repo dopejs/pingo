@@ -13,16 +13,16 @@ Hover Card 在悬停（或聚焦）触发器时展开一张富内容卡片——
 ## 用法
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { HoverCard } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(HoverCard, {
-    openDelayMs: 300,
-    closeDelayMs: 200,
-    children: createElement("text", { value: "@pingo" }),
-    content: createElement("text", { value: "Canvas 渲染引擎与 UI 组件库。" }),
-  }),
+  <HoverCard
+    openDelayMs={300}
+    closeDelayMs={200}
+    content={<text value="Canvas 渲染引擎与 UI 组件库。" />}
+  >
+    <text value="@pingo" />
+  </HoverCard>,
 );
 ```
 

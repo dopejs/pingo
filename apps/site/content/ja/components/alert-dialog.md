@@ -14,19 +14,19 @@ description: 破壊的操作向けの確認ダイアログ。キャンセル/確
 ## 使い方
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { AlertDialog } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(AlertDialog, {
-    open,
-    onOpenChange: (next) => setOpen(next),
-    title: "終了してよろしいですか？",
-    description: "保存されていない変更は失われます。",
-    onCancel: () => {},
-    onAction: () => quit(),
-    children: null,
-  }),
+  <AlertDialog
+    open={open}
+    onOpenChange={(next) => setOpen(next)}
+    title="終了してよろしいですか？"
+    description="保存されていない変更は失われます。"
+    onCancel={() => {}}
+    onAction={() => quit()}
+  >
+    {null}
+  </AlertDialog>,
 );
 ```
 

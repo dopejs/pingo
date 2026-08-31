@@ -13,16 +13,12 @@ Sheet 从容器边缘滑入一个面板，常用于筛选条件、详情侧栏�
 ## 用法
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Sheet } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Sheet, {
-    open,
-    onOpenChange: (next) => setOpen(next),
-    side: "right",
-    children: createElement("text", { value: "面板内容" }),
-  }),
+  <Sheet open={open} onOpenChange={(next) => setOpen(next)} side="right">
+    <text value="面板内容" />
+  </Sheet>,
 );
 ```
 

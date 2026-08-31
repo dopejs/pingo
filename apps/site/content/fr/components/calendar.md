@@ -21,16 +21,18 @@ réécrire `value`. Le mois, lui, peut être géré en interne (`defaultMonth`) 
 via `month` + `onMonthChange`.
 
 ```tsx
-import { createElement, useSignal, type PingoNode } from "@dopejs/pingo";
+import { useSignal, type PingoNode } from "@dopejs/pingo";
 import { Calendar, type CalendarDate } from "@dopejs/pingo-ui";
 
 function DateField(): PingoNode {
   const selected = useSignal<CalendarDate>({ year: 2026, month: 8, day: 22 });
-  return createElement(Calendar, {
-    defaultMonth: { year: 2026, month: 8, day: 1 },
-    value: selected.get(),
-    onSelect: (date) => selected.set(date),
-  });
+  return (
+    <Calendar
+      defaultMonth={{ year: 2026, month: 8, day: 1 }}
+      value={selected.get()}
+      onSelect={(date) => selected.set(date)}
+    />
+  );
 }
 ```
 

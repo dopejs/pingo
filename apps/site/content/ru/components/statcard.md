@@ -15,17 +15,10 @@ StatCard — продуктовая молекула, специфичная д�
 ## Использование
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { StatCard } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(StatCard, {
-    label: "本月营收",
-    value: "¥128,400",
-    delta: "+12.5%",
-    trend: "up",
-    description: "较上月",
-  }),
+  <StatCard label="本月营收" value="¥128,400" delta="+12.5%" trend="up" description="较上月" />,
 );
 ```
 
@@ -40,7 +33,7 @@ root.render(
 Если `delta` опустить, значение занимает всю строку, а `trend` не действует; `description` тоже можно опустить.
 
 ```tsx
-createElement(StatCard, { label: "在线设备", value: "1,024" });
+<StatCard label="在线设备" value="1,024" />
 ```
 
 ## Пропсы

@@ -13,25 +13,17 @@ Menubar — ряд меню, делящих один слот открытого
 ## Использование
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Menubar, MenubarMenu } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Menubar, {
-    onValueChange: (value) => {},
-    children: [
-      createElement(MenubarMenu, {
-        value: "file",
-        label: "文件",
-        children: createElement("text", { value: "新建" }),
-      }),
-      createElement(MenubarMenu, {
-        value: "edit",
-        label: "编辑",
-        children: createElement("text", { value: "撤销" }),
-      }),
-    ],
-  }),
+  <Menubar onValueChange={(value) => {}}>
+    <MenubarMenu value="file" label="文件">
+      <text value="新建" />
+    </MenubarMenu>
+    <MenubarMenu value="edit" label="编辑">
+      <text value="撤销" />
+    </MenubarMenu>
+  </Menubar>,
 );
 ```
 

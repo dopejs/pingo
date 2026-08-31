@@ -16,25 +16,17 @@ Navigation Menu はナビゲーションセマンティクス版の [Menubar](/j
 ## 使い方
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { MenubarMenu, NavigationMenu } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(NavigationMenu, {
-    onValueChange: (value) => {},
-    children: [
-      createElement(MenubarMenu, {
-        value: "products",
-        label: "プロダクト",
-        children: createElement("text", { value: "レンダリングエンジン" }),
-      }),
-      createElement(MenubarMenu, {
-        value: "docs",
-        label: "ドキュメント",
-        children: createElement("text", { value: "クイックスタート" }),
-      }),
-    ],
-  }),
+  <NavigationMenu onValueChange={(value) => {}}>
+    <MenubarMenu value="products" label="プロダクト">
+      <text value="レンダリングエンジン" />
+    </MenubarMenu>
+    <MenubarMenu value="docs" label="ドキュメント">
+      <text value="クイックスタート" />
+    </MenubarMenu>
+  </NavigationMenu>,
 );
 ```
 

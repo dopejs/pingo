@@ -13,10 +13,9 @@ Skeleton 在內容載入完成前展示與最終版面形狀相近的佔位塊�
 ## 用法
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Skeleton } from "@dopejs/pingo-ui";
 
-root.render(createElement(Skeleton, { width: 320, height: 16 }));
+root.render(<Skeleton width={320} height={16} />);
 ```
 
 `width` / `height` 均可省略，此時尺寸完全交給外層版面與你的樣式表。

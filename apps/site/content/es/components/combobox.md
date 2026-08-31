@@ -13,19 +13,18 @@ Un combobox combina un disparador que muestra el valor seleccionado con una list
 ## Uso
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Combobox } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Combobox, {
-    items: [
+  <Combobox
+    items={[
       { value: "next", label: "Next.js" },
       { value: "remix", label: "Remix" },
       { value: "astro", label: "Astro" },
-    ],
-    placeholder: "选择框架",
-    onValueChange: (value) => console.log(value),
-  }),
+    ]}
+    placeholder="选择框架"
+    onValueChange={(value) => console.log(value)}
+  />,
 );
 ```
 

@@ -13,27 +13,18 @@ Sidebar היא עמודת ניווט ברמת האפליקציה, המורכבת
 ## שימוש
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Sidebar, SidebarItem, SidebarSection } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Sidebar, {
-    defaultValue: "stats",
-    onValueChange: (value) => navigate(value),
-    children: [
-      createElement(SidebarSection, {
-        title: "סביבת עבודה",
-        children: [
-          createElement(SidebarItem, { value: "home", label: "דף הבית" }),
-          createElement(SidebarItem, { value: "stats", label: "סטטיסטיקות" }),
-        ],
-      }),
-      createElement(SidebarSection, {
-        title: "מערכת",
-        children: createElement(SidebarItem, { value: "settings", label: "הגדרות" }),
-      }),
-    ],
-  }),
+  <Sidebar defaultValue="stats" onValueChange={(value) => navigate(value)}>
+    <SidebarSection title="סביבת עבודה">
+      <SidebarItem value="home" label="דף הבית" />
+      <SidebarItem value="stats" label="סטטיסטיקות" />
+    </SidebarSection>
+    <SidebarSection title="מערכת">
+      <SidebarItem value="settings" label="הגדרות" />
+    </SidebarSection>
+  </Sidebar>,
 );
 ```
 

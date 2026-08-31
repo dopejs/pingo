@@ -13,25 +13,17 @@ description: אקורדיון בערימה אנכית שפותח פריט אחד
 ## שימוש
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Accordion, AccordionItem } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Accordion, {
-    defaultOpenValue: "intro",
-    children: [
-      createElement(AccordionItem, {
-        value: "intro",
-        title: "מה זה pingo-ui?",
-        children: createElement("text", { value: "ספריית רכיבים המרונדרת על קנבס pingo." }),
-      }),
-      createElement(AccordionItem, {
-        value: "theme",
-        title: "האם יש תמיכה במצב כהה?",
-        children: createElement("text", { value: "כן, המעבר מתבצע אוטומטית לפי ערכת הנושא." }),
-      }),
-    ],
-  }),
+  <Accordion defaultOpenValue="intro">
+    <AccordionItem value="intro" title="מה זה pingo-ui?">
+      <text value="ספריית רכיבים המרונדרת על קנבס pingo." />
+    </AccordionItem>
+    <AccordionItem value="theme" title="האם יש תמיכה במצב כהה?">
+      <text value="כן, המעבר מתבצע אוטומטית לפי ערכת הנושא." />
+    </AccordionItem>
+  </Accordion>,
 );
 ```
 

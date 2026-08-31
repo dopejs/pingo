@@ -15,17 +15,16 @@ von der pingo-Engine in Echtzeit gerendert und folgt dem Hell-/Dunkel-Theme der 
 ## Verwendung
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Avatar } from "@dopejs/pingo-ui";
 
-root.render(createElement(Avatar, { fallback: "张" }));
+root.render(<Avatar fallback="张" />);
 ```
 
 Mit Bild übergeben Sie eine vordekodierte `PingoImage`-Ressource; das Bild füllt mit
 `object-fit: cover` und wird rund zugeschnitten:
 
 ```tsx
-createElement(Avatar, { image: decodedImage, fallback: "张" });
+<Avatar image={decodedImage} fallback="张" />
 ```
 
 ## Beispiele
@@ -36,7 +35,7 @@ createElement(Avatar, { image: decodedImage, fallback: "张" });
 Ohne Angabe gilt der Skin-Standard von 40 px. Die Vorschau zeigt der Reihe nach 32, Standard, 56.
 
 ```tsx
-createElement(Avatar, { fallback: "李", size: 32 });
+<Avatar fallback="李" size={32} />
 ```
 
 ## Props

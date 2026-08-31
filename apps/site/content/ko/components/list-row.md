@@ -15,17 +15,16 @@ shadcn 기본 컴포넌트와의 조합 관계: ListRow는 행 레이아웃과 �
 ## 사용법
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Avatar, Badge, ListRow } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(ListRow, {
-    title: "张三",
-    description: "zhangsan@example.com",
-    leading: createElement(Avatar, { fallback: "张", size: 32 }),
-    trailing: createElement(Badge, { children: "管理员" }),
-    onPress: () => openMember("zhangsan"),
-  }),
+  <ListRow
+    title="张三"
+    description="zhangsan@example.com"
+    leading={<Avatar fallback="张" size={32} />}
+    trailing={<Badge>管理员</Badge>}
+    onPress={() => openMember("zhangsan")}
+  />,
 );
 ```
 

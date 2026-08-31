@@ -13,22 +13,21 @@ Der Schieberegler dient zur Auswahl eines Werts innerhalb eines Intervalls. Die 
 ## Verwendung
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Slider } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Slider, {
-    defaultValue: 40,
-    min: 0,
-    max: 100,
-    step: 1,
-    semanticLabel: "Lautstärke",
-    onValueChange: (value) => console.log(value),
-  }),
+  <Slider
+    defaultValue={40}
+    min={0}
+    max={100}
+    step={1}
+    semanticLabel="Lautstärke"
+    onValueChange={(value) => console.log(value)}
+  />,
 );
 ```
 
-`Slider` hält den Drag-Zustand intern über Hooks und muss mit `createElement` als Komponente gemountet werden. Wird `value` übergeben, befindet sich die Komponente im kontrollierten Modus; andernfalls verwaltet sie ihren Zustand über `defaultValue` selbst.
+`Slider` hält den Drag-Zustand intern über Hooks und muss mit JSX als Komponente gemountet werden. Wird `value` übergeben, befindet sich die Komponente im kontrollierten Modus; andernfalls verwaltet sie ihren Zustand über `defaultValue` selbst.
 
 ## Beispiele
 

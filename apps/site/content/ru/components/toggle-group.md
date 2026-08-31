@@ -13,24 +13,22 @@ description: Набор двухпозиционных кнопок-перекл
 ## Использование
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { ToggleGroup, ToggleGroupItem } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(ToggleGroup, {
-    type: "single",
-    defaultValue: ["center"],
-    onValueChange: (value) => console.log(value),
-    children: [
-      createElement(ToggleGroupItem, { value: "left", children: "左对齐" }),
-      createElement(ToggleGroupItem, { value: "center", children: "居中" }),
-      createElement(ToggleGroupItem, { value: "right", children: "右对齐" }),
-    ],
-  }),
+  <ToggleGroup
+    type="single"
+    defaultValue={["center"]}
+    onValueChange={(value) => console.log(value)}
+  >
+    <ToggleGroupItem value="left">左对齐</ToggleGroupItem>
+    <ToggleGroupItem value="center">居中</ToggleGroupItem>
+    <ToggleGroupItem value="right">右对齐</ToggleGroupItem>
+  </ToggleGroup>,
 );
 ```
 
-`ToggleGroup` публикует набор выбранных элементов для `ToggleGroupItem` через context; оба должны монтироваться как компоненты с помощью `createElement`. При `type: "single"` новый выбор сбрасывает предыдущий; при `"multiple"` элементы добавляются по одному.
+`ToggleGroup` публикует набор выбранных элементов для `ToggleGroupItem` через context; оба должны монтироваться как компоненты с помощью JSX. При `type: "single"` новый выбор сбрасывает предыдущий; при `"multiple"` элементы добавляются по одному.
 
 ## Примеры
 

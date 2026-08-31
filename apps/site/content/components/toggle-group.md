@@ -13,24 +13,22 @@ description: 一组两态切换按钮，单选或多选，支持方向键导航�
 ## 用法
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { ToggleGroup, ToggleGroupItem } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(ToggleGroup, {
-    type: "single",
-    defaultValue: ["center"],
-    onValueChange: (value) => console.log(value),
-    children: [
-      createElement(ToggleGroupItem, { value: "left", children: "左对齐" }),
-      createElement(ToggleGroupItem, { value: "center", children: "居中" }),
-      createElement(ToggleGroupItem, { value: "right", children: "右对齐" }),
-    ],
-  }),
+  <ToggleGroup
+    type="single"
+    defaultValue={["center"]}
+    onValueChange={(value) => console.log(value)}
+  >
+    <ToggleGroupItem value="left">左对齐</ToggleGroupItem>
+    <ToggleGroupItem value="center">居中</ToggleGroupItem>
+    <ToggleGroupItem value="right">右对齐</ToggleGroupItem>
+  </ToggleGroup>,
 );
 ```
 
-`ToggleGroup` 通过 context 向 `ToggleGroupItem` 发布选中集合，两者都必须用 `createElement` 以组件形式挂载。`type: "single"` 时新选择会清掉上一个；`"multiple"` 时逐项累加。
+`ToggleGroup` 通过 context 向 `ToggleGroupItem` 发布选中集合，两者都必须用 JSX 以组件形式挂载。`type: "single"` 时新选择会清掉上一个；`"multiple"` 时逐项累加。
 
 ## 示例
 

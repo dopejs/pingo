@@ -16,18 +16,16 @@ pingo エンジンによるリアルタイムレンダリング（制御され�
 ## 使い方
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { HoverCard } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(HoverCard, {
-    openDelayMs: 300,
-    closeDelayMs: 200,
-    children: createElement("text", { value: "@pingo" }),
-    content: createElement("text", {
-      value: "Canvas レンダリングエンジンと UI コンポーネントライブラリ。",
-    }),
-  }),
+  <HoverCard
+    openDelayMs={300}
+    closeDelayMs={200}
+    content={<text value="Canvas レンダリングエンジンと UI コンポーネントライブラリ。" />}
+  >
+    <text value="@pingo" />
+  </HoverCard>,
 );
 ```
 

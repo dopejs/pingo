@@ -13,19 +13,16 @@ Bouton de basculement à deux états : une pression le maintient activé, une no
 ## Utilisation
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Toggle } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Toggle, {
-    children: "加粗",
-    defaultPressed: true,
-    onPressedChange: (pressed) => console.log(pressed),
-  }),
+  <Toggle defaultPressed onPressedChange={(pressed) => console.log(pressed)}>
+    加粗
+  </Toggle>,
 );
 ```
 
-`Toggle` conserve son état en interne via les hooks et doit être monté en tant que composant avec `createElement`. Fournir `pressed` place le composant en mode contrôlé ; sinon, utilisez `defaultPressed` pour que le composant gère lui-même son état.
+`Toggle` conserve son état en interne via les hooks et doit être monté en tant que composant avec JSX. Fournir `pressed` place le composant en mode contrôlé ; sinon, utilisez `defaultPressed` pour que le composant gère lui-même son état.
 
 ## Exemples
 

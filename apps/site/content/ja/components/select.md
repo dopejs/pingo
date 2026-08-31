@@ -13,27 +13,20 @@ description: 組み合わせ式ドロップダウンセレクター。キーボ�
 ## 使い方
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Select, {
-    value: "pingo-ui",
-    onValueChange: (value) => console.log(value),
-    children: [
-      createElement(SelectTrigger, { placeholder: "选择一个包" }),
-      createElement(SelectContent, {
-        children: [
-          createElement(SelectItem, { value: "pingo", children: "@dopejs/pingo" }),
-          createElement(SelectItem, { value: "pingo-ui", children: "@dopejs/pingo-ui" }),
-        ],
-      }),
-    ],
-  }),
+  <Select value="pingo-ui" onValueChange={(value) => console.log(value)}>
+    <SelectTrigger placeholder="选择一个包" />
+    <SelectContent>
+      <SelectItem value="pingo">@dopejs/pingo</SelectItem>
+      <SelectItem value="pingo-ui">@dopejs/pingo-ui</SelectItem>
+    </SelectContent>
+  </Select>,
 );
 ```
 
-すべてのパーツは context を通じて連携し、必ず `createElement` でコンポーネントとしてマウントする必要があります。トリガーは現在選択中の `value` を表示し、未選択の場合は `placeholder` を表示します。
+すべてのパーツは context を通じて連携し、必ず JSX でコンポーネントとしてマウントする必要があります。トリガーは現在選択中の `value` を表示し、未選択の場合は `placeholder` を表示します。
 
 ## 例
 

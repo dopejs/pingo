@@ -13,19 +13,14 @@ Saisie de texte sur une seule ligne. L’aperçu ci-dessous est rendu en temps r
 ## Utilisation
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Input } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Input, {
-    semanticLabel: "邮箱",
-    width: 320,
-    onValueChange: (value) => console.log(value),
-  }),
+  <Input semanticLabel="邮箱" width={320} onValueChange={(value) => console.log(value)} />,
 );
 ```
 
-`Input` maintient en interne un `TextEditingController` stable via des hooks ; il doit donc être monté sous forme de composant avec `createElement(Input, props)`, et ne peut pas être appelé directement comme une fonction. Pour les détails sur l’édition, consultez le [guide d’édition de texte](/guide/editing).
+`Input` maintient en interne un `TextEditingController` stable via des hooks ; il doit donc être monté sous forme d’élément avec `<Input … />`, et ne peut pas être appelé directement comme une fonction : un appel direct échoue avec « hooks may only run in a function component ». Pour les détails sur l’édition, consultez le [guide d’édition de texte](/guide/editing).
 
 ## Exemples
 

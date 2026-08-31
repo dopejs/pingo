@@ -13,14 +13,10 @@ Le sélecteur de date est un [Calendrier](/components/calendar) lié à une vale
 ## Utilisation
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { DatePicker, type CalendarDate } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(DatePicker, {
-    placeholder: "选择日期",
-    onSelect: (date: CalendarDate) => console.log(date),
-  }),
+  <DatePicker placeholder="选择日期" onSelect={(date: CalendarDate) => console.log(date)} />,
 );
 ```
 

@@ -13,23 +13,18 @@ description: קבוצת אפשרויות בחירה יחידה, תומכת בנ�
 ## שימוש
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { RadioGroup, RadioGroupItem } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(RadioGroup, {
-    defaultValue: "b",
-    onValueChange: (value) => console.log(value),
-    children: [
-      createElement(RadioGroupItem, { value: "a", label: "אפשרות A" }),
-      createElement(RadioGroupItem, { value: "b", label: "אפשרות B" }),
-      createElement(RadioGroupItem, { value: "c", label: "אפשרות C" }),
-    ],
-  }),
+  <RadioGroup defaultValue="b" onValueChange={(value) => console.log(value)}>
+    <RadioGroupItem value="a" label="אפשרות A" />
+    <RadioGroupItem value="b" label="אפשרות B" />
+    <RadioGroupItem value="c" label="אפשרות C" />
+  </RadioGroup>,
 );
 ```
 
-`RadioGroup` מפיץ את הערך הנוכחי ל‑`RadioGroupItem` דרך context, ולכן יש להרכיב את שניהם כרכיבים באמצעות `createElement`. העברת `value` מכניסה את הרכיב למצב מבוקר; אחרת יש להשתמש ב‑`defaultValue` כדי לאפשר לרכיב לנהל את המצב בעצמו.
+`RadioGroup` מפיץ את הערך הנוכחי ל‑`RadioGroupItem` דרך context, ולכן יש להרכיב את שניהם כרכיבים באמצעות JSX. העברת `value` מכניסה את הרכיב למצב מבוקר; אחרת יש להשתמש ב‑`defaultValue` כדי לאפשר לרכיב לנהל את המצב בעצמו.
 
 ## דוגמאות
 

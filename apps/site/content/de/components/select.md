@@ -13,27 +13,20 @@ Der Dropdown-Auswähler setzt sich aus `Select`, `SelectTrigger`, `SelectContent
 ## Verwendung
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Select, {
-    value: "pingo-ui",
-    onValueChange: (value) => console.log(value),
-    children: [
-      createElement(SelectTrigger, { placeholder: "Ein Paket auswählen" }),
-      createElement(SelectContent, {
-        children: [
-          createElement(SelectItem, { value: "pingo", children: "@dopejs/pingo" }),
-          createElement(SelectItem, { value: "pingo-ui", children: "@dopejs/pingo-ui" }),
-        ],
-      }),
-    ],
-  }),
+  <Select value="pingo-ui" onValueChange={(value) => console.log(value)}>
+    <SelectTrigger placeholder="Ein Paket auswählen" />
+    <SelectContent>
+      <SelectItem value="pingo">@dopejs/pingo</SelectItem>
+      <SelectItem value="pingo-ui">@dopejs/pingo-ui</SelectItem>
+    </SelectContent>
+  </Select>,
 );
 ```
 
-Alle Teile arbeiten über einen Context zusammen und müssen mit `createElement` als Komponenten eingebunden werden. Der Trigger zeigt den aktuell ausgewählten `value` an; wenn nichts ausgewählt ist, wird der `placeholder` angezeigt.
+Alle Teile arbeiten über einen Context zusammen und müssen mit JSX als Komponenten eingebunden werden. Der Trigger zeigt den aktuell ausgewählten `value` an; wenn nichts ausgewählt ist, wird der `placeholder` angezeigt.
 
 ## Beispiele
 

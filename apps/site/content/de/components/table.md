@@ -15,7 +15,7 @@ Virtuell scrollende Tabelle: Die Spaltendefinition steuert sowohl die Kopfzeile 
 `Table` ist eine reine Builder-Funktion und keine Memo-Komponente. Ein direkter Aufruf gibt den Szenenknoten zurück. Rufen Sie die Funktion innerhalb des Render-Scopes einer Komponente auf (wie in der folgenden Funktionskomponente), damit ihre Theme-Abonnements auf Theme-Wechsel der Website reagieren.
 
 ```tsx
-import { createElement, type PingoNode } from "@dopejs/pingo";
+import type { PingoNode } from "@dopejs/pingo";
 import { Table } from "@dopejs/pingo-ui";
 
 type FileRow = { name: string; size: string };
@@ -26,14 +26,14 @@ function FileTable(): PingoNode {
       {
         key: "name",
         header: "名称",
-        cell: (row) => createElement("text", { value: row.name }),
+        cell: (row) => <text value={row.name} />,
       },
       {
         key: "size",
         header: "大小",
         width: 96,
         align: "end",
-        cell: (row) => createElement("text", { value: row.size }),
+        cell: (row) => <text value={row.size} />,
       },
     ],
     rowCount: files.length,

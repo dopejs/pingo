@@ -13,24 +13,22 @@ El grupo de botones de alternancia combina varios [Toggle](/components/toggle) e
 ## Uso
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { ToggleGroup, ToggleGroupItem } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(ToggleGroup, {
-    type: "single",
-    defaultValue: ["center"],
-    onValueChange: (value) => console.log(value),
-    children: [
-      createElement(ToggleGroupItem, { value: "left", children: "左对齐" }),
-      createElement(ToggleGroupItem, { value: "center", children: "居中" }),
-      createElement(ToggleGroupItem, { value: "right", children: "右对齐" }),
-    ],
-  }),
+  <ToggleGroup
+    type="single"
+    defaultValue={["center"]}
+    onValueChange={(value) => console.log(value)}
+  >
+    <ToggleGroupItem value="left">左对齐</ToggleGroupItem>
+    <ToggleGroupItem value="center">居中</ToggleGroupItem>
+    <ToggleGroupItem value="right">右对齐</ToggleGroupItem>
+  </ToggleGroup>,
 );
 ```
 
-`ToggleGroup` publica el conjunto seleccionado a `ToggleGroupItem` mediante contexto; ambos deben montarse como componentes con `createElement`. Con `type: "single"`, una nueva selección elimina la anterior; con `"multiple"`, se acumulan los elementos uno a uno.
+`ToggleGroup` publica el conjunto seleccionado a `ToggleGroupItem` mediante contexto; ambos deben montarse como componentes con JSX. Con `type: "single"`, una nueva selección elimina la anterior; con `"multiple"`, se acumulan los elementos uno a uno.
 
 ## Ejemplos
 

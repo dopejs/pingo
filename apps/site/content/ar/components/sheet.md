@@ -13,16 +13,12 @@ description: لوحة تنزلق من أي حافة للشاشة، مناسبة 
 ## الاستخدام
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Sheet } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Sheet, {
-    open,
-    onOpenChange: (next) => setOpen(next),
-    side: "right",
-    children: createElement("text", { value: "محتوى اللوحة" }),
-  }),
+  <Sheet open={open} onOpenChange={(next) => setOpen(next)} side="right">
+    <text value="محتوى اللوحة" />
+  </Sheet>,
 );
 ```
 

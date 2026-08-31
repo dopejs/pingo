@@ -13,20 +13,19 @@ Mehrzeilige Texteingabe für längere Inhalte wie Anmerkungen oder Kurzbiografie
 ## Verwendung
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { TextArea } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(TextArea, {
-    semanticLabel: "个人简介",
-    width: 360,
-    rows: 4,
-    onValueChange: (value) => console.log(value),
-  }),
+  <TextArea
+    semanticLabel="个人简介"
+    width={360}
+    rows={4}
+    onValueChange={(value) => console.log(value)}
+  />,
 );
 ```
 
-`rows` bestimmt die Anzahl der sichtbaren Zeilen und legt die minimale Höhe der Hülle fest (`rows × Zeilenhöhe + vertikale Innenabstände`). Wie bei [Input](/components/input) muss `TextArea` mit `createElement` als Komponente eingebunden werden. Details zur Bearbeitung finden Sie im [Leitfaden zur Textbearbeitung](/guide/editing).
+`rows` bestimmt die Anzahl der sichtbaren Zeilen und legt die minimale Höhe der Hülle fest (`rows × Zeilenhöhe + vertikale Innenabstände`). Wie bei [Input](/components/input) muss `TextArea` mit JSX als Komponente eingebunden werden. Details zur Bearbeitung finden Sie im [Leitfaden zur Textbearbeitung](/guide/editing).
 
 ## Beispiele
 

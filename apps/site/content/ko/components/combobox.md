@@ -13,19 +13,18 @@ description: 검색 가능한 드롭다운 선택기로, 입력으로 옵션 목
 ## 사용법
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Combobox } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Combobox, {
-    items: [
+  <Combobox
+    items={[
       { value: "next", label: "Next.js" },
       { value: "remix", label: "Remix" },
       { value: "astro", label: "Astro" },
-    ],
-    placeholder: "프레임워크 선택",
-    onValueChange: (value) => console.log(value),
-  }),
+    ]}
+    placeholder="프레임워크 선택"
+    onValueChange={(value) => console.log(value)}
+  />,
 );
 ```
 

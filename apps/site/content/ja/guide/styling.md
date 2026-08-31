@@ -14,8 +14,8 @@ Core は正規化された型付きの値のみを消費します。CSS テキ�
 `createStyleSheet` で CSS テキストをコンパイルし（入力が不正な場合は `StyleSheetCompileError` をスロー）、
 root の作成時に登録します。
 
-```ts
-import { createElement, createHostedCanvasRoot, createStyleSheet } from "@dopejs/pingo";
+```tsx
+import { createHostedCanvasRoot, createStyleSheet } from "@dopejs/pingo";
 
 const sheet = createStyleSheet(
   `
@@ -31,11 +31,9 @@ const sheet = createStyleSheet(
 const root = await createHostedCanvasRoot(canvas, { styleSheets: [sheet] });
 
 root.render(
-  createElement("container", {
-    className: "card",
-    width: 320,
-    children: createElement("text", { value: "你好", fontSize: 14 }),
-  }),
+  <container className="card" width={320}>
+    <text value="你好" fontSize={14} />
+  </container>,
 );
 ```
 

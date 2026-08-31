@@ -14,15 +14,9 @@ Aspect Ratio는 내용이 고정된 가로세로비를 유지하게 합니다. �
 ## 사용법
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { AspectRatio } from "@dopejs/pingo-ui";
 
-root.render(
-  createElement(AspectRatio, {
-    ratio: 16 / 9,
-    children: coverImage,
-  }),
-);
+root.render(<AspectRatio ratio={16 / 9}>{coverImage}</AspectRatio>);
 ```
 
 컴포넌트 너비는 부모 컨테이너의 100%이며, `ratio`는 너비를 높이로 나눈 값입니다. 예를 들어 `16 / 9`는

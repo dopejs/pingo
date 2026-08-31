@@ -15,15 +15,12 @@ ci-dessous est rendu en direct par le moteur pingo — cliquez sur le déclenche
 ## Utilisation
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Collapsible } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Collapsible, {
-    trigger: "高级选项",
-    defaultOpen: true,
-    children: createElement("text", { value: "折叠区内容。" }),
-  }),
+  <Collapsible trigger="高级选项" defaultOpen>
+    <text value="折叠区内容。" />
+  </Collapsible>,
 );
 ```
 

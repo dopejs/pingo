@@ -13,16 +13,9 @@ Resizable はコンテナを2つのパネルに分割し、中央のドラッグ
 ## 使い方
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Resizable } from "@dopejs/pingo-ui";
 
-root.render(
-  createElement(Resizable, {
-    defaultSplit: 0.4,
-    first: sidebar,
-    second: content,
-  }),
-);
+root.render(<Resizable defaultSplit={0.4} first={sidebar} second={content} />);
 ```
 
 コンポーネント自身の幅と高さは親コンテナの 100% となり、サイズが確定した親コンテナが必要です。非制御コンポーネント（`defaultSplit`）と制御コンポーネント（`split` + `onSplitChange`）の両方の使い方に対応しています。

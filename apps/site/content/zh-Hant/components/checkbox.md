@@ -13,20 +13,22 @@ description: 受控的多選框，可帶文字標籤，渲染在 pingo canvas �
 ## 用法
 
 ```tsx
-import { createElement, useSignal, type PingoNode } from "@dopejs/pingo";
+import { useSignal, type PingoNode } from "@dopejs/pingo";
 import { Checkbox } from "@dopejs/pingo-ui";
 
 // useSignal 是 hook，必须运行在组件作用域内。
 function NotificationSetting(): PingoNode {
   const enabled = useSignal(false);
-  return createElement(Checkbox, {
-    checked: enabled.get(),
-    label: "已启用通知",
-    onCheckedChange: (next) => enabled.set(next),
-  });
+  return (
+    <Checkbox
+      checked={enabled.get()}
+      label="已启用通知"
+      onCheckedChange={(next) => enabled.set(next)}
+    />
+  );
 }
 
-root.render(createElement(NotificationSetting));
+root.render(<NotificationSetting />);
 ```
 
 `checked` 由父元件持有，`onCheckedChange` 負責更新它——元件本身不儲存狀態。`label` 可選，提供後會在選框右側渲染文字。

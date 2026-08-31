@@ -15,7 +15,6 @@ description: モーダルダイアログ。フローを中断してユーザー�
 ## 使い方
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import {
   Button,
   Dialog,
@@ -26,21 +25,15 @@ import {
 } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Dialog, {
-    open,
-    onOpenChange: (next) => setOpen(next),
-    children: [
-      createElement(DialogHeader, {
-        children: [
-          createElement(DialogTitle, { children: "プロフィールを編集" }),
-          createElement(DialogDescription, { children: "変更は即座に同期されます。" }),
-        ],
-      }),
-      createElement(DialogFooter, {
-        children: createElement(Button, { children: "保存", onPress: () => save() }),
-      }),
-    ],
-  }),
+  <Dialog open={open} onOpenChange={(next) => setOpen(next)}>
+    <DialogHeader>
+      <DialogTitle>プロフィールを編集</DialogTitle>
+      <DialogDescription>変更は即座に同期されます。</DialogDescription>
+    </DialogHeader>
+    <DialogFooter>
+      <Button onPress={() => save()}>保存</Button>
+    </DialogFooter>
+  </Dialog>,
 );
 ```
 

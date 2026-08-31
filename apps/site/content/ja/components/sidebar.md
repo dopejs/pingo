@@ -13,27 +13,18 @@ Sidebar はアプリケーションレベルのナビゲーション列で、グ
 ## 使い方
 
 ```tsx
-import { createElement } from "@dopejs/pingo";
 import { Sidebar, SidebarItem, SidebarSection } from "@dopejs/pingo-ui";
 
 root.render(
-  createElement(Sidebar, {
-    defaultValue: "stats",
-    onValueChange: (value) => navigate(value),
-    children: [
-      createElement(SidebarSection, {
-        title: "ワークスペース",
-        children: [
-          createElement(SidebarItem, { value: "home", label: "ホーム" }),
-          createElement(SidebarItem, { value: "stats", label: "統計" }),
-        ],
-      }),
-      createElement(SidebarSection, {
-        title: "システム",
-        children: createElement(SidebarItem, { value: "settings", label: "設定" }),
-      }),
-    ],
-  }),
+  <Sidebar defaultValue="stats" onValueChange={(value) => navigate(value)}>
+    <SidebarSection title="ワークスペース">
+      <SidebarItem value="home" label="ホーム" />
+      <SidebarItem value="stats" label="統計" />
+    </SidebarSection>
+    <SidebarSection title="システム">
+      <SidebarItem value="settings" label="設定" />
+    </SidebarSection>
+  </Sidebar>,
 );
 ```
 
