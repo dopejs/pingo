@@ -2768,6 +2768,20 @@ useLayoutValue<T>(
 - `@dopejs/pingo-a11y` 把语义树映射为 canvas 旁的绝对定位 DOM 影子树，供屏幕阅读器与自动化工具消费。
 - E2E 因此可以按语义选择元素，像素录制回放只作为补充证据。
 - 保留像素回归测试作为渲染正确性的补充手段（`@napi-rs/canvas` 或 headless 真实浏览器）。
+- **语义树回答「这个节点是什么」，painted-text 探针回答「这一帧画了什么」**，两者是
+  不同的 oracle，交叉断言才说明用户看见了什么。语义树是 Scene 派生的，看不到可见性
+  以外的 paint 行为（子树缓存、Picture 复用、绘制序、虚拟化占位）；主路径的
+  `DrawGlyphRun` 也不携带字符串，Picture 模式下顶层 DisplayList 更只有一条
+  `DrawPicture`。探针在查询时重走 paint 已缓存的子树树，按绘制序报告每条文本指令的
+  节点、字符串、设备坐标与裁剪状态，见
+  [`e14-painted-text-probe-design.md`](e14-painted-text-probe-design.md)。
+  - 它是**拉取式**的：paint 不记录任何东西，缓存不多存一个字节，不问就不产生成本。
+  - 报告的是 **Core 发出侧**，不是回放可见侧；E11 的视口裁剪发生在 backend。
+  - 字符串必须解析自「画出内容」的来源（编辑覆盖优先），绝不回查 `Scene::text_run`，
+    否则密码框会报出从未被画出的明文。
+  - 出口：`CoreEngine::painted_text()` → `WasmCore::painted_text()` → Host 的
+    `onPaintedText`（`layout_geometry` 那套 active 标志 + 每帧推送，两条 transport
+    均可用），字节布局由 `schemas/protocol.v1.json` 的 `paintedTextBatch` 生成。
 
 ---
 
