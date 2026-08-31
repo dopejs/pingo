@@ -1,4 +1,5 @@
-import { createElement, type PingoNode } from "@dopejs/pingo";
+/** @jsxImportSource @dopejs/pingo */
+import type { PingoNode } from "@dopejs/pingo";
 import { Label, ScrollArea } from "@dopejs/pingo-ui";
 
 import type { PreviewDemo } from "../../preview/contract";
@@ -23,18 +24,15 @@ const demo: PreviewDemo = {
   height: 260,
   render: (context): PingoNode =>
     stage(context, [
-      createElement("container", {
-        width: 260,
-        height: 200,
-        children: createElement(ScrollArea, {
-          children: ITEMS.map((name) =>
-            createElement("container", {
-              padding: 8,
-              children: createElement(Label, { children: name }),
-            }),
-          ),
-        }),
-      }),
+      <container width={260} height={200}>
+        <ScrollArea>
+          {ITEMS.map((name) => (
+            <container padding={8}>
+              <Label>{name}</Label>
+            </container>
+          ))}
+        </ScrollArea>
+      </container>,
     ]),
 };
 

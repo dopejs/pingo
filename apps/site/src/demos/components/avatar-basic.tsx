@@ -1,4 +1,5 @@
-import { createElement, type PingoNode } from "@dopejs/pingo";
+/** @jsxImportSource @dopejs/pingo */
+import type { PingoNode } from "@dopejs/pingo";
 import { Avatar } from "@dopejs/pingo-ui";
 
 import type { PreviewDemo } from "../../preview/contract";
@@ -13,9 +14,9 @@ const demo: PreviewDemo = {
     stage(context, [
       row(
         [
-          createElement(Avatar, { fallback: "张", size: 32 }),
-          createElement(Avatar, { fallback: "李" }),
-          createElement(Avatar, { fallback: "王", size: 56 }),
+          <Avatar fallback="张" size={32} />,
+          <Avatar fallback="李" />,
+          <Avatar fallback="王" size={56} />,
         ],
         16,
       ),

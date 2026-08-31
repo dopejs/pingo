@@ -1,4 +1,5 @@
-import { createElement, createImage, Image, Text, View, type PingoNode } from "@dopejs/pingo";
+/** @jsxImportSource @dopejs/pingo */
+import { createImage, Image, Text, View, type PingoNode } from "@dopejs/pingo";
 import { useTheme } from "@dopejs/pingo-ui";
 
 import type { PreviewDemo } from "../../preview/contract";
@@ -48,44 +49,39 @@ const DARK: Palette = {
 
 function Scene(props: { readonly width: number; readonly height: number }): PingoNode {
   const palette = useTheme() === "dark" ? DARK : LIGHT;
-  const item = (node: PingoNode, caption: string): PingoNode =>
-    createElement(View, {
-      style: { flexDirection: "column", alignItems: "center" },
-      children: [
-        node,
-        createElement(View, { height: 6 }),
-        createElement(Text, { value: caption, fontSize: 12, lineHeight: 16, color: palette.muted }),
-      ],
-    });
+  const item = (node: PingoNode, caption: string): PingoNode => (
+    <View style={{ flexDirection: "column", alignItems: "center" }}>
+      {node}
+      <View height={6} />
+      <Text value={caption} fontSize={12} lineHeight={16} color={palette.muted} />
+    </View>
+  );
   return stage(props, [
-    createElement(View, {
-      backgroundColor: palette.surface,
-      padding: 16,
-      style: {
+    <View
+      backgroundColor={palette.surface}
+      padding={16}
+      style={{
         borderWidth: 1,
         borderStyle: "solid",
         borderColor: palette.border,
         borderRadius: 10,
-      },
-      children: row(
+      }}
+    >
+      {row(
         [
-          item(createElement(Image, { source: GRADIENT }), "原始尺寸 96×96"),
-          item(
-            createElement(Image, { source: GRADIENT, width: 48, height: 48 }),
-            "缩放进 48×48 的节点盒",
-          ),
-          item(createElement(Image, { source: GRADIENT, width: 128, height: 64 }), "拉伸到 128×64"),
+          item(<Image source={GRADIENT} />, "原始尺寸 96×96"),
+          item(<Image source={GRADIENT} width={48} height={48} />, "缩放进 48×48 的节点盒"),
+          item(<Image source={GRADIENT} width={128} height={64} />, "拉伸到 128×64"),
         ],
         24,
-      ),
-    }),
+      )}
+    </View>,
   ]);
 }
 
 const demo: PreviewDemo = {
   height: 220,
-  render: (context): PingoNode =>
-    createElement(Scene, { width: context.width, height: context.height }),
+  render: (context): PingoNode => <Scene width={context.width} height={context.height} />,
 };
 
 export default demo;

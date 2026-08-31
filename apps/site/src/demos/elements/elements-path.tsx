@@ -1,4 +1,5 @@
-import { createElement, Path, Text, View, type PingoNode } from "@dopejs/pingo";
+/** @jsxImportSource @dopejs/pingo */
+import { Path, Text, View, type PingoNode } from "@dopejs/pingo";
 import { useTheme } from "@dopejs/pingo-ui";
 
 import type { PreviewDemo } from "../../preview/contract";
@@ -42,56 +43,54 @@ function Scene(props: { readonly width: number; readonly height: number }): Ping
   const palette = useTheme() === "dark" ? DARK : LIGHT;
   const cardWidth = Math.min(400, props.width - 48);
   // Path 画在节点自己的 color 里：用祖先的 style.color 让它像文字一样继承颜色。
-  const outline = (d: string, color: Hex, strokeWidth?: number): PingoNode =>
-    createElement(View, {
-      style: { color },
-      children: createElement(Path, {
-        d,
-        viewBox: VIEW_BOX,
-        width: 32,
-        height: 32,
-        ...(strokeWidth === undefined ? {} : { strokeWidth }),
-      }),
-    });
+  const outline = (d: string, color: Hex, strokeWidth?: number): PingoNode => (
+    <View style={{ color }}>
+      <Path
+        d={d}
+        viewBox={VIEW_BOX}
+        width={32}
+        height={32}
+        {...(strokeWidth === undefined ? {} : { strokeWidth })}
+      />
+    </View>
+  );
   return stage(props, [
-    createElement(View, {
-      width: cardWidth,
-      backgroundColor: palette.surface,
-      padding: [14, 20, 14, 20],
-      style: {
+    <View
+      width={cardWidth}
+      backgroundColor={palette.surface}
+      padding={[14, 20, 14, 20]}
+      style={{
         borderWidth: 1,
         borderStyle: "solid",
         borderColor: palette.border,
         borderRadius: 10,
         flexDirection: "column",
         alignItems: "center",
-      },
-      children: [
-        row(
-          [
-            outline(HEART, palette.danger),
-            outline(HEART, palette.accent, 2),
-            outline(STAR, palette.warn),
-          ],
-          20,
-        ),
-        createElement(View, { height: 10 }),
-        createElement(Text, {
-          value: "Path：一条 d 一个节点，填充或描边；viewBox 缩放进节点盒",
-          fontSize: 12,
-          lineHeight: 18,
-          color: palette.muted,
-          width: cardWidth - 40,
-        }),
-      ],
-    }),
+      }}
+    >
+      {row(
+        [
+          outline(HEART, palette.danger),
+          outline(HEART, palette.accent, 2),
+          outline(STAR, palette.warn),
+        ],
+        20,
+      )}
+      <View height={10} />
+      <Text
+        value="Path：一条 d 一个节点，填充或描边；viewBox 缩放进节点盒"
+        fontSize={12}
+        lineHeight={18}
+        color={palette.muted}
+        width={cardWidth - 40}
+      />
+    </View>,
   ]);
 }
 
 const demo: PreviewDemo = {
   height: 180,
-  render: (context): PingoNode =>
-    createElement(Scene, { width: context.width, height: context.height }),
+  render: (context): PingoNode => <Scene width={context.width} height={context.height} />,
 };
 
 export default demo;

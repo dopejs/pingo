@@ -1,4 +1,5 @@
-import { createElement, type PingoNode } from "@dopejs/pingo";
+/** @jsxImportSource @dopejs/pingo */
+import type { PingoNode } from "@dopejs/pingo";
 import { Calendar } from "@dopejs/pingo-ui";
 
 import type { PreviewDemo } from "../../preview/contract";
@@ -10,15 +11,15 @@ const demo: PreviewDemo = {
   render: (context): PingoNode =>
     stage(context, [
       frame(280, [
-        createElement(Calendar, {
-          defaultMonth: { year: 2026, month: 8, day: 1 },
-          value: { year: 2026, month: 8, day: 22 },
-          isDisabled: (date) => {
+        <Calendar
+          defaultMonth={{ year: 2026, month: 8, day: 1 }}
+          value={{ year: 2026, month: 8, day: 22 }}
+          isDisabled={(date) => {
             const weekday = new Date(Date.UTC(date.year, date.month - 1, date.day)).getUTCDay();
             return weekday === 0 || weekday === 6;
-          },
-          onSelect: () => {},
-        }),
+          }}
+          onSelect={() => {}}
+        />,
       ]),
     ]),
 };

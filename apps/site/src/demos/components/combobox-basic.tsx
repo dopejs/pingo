@@ -1,4 +1,5 @@
-import { createElement, type PingoNode } from "@dopejs/pingo";
+/** @jsxImportSource @dopejs/pingo */
+import type { PingoNode } from "@dopejs/pingo";
 import { Combobox } from "@dopejs/pingo-ui";
 
 import type { PreviewDemo } from "../../preview/contract";
@@ -11,17 +12,17 @@ const demo: PreviewDemo = {
       // The trigger takes its width from its container, so the preview gives it
       // a definite one instead of leaving it to fill the whole stage.
       frame(280, [
-        createElement(Combobox, {
-          items: [
+        <Combobox
+          items={[
             { value: "next", label: "Next.js" },
             { value: "remix", label: "Remix" },
             { value: "astro", label: "Astro" },
             { value: "nuxt", label: "Nuxt" },
-          ],
-          defaultValue: "astro",
-          placeholder: "选择框架",
-          onValueChange: () => {},
-        }),
+          ]}
+          defaultValue="astro"
+          placeholder="选择框架"
+          onValueChange={() => {}}
+        />,
       ]),
     ]),
 };

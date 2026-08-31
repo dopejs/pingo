@@ -1,4 +1,5 @@
-import { createElement, type PingoNode } from "@dopejs/pingo";
+/** @jsxImportSource @dopejs/pingo */
+import type { PingoNode } from "@dopejs/pingo";
 import { Button, Popover, PopoverContent, PopoverTrigger } from "@dopejs/pingo-ui";
 
 import type { PreviewDemo } from "../../preview/contract";
@@ -8,20 +9,16 @@ const demo: PreviewDemo = {
   height: 220,
   render: (context): PingoNode =>
     anchorStage(context, [
-      createElement(Popover, {
-        children: [
-          createElement(PopoverTrigger, {
-            children: createElement(Button, {
-              children: "打开浮层",
-              variant: "outline",
-              onPress: () => {},
-            }),
-          }),
-          createElement(PopoverContent, {
-            children: createElement("text", { value: "锚定在触发器下方。" }),
-          }),
-        ],
-      }),
+      <Popover>
+        <PopoverTrigger>
+          <Button variant="outline" onPress={() => {}}>
+            打开浮层
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent>
+          <text value="锚定在触发器下方。" />
+        </PopoverContent>
+      </Popover>,
     ]),
 };
 

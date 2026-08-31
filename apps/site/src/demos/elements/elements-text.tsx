@@ -1,4 +1,5 @@
-import { createElement, Text, View, type PingoNode } from "@dopejs/pingo";
+/** @jsxImportSource @dopejs/pingo */
+import { Text, View, type PingoNode } from "@dopejs/pingo";
 import { useTheme } from "@dopejs/pingo-ui";
 
 import type { PreviewDemo } from "../../preview/contract";
@@ -31,53 +32,51 @@ function Scene(props: { readonly width: number; readonly height: number }): Ping
   const palette = useTheme() === "dark" ? DARK : LIGHT;
   const cardWidth = Math.min(460, props.width - 48);
   const textWidth = cardWidth - 32;
-  const spacer = (): PingoNode => createElement(View, { height: 8 });
+  const spacer = (): PingoNode => <View height={8} />;
   return stage(props, [
-    createElement(View, {
-      width: cardWidth,
-      backgroundColor: palette.surface,
-      padding: [14, 16, 14, 16],
-      style: {
+    <View
+      width={cardWidth}
+      backgroundColor={palette.surface}
+      padding={[14, 16, 14, 16]}
+      style={{
         borderWidth: 1,
         borderStyle: "solid",
         borderColor: palette.border,
         borderRadius: 10,
         flexDirection: "column",
-      },
-      children: [
-        createElement(Text, {
-          value: "标题：fontSize 24 / lineHeight 32",
-          fontSize: 24,
-          lineHeight: 32,
-          fontWeight: 700,
-          color: palette.text,
-          width: textWidth,
-        }),
-        spacer(),
-        createElement(Text, {
-          value: "正文：14/22。中英文混排与 emoji 🎨 的 shaping、换行与测量都由 Core 完成。",
-          fontSize: 14,
-          lineHeight: 22,
-          color: palette.text,
-          width: textWidth,
-        }),
-        spacer(),
-        createElement(Text, {
-          value: "辅助说明：12/18，muted 颜色。",
-          fontSize: 12,
-          lineHeight: 18,
-          color: palette.muted,
-          width: textWidth,
-        }),
-      ],
-    }),
+      }}
+    >
+      <Text
+        value="标题：fontSize 24 / lineHeight 32"
+        fontSize={24}
+        lineHeight={32}
+        fontWeight={700}
+        color={palette.text}
+        width={textWidth}
+      />
+      {spacer()}
+      <Text
+        value="正文：14/22。中英文混排与 emoji 🎨 的 shaping、换行与测量都由 Core 完成。"
+        fontSize={14}
+        lineHeight={22}
+        color={palette.text}
+        width={textWidth}
+      />
+      {spacer()}
+      <Text
+        value="辅助说明：12/18，muted 颜色。"
+        fontSize={12}
+        lineHeight={18}
+        color={palette.muted}
+        width={textWidth}
+      />
+    </View>,
   ]);
 }
 
 const demo: PreviewDemo = {
   height: 200,
-  render: (context): PingoNode =>
-    createElement(Scene, { width: context.width, height: context.height }),
+  render: (context): PingoNode => <Scene width={context.width} height={context.height} />,
 };
 
 export default demo;

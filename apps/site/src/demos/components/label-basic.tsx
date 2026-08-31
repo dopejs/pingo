@@ -1,4 +1,5 @@
-import { createElement, type PingoNode } from "@dopejs/pingo";
+/** @jsxImportSource @dopejs/pingo */
+import type { PingoNode } from "@dopejs/pingo";
 import { Input, Label } from "@dopejs/pingo-ui";
 
 import type { PreviewDemo } from "../../preview/contract";
@@ -9,14 +10,7 @@ const demo: PreviewDemo = {
   render: (context): PingoNode =>
     stage(context, [
       column(
-        [
-          createElement(Label, { children: "邮箱" }),
-          createElement(Input, {
-            semanticLabel: "邮箱",
-            width: 320,
-            onValueChange: () => {},
-          }),
-        ],
+        [<Label>邮箱</Label>, <Input semanticLabel="邮箱" width={320} onValueChange={() => {}} />],
         8,
       ),
     ]),

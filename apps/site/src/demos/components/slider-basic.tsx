@@ -1,4 +1,5 @@
-import { createElement, type PingoNode } from "@dopejs/pingo";
+/** @jsxImportSource @dopejs/pingo */
+import type { PingoNode } from "@dopejs/pingo";
 import { Slider } from "@dopejs/pingo-ui";
 
 import type { PreviewDemo } from "../../preview/contract";
@@ -13,13 +14,8 @@ const demo: PreviewDemo = {
       frame(320, [
         column(
           [
-            createElement(Slider, { defaultValue: 40, semanticLabel: "音量" }),
-            createElement(Slider, {
-              value: 70,
-              semanticLabel: "亮度",
-              disabled: true,
-              onValueChange: () => {},
-            }),
+            <Slider defaultValue={40} semanticLabel="音量" />,
+            <Slider value={70} semanticLabel="亮度" disabled onValueChange={() => {}} />,
           ],
           16,
         ),

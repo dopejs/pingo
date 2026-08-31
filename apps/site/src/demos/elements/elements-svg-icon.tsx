@@ -1,12 +1,5 @@
-import {
-  createElement,
-  createSvg,
-  Svg,
-  Text,
-  View,
-  type PingoNode,
-  type PingoSvg,
-} from "@dopejs/pingo";
+/** @jsxImportSource @dopejs/pingo */
+import { createSvg, Svg, Text, View, type PingoNode, type PingoSvg } from "@dopejs/pingo";
 import { useTheme } from "@dopejs/pingo-ui";
 
 import type { PreviewDemo } from "../../preview/contract";
@@ -55,54 +48,53 @@ const DARK: Palette = {
 function Scene(props: { readonly width: number; readonly height: number }): PingoNode {
   const palette = useTheme() === "dark" ? DARK : LIGHT;
   const cardWidth = Math.min(400, props.width - 48);
-  const icon = (source: PingoSvg, color: Hex, label: string): PingoNode =>
-    createElement(Svg, {
-      source,
-      width: 28,
-      height: 28,
+  const icon = (source: PingoSvg, color: Hex, label: string): PingoNode => (
+    <Svg
+      source={source}
+      width={28}
+      height={28}
       // currentColor 解析为 undefined，节点自己的 color 胜出——图标随主题换色。
-      style: { color },
-      semanticLabel: label,
-    });
+      style={{ color }}
+      semanticLabel={label}
+    />
+  );
   return stage(props, [
-    createElement(View, {
-      width: cardWidth,
-      backgroundColor: palette.surface,
-      padding: [14, 20, 14, 20],
-      style: {
+    <View
+      width={cardWidth}
+      backgroundColor={palette.surface}
+      padding={[14, 20, 14, 20]}
+      style={{
         borderWidth: 1,
         borderStyle: "solid",
         borderColor: palette.border,
         borderRadius: 10,
         flexDirection: "column",
         alignItems: "center",
-      },
-      children: [
-        row(
-          [
-            icon(SEARCH_ICON, palette.accent, "搜索"),
-            icon(CHECK_ICON, palette.accent, "完成"),
-            icon(HEART_ICON, palette.danger, "收藏"),
-          ],
-          20,
-        ),
-        createElement(View, { height: 10 }),
-        createElement(Text, {
-          value: "createSvg 解析图标集子集；每个形状展开为一个 path 节点",
-          fontSize: 12,
-          lineHeight: 18,
-          color: palette.muted,
-          width: cardWidth - 40,
-        }),
-      ],
-    }),
+      }}
+    >
+      {row(
+        [
+          icon(SEARCH_ICON, palette.accent, "搜索"),
+          icon(CHECK_ICON, palette.accent, "完成"),
+          icon(HEART_ICON, palette.danger, "收藏"),
+        ],
+        20,
+      )}
+      <View height={10} />
+      <Text
+        value="createSvg 解析图标集子集；每个形状展开为一个 path 节点"
+        fontSize={12}
+        lineHeight={18}
+        color={palette.muted}
+        width={cardWidth - 40}
+      />
+    </View>,
   ]);
 }
 
 const demo: PreviewDemo = {
   height: 180,
-  render: (context): PingoNode =>
-    createElement(Scene, { width: context.width, height: context.height }),
+  render: (context): PingoNode => <Scene width={context.width} height={context.height} />,
 };
 
 export default demo;

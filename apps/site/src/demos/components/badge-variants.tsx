@@ -1,4 +1,5 @@
-import { createElement, type PingoNode } from "@dopejs/pingo";
+/** @jsxImportSource @dopejs/pingo */
+import type { PingoNode } from "@dopejs/pingo";
 import { Badge } from "@dopejs/pingo-ui";
 
 import type { PreviewDemo } from "../../preview/contract";
@@ -10,10 +11,10 @@ const demo: PreviewDemo = {
     stage(context, [
       row(
         [
-          createElement(Badge, { children: "Default" }),
-          createElement(Badge, { children: "Secondary", variant: "secondary" }),
-          createElement(Badge, { children: "Destructive", variant: "destructive" }),
-          createElement(Badge, { children: "Outline", variant: "outline" }),
+          <Badge>Default</Badge>,
+          <Badge variant="secondary">Secondary</Badge>,
+          <Badge variant="destructive">Destructive</Badge>,
+          <Badge variant="outline">Outline</Badge>,
         ],
         12,
       ),

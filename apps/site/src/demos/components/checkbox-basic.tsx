@@ -1,4 +1,5 @@
-import { createElement, type PingoNode } from "@dopejs/pingo";
+/** @jsxImportSource @dopejs/pingo */
+import type { PingoNode } from "@dopejs/pingo";
 import { Checkbox } from "@dopejs/pingo-ui";
 
 import type { PreviewDemo } from "../../preview/contract";
@@ -12,9 +13,9 @@ const demo: PreviewDemo = {
     stage(context, [
       column(
         [
-          createElement(Checkbox, { defaultChecked: true, label: "已启用通知" }),
-          createElement(Checkbox, { label: "接收营销邮件" }),
-          createElement(Checkbox, { label: "禁用项", disabled: true }),
+          <Checkbox defaultChecked label="已启用通知" />,
+          <Checkbox label="接收营销邮件" />,
+          <Checkbox label="禁用项" disabled />,
         ],
         12,
       ),

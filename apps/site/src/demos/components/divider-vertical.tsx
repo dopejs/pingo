@@ -1,4 +1,5 @@
-import { createElement, type PingoNode } from "@dopejs/pingo";
+/** @jsxImportSource @dopejs/pingo */
+import type { PingoNode } from "@dopejs/pingo";
 import { Divider, Label } from "@dopejs/pingo-ui";
 
 import type { PreviewDemo } from "../../preview/contract";
@@ -8,21 +9,17 @@ const demo: PreviewDemo = {
   height: 120,
   render: (context): PingoNode =>
     stage(context, [
-      createElement("container", {
-        height: 48,
-        style: { flexDirection: "row", alignItems: "center" },
-        children: [
-          createElement(Label, { children: "首页" }),
-          createElement("container", { width: 16 }),
-          createElement(Divider, { orientation: "vertical" }),
-          createElement("container", { width: 16 }),
-          createElement(Label, { children: "文档" }),
-          createElement("container", { width: 16 }),
-          createElement(Divider, { orientation: "vertical" }),
-          createElement("container", { width: 16 }),
-          createElement(Label, { children: "设置" }),
-        ],
-      }),
+      <container height={48} style={{ flexDirection: "row", alignItems: "center" }}>
+        <Label>首页</Label>
+        <container width={16} />
+        <Divider orientation="vertical" />
+        <container width={16} />
+        <Label>文档</Label>
+        <container width={16} />
+        <Divider orientation="vertical" />
+        <container width={16} />
+        <Label>设置</Label>
+      </container>,
     ]),
 };
 

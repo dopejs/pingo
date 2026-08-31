@@ -1,4 +1,5 @@
-import { createElement, type PingoNode } from "@dopejs/pingo";
+/** @jsxImportSource @dopejs/pingo */
+import type { PingoNode } from "@dopejs/pingo";
 import { Switch } from "@dopejs/pingo-ui";
 
 import type { PreviewDemo } from "../../preview/contract";
@@ -12,9 +13,9 @@ const demo: PreviewDemo = {
     stage(context, [
       row(
         [
-          createElement(Switch, { defaultChecked: true, semanticLabel: "飞行模式" }),
-          createElement(Switch, { semanticLabel: "静音" }),
-          createElement(Switch, { checked: true, disabled: true, semanticLabel: "已禁用" }),
+          <Switch defaultChecked semanticLabel="飞行模式" />,
+          <Switch semanticLabel="静音" />,
+          <Switch checked disabled semanticLabel="已禁用" />,
         ],
         16,
       ),

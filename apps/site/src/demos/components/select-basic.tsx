@@ -1,4 +1,5 @@
-import { createElement, type PingoNode } from "@dopejs/pingo";
+/** @jsxImportSource @dopejs/pingo */
+import type { PingoNode } from "@dopejs/pingo";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@dopejs/pingo-ui";
 
 import type { PreviewDemo } from "../../preview/contract";
@@ -11,27 +12,15 @@ const demo: PreviewDemo = {
       // The trigger takes its width from its container, so the preview gives it
       // a definite one instead of leaving it to fill the whole stage.
       frame(280, [
-        createElement(Select, {
-          value: "pingo-ui",
-          onValueChange: () => {},
-          children: [
-            createElement(SelectTrigger, { placeholder: "选择一个包" }),
-            createElement(SelectContent, {
-              children: [
-                createElement(SelectItem, { value: "pingo", children: "@dopejs/pingo" }),
-                createElement(SelectItem, { value: "pingo-ui", children: "@dopejs/pingo-ui" }),
-                createElement(SelectItem, {
-                  value: "pingo-editing",
-                  children: "@dopejs/pingo-editing",
-                }),
-                createElement(SelectItem, {
-                  value: "pingo-style",
-                  children: "@dopejs/pingo-style",
-                }),
-              ],
-            }),
-          ],
-        }),
+        <Select value="pingo-ui" onValueChange={() => {}}>
+          <SelectTrigger placeholder="选择一个包" />
+          <SelectContent>
+            <SelectItem value="pingo">@dopejs/pingo</SelectItem>
+            <SelectItem value="pingo-ui">@dopejs/pingo-ui</SelectItem>
+            <SelectItem value="pingo-editing">@dopejs/pingo-editing</SelectItem>
+            <SelectItem value="pingo-style">@dopejs/pingo-style</SelectItem>
+          </SelectContent>
+        </Select>,
       ]),
     ]),
 };

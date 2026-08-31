@@ -1,4 +1,5 @@
-import { createElement, type PingoNode } from "@dopejs/pingo";
+/** @jsxImportSource @dopejs/pingo */
+import type { PingoNode } from "@dopejs/pingo";
 import { Button, HoverCard } from "@dopejs/pingo-ui";
 
 import type { PreviewDemo } from "../../preview/contract";
@@ -8,21 +9,17 @@ const demo: PreviewDemo = {
   height: 260,
   render: (context): PingoNode =>
     anchorStage(context, [
-      createElement(HoverCard, {
-        onOpenChange: () => {},
-        children: createElement(Button, {
-          children: "@pingo",
-          variant: "ghost",
-          onPress: () => {},
-        }),
-        content: column(
-          [
-            createElement("text", { value: "pingo" }),
-            createElement("text", { value: "Canvas 渲染引擎与 UI 组件库。" }),
-          ],
+      <HoverCard
+        onOpenChange={() => {}}
+        content={column(
+          [<text value="pingo" />, <text value="Canvas 渲染引擎与 UI 组件库。" />],
           8,
-        ),
-      }),
+        )}
+      >
+        <Button variant="ghost" onPress={() => {}}>
+          @pingo
+        </Button>
+      </HoverCard>,
     ]),
 };
 

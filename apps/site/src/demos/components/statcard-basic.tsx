@@ -1,4 +1,5 @@
-import { createElement, type PingoNode } from "@dopejs/pingo";
+/** @jsxImportSource @dopejs/pingo */
+import type { PingoNode } from "@dopejs/pingo";
 import { StatCard } from "@dopejs/pingo-ui";
 
 import type { PreviewDemo } from "../../preview/contract";
@@ -10,26 +11,15 @@ const demo: PreviewDemo = {
     stage(context, [
       row(
         [
-          createElement(StatCard, {
-            label: "本月营收",
-            value: "¥128,400",
-            delta: "+12.5%",
-            trend: "up",
-            description: "较上月",
-          }),
-          createElement(StatCard, {
-            label: "退款率",
-            value: "1.8%",
-            delta: "-0.4%",
-            trend: "down",
-            description: "较上月",
-          }),
-          createElement(StatCard, {
-            label: "活跃用户",
-            value: "8,421",
-            delta: "0%",
-            trend: "flat",
-          }),
+          <StatCard
+            label="本月营收"
+            value="¥128,400"
+            delta="+12.5%"
+            trend="up"
+            description="较上月"
+          />,
+          <StatCard label="退款率" value="1.8%" delta="-0.4%" trend="down" description="较上月" />,
+          <StatCard label="活跃用户" value="8,421" delta="0%" trend="flat" />,
         ],
         12,
       ),

@@ -1,4 +1,5 @@
-import { createElement, type PingoNode } from "@dopejs/pingo";
+/** @jsxImportSource @dopejs/pingo */
+import type { PingoNode } from "@dopejs/pingo";
 import { Button, DialogDescription, DialogHeader, DialogTitle, Drawer } from "@dopejs/pingo-ui";
 
 import type { PreviewDemo } from "../../preview/contract";
@@ -8,24 +9,20 @@ const demo: PreviewDemo = {
   height: 340,
   render: (context): PingoNode =>
     stage(context, [
-      createElement(Drawer, {
-        open: true,
-        onOpenChange: () => {},
-        children: column(
+      <Drawer open onOpenChange={() => {}}>
+        {column(
           [
-            createElement(DialogHeader, {
-              children: column([
-                createElement(DialogTitle, { children: "移动到哪里？" }),
-                createElement(DialogDescription, {
-                  children: "选择一个目标文件夹。",
-                }),
-              ]),
-            }),
-            createElement(Button, { children: "完成", onPress: () => {} }),
+            <DialogHeader>
+              {column([
+                <DialogTitle>移动到哪里？</DialogTitle>,
+                <DialogDescription>选择一个目标文件夹。</DialogDescription>,
+              ])}
+            </DialogHeader>,
+            <Button onPress={() => {}}>完成</Button>,
           ],
           12,
-        ),
-      }),
+        )}
+      </Drawer>,
     ]),
 };
 

@@ -1,4 +1,5 @@
-import { createElement, useSignal, type PingoNode } from "@dopejs/pingo";
+/** @jsxImportSource @dopejs/pingo */
+import { useSignal, type PingoNode } from "@dopejs/pingo";
 import { DataTable, type SortState } from "@dopejs/pingo-ui";
 
 import type { PreviewDemo } from "../../preview/contract";
@@ -48,13 +49,13 @@ function SortableTable(_props: Record<string, never>): PingoNode {
         key: "name",
         header: "成员",
         sortable: true,
-        cell: (row) => createElement("text", { value: row.name }),
+        cell: (row) => <text value={row.name} />,
       },
       {
         key: "role",
         header: "角色",
         width: 72,
-        cell: (row) => createElement("text", { value: row.role }),
+        cell: (row) => <text value={row.role} />,
       },
       {
         key: "commits",
@@ -62,7 +63,7 @@ function SortableTable(_props: Record<string, never>): PingoNode {
         width: 80,
         align: "end",
         sortable: true,
-        cell: (row) => createElement("text", { value: String(row.commits) }),
+        cell: (row) => <text value={String(row.commits)} />,
       },
       {
         key: "active",
@@ -70,7 +71,7 @@ function SortableTable(_props: Record<string, never>): PingoNode {
         width: 120,
         align: "end",
         sortable: true,
-        cell: (row) => createElement("text", { value: row.active }),
+        cell: (row) => <text value={row.active} />,
       },
     ],
     // exactOptionalPropertyTypes: sort is only passed when it is defined.
@@ -89,12 +90,13 @@ const demo: PreviewDemo = {
     stage(context, [
       // A styled column, so the table fills the width this box was given; see
       // `table-basic`.
-      createElement("container", {
-        width: Math.min(context.width - 48, 560),
-        height: 320,
-        style: { flexDirection: "column" },
-        children: createElement(SortableTable, {}),
-      }),
+      <container
+        width={Math.min(context.width - 48, 560)}
+        height={320}
+        style={{ flexDirection: "column" }}
+      >
+        <SortableTable />
+      </container>,
     ]),
 };
 

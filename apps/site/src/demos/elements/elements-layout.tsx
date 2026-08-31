@@ -1,4 +1,5 @@
-import { createElement, Text, View, type PingoNode } from "@dopejs/pingo";
+/** @jsxImportSource @dopejs/pingo */
+import { Text, View, type PingoNode } from "@dopejs/pingo";
 import { useTheme } from "@dopejs/pingo-ui";
 
 import type { PreviewDemo } from "../../preview/contract";
@@ -35,51 +36,45 @@ const DARK: Palette = {
 
 function Scene(props: { readonly width: number; readonly height: number }): PingoNode {
   const palette = useTheme() === "dark" ? DARK : LIGHT;
-  const tile = (label: string): PingoNode =>
-    createElement(View, {
-      width: 72,
-      height: 48,
-      backgroundColor: palette.accentSoft,
-      style: { borderRadius: 8, justifyContent: "center", alignItems: "center" },
-      children: createElement(Text, {
-        value: label,
-        fontSize: 14,
-        lineHeight: 20,
-        color: palette.accent,
-        fontWeight: 600,
-      }),
-    });
+  const tile = (label: string): PingoNode => (
+    <View
+      width={72}
+      height={48}
+      backgroundColor={palette.accentSoft}
+      style={{ borderRadius: 8, justifyContent: "center", alignItems: "center" }}
+    >
+      <Text value={label} fontSize={14} lineHeight={20} color={palette.accent} fontWeight={600} />
+    </View>
+  );
   return stage(props, [
-    createElement(View, {
-      width: Math.min(420, props.width - 48),
-      backgroundColor: palette.surface,
-      padding: 16,
-      style: {
+    <View
+      width={Math.min(420, props.width - 48)}
+      backgroundColor={palette.surface}
+      padding={16}
+      style={{
         borderWidth: 1,
         borderStyle: "solid",
         borderColor: palette.border,
         borderRadius: 10,
         flexDirection: "column",
-      },
-      children: [
-        row([tile("甲"), tile("乙"), tile("丙")], 12),
-        createElement(View, { height: 12 }),
-        createElement(Text, {
-          value: "View 是通用盒子：flexDirection / 对齐走 style 通道，间距用固定尺寸容器。",
-          fontSize: 12,
-          lineHeight: 18,
-          color: palette.muted,
-          width: Math.min(420, props.width - 48) - 32,
-        }),
-      ],
-    }),
+      }}
+    >
+      {row([tile("甲"), tile("乙"), tile("丙")], 12)}
+      <View height={12} />
+      <Text
+        value="View 是通用盒子：flexDirection / 对齐走 style 通道，间距用固定尺寸容器。"
+        fontSize={12}
+        lineHeight={18}
+        color={palette.muted}
+        width={Math.min(420, props.width - 48) - 32}
+      />
+    </View>,
   ]);
 }
 
 const demo: PreviewDemo = {
   height: 200,
-  render: (context): PingoNode =>
-    createElement(Scene, { width: context.width, height: context.height }),
+  render: (context): PingoNode => <Scene width={context.width} height={context.height} />,
 };
 
 export default demo;

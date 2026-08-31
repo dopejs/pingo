@@ -1,4 +1,5 @@
-import { createElement, type PingoNode } from "@dopejs/pingo";
+/** @jsxImportSource @dopejs/pingo */
+import type { PingoNode } from "@dopejs/pingo";
 import { Table } from "@dopejs/pingo-ui";
 
 import type { PreviewDemo } from "../../preview/contract";
@@ -17,20 +18,20 @@ function EmptyTableScene(_props: Record<string, never>): PingoNode {
       {
         key: "name",
         header: "名称",
-        cell: (row) => createElement("text", { value: row.name }),
+        cell: (row) => <text value={row.name} />,
       },
       {
         key: "kind",
         header: "类型",
         width: 88,
-        cell: (row) => createElement("text", { value: row.kind }),
+        cell: (row) => <text value={row.kind} />,
       },
       {
         key: "size",
         header: "大小",
         width: 96,
         align: "end",
-        cell: (row) => createElement("text", { value: row.size }),
+        cell: (row) => <text value={row.size} />,
       },
     ],
     rowCount: 0,
@@ -43,13 +44,14 @@ const demo: PreviewDemo = {
   height: 180,
   render: (context): PingoNode =>
     stage(context, [
-      createElement("container", {
-        width: Math.min(context.width - 48, 560),
+      <container
+        width={Math.min(context.width - 48, 560)}
         // A styled column, so the table fills the width this box was given;
         // see `table-basic`.
-        style: { flexDirection: "column" },
-        children: createElement(EmptyTableScene, {}),
-      }),
+        style={{ flexDirection: "column" }}
+      >
+        <EmptyTableScene />
+      </container>,
     ]),
 };
 

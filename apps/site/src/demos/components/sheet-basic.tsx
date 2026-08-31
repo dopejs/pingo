@@ -1,4 +1,5 @@
-import { createElement, type PingoNode } from "@dopejs/pingo";
+/** @jsxImportSource @dopejs/pingo */
+import type { PingoNode } from "@dopejs/pingo";
 import { Button, DialogDescription, DialogHeader, DialogTitle, Sheet } from "@dopejs/pingo-ui";
 
 import type { PreviewDemo } from "../../preview/contract";
@@ -8,25 +9,20 @@ const demo: PreviewDemo = {
   height: 340,
   render: (context): PingoNode =>
     stage(context, [
-      createElement(Sheet, {
-        open: true,
-        side: "right",
-        onOpenChange: () => {},
-        children: column(
+      <Sheet open side="right" onOpenChange={() => {}}>
+        {column(
           [
-            createElement(DialogHeader, {
-              children: column([
-                createElement(DialogTitle, { children: "筛选" }),
-                createElement(DialogDescription, {
-                  children: "按条件缩小结果范围。",
-                }),
-              ]),
-            }),
-            createElement(Button, { children: "应用", onPress: () => {} }),
+            <DialogHeader>
+              {column([
+                <DialogTitle>筛选</DialogTitle>,
+                <DialogDescription>按条件缩小结果范围。</DialogDescription>,
+              ])}
+            </DialogHeader>,
+            <Button onPress={() => {}}>应用</Button>,
           ],
           12,
-        ),
-      }),
+        )}
+      </Sheet>,
     ]),
 };
 

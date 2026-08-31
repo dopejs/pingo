@@ -1,4 +1,5 @@
-import { createElement, type PingoNode } from "@dopejs/pingo";
+/** @jsxImportSource @dopejs/pingo */
+import type { PingoNode } from "@dopejs/pingo";
 import {
   Button,
   Card,
@@ -16,41 +17,34 @@ const demo: PreviewDemo = {
   height: 300,
   render: (context): PingoNode =>
     stage(context, [
-      createElement("container", {
-        width: 340,
+      <container
+        width={340}
         // A flex container with no style prop is on the direct-prop path,
         // where align-items is flex-start; the CSS initial `stretch` is what
         // makes the component inside fill this width.
-        style: { flexDirection: "column" },
-        children: createElement(Card, {
-          children: [
-            createElement(CardHeader, {
-              children: [
-                createElement(CardTitle, { children: "账户设置" }),
-                createElement(CardDescription, { children: "管理你的账户偏好与通知。" }),
+        style={{ flexDirection: "column" }}
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle>账户设置</CardTitle>
+            <CardDescription>管理你的账户偏好与通知。</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <text value="将你的更改同步到所有设备，或仅保存在本地。" />
+          </CardContent>
+          <CardFooter>
+            {row(
+              [
+                <Button onPress={() => {}}>保存</Button>,
+                <Button variant="outline" onPress={() => {}}>
+                  取消
+                </Button>,
               ],
-            }),
-            createElement(CardContent, {
-              children: createElement("text", {
-                value: "将你的更改同步到所有设备，或仅保存在本地。",
-              }),
-            }),
-            createElement(CardFooter, {
-              children: row(
-                [
-                  createElement(Button, { children: "保存", onPress: () => {} }),
-                  createElement(Button, {
-                    children: "取消",
-                    variant: "outline",
-                    onPress: () => {},
-                  }),
-                ],
-                8,
-              ),
-            }),
-          ],
-        }),
-      }),
+              8,
+            )}
+          </CardFooter>
+        </Card>
+      </container>,
     ]),
 };
 

@@ -1,4 +1,5 @@
-import { createElement, type PingoNode } from "@dopejs/pingo";
+/** @jsxImportSource @dopejs/pingo */
+import type { PingoNode } from "@dopejs/pingo";
 import {
   Button,
   Dialog,
@@ -15,34 +16,28 @@ const demo: PreviewDemo = {
   height: 320,
   render: (context): PingoNode =>
     stage(context, [
-      createElement(Dialog, {
-        open: true,
-        onOpenChange: () => {},
-        children: column(
+      <Dialog open onOpenChange={() => {}}>
+        {column(
           [
-            createElement(DialogHeader, {
-              children: column([
-                createElement(DialogTitle, { children: "编辑资料" }),
-                createElement(DialogDescription, {
-                  children: "修改会立即同步到你的公开资料。",
-                }),
-              ]),
-            }),
-            createElement("text", { value: "对话框内容放在这里。" }),
-            createElement(DialogFooter, {
-              children: row([
-                createElement(Button, {
-                  children: "取消",
-                  variant: "outline",
-                  onPress: () => {},
-                }),
-                createElement(Button, { children: "保存", onPress: () => {} }),
-              ]),
-            }),
+            <DialogHeader>
+              {column([
+                <DialogTitle>编辑资料</DialogTitle>,
+                <DialogDescription>修改会立即同步到你的公开资料。</DialogDescription>,
+              ])}
+            </DialogHeader>,
+            <text value="对话框内容放在这里。" />,
+            <DialogFooter>
+              {row([
+                <Button variant="outline" onPress={() => {}}>
+                  取消
+                </Button>,
+                <Button onPress={() => {}}>保存</Button>,
+              ])}
+            </DialogFooter>,
           ],
           12,
-        ),
-      }),
+        )}
+      </Dialog>,
     ]),
 };
 

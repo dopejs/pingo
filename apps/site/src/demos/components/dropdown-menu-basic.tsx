@@ -1,4 +1,5 @@
-import { createElement, type PingoNode } from "@dopejs/pingo";
+/** @jsxImportSource @dopejs/pingo */
+import type { PingoNode } from "@dopejs/pingo";
 import {
   Button,
   DropdownMenu,
@@ -14,25 +15,18 @@ const demo: PreviewDemo = {
   height: 260,
   render: (context): PingoNode =>
     anchorStage(context, [
-      createElement(DropdownMenu, {
-        onValueChange: () => {},
-        children: [
-          createElement(DropdownMenuTrigger, {
-            children: createElement(Button, {
-              children: "打开菜单",
-              variant: "outline",
-              onPress: () => {},
-            }),
-          }),
-          createElement(DropdownMenuContent, {
-            children: [
-              createElement(DropdownMenuItem, { value: "profile", children: "个人资料" }),
-              createElement(DropdownMenuItem, { value: "billing", children: "账单" }),
-              createElement(DropdownMenuItem, { value: "settings", children: "设置" }),
-            ],
-          }),
-        ],
-      }),
+      <DropdownMenu onValueChange={() => {}}>
+        <DropdownMenuTrigger>
+          <Button variant="outline" onPress={() => {}}>
+            打开菜单
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem value="profile">个人资料</DropdownMenuItem>
+          <DropdownMenuItem value="billing">账单</DropdownMenuItem>
+          <DropdownMenuItem value="settings">设置</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>,
     ]),
 };
 

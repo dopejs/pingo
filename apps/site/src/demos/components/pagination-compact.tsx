@@ -1,4 +1,5 @@
-import { createElement, type PingoNode } from "@dopejs/pingo";
+/** @jsxImportSource @dopejs/pingo */
+import type { PingoNode } from "@dopejs/pingo";
 import { Pagination } from "@dopejs/pingo-ui";
 
 import type { PreviewDemo } from "../../preview/contract";
@@ -9,7 +10,7 @@ import { stage } from "../../preview/layout";
 const demo: PreviewDemo = {
   height: 120,
   render: (context): PingoNode =>
-    stage(context, [createElement(Pagination, { page: 1, pageCount: 24, siblingCount: 0 })]),
+    stage(context, [<Pagination page={1} pageCount={24} siblingCount={0} />]),
 };
 
 export default demo;

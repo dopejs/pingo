@@ -1,4 +1,5 @@
-import { createElement, type PingoNode } from "@dopejs/pingo";
+/** @jsxImportSource @dopejs/pingo */
+import type { PingoNode } from "@dopejs/pingo";
 import { Alert } from "@dopejs/pingo-ui";
 
 import type { PreviewDemo } from "../../preview/contract";
@@ -9,11 +10,11 @@ import { column, stage } from "../../preview/layout";
 function framed(node: PingoNode): PingoNode {
   // The style prop opts this wrapper into the CSS initial `align-items:
   // stretch`, which is what makes the alert fill the 440.
-  return createElement("container", {
-    width: 440,
-    style: { flexDirection: "column" },
-    children: node,
-  });
+  return (
+    <container width={440} style={{ flexDirection: "column" }}>
+      {node}
+    </container>
+  );
 }
 
 const demo: PreviewDemo = {
@@ -22,13 +23,11 @@ const demo: PreviewDemo = {
     stage(context, [
       column(
         [
-          framed(createElement(Alert, { title: "提示", children: "你的配置已自动保存。" })),
+          framed(<Alert title="提示">你的配置已自动保存。</Alert>),
           framed(
-            createElement(Alert, {
-              title: "同步失败",
-              variant: "destructive",
-              children: "请检查网络连接后重试。",
-            }),
+            <Alert title="同步失败" variant="destructive">
+              请检查网络连接后重试。
+            </Alert>,
           ),
         ],
         12,

@@ -1,11 +1,5 @@
-import {
-  createElement,
-  Text,
-  UnstyledTextArea,
-  View,
-  type EditTransaction,
-  type PingoNode,
-} from "@dopejs/pingo";
+/** @jsxImportSource @dopejs/pingo */
+import { Text, UnstyledTextArea, View, type EditTransaction, type PingoNode } from "@dopejs/pingo";
 import { useTheme } from "@dopejs/pingo-ui";
 
 import type { PreviewDemo } from "../../preview/contract";
@@ -52,57 +46,55 @@ function Scene(props: { readonly width: number; readonly height: number }): Ping
   const palette = useTheme() === "dark" ? DARK : LIGHT;
   const cardWidth = Math.min(440, props.width - 48);
   return stage(props, [
-    createElement(View, {
-      width: cardWidth,
-      backgroundColor: palette.surface,
-      padding: 16,
-      style: {
+    <View
+      width={cardWidth}
+      backgroundColor={palette.surface}
+      padding={16}
+      style={{
         borderWidth: 1,
         borderStyle: "solid",
         borderColor: palette.border,
         borderRadius: 10,
         flexDirection: "column",
-      },
-      children: [
-        createElement(Text, {
-          value: "UnstyledTextArea：无装饰的多行原语，外观完全由你给的样式决定",
-          fontSize: 12,
-          lineHeight: 18,
-          color: palette.muted,
-          width: cardWidth - 32,
-        }),
-        createElement(View, { height: 8 }),
-        createElement(UnstyledTextArea, {
-          value: notes,
-          revision: notesRevision,
-          semanticLabel: "多行说明",
-          width: Math.min(380, props.width - 96),
-          height: 88,
-          fontSize: 14,
-          lineHeight: 22,
-          color: palette.text,
-          backgroundColor: palette.field,
-          padding: [8, 10, 8, 10],
-          style: {
-            borderWidth: 1,
-            borderStyle: "solid",
-            borderColor: palette.border,
-            borderRadius: 6,
-          },
-          onTransaction: (transaction: EditTransaction) => {
-            notes = applyDelta(notes, transaction);
-            notesRevision = transaction.revision;
-          },
-        }),
-      ],
-    }),
+      }}
+    >
+      <Text
+        value="UnstyledTextArea：无装饰的多行原语，外观完全由你给的样式决定"
+        fontSize={12}
+        lineHeight={18}
+        color={palette.muted}
+        width={cardWidth - 32}
+      />
+      <View height={8} />
+      <UnstyledTextArea
+        value={notes}
+        revision={notesRevision}
+        semanticLabel="多行说明"
+        width={Math.min(380, props.width - 96)}
+        height={88}
+        fontSize={14}
+        lineHeight={22}
+        color={palette.text}
+        backgroundColor={palette.field}
+        padding={[8, 10, 8, 10]}
+        style={{
+          borderWidth: 1,
+          borderStyle: "solid",
+          borderColor: palette.border,
+          borderRadius: 6,
+        }}
+        onTransaction={(transaction: EditTransaction) => {
+          notes = applyDelta(notes, transaction);
+          notesRevision = transaction.revision;
+        }}
+      />
+    </View>,
   ]);
 }
 
 const demo: PreviewDemo = {
   height: 240,
-  render: (context): PingoNode =>
-    createElement(Scene, { width: context.width, height: context.height }),
+  render: (context): PingoNode => <Scene width={context.width} height={context.height} />,
 };
 
 export default demo;

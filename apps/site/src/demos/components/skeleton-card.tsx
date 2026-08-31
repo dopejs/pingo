@@ -1,4 +1,5 @@
-import { createElement, type PingoNode } from "@dopejs/pingo";
+/** @jsxImportSource @dopejs/pingo */
+import type { PingoNode } from "@dopejs/pingo";
 import { Skeleton } from "@dopejs/pingo-ui";
 
 import type { PreviewDemo } from "../../preview/contract";
@@ -13,19 +14,16 @@ const demo: PreviewDemo = {
         [
           row(
             [
-              createElement(Skeleton, { width: 48, height: 48 }),
+              <Skeleton width={48} height={48} />,
               column(
-                [
-                  createElement(Skeleton, { width: 120, height: 14 }),
-                  createElement(Skeleton, { width: 200, height: 14 }),
-                ],
+                [<Skeleton width={120} height={14} />, <Skeleton width={200} height={14} />],
                 10,
               ),
             ],
             12,
           ),
-          createElement(Skeleton, { width: 320, height: 14 }),
-          createElement(Skeleton, { width: 280, height: 14 }),
+          <Skeleton width={320} height={14} />,
+          <Skeleton width={280} height={14} />,
         ],
         14,
       ),

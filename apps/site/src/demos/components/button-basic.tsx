@@ -1,4 +1,5 @@
-import { createElement, type PingoNode } from "@dopejs/pingo";
+/** @jsxImportSource @dopejs/pingo */
+import type { PingoNode } from "@dopejs/pingo";
 import { Button } from "@dopejs/pingo-ui";
 
 import type { PreviewDemo } from "../../preview/contract";
@@ -10,19 +11,19 @@ const demo: PreviewDemo = {
     stage(context, [
       row(
         [
-          createElement(Button, { children: "Default", onPress: () => {} }),
-          createElement(Button, {
-            children: "Secondary",
-            variant: "secondary",
-            onPress: () => {},
-          }),
-          createElement(Button, { children: "Outline", variant: "outline", onPress: () => {} }),
-          createElement(Button, { children: "Ghost", variant: "ghost", onPress: () => {} }),
-          createElement(Button, {
-            children: "Destructive",
-            variant: "destructive",
-            onPress: () => {},
-          }),
+          <Button onPress={() => {}}>Default</Button>,
+          <Button variant="secondary" onPress={() => {}}>
+            Secondary
+          </Button>,
+          <Button variant="outline" onPress={() => {}}>
+            Outline
+          </Button>,
+          <Button variant="ghost" onPress={() => {}}>
+            Ghost
+          </Button>,
+          <Button variant="destructive" onPress={() => {}}>
+            Destructive
+          </Button>,
         ],
         12,
       ),

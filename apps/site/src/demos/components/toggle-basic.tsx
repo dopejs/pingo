@@ -1,4 +1,5 @@
-import { createElement, type PingoNode } from "@dopejs/pingo";
+/** @jsxImportSource @dopejs/pingo */
+import type { PingoNode } from "@dopejs/pingo";
 import { Toggle } from "@dopejs/pingo-ui";
 
 import type { PreviewDemo } from "../../preview/contract";
@@ -10,9 +11,9 @@ const demo: PreviewDemo = {
     stage(context, [
       row(
         [
-          createElement(Toggle, { children: "加粗", defaultPressed: true }),
-          createElement(Toggle, { children: "斜体" }),
-          createElement(Toggle, { children: "下划线", disabled: true }),
+          <Toggle defaultPressed>加粗</Toggle>,
+          <Toggle>斜体</Toggle>,
+          <Toggle disabled>下划线</Toggle>,
         ],
         12,
       ),

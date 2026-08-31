@@ -1,4 +1,5 @@
-import { createElement, type PingoNode } from "@dopejs/pingo";
+/** @jsxImportSource @dopejs/pingo */
+import type { PingoNode } from "@dopejs/pingo";
 import { ToggleGroup, ToggleGroupItem } from "@dopejs/pingo-ui";
 
 import type { PreviewDemo } from "../../preview/contract";
@@ -8,15 +9,11 @@ const demo: PreviewDemo = {
   height: 120,
   render: (context): PingoNode =>
     stage(context, [
-      createElement(ToggleGroup, {
-        type: "multiple",
-        defaultValue: ["bold"],
-        children: [
-          createElement(ToggleGroupItem, { value: "bold", children: "加粗" }),
-          createElement(ToggleGroupItem, { value: "italic", children: "斜体" }),
-          createElement(ToggleGroupItem, { value: "underline", children: "下划线" }),
-        ],
-      }),
+      <ToggleGroup type="multiple" defaultValue={["bold"]}>
+        <ToggleGroupItem value="bold">加粗</ToggleGroupItem>
+        <ToggleGroupItem value="italic">斜体</ToggleGroupItem>
+        <ToggleGroupItem value="underline">下划线</ToggleGroupItem>
+      </ToggleGroup>,
     ]),
 };
 

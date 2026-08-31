@@ -1,11 +1,5 @@
-import {
-  createElement,
-  Input,
-  Text,
-  View,
-  type EditTransaction,
-  type PingoNode,
-} from "@dopejs/pingo";
+/** @jsxImportSource @dopejs/pingo */
+import { Input, Text, View, type EditTransaction, type PingoNode } from "@dopejs/pingo";
 import { useTheme } from "@dopejs/pingo-ui";
 
 import type { PreviewDemo } from "../../preview/contract";
@@ -61,74 +55,73 @@ function Scene(props: { readonly width: number; readonly height: number }): Ping
     borderColor: palette.border,
     borderRadius: 6,
   };
-  const label = (value: string): PingoNode =>
-    createElement(Text, {
-      value,
-      fontSize: 12,
-      lineHeight: 18,
-      color: palette.muted,
-      width: cardWidth - 32,
-    });
+  const label = (value: string): PingoNode => (
+    <Text
+      value={value}
+      fontSize={12}
+      lineHeight={18}
+      color={palette.muted}
+      width={cardWidth - 32}
+    />
+  );
   return stage(props, [
-    createElement(View, {
-      width: cardWidth,
-      backgroundColor: palette.surface,
-      padding: 16,
-      style: {
+    <View
+      width={cardWidth}
+      backgroundColor={palette.surface}
+      padding={16}
+      style={{
         borderWidth: 1,
         borderStyle: "solid",
         borderColor: palette.border,
         borderRadius: 10,
         flexDirection: "column",
-      },
-      children: [
-        label("单行输入（受控 value + revision）"),
-        createElement(View, { height: 6 }),
-        createElement(Input, {
-          value: remark,
-          revision: remarkRevision,
-          semanticLabel: "备注",
-          width: fieldWidth,
-          fontSize: 14,
-          lineHeight: 20,
-          color: palette.text,
-          backgroundColor: palette.field,
-          padding: [6, 10, 6, 10],
-          style: fieldStyle,
-          onTransaction: (transaction: EditTransaction) => {
-            remark = applyDelta(remark, transaction);
-            remarkRevision = transaction.revision;
-          },
-        }),
-        createElement(View, { height: 14 }),
-        label("密码：Core 只输出遮罩字形，明文不进 DisplayList"),
-        createElement(View, { height: 6 }),
-        createElement(Input, {
-          value: secret,
-          revision: secretRevision,
-          password: true,
-          semanticLabel: "密码",
-          width: fieldWidth,
-          fontSize: 14,
-          lineHeight: 20,
-          color: palette.text,
-          backgroundColor: palette.field,
-          padding: [6, 10, 6, 10],
-          style: fieldStyle,
-          onTransaction: (transaction: EditTransaction) => {
-            secret = applyDelta(secret, transaction);
-            secretRevision = transaction.revision;
-          },
-        }),
-      ],
-    }),
+      }}
+    >
+      {label("单行输入（受控 value + revision）")}
+      <View height={6} />
+      <Input
+        value={remark}
+        revision={remarkRevision}
+        semanticLabel="备注"
+        width={fieldWidth}
+        fontSize={14}
+        lineHeight={20}
+        color={palette.text}
+        backgroundColor={palette.field}
+        padding={[6, 10, 6, 10]}
+        style={fieldStyle}
+        onTransaction={(transaction: EditTransaction) => {
+          remark = applyDelta(remark, transaction);
+          remarkRevision = transaction.revision;
+        }}
+      />
+      <View height={14} />
+      {label("密码：Core 只输出遮罩字形，明文不进 DisplayList")}
+      <View height={6} />
+      <Input
+        value={secret}
+        revision={secretRevision}
+        password
+        semanticLabel="密码"
+        width={fieldWidth}
+        fontSize={14}
+        lineHeight={20}
+        color={palette.text}
+        backgroundColor={palette.field}
+        padding={[6, 10, 6, 10]}
+        style={fieldStyle}
+        onTransaction={(transaction: EditTransaction) => {
+          secret = applyDelta(secret, transaction);
+          secretRevision = transaction.revision;
+        }}
+      />
+    </View>,
   ]);
 }
 
 const demo: PreviewDemo = {
   height: 230,
-  render: (context): PingoNode =>
-    createElement(Scene, { width: context.width, height: context.height }),
+  render: (context): PingoNode => <Scene width={context.width} height={context.height} />,
 };
 
 export default demo;
