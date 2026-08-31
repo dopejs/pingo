@@ -17,6 +17,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   CanvasFrameSink,
   parseLayoutGeometry,
+  parsePaintedText,
   parseSemantics,
   type CoreClient,
   type FrameReport,
@@ -702,6 +703,91 @@ describe("CanvasFrameSink", () => {
     expect(() => parseLayoutGeometry(negative)).toThrow(/negative/u);
 
     expect(() => parseLayoutGeometry(Uint32Array.of(1, 2))).toThrow(/layout/u);
+  });
+
+  it("parses painted text strictly and fails closed on hostile bytes", () => {
+    const encoder = new TextEncoder();
+    const build = (
+      entries: ReadonlyArray<{ flags: number; text: string; x?: number; y?: number }>,
+      headerFlags = 0,
+    ): Uint8Array => {
+      const bodies = entries.map((entry) => {
+        const text = encoder.encode(entry.text);
+        const padded = text.byteLength + ((4 - (text.byteLength % 4)) % 4);
+        const bytes = new Uint8Array(5 * 4 + padded);
+        const view = new DataView(bytes.buffer);
+        view.setUint32(0, 17, true);
+        view.setUint32(4, entry.flags, true);
+        view.setFloat32(8, entry.x ?? 4, true);
+        view.setFloat32(12, entry.y ?? 6, true);
+        view.setUint32(16, text.byteLength, true);
+        bytes.set(text, 20);
+        return bytes;
+      });
+      const total = bodies.reduce((sum, body) => sum + body.byteLength, 12);
+      const out = new Uint8Array(total);
+      const view = new DataView(out.buffer);
+      view.setUint32(0, 1, true);
+      view.setUint32(4, headerFlags, true);
+      view.setUint32(8, entries.length, true);
+      let offset = 12;
+      for (const body of bodies) {
+        out.set(body, offset);
+        offset += body.byteLength;
+      }
+      return out;
+    };
+
+    const snapshot = parsePaintedText(build([{ flags: 1 | 4, text: "hi" }]));
+    expect(snapshot.truncated).toBe(false);
+    expect(snapshot.records).toEqual([
+      {
+        channel: "systemFallback",
+        nodeId: 17,
+        origin: { x: 4, y: 6 },
+        originClipped: true,
+        text: "hi",
+        unattributed: false,
+      },
+    ]);
+    expect(parsePaintedText(build([], 1)).truncated).toBe(true);
+    expect(parsePaintedText(build([])).records).toEqual([]);
+
+    const wrongVersion = build([{ flags: 0, text: "hi" }]);
+    new DataView(wrongVersion.buffer).setUint32(0, 2, true);
+    expect(() => parsePaintedText(wrongVersion)).toThrow(/version/u);
+
+    const reservedHeader = build([{ flags: 0, text: "hi" }], 2);
+    expect(() => parsePaintedText(reservedHeader)).toThrow(/reserved/u);
+
+    const reservedRecord = build([{ flags: 32, text: "hi" }]);
+    expect(() => parsePaintedText(reservedRecord)).toThrow(/reserved/u);
+
+    // Channel 3 is inside the mask but names nothing, so it must not decode to
+    // a plausible-looking record.
+    const unknownChannel = build([{ flags: 3, text: "hi" }]);
+    expect(() => parsePaintedText(unknownChannel)).toThrow(/channel/u);
+
+    const notANumber = build([{ flags: 0, text: "hi", x: Number.NaN }]);
+    expect(() => parsePaintedText(notANumber)).toThrow(/NaN/u);
+
+    const overflowing = build([{ flags: 0, text: "hi" }]);
+    new DataView(overflowing.buffer).setUint32(12 + 16, 4096, true);
+    expect(() => parsePaintedText(overflowing)).toThrow(/overflows/u);
+
+    const truncatedRecord = build([{ flags: 0, text: "hi" }]).subarray(0, 20);
+    expect(() => parsePaintedText(truncatedRecord)).toThrow(/truncated/u);
+
+    const trailing = new Uint8Array(build([{ flags: 0, text: "hi" }]).byteLength + 4);
+    trailing.set(build([{ flags: 0, text: "hi" }]), 0);
+    expect(() => parsePaintedText(trailing)).toThrow(/trailing/u);
+
+    const invalidUtf8 = build([{ flags: 0, text: "hi" }]);
+    // Header words, then the record's five words, then its text.
+    invalidUtf8[12 + 20] = 0xff;
+    expect(() => parsePaintedText(invalidUtf8)).toThrow(/UTF-8/u);
+
+    expect(() => parsePaintedText(Uint8Array.of(1, 2))).toThrow(/layout/u);
   });
 
   it("parses semantic snapshots strictly and fails closed on hostile bytes", () => {

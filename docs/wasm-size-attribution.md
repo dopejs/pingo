@@ -190,6 +190,26 @@ E8 之后又落地了 E9、E10 和一批布局/滚动/样式修复，本文的�
 成立且**均未动手**；`core` 升到首位与其中的 flt2dec 一项相符，但本节没有做函数级
 拆分去坐实这一点。
 
+## 2026-08-31：E14 painted-text 探针
+
+同一 `pnpm core:wasm` 口径，改动前后各一次 clean build：
+
+| 阶段                                                    | raw bytes | gzip bytes | 增量       |
+| ------------------------------------------------------- | --------- | ---------- | ---------- |
+| E14 之前                                                | 1,022,063 | 376,439    | —          |
+| `pingo-paint::probe` + `CoreEngine::painted_text` + ABI | 1,030,512 | 378,591    | **+2,152** |
+
+工程预算 393,216 仍余 14,625。
+
+E14 的设计（[`e14-painted-text-probe-design.md`](e14-painted-text-probe-design.md)
+§3.4）为体积预留了一个编译期 feature，**这次没有启用**：+2,152 在余量之内，而不启用
+的收益是端到端测的就是发布产物本身，而不是一份只在测试里存在的构建。
+
+增量的来源是一个新遍历器加一个二进制编码器，没有新依赖、没有新的 monomorphisation
+面——它复用 `pingo-paint` 已有的 `HashMap<NodeId, Arc<CachedSubtree>>` 与 `pingo-abi`
+的字批布局。若余量吃紧，把 `probe.rs` 与 `CoreEngine::painted_text` 一起 `#[cfg]`
+掉即可全额回收：帧路径不引用它们，摘除是机械的。
+
 ## 失败模式与回滚
 
 - 任一 clean build 不同：拒绝候选，保留两个产物和工具版本做差分，不更新基线掩盖差异；

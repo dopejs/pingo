@@ -109,6 +109,10 @@ async function handle(message: RenderWorkerInboundMessage): Promise<void> {
       if (!active || message.sessionId !== sessionId) return;
       sink?.setLayoutGeometryActive(message.active);
       return;
+    case "pingo:painted-text-active":
+      if (!active || message.sessionId !== sessionId) return;
+      sink?.setPaintedTextActive(message.active);
+      return;
     case "pingo:media-frame":
       if (!active || message.sessionId !== sessionId) {
         closeMediaSource(message.source);
@@ -151,6 +155,7 @@ async function activate(message: WorkerActivateMessage): Promise<void> {
     (nodes) => post({ kind: "pingo:semantics", nodes, sessionId }),
     message.incrementalPicturesEnabled,
     (frame) => post({ kind: "pingo:layout-geometry", frame, sessionId }),
+    (snapshot) => post({ kind: "pingo:painted-text", snapshot, sessionId }),
   );
   // A worker cannot read devicePixelRatio, so the main thread supplies it;
   // without this the replay scale and glyph raster stay at 1x on HiDPI.

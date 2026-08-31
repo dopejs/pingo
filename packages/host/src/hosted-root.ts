@@ -40,6 +40,7 @@ import {
   type NonPassiveRegion,
   type LayoutGeometryFrame,
   type LayoutGeometryRecord,
+  type PaintedTextSnapshot,
   type SemanticNode,
   type VirtualRefillRange,
 } from "./main-thread";
@@ -137,6 +138,13 @@ export interface HostedCanvasRootOptions extends RootOptions {
    * docs/e8-layout-readback-design.md.
    */
   readonly onLayoutGeometry?: (frame: LayoutGeometryFrame) => void;
+  /**
+   * Receives the text every committed frame painted, in paint order.
+   *
+   * A render oracle for tests. Supplying it turns the probe on; leaving it out
+   * means Core never computes it.
+   */
+  readonly onPaintedText?: (snapshot: PaintedTextSnapshot) => void;
   /** Disables the DOM accessibility mirror; enabled whenever the canvas is mounted. */
   readonly accessibility?: boolean;
   /**
@@ -193,6 +201,8 @@ export interface HostedCanvasRoot extends PingoRoot {
    * would be indistinguishable from a node that really is empty.
    */
   layoutGeometry(nodeId: number): LayoutGeometryRecord | undefined;
+  /** The text the most recent committed frame painted, in paint order. */
+  paintedText(): PaintedTextSnapshot | undefined;
   /** Geometry frames dropped for arriving out of order. Diagnostic only. */
   staleLayoutGeometryFrames(): number;
   mediaMetrics(): MediaPipelineMetrics | undefined;
@@ -251,6 +261,7 @@ class HostedCanvasRootController implements HostedCanvasRoot {
   readonly #layoutGeometry = new Map<number, LayoutGeometryRecord>();
   /** Frame of the geometry currently held, for the monotonic gate. */
   #layoutGeometrySeq: number | undefined;
+  #paintedText: PaintedTextSnapshot | undefined;
   #staleLayoutGeometryFrames = 0;
   /** A double click held until its editor becomes active; see the handler. */
   #pendingWordSelection: { x: number; y: number; deadline: number } | undefined;
@@ -546,6 +557,7 @@ class HostedCanvasRootController implements HostedCanvasRoot {
       onEditingGeometry: (frame) => this.handleEditingGeometry(frame),
       onSemantics: (nodes) => this.handleSemantics(nodes),
       onLayoutGeometry: (frame: LayoutGeometryFrame) => this.handleLayoutGeometry(frame),
+      onPaintedText: (snapshot: PaintedTextSnapshot) => this.handlePaintedText(snapshot),
       sessionId: nextSessionId(),
     };
     const client = new RenderWorkerClient(workerFactory(), clientOptions);
@@ -629,6 +641,7 @@ class HostedCanvasRootController implements HostedCanvasRoot {
     this.#root = createRoot(this.#recoverableSink, this.reconcilerOptions());
     this.#mode = selectedMode;
     this.startClockAnchors(client);
+    this.setPaintedTextActive(this.#options.onPaintedText !== undefined);
     this.#options.onModeChange?.(this.#mode, this.#decision);
   }
 
@@ -665,6 +678,22 @@ class HostedCanvasRootController implements HostedCanvasRoot {
   private setLayoutGeometryActive(active: boolean): void {
     this.#frameSink?.setLayoutGeometryActive(active);
     this.#client?.postLayoutGeometryActive(active);
+  }
+
+  /**
+   * Starts and stops the painted-text render oracle.
+   *
+   * Called once after a transport comes up, because asking for the callback is
+   * the ask; the toggle rides the worker protocol like every other setting.
+   */
+  private setPaintedTextActive(active: boolean): void {
+    this.#frameSink?.setPaintedTextActive(active);
+    this.#client?.postPaintedTextActive(active);
+  }
+
+  private handlePaintedText(snapshot: PaintedTextSnapshot): void {
+    this.#paintedText = snapshot;
+    this.#options.onPaintedText?.(snapshot);
   }
 
   private handleInteractionRequest(request: InteractionRequest): void {
@@ -1498,12 +1527,14 @@ class HostedCanvasRootController implements HostedCanvasRoot {
       (nodes) => this.handleSemantics(nodes),
       this.#options.incrementalPicturesEnabled ?? true,
       (frame) => this.handleLayoutGeometry(frame),
+      (snapshot) => this.handlePaintedText(snapshot),
     );
     this.#frameSink = sink;
     this.#recoverableSink.install(sink);
     this.#root ??= createRoot(this.#recoverableSink, this.reconcilerOptions());
     this.#mode = "main-thread";
     this.startMainThreadClock(sink);
+    this.setPaintedTextActive(this.#options.onPaintedText !== undefined);
     this.#options.onModeChange?.(this.#mode, this.#decision);
   }
 
@@ -1946,6 +1977,16 @@ class HostedCanvasRootController implements HostedCanvasRoot {
    */
   public layoutGeometry(nodeId: number): LayoutGeometryRecord | undefined {
     return this.#layoutGeometry.get(nodeId);
+  }
+
+  /**
+   * The text the most recent committed frame painted, in paint order.
+   *
+   * Undefined until a frame arrives, or when `onPaintedText` was never
+   * supplied: the probe is inert unless something asked for it.
+   */
+  public paintedText(): PaintedTextSnapshot | undefined {
+    return this.#paintedText;
   }
 
   /** Geometry frames dropped for arriving out of order. Diagnostic only. */

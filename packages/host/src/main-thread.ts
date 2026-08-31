@@ -115,6 +115,24 @@ import {
   NULL_NODE_ID,
   SEMANTICS_HEADER_NODE_COUNT_INDEX,
   SEMANTICS_HEADER_VERSION_INDEX,
+  PAINTED_TEXT_CHANNEL_INLINE_FALLBACK,
+  PAINTED_TEXT_CHANNEL_MASK,
+  PAINTED_TEXT_CHANNEL_SHAPED_RUN,
+  PAINTED_TEXT_CHANNEL_SYSTEM_FALLBACK,
+  PAINTED_TEXT_FLAG_ORIGIN_CLIPPED,
+  PAINTED_TEXT_FLAG_UNATTRIBUTED,
+  PAINTED_TEXT_HEADER_FLAG_TRUNCATED,
+  PAINTED_TEXT_HEADER_FLAGS_INDEX,
+  PAINTED_TEXT_HEADER_RECORD_COUNT_INDEX,
+  PAINTED_TEXT_HEADER_VERSION_INDEX,
+  PAINTED_TEXT_HEADER_WORDS,
+  PAINTED_TEXT_RECORD_FLAGS_INDEX,
+  PAINTED_TEXT_RECORD_NODE_ID_INDEX,
+  PAINTED_TEXT_RECORD_TEXT_BYTES_INDEX,
+  PAINTED_TEXT_RECORD_WORDS,
+  PAINTED_TEXT_RECORD_X_BITS_INDEX,
+  PAINTED_TEXT_RECORD_Y_BITS_INDEX,
+  PAINTED_TEXT_VERSION,
   SEMANTICS_HEADER_WORDS,
   SEMANTICS_RECORD_FLAGS_INDEX,
   SEMANTICS_RECORD_HEIGHT_BITS_INDEX,
@@ -161,6 +179,7 @@ export interface CoreClient {
   editing_geometry?(): Uint32Array;
   layout_geometry?(): Uint32Array;
   semantics?(): Uint8Array;
+  painted_text?(): Uint8Array;
   take_virtual_refills?(): Uint32Array;
 }
 
@@ -240,6 +259,41 @@ export interface SemanticNode {
   readonly password: boolean;
   readonly role: string;
   readonly value: string;
+}
+
+/** One text instruction a committed frame's paint emitted. */
+export interface PaintedTextRecord {
+  /** Generation-bearing Core node identifier. */
+  readonly nodeId: number;
+  /** Which of paint's text instructions drew it. */
+  readonly channel: "shapedRun" | "systemFallback" | "inlineFallback";
+  /** The string that was drawn, empty when Core could not attribute one. */
+  readonly text: string;
+  /**
+   * The instruction's own origin in device space.
+   *
+   * A shaped run positions its box and the fallbacks position a baseline, so
+   * this is not one normalized anchor across channels.
+   */
+  readonly origin: { readonly x: number; readonly y: number };
+  /** The origin fell outside every accumulated clip. */
+  readonly originClipped: boolean;
+  /** Core drew it but could not resolve a string for it; never expected. */
+  readonly unattributed: boolean;
+}
+
+const CHANNEL_NAMES: Record<number, PaintedTextRecord["channel"]> = {
+  [PAINTED_TEXT_CHANNEL_SHAPED_RUN]: "shapedRun",
+  [PAINTED_TEXT_CHANNEL_SYSTEM_FALLBACK]: "systemFallback",
+  [PAINTED_TEXT_CHANNEL_INLINE_FALLBACK]: "inlineFallback",
+};
+
+/** The text one committed frame painted, in paint order. */
+export interface PaintedTextSnapshot {
+  /** Later records draw over earlier ones. */
+  readonly records: readonly PaintedTextRecord[];
+  /** Core stopped collecting at its record bound, so this is a prefix. */
+  readonly truncated: boolean;
 }
 
 /** Deterministic Core phase-work and invalidation diagnostics. */
@@ -362,6 +416,7 @@ export interface CanvasRootOptions extends RootOptions {
   readonly onEditingGeometry?: (frame: EditingGeometryFrame) => void;
   readonly onSemantics?: (nodes: readonly SemanticNode[]) => void;
   readonly onLayoutGeometry?: (frame: LayoutGeometryFrame) => void;
+  readonly onPaintedText?: (snapshot: PaintedTextSnapshot) => void;
   readonly onMediaMetrics?: (metrics: MediaPipelineMetrics) => void;
 }
 
@@ -477,9 +532,11 @@ export class CanvasFrameSink implements MutationSink {
   readonly #onEditingGeometry: ((frame: EditingGeometryFrame) => void) | undefined;
   readonly #onSemantics: ((nodes: readonly SemanticNode[]) => void) | undefined;
   readonly #onLayoutGeometry: ((frame: LayoutGeometryFrame) => void) | undefined;
+  readonly #onPaintedText: ((snapshot: PaintedTextSnapshot) => void) | undefined;
   readonly #fontSet: FontFaceSet | undefined;
   readonly #fontLoadingDone: (() => void) | undefined;
   #layoutGeometryActive = false;
+  #paintedTextActive = false;
   #devicePixelRatio = 1;
   #lastDisplayList: Uint8Array | undefined;
   #lastPictureKey: string | undefined;
@@ -501,6 +558,7 @@ export class CanvasFrameSink implements MutationSink {
     // Appended rather than slotted beside onSemantics: this constructor is
     // positional, so inserting there would silently shift every later argument.
     onLayoutGeometry?: (frame: LayoutGeometryFrame) => void,
+    onPaintedText?: (snapshot: PaintedTextSnapshot) => void,
   ) {
     this.#context = context;
     this.#core = core;
@@ -514,6 +572,7 @@ export class CanvasFrameSink implements MutationSink {
     this.#onEditingGeometry = onEditingGeometry;
     this.#onSemantics = onSemantics;
     this.#onLayoutGeometry = onLayoutGeometry;
+    this.#onPaintedText = onPaintedText;
     this.#resources = new Canvas2DResourceRegistry();
     this.#replayer = new Canvas2DReplayer();
     this.#core.set_incremental_pictures_enabled?.(incrementalPicturesEnabled);
@@ -569,6 +628,7 @@ export class CanvasFrameSink implements MutationSink {
     this.emitEditingGeometry();
     this.emitSemantics();
     this.emitLayoutGeometry();
+    this.emitPaintedText();
     if (!(displayList instanceof Uint8Array)) {
       throw new TypeError("Core commit must return Uint8Array DisplayList bytes");
     }
@@ -656,6 +716,7 @@ export class CanvasFrameSink implements MutationSink {
       this.emitEditingGeometry();
       this.emitSemantics();
       this.emitLayoutGeometry();
+      this.emitPaintedText();
       this.emitEventTransactions(this.takeEventTransactions());
       // Drained per transaction, not per batch: Core refuses an input frame
       // while a reverse stream is still pending, so a batch whose first
@@ -697,6 +758,7 @@ export class CanvasFrameSink implements MutationSink {
     this.emitEditingGeometry();
     this.emitSemantics();
     this.emitLayoutGeometry();
+    this.emitPaintedText();
     this.emitEventTransactions(this.takeEventTransactions());
     if (displayList === undefined) {
       this.emitEditTransactions(this.takeEditTransactions());
@@ -731,6 +793,7 @@ export class CanvasFrameSink implements MutationSink {
     this.emitEditingGeometry();
     this.emitSemantics();
     this.emitLayoutGeometry();
+    this.emitPaintedText();
     // Core produced no new picture this tick, so the canvas already shows the
     // right thing. Replaying it again was costing a full canvas redraw on every
     // clock frame of a scroll, which measured as the single largest term in the
@@ -1315,6 +1378,23 @@ export class CanvasFrameSink implements MutationSink {
     if (snapshot === undefined) return;
     this.#onSemantics(parseSemantics(snapshot));
   }
+
+  /**
+   * Opts into the painted-text render oracle.
+   *
+   * Off by default and computed only while on. Core records nothing during
+   * paint, so an inactive probe costs a frame exactly nothing.
+   */
+  public setPaintedTextActive(active: boolean): void {
+    this.#paintedTextActive = active;
+  }
+
+  private emitPaintedText(): void {
+    if (!this.#paintedTextActive || this.#onPaintedText === undefined) return;
+    const snapshot = this.#core.painted_text?.();
+    if (snapshot === undefined) return;
+    this.#onPaintedText(parsePaintedText(snapshot));
+  }
 }
 
 /** Four-screen default budget; callers can replace it for device-specific policy. */
@@ -1760,6 +1840,77 @@ export function parseSemantics(bytes: Uint8Array): SemanticNode[] {
   return nodes;
 }
 
+/**
+ * Decodes the painted-text render oracle.
+ *
+ * A trust boundary like every other decoder here: the bytes normally come from
+ * this project's Core, which is not a reason to skip validation.
+ */
+export function parsePaintedText(bytes: Uint8Array): PaintedTextSnapshot {
+  if (!(bytes instanceof Uint8Array) || bytes.byteLength % 4 !== 0) {
+    throw new TypeError("Core painted text must use the generated byte layout");
+  }
+  const headerBytes = PAINTED_TEXT_HEADER_WORDS * 4;
+  if (bytes.byteLength < headerBytes) {
+    throw new TypeError("Core painted text snapshot is truncated");
+  }
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  if (view.getUint32(PAINTED_TEXT_HEADER_VERSION_INDEX * 4, true) !== PAINTED_TEXT_VERSION) {
+    throw new Error("Core painted text version is incompatible with Host");
+  }
+  const headerFlags = view.getUint32(PAINTED_TEXT_HEADER_FLAGS_INDEX * 4, true);
+  if ((headerFlags & ~PAINTED_TEXT_HEADER_FLAG_TRUNCATED) !== 0) {
+    throw new RangeError("Core painted text header flags are reserved");
+  }
+  const count = view.getUint32(PAINTED_TEXT_HEADER_RECORD_COUNT_INDEX * 4, true);
+  const decoder = new TextDecoder("utf-8", { fatal: true });
+  const records: PaintedTextRecord[] = [];
+  let offset = headerBytes;
+  for (let record = 0; record < count; record += 1) {
+    if (offset + PAINTED_TEXT_RECORD_WORDS * 4 > bytes.byteLength) {
+      throw new TypeError("Core painted text record is truncated");
+    }
+    const word = (index: number): number => view.getUint32(offset + index * 4, true);
+    const float = (index: number): number => view.getFloat32(offset + index * 4, true);
+    const flags = word(PAINTED_TEXT_RECORD_FLAGS_INDEX);
+    const known =
+      PAINTED_TEXT_CHANNEL_MASK | PAINTED_TEXT_FLAG_ORIGIN_CLIPPED | PAINTED_TEXT_FLAG_UNATTRIBUTED;
+    if ((flags & ~known) !== 0) throw new RangeError("Core painted text flags are reserved");
+    const channel = CHANNEL_NAMES[flags & PAINTED_TEXT_CHANNEL_MASK];
+    if (channel === undefined) throw new RangeError("Core painted text channel is unknown");
+    const x = float(PAINTED_TEXT_RECORD_X_BITS_INDEX);
+    const y = float(PAINTED_TEXT_RECORD_Y_BITS_INDEX);
+    if (Number.isNaN(x) || Number.isNaN(y)) {
+      throw new RangeError("Core painted text origin contains NaN");
+    }
+    const textBytes = word(PAINTED_TEXT_RECORD_TEXT_BYTES_INDEX);
+    const start = offset + PAINTED_TEXT_RECORD_WORDS * 4;
+    const paddedEnd = start + textBytes + ((4 - (textBytes % 4)) % 4);
+    if (!Number.isSafeInteger(paddedEnd) || paddedEnd > bytes.byteLength) {
+      throw new TypeError("Core painted text string overflows the snapshot");
+    }
+    let text: string;
+    try {
+      text = decoder.decode(bytes.subarray(start, start + textBytes));
+    } catch {
+      throw new TypeError("Core painted text string is not valid UTF-8");
+    }
+    records.push({
+      channel,
+      nodeId: word(PAINTED_TEXT_RECORD_NODE_ID_INDEX),
+      origin: { x, y },
+      originClipped: (flags & PAINTED_TEXT_FLAG_ORIGIN_CLIPPED) !== 0,
+      text,
+      unattributed: (flags & PAINTED_TEXT_FLAG_UNATTRIBUTED) !== 0,
+    });
+    offset = paddedEnd;
+  }
+  if (offset !== bytes.byteLength) {
+    throw new TypeError("Core painted text snapshot has trailing bytes");
+  }
+  return { records, truncated: (headerFlags & PAINTED_TEXT_HEADER_FLAG_TRUNCATED) !== 0 };
+}
+
 /** Creates the deterministic main-thread M1 fallback rendering root. */
 export function createCanvasRoot(
   context: Canvas2DContext,
@@ -1793,7 +1944,14 @@ export function createCanvasRoot(
     options.onEditingGeometry,
     options.onSemantics,
     options.incrementalPicturesEnabled ?? true,
+    // Observed geometry is activated by the reconciler's observation set, which
+    // only the hosted root wires up, so this raw root has nothing to export.
+    undefined,
+    options.onPaintedText,
   );
+  // The probe is inert until something wants it; asking for the callback is
+  // the ask.
+  if (options.onPaintedText !== undefined) sink.setPaintedTextActive(true);
   const mediaPipeline = (): MediaPipeline => {
     media ??= new MediaPipeline({
       transferableFrames: false,

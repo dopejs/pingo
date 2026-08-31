@@ -176,6 +176,18 @@ impl WasmCore {
         self.inner.semantics()
     }
 
+    /// Serializes the text this frame's paint emitted, in paint order.
+    ///
+    /// A render oracle for tests: `semantics` answers what the Scene means,
+    /// this answers what was drawn. Computed only when called.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the retained paint cache and the Scene disagree.
+    pub fn painted_text(&self) -> Result<Vec<u8>, JsValue> {
+        self.inner.painted_text().map_err(js_error)
+    }
+
     /// Applies logical viewport bounds, returning a reflowed DisplayList.
     pub fn set_viewport(&mut self, width: f32, height: f32) -> Result<Option<Vec<u8>>, JsValue> {
         let output = self.inner.set_viewport(width, height).map_err(js_error)?;

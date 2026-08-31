@@ -7,6 +7,8 @@ import type {
   EditingGeometryRect,
   LayoutGeometryFrame,
   LayoutGeometryRecord,
+  PaintedTextRecord,
+  PaintedTextSnapshot,
   SemanticNode,
 } from "./main-thread";
 import type { HostTransportMode } from "./capabilities";
@@ -14,7 +16,7 @@ import type { RenderClockMetrics } from "./render-clock";
 import type { EditTransaction, EventTransaction } from "@dopejs/pingo-editing";
 import type { MediaFramePath } from "./media";
 
-export const WORKER_PROTOCOL_VERSION = 13 as const;
+export const WORKER_PROTOCOL_VERSION = 14 as const;
 
 export interface WorkerPrepareMessage {
   readonly abiVersion: number;
@@ -93,6 +95,12 @@ export interface WorkerLayoutGeometryActiveMessage {
   readonly sessionId: number;
 }
 
+export interface WorkerPaintedTextActiveMessage {
+  readonly active: boolean;
+  readonly kind: "pingo:painted-text-active";
+  readonly sessionId: number;
+}
+
 export interface WorkerMediaFrameMessage {
   readonly kind: "pingo:media-frame";
   readonly resourceId: number;
@@ -110,6 +118,7 @@ export type RenderWorkerInboundMessage =
   | WorkerPrepareMessage
   | WorkerReducedMotionMessage
   | WorkerLayoutGeometryActiveMessage
+  | WorkerPaintedTextActiveMessage
   | WorkerResizeMessage
   | WorkerShutdownMessage;
 
@@ -184,6 +193,12 @@ export interface WorkerLayoutGeometryMessage {
   readonly sessionId: number;
 }
 
+export interface WorkerPaintedTextMessage {
+  readonly kind: "pingo:painted-text";
+  readonly sessionId: number;
+  readonly snapshot: PaintedTextSnapshot;
+}
+
 export interface WorkerFatalMessage {
   readonly error: string;
   readonly kind: "pingo:fatal";
@@ -203,6 +218,7 @@ export type RenderWorkerOutboundMessage =
   | WorkerEditingGeometryMessage
   | WorkerSemanticsMessage
   | WorkerLayoutGeometryMessage
+  | WorkerPaintedTextMessage
   | WorkerFatalMessage
   | WorkerFrameMessage
   | WorkerPreparedMessage
@@ -243,6 +259,7 @@ export function isRenderWorkerInboundMessage(value: unknown): value is RenderWor
     case "pingo:reduced-motion":
       return typeof value.reduced === "boolean";
     case "pingo:layout-geometry-active":
+    case "pingo:painted-text-active":
       return typeof value.active === "boolean";
     case "pingo:media-frame":
       return (
@@ -269,6 +286,7 @@ export function isRenderWorkerInboundEnvelope(value: unknown): boolean {
     value.kind === "pingo:media-frame" ||
     value.kind === "pingo:reduced-motion" ||
     value.kind === "pingo:layout-geometry-active" ||
+    value.kind === "pingo:painted-text-active" ||
     value.kind === "pingo:shutdown"
   );
 }
@@ -304,6 +322,8 @@ export function isRenderWorkerOutboundMessage(
       return Array.isArray(value.nodes) && value.nodes.every(isSemanticNode);
     case "pingo:layout-geometry":
       return isLayoutGeometryFrame(value.frame);
+    case "pingo:painted-text":
+      return isPaintedTextSnapshot(value.snapshot);
     case "pingo:fatal":
       return typeof value.error === "string";
     case "pingo:shutdown-complete":
@@ -327,6 +347,7 @@ export function isRenderWorkerOutboundEnvelope(value: unknown): boolean {
     value.kind === "pingo:editing-geometry" ||
     value.kind === "pingo:semantics" ||
     value.kind === "pingo:layout-geometry" ||
+    value.kind === "pingo:painted-text" ||
     value.kind === "pingo:fatal" ||
     value.kind === "pingo:shutdown-complete"
   );
@@ -389,6 +410,33 @@ function isLayoutGeometryFrame(value: unknown): value is LayoutGeometryFrame {
     isU32(value.frameSeq) &&
     Array.isArray(value.records) &&
     value.records.every(isLayoutGeometryRecord)
+  );
+}
+
+function isPaintedTextSnapshot(value: unknown): value is PaintedTextSnapshot {
+  return (
+    isRecord(value) &&
+    typeof value.truncated === "boolean" &&
+    Array.isArray(value.records) &&
+    value.records.every(isPaintedTextRecord)
+  );
+}
+
+function isPaintedTextRecord(value: unknown): value is PaintedTextRecord {
+  return (
+    isRecord(value) &&
+    isU32(value.nodeId) &&
+    (value.channel === "shapedRun" ||
+      value.channel === "systemFallback" ||
+      value.channel === "inlineFallback") &&
+    typeof value.text === "string" &&
+    typeof value.originClipped === "boolean" &&
+    typeof value.unattributed === "boolean" &&
+    isRecord(value.origin) &&
+    typeof value.origin.x === "number" &&
+    typeof value.origin.y === "number" &&
+    !Number.isNaN(value.origin.x) &&
+    !Number.isNaN(value.origin.y)
   );
 }
 

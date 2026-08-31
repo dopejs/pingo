@@ -168,6 +168,8 @@ export {
   type HostCapabilities,
   type HostMutationTransportMetrics,
   type NonPassiveRegion,
+  type PaintedTextRecord,
+  type PaintedTextSnapshot,
   type SemanticNode,
   type HostInputTransportMetrics,
   type MediaPipelineMetrics,

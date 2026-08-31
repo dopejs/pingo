@@ -4,6 +4,7 @@ import type {
   EditingGeometryFrame,
   NonPassiveRegion,
   LayoutGeometryFrame,
+  PaintedTextSnapshot,
   SemanticNode,
   VirtualRefillRange,
 } from "./main-thread";
@@ -23,6 +24,7 @@ import {
   type WorkerPrepareMessage,
   type WorkerReducedMotionMessage,
   type WorkerLayoutGeometryActiveMessage,
+  type WorkerPaintedTextActiveMessage,
   type WorkerMediaFrameMessage,
   type WorkerShutdownMessage,
 } from "./worker-protocol";
@@ -53,6 +55,7 @@ export interface RenderWorkerClientOptions {
   readonly onEditingGeometry?: (frame: EditingGeometryFrame) => void;
   readonly onSemantics?: (nodes: readonly SemanticNode[]) => void;
   readonly onLayoutGeometry?: (frame: LayoutGeometryFrame) => void;
+  readonly onPaintedText?: (snapshot: PaintedTextSnapshot) => void;
   readonly sessionId: number;
 }
 
@@ -84,6 +87,7 @@ export class RenderWorkerClient {
   readonly #onEditingGeometry: ((frame: EditingGeometryFrame) => void) | undefined;
   readonly #onSemantics: ((nodes: readonly SemanticNode[]) => void) | undefined;
   readonly #onLayoutGeometry: ((frame: LayoutGeometryFrame) => void) | undefined;
+  readonly #onPaintedText: ((snapshot: PaintedTextSnapshot) => void) | undefined;
   readonly #sessionId: number;
   readonly #worker: WorkerLike;
   #capabilities: RenderWorkerCapabilities | undefined;
@@ -113,6 +117,7 @@ export class RenderWorkerClient {
     this.#onEditingGeometry = options.onEditingGeometry;
     this.#onSemantics = options.onSemantics;
     this.#onLayoutGeometry = options.onLayoutGeometry;
+    this.#onPaintedText = options.onPaintedText;
     worker.addEventListener("message", this.#handleMessage);
     worker.addEventListener("error", this.#handleError);
     worker.addEventListener("messageerror", this.#handleMessageError);
@@ -263,6 +268,16 @@ export class RenderWorkerClient {
     } satisfies WorkerLayoutGeometryActiveMessage);
   }
 
+  /** Starts or stops the worker's per-frame painted-text export. */
+  public postPaintedTextActive(active: boolean): void {
+    if (this.#state !== "ready") return;
+    this.#worker.postMessage({
+      kind: "pingo:painted-text-active",
+      active,
+      sessionId: this.#sessionId,
+    } satisfies WorkerPaintedTextActiveMessage);
+  }
+
   /** Propagates a live prefers-reduced-motion change to the active Core. */
   public postReducedMotion(reduced: boolean): void {
     this.requireState("ready");
@@ -379,6 +394,9 @@ export class RenderWorkerClient {
         return;
       case "pingo:layout-geometry":
         if (this.#state === "ready") this.#onLayoutGeometry?.(message.frame);
+        return;
+      case "pingo:painted-text":
+        if (this.#state === "ready") this.#onPaintedText?.(message.snapshot);
         return;
       case "pingo:fatal":
         this.fail(new Error(`render Worker failed: ${message.error}`));
