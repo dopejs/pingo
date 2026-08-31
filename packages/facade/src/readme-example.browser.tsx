@@ -1,4 +1,5 @@
-import { createElement, createHostedCanvasRoot, type FrameReport } from "@dopejs/pingo";
+/** @jsxImportSource @dopejs/pingo */
+import { createHostedCanvasRoot, Text, View, type FrameReport } from "@dopejs/pingo";
 import { describe, expect, it } from "vitest";
 
 describe("readme", () => {
@@ -22,18 +23,9 @@ describe("readme", () => {
     });
 
     root.render(
-      createElement("container", {
-        width: 800,
-        height: 600,
-        backgroundColor: "#ffffffff",
-        padding: 24,
-        children: createElement("text", {
-          value: "Hello pingo",
-          fontSize: 24,
-          lineHeight: 32,
-          color: "#1f2329ff",
-        }),
-      }),
+      <View width={800} height={600} backgroundColor="#ffffffff" padding={24}>
+        <Text value="Hello pingo" fontSize={24} lineHeight={32} color="#1f2329ff" />
+      </View>,
     );
 
     const end = performance.now() + 5000;

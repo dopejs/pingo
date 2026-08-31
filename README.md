@@ -41,35 +41,7 @@ pnpm add @dopejs/pingo
 
 ## 第一个画布
 
-```ts
-import { createElement, createHostedCanvasRoot } from "@dopejs/pingo";
-
-const canvas = document.querySelector<HTMLCanvasElement>("#app")!;
-canvas.width = 800;
-canvas.height = 600;
-
-const root = await createHostedCanvasRoot(canvas);
-
-root.render(
-  createElement("container", {
-    width: 800,
-    height: 600,
-    backgroundColor: "#ffffffff",
-    padding: 24,
-    children: createElement("text", {
-      value: "Hello pingo",
-      fontSize: 24,
-      lineHeight: 32,
-      color: "#1f2329ff",
-    }),
-  }),
-);
-```
-
-`createHostedCanvasRoot` 自己探测浏览器能力，在 SharedArrayBuffer、`postMessage` 与
-主线程 Canvas2D 之间选路，你不需要为降级写分支；`root.mode` 会告诉你实际选中了哪条。
-
-配好 `tsconfig.json` 就能写 TSX：
+先配好 `tsconfig.json`：
 
 ```json
 {
@@ -81,11 +53,32 @@ root.render(
 ```
 
 ```tsx
+import { createHostedCanvasRoot, Text, View } from "@dopejs/pingo";
+
+const canvas = document.querySelector<HTMLCanvasElement>("#app")!;
+canvas.width = 800;
+canvas.height = 600;
+
+const root = await createHostedCanvasRoot(canvas);
+
+root.render(
+  <View width={800} height={600} backgroundColor="#ffffffff" padding={24}>
+    <Text value="Hello pingo" fontSize={24} lineHeight={32} color="#1f2329ff" />
+  </View>,
+);
+```
+
+`createHostedCanvasRoot` 自己探测浏览器能力，在 SharedArrayBuffer、`postMessage` 与
+主线程 Canvas2D 之间选路，你不需要为降级写分支；`root.mode` 会告诉你实际选中了哪条。
+
+组件就是函数，`memo`、context provider 与引擎内建元素都可以直接当标签用：
+
+```tsx
 function OrderRow({ index }: { index: number }) {
   return (
-    <container width={480} height={32} padding={[6, 12, 6, 12]}>
-      <text value={`订单 #${index}`} fontSize={13} lineHeight={20} />
-    </container>
+    <View width={480} height={32} padding={[6, 12, 6, 12]}>
+      <Text value={`订单 #${index}`} fontSize={13} lineHeight={20} />
+    </View>
   );
 }
 ```

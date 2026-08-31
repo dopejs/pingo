@@ -5,5 +5,5 @@
     "outDir": "dist",
     "sourceMap": true
   },
-  "exclude": ["src/**/*.browser.ts", "src/**/*.test.ts"]
+  "exclude": ["src/**/*.browser.ts", "src/**/*.browser.tsx", "src/**/*.test.ts"]
 }

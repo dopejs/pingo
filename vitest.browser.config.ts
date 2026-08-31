@@ -17,6 +17,7 @@ export default defineConfig({
   test: {
     include: [
       "packages/**/*.browser.ts",
+      "packages/**/*.browser.tsx",
       "apps/site/**/*.browser.ts",
       "apps/site/**/*.browser.tsx",
     ],
