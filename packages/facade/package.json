@@ -23,17 +23,21 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./jsx-runtime": {
-      "types": "./dist/jsx-runtime.d.ts",
-      "import": "./dist/jsx-runtime.js"
+    "./backend-canvas2d": {
+      "types": "./dist/backend-canvas2d.d.ts",
+      "import": "./dist/backend-canvas2d.js"
     },
     "./jsx-dev-runtime": {
       "types": "./dist/jsx-dev-runtime.d.ts",
       "import": "./dist/jsx-dev-runtime.js"
     },
-    "./backend-canvas2d": {
-      "types": "./dist/backend-canvas2d.d.ts",
-      "import": "./dist/backend-canvas2d.js"
+    "./jsx-runtime": {
+      "types": "./dist/jsx-runtime.d.ts",
+      "import": "./dist/jsx-runtime.js"
+    },
+    "./react": {
+      "types": "./dist/react.d.ts",
+      "import": "./dist/react.js"
     }
   },
   "dependencies": {
@@ -42,6 +46,7 @@
     "@dopejs/pingo-editing": "workspace:*",
     "@dopejs/pingo-host": "workspace:*",
     "@dopejs/pingo-jsx": "workspace:*",
+    "@dopejs/pingo-react": "workspace:*",
     "@dopejs/pingo-reconciler": "workspace:*",
     "@dopejs/pingo-runtime": "workspace:*",
     "@dopejs/pingo-style": "workspace:*",

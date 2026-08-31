@@ -147,6 +147,9 @@ importers:
       '@dopejs/pingo-jsx':
         specifier: workspace:*
         version: link:../jsx
+      '@dopejs/pingo-react':
+        specifier: workspace:*
+        version: link:../react
       '@dopejs/pingo-reconciler':
         specifier: workspace:*
         version: link:../reconciler
@@ -193,6 +196,28 @@ importers:
       woff2-encoder:
         specifier: 2.0.0
         version: 2.0.0
+
+  packages/react:
+    dependencies:
+      '@dopejs/pingo-host':
+        specifier: workspace:*
+        version: link:../host
+      '@dopejs/pingo-jsx':
+        specifier: workspace:*
+        version: link:../jsx
+    devDependencies:
+      '@types/react':
+        specifier: 19.2.18
+        version: 19.2.18
+      '@types/react-dom':
+        specifier: 19.2.4
+        version: 19.2.4(@types/react@19.2.18)
+      react:
+        specifier: 19.2.8
+        version: 19.2.8
+      react-dom:
+        specifier: 19.2.8
+        version: 19.2.8(react@19.2.8)
 
   packages/reconciler:
     dependencies:

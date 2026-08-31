@@ -9,6 +9,7 @@ const pairs = [
   ["packages/facade/dist/jsx-runtime.d.ts", "benchmarks/api/jsx-runtime.v1.d.ts"],
   ["packages/facade/dist/jsx-dev-runtime.d.ts", "benchmarks/api/jsx-dev-runtime.v1.d.ts"],
   ["packages/facade/dist/backend-canvas2d.d.ts", "benchmarks/api/backend-canvas2d.v1.d.ts"],
+  ["packages/facade/dist/react.d.ts", "benchmarks/api/react.v1.d.ts"],
 ];
 
 for (const [actualName, expectedName] of pairs) {
@@ -30,7 +31,13 @@ for (const [actualName, expectedName] of pairs) {
 const packageJson = JSON.parse(
   await readFile(path.join(repositoryRoot, "packages/facade/package.json"), "utf8"),
 );
-const expectedSubpaths = [".", "./backend-canvas2d", "./jsx-dev-runtime", "./jsx-runtime"];
+const expectedSubpaths = [
+  ".",
+  "./backend-canvas2d",
+  "./jsx-dev-runtime",
+  "./jsx-runtime",
+  "./react",
+];
 const actualSubpaths = Object.keys(packageJson.exports).sort();
 if (JSON.stringify(actualSubpaths) !== JSON.stringify(expectedSubpaths)) {
   throw new Error(`facade export subpaths changed: ${JSON.stringify(actualSubpaths)}`);
