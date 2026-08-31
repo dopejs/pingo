@@ -40,6 +40,34 @@ Pixel-Schnappschüsse bleiben erhalten, aber als **ergänzender Nachweis** der R
 als einzige Zusicherung. Diese Entscheidung verhindert, dass UI-Tests reihenweise scheitern, sobald sich
 Font-Rendering oder Kantenglättung ändern.
 
+## Behaupten, was tatsächlich gezeichnet wurde
+
+Der Semantikbaum beantwortet, was ein Knoten ist -- nicht, ob dieser Frame die
+Zeichenkette wirklich gezeichnet hat. Dazwischen liegen Sichtbarkeit,
+Zeichenreihenfolge, Virtualisierung und der Subtree-Cache, und die Befehle des
+Hauptzeichenpfads führen die Zeichenkette gar nicht mit. `onPaintedText` liefert
+die andere Hälfte:
+
+```ts
+let painted: PaintedTextSnapshot | undefined;
+const root = await createHostedCanvasRoot(canvas, {
+  onPaintedText: (snapshot) => (painted = snapshot),
+});
+
+// Der Semantikbaum sagt, der Button ist da; die Sonde sagt, er wurde gezeichnet.
+getByRole(document.body, "button", { name: "Speichern" });
+expect(painted?.records.some((record) => record.text === "Speichern")).toBe(true);
+```
+
+Der Snapshot trifft einmal pro Frame ein, `root.paintedText()` liefert den letzten.
+Jeder Eintrag nennt `nodeId`, `text`, den Geräteursprung `origin`, den Zeichenkanal
+`channel` und `originClipped`. Ohne `onPaintedText` berechnet die Engine ihn gar
+nicht; ein Frame kostet dann genau so viel wie ohne diese Fähigkeit.
+
+Zwei Grenzen: gemeldet wird, was der **Core ausgegeben** hat, nicht was nach dem
+Replay noch sichtbar ist -- das Viewport-Culling passiert im Backend. Und ein
+Passwortfeld meldet die Maske `•`, weil genau das gezeichnet wird.
+
 ## Den Semantikbaum beobachten
 
 ```ts

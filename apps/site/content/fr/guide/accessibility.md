@@ -40,6 +40,34 @@ Les captures de pixels restent en place, mais comme **preuve complémentaire** d
 pas comme unique assertion. Ce choix évite que les tests d'interface tombent en masse dès que le rendu des
 polices ou l'anticrénelage change.
 
+## Affirmer ce qui a réellement été dessiné
+
+L'arbre sémantique dit ce qu'est un nœud, pas si cette frame a réellement dessiné
+la chaîne. Entre les deux se trouvent la visibilité, l'ordre de dessin, la
+virtualisation et le cache de sous-arbres, et les instructions du chemin de dessin
+principal ne transportent même pas la chaîne. `onPaintedText` fournit l'autre
+moitié :
+
+```ts
+let painted: PaintedTextSnapshot | undefined;
+const root = await createHostedCanvasRoot(canvas, {
+  onPaintedText: (snapshot) => (painted = snapshot),
+});
+
+// L'arbre sémantique dit que le bouton existe ; la sonde dit qu'il a été dessiné.
+getByRole(document.body, "button", { name: "Enregistrer" });
+expect(painted?.records.some((record) => record.text === "Enregistrer")).toBe(true);
+```
+
+L'instantané arrive une fois par frame et `root.paintedText()` renvoie le dernier.
+Chaque enregistrement donne `nodeId`, `text`, l'origine en coordonnées écran
+`origin`, le canal de dessin `channel` et `originClipped`. Sans `onPaintedText`, le
+moteur ne le calcule pas : une frame coûte exactement ce qu'elle coûtait avant.
+
+Deux limites : ce qui est rapporté est ce que le **Core a émis**, pas ce qui reste
+visible après le replay -- le culling de viewport a lieu dans le backend. Et un
+champ mot de passe rapporte le masque `•`, parce que c'est cela qui est dessiné.
+
 ## Observer l'arbre sémantique
 
 ```ts

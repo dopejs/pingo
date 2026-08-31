@@ -30,7 +30,7 @@ createWasmCore(width, height, input?): Promise<CoreClient>
 | `transportMetrics()` / `inputTransportMetrics()`          | Снимок транспорта и обратного давления                        |
 
 Часто используемые опции: `onFrame`, `onHostError`, `onEditTransaction`, `onEventTransaction`,
-`onSemantics`, `onNonPassiveRegions`, `transport`, `rasterCache`, `accessibility`,
+`onSemantics`, `onPaintedText`, `onNonPassiveRegions`, `transport`, `rasterCache`, `accessibility`,
 `nativeTextInputMode`.
 
 ## Элементы и JSX

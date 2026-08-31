@@ -40,6 +40,33 @@ Las capturas de píxeles se mantienen, pero como **prueba complementaria** de la
 renderizado, no como única aserción. Gracias a ello los tests de interfaz no se rompen en bloque
 cuando cambia el rasterizado de fuentes o el antialiasing.
 
+## Afirmar lo que realmente se dibujó
+
+El árbol semántico dice qué es un nodo, no si esa frame dibujó realmente la cadena.
+Entre ambos están la visibilidad, el orden de dibujo, la virtualización y la caché
+de subárboles, y las instrucciones del camino de dibujo principal ni siquiera
+llevan la cadena. `onPaintedText` aporta la otra mitad:
+
+```ts
+let painted: PaintedTextSnapshot | undefined;
+const root = await createHostedCanvasRoot(canvas, {
+  onPaintedText: (snapshot) => (painted = snapshot),
+});
+
+// El árbol semántico dice que el botón está; la sonda dice que se dibujó.
+getByRole(document.body, "button", { name: "Guardar" });
+expect(painted?.records.some((record) => record.text === "Guardar")).toBe(true);
+```
+
+La instantánea llega una vez por frame y `root.paintedText()` devuelve la última.
+Cada registro da `nodeId`, `text`, el origen en coordenadas de dispositivo `origin`,
+el canal de dibujo `channel` y `originClipped`. Sin `onPaintedText` el motor no lo
+calcula: una frame cuesta exactamente lo mismo que antes.
+
+Dos límites: se informa de lo que el **Core emitió**, no de lo que sigue visible
+tras el replay -- el culling de viewport ocurre en el backend. Y un campo de
+contraseña informa de la máscara `•`, porque eso es lo que se dibuja.
+
 ## Observar el árbol semántico
 
 ```ts

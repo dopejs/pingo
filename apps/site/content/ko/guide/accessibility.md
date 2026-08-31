@@ -37,6 +37,33 @@ expect(queryAllByRole(document.body, "textbox")).toHaveLength(2);
 이 선택 덕분에 폰트 렌더링이나 안티에일리어싱이 바뀌었다는 이유만으로 UI 테스트가 무더기로
 깨지지 않습니다.
 
+## 실제로 그려진 텍스트 단언하기
+
+시맨틱 트리는 "이 노드가 무엇인가"에 답하지만 "이 프레임이 그 문자열을 실제로
+그렸는가"에는 답하지 않습니다. 그 사이에는 가시성, 그리기 순서, 가상화, 서브트리
+캐시가 있고 주 그리기 경로의 명령에는 문자열이 아예 담기지 않습니다.
+`onPaintedText` 가 나머지 절반을 채웁니다.
+
+```ts
+let painted: PaintedTextSnapshot | undefined;
+const root = await createHostedCanvasRoot(canvas, {
+  onPaintedText: (snapshot) => (painted = snapshot),
+});
+
+// 시맨틱 트리는 버튼이 있다고, 프로브는 이번 프레임에 그려졌다고 말한다.
+getByRole(document.body, "button", { name: "저장" });
+expect(painted?.records.some((record) => record.text === "저장")).toBe(true);
+```
+
+스냅숏은 프레임마다 한 번 도착하며 `root.paintedText()` 는 가장 최근 것을 돌려줍니다.
+각 레코드는 `nodeId`, `text`, 디바이스 좌표 `origin`, 그리기 채널 `channel`,
+`originClipped` 를 담습니다. `onPaintedText` 를 넘기지 않으면 엔진은 계산 자체를 하지
+않으므로 프레임 비용은 이 기능이 없을 때와 같습니다.
+
+경계가 둘 있습니다. 보고하는 것은 **Core 가 내보낸 것**이지 재생 후에도 보이는 것이
+아닙니다. 뷰포트 컬링은 백엔드에서 일어납니다. 비밀번호 필드는 마스크 `•` 를
+보고합니다. 실제로 그려진 것이 그것이기 때문입니다.
+
 ## 시맨틱 트리 관측하기
 
 ```ts

@@ -118,6 +118,7 @@ pnpm add @dopejs/pingo-ui
 | 矢量       | SVG 路径与文档子集，图标可用 `createSvg` 直接接入                  |
 | 动画       | 核心内的 transition 与 keyframes，可 retarget/cancel，尊重减弱动效 |
 | 无障碍     | 语义树随帧导出到旁路 DOM，键盘导航与角色贯穿组件库                 |
+| 可测试性   | 语义树驱动 E2E，另可逐帧读取实际画出的文本，直接断言渲染结果       |
 | 降级链     | SharedArrayBuffer → `postMessage` → 主线程 Canvas2D                |
 
 **目前没有**：CSS 选择器与层叠的完整兼容、SSR 与 HTML 首屏、`flex-wrap`、渐变与图案

@@ -29,7 +29,7 @@ createWasmCore(width, height, input?): Promise<CoreClient>
 | `transportMetrics()` / `inputTransportMetrics()`          | لقطة عن النقل والضغط العكسي                               |
 
 الخيارات الشائعة: `onFrame` و`onHostError` و`onEditTransaction` و`onEventTransaction`
-و`onSemantics` و`onNonPassiveRegions` و`transport` و`rasterCache` و`accessibility`
+و`onSemantics` و`onPaintedText` و`onNonPassiveRegions` و`transport` و`rasterCache` و`accessibility`
 و`nativeTextInputMode`.
 
 ## العناصر وJSX

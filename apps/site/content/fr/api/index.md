@@ -31,7 +31,7 @@ Méthodes de `HostedCanvasRoot` :
 | `transportMetrics()` / `inputTransportMetrics()`          | Instantané du transport et de la contre-pression         |
 
 Options courantes : `onFrame`, `onHostError`, `onEditTransaction`, `onEventTransaction`,
-`onSemantics`, `onNonPassiveRegions`, `transport`, `rasterCache`, `accessibility`,
+`onSemantics`, `onPaintedText`, `onNonPassiveRegions`, `transport`, `rasterCache`, `accessibility`,
 `nativeTextInputMode`.
 
 ## Éléments et JSX

@@ -35,6 +35,30 @@ expect(queryAllByRole(document.body, "textbox")).toHaveLength(2);
 像素快照仍然保留，但作為繪製正確性的**補充證據**，不是唯一斷言。
 這個選擇讓 UI 測試在字體繪製或反鋸齒變化時不會成片失敗。
 
+## 斷言畫出來的文字
+
+語意樹回答「這個節點是什麼」，它不回答「這一幀真的把這段字畫出去了」。兩者之間隔著
+可見性、繪製順序、虛擬化與子樹快取，而主繪製路徑的指令裡根本不帶字串。
+`onPaintedText` 補上後一半：
+
+```ts
+let painted: PaintedTextSnapshot | undefined;
+const root = await createHostedCanvasRoot(canvas, {
+  onPaintedText: (snapshot) => (painted = snapshot),
+});
+
+// 語意樹說按鈕在，探針說它這一幀被畫了出來。
+getByRole(document.body, "button", { name: "儲存" });
+expect(painted?.records.some((record) => record.text === "儲存")).toBe(true);
+```
+
+快照每幀送達一次，`root.paintedText()` 讀最近一幀。每筆記錄給出 `nodeId`、`text`、
+裝置座標 `origin`、繪製通道 `channel` 與 `originClipped`。不傳 `onPaintedText` 時引擎
+完全不計算它，幀成本與沒有這項能力時一致。
+
+兩條邊界要記住：它報告的是 **Core 發出的**，不是回放後仍然可見的——視口裁剪發生在
+後端；密碼欄位報告的是遮罩 `•`，因為那就是被畫出去的內容。
+
 ## 觀測語意樹
 
 ```ts

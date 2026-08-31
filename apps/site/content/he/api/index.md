@@ -29,7 +29,7 @@ createWasmCore(width, height, input?): Promise<CoreClient>
 | `transportMetrics()` / `inputTransportMetrics()`          | תצלום של ההעברה ושל לחץ החוזר                             |
 
 אפשרויות נפוצות: `onFrame`, `onHostError`, `onEditTransaction`, `onEventTransaction`,
-`onSemantics`, `onNonPassiveRegions`, `transport`, `rasterCache`, `accessibility`,
+`onSemantics`, `onPaintedText`, `onNonPassiveRegions`, `transport`, `rasterCache`, `accessibility`,
 `nativeTextInputMode`.
 
 ## רכיבים ו-JSX

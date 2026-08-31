@@ -29,7 +29,7 @@ createWasmCore(width, height, input?): Promise<CoreClient>
 | `transportMetrics()` / `inputTransportMetrics()`          | 전송과 배압 스냅샷                                     |
 
 자주 쓰는 옵션: `onFrame`, `onHostError`, `onEditTransaction`, `onEventTransaction`,
-`onSemantics`, `onNonPassiveRegions`, `transport`, `rasterCache`, `accessibility`,
+`onSemantics`, `onPaintedText`, `onNonPassiveRegions`, `transport`, `rasterCache`, `accessibility`,
 `nativeTextInputMode`.
 
 ## 요소와 JSX

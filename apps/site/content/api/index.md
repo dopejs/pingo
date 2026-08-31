@@ -36,10 +36,11 @@ JavaScript realm 内是幂等的：并发与后续调用共享第一次成功的
 | `updateEditingGeometry`                                   | 手动提供 IME 几何（通常自动完成）                    |
 | `transportMetrics()` / `inputTransportMetrics()`          | mutation/input 传输与背压快照                        |
 | `mediaMetrics()`                                          | 媒体绑定、copy、掉帧、释放与在途帧快照               |
+| `paintedText()`                                           | 最近一帧实际画出的文本，按绘制顺序                   |
 
 常用选项：`onFrame`、`onHostError`、`onMediaMetrics`、`onEditTransaction`、
-`onEventTransaction`、`onSemantics`、`onNonPassiveRegions`、`transport`、`rasterCache`、
-`accessibility`、`nativeTextInputMode`。
+`onEventTransaction`、`onSemantics`、`onPaintedText`、`onNonPassiveRegions`、`transport`、
+`rasterCache`、`accessibility`、`nativeTextInputMode`。
 
 ## 元素与 JSX
 
@@ -197,6 +198,10 @@ queryAllByRole(root, role, { name? }): HTMLElement[]
 ```
 
 类型：`SemanticNode`、`SemanticMirrorNode`、`SemanticTreeMirrorOptions`。
+
+渲染侧的对照断言用 `onPaintedText` / `paintedText()`：语义树说节点是什么，它说这一帧
+实际画出了什么。类型：`PaintedTextRecord`、`PaintedTextSnapshot`。见
+[无障碍与可测试性](/guide/accessibility)。
 
 ## 字体
 
