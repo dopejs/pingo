@@ -21,6 +21,7 @@ export interface SiteLocale {
     readonly api: string;
     readonly playground: string;
     readonly gettingStarted: string;
+    readonly tsx: string;
     readonly architecture: string;
     readonly scrolling: string;
     readonly editing: string;
@@ -84,6 +85,7 @@ export const SITE_LOCALES: readonly SiteLocale[] = [
       api: "API",
       playground: "Playground",
       gettingStarted: "快速开始",
+      tsx: "TSX",
       architecture: "架构概览",
       scrolling: "滚动与虚拟化",
       editing: "文本与编辑",
@@ -145,6 +147,7 @@ export const SITE_LOCALES: readonly SiteLocale[] = [
       api: "API",
       playground: "Playground",
       gettingStarted: "快速開始",
+      tsx: "TSX",
       architecture: "架構概覽",
       scrolling: "捲動與虛擬化",
       editing: "文字與編輯",
@@ -207,6 +210,7 @@ export const SITE_LOCALES: readonly SiteLocale[] = [
       api: "API",
       playground: "Playground",
       gettingStarted: "はじめに",
+      tsx: "TSX",
       architecture: "アーキテクチャ概要",
       scrolling: "スクロールと仮想化",
       editing: "テキストと編集",
@@ -268,6 +272,7 @@ export const SITE_LOCALES: readonly SiteLocale[] = [
       api: "API",
       playground: "Playground",
       gettingStarted: "시작하기",
+      tsx: "TSX",
       architecture: "아키텍처 개요",
       scrolling: "스크롤과 가상화",
       editing: "텍스트와 편집",
@@ -330,6 +335,7 @@ export const SITE_LOCALES: readonly SiteLocale[] = [
       api: "API",
       playground: "Playground",
       gettingStarted: "Primeros pasos",
+      tsx: "TSX",
       architecture: "Arquitectura",
       scrolling: "Scroll y virtualización",
       editing: "Texto y edición",
@@ -392,6 +398,7 @@ export const SITE_LOCALES: readonly SiteLocale[] = [
       api: "API",
       playground: "Playground",
       gettingStarted: "Démarrage",
+      tsx: "TSX",
       architecture: "Architecture",
       scrolling: "Défilement et virtualisation",
       editing: "Texte et édition",
@@ -454,6 +461,7 @@ export const SITE_LOCALES: readonly SiteLocale[] = [
       api: "API",
       playground: "Playground",
       gettingStarted: "Erste Schritte",
+      tsx: "TSX",
       architecture: "Architektur",
       scrolling: "Scrollen und Virtualisierung",
       editing: "Text und Bearbeitung",
@@ -516,6 +524,7 @@ export const SITE_LOCALES: readonly SiteLocale[] = [
       api: "API",
       playground: "Playground",
       gettingStarted: "Быстрый старт",
+      tsx: "TSX",
       architecture: "Архитектура",
       scrolling: "Прокрутка и виртуализация",
       editing: "Текст и редактирование",
@@ -579,6 +588,7 @@ export const SITE_LOCALES: readonly SiteLocale[] = [
       api: "واجهة البرمجة",
       playground: "Playground",
       gettingStarted: "البداية السريعة",
+      tsx: "TSX",
       architecture: "نظرة عامة على البنية",
       scrolling: "التمرير والافتراضية",
       editing: "النص والتحرير",
@@ -642,6 +652,7 @@ export const SITE_LOCALES: readonly SiteLocale[] = [
       api: "API",
       playground: "Playground",
       gettingStarted: "התחלה מהירה",
+      tsx: "TSX",
       architecture: "סקירת ארכיטקטורה",
       scrolling: "גלילה ווירטואליזציה",
       editing: "טקסט ועריכה",

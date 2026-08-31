@@ -207,6 +207,7 @@ function pageLayout(route, frontmatter) {
 function navigationOrder() {
   return [
     "/guide/getting-started",
+    "/guide/tsx",
     "/guide/architecture",
     "/guide/styling",
     "/guide/scss-less",

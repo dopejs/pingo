@@ -76,6 +76,7 @@ function sidebarSections(page: SitePage, locale: SiteLocale): readonly NavSectio
         text: locale.ui.sectionStart,
         items: [
           { text: locale.ui.gettingStarted, route: "/guide/getting-started" },
+          { text: locale.ui.tsx, route: "/guide/tsx" },
           { text: locale.ui.architecture, route: "/guide/architecture" },
         ],
       },
