@@ -130,5 +130,5 @@ const root = await createHostedCanvasRoot(canvas, {
 ## 다음 단계
 
 - [아키텍처 개요](/guide/architecture): Shell과 Core의 역할 분담
-- [가상 스크롤](/guide/scrolling), [텍스트와 편집](/guide/editing)
+- [스크롤과 가상화](/guide/scrolling), [텍스트와 편집](/guide/editing)
 - [Playground](/playground): 인터랙티브 실시간 데모

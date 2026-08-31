@@ -123,5 +123,5 @@ const root = await createHostedCanvasRoot(canvas, {
 ## الخطوات التالية
 
 - [نظرة عامة على البنية](/guide/architecture): كيف يتقاسم Shell وCore العمل
-- [التمرير الافتراضي](/guide/scrolling)، [النص والتحرير](/guide/editing)
+- [التمرير والافتراضية](/guide/scrolling)، [النص والتحرير](/guide/editing)
 - [Playground](/playground): عرض توضيحي تفاعلي مباشر

@@ -108,18 +108,19 @@ pnpm add @dopejs/pingo-ui
 
 已经实现并由自动门禁覆盖的：
 
-| 能力       | 说明                                                               |
-| ---------- | ------------------------------------------------------------------ |
-| 组件运行时 | TSX 函数组件、hooks 与 signal、`memo`、context                     |
-| 样式       | 69 个 CSS 属性的版本化子集（当前 `1.8.0`），逐属性 feature bit     |
-| 布局       | flex 单行、`position: absolute` + inset、`z-index`、overflow       |
-| 虚拟滚动   | 窗口由核心规划，x/y 单轴，滚动帧不进入 Shell                       |
-| 文本与编辑 | 引擎自绘文本、caret、选区、IME 组合、剪贴板、撤销重做              |
-| 矢量       | SVG 路径与文档子集，图标可用 `createSvg` 直接接入                  |
-| 动画       | 核心内的 transition 与 keyframes，可 retarget/cancel，尊重减弱动效 |
-| 无障碍     | 语义树随帧导出到旁路 DOM，键盘导航与角色贯穿组件库                 |
-| 可测试性   | 语义树驱动 E2E，另可逐帧读取实际画出的文本，直接断言渲染结果       |
-| 降级链     | SharedArrayBuffer → `postMessage` → 主线程 Canvas2D                |
+| 能力       | 说明                                                                  |
+| ---------- | --------------------------------------------------------------------- |
+| 组件运行时 | TSX 函数组件、hooks 与 signal、`memo`、context                        |
+| 样式       | 69 个 CSS 属性的版本化子集（当前 `1.8.0`），逐属性 feature bit        |
+| 布局       | flex 单行、`position: absolute` + inset、`z-index`、overflow          |
+| 滚动       | `overflow` 让任意 View 成为滚动容器，滚动帧不进入 Shell               |
+| 虚拟化     | View 上的显式数据窗口，窗口由核心规划，x/y 单轴，绝不从 overflow 推断 |
+| 文本与编辑 | 引擎自绘文本、caret、选区、IME 组合、剪贴板、撤销重做                 |
+| 矢量       | SVG 路径与文档子集，图标可用 `createSvg` 直接接入                     |
+| 动画       | 核心内的 transition 与 keyframes，可 retarget/cancel，尊重减弱动效    |
+| 无障碍     | 语义树随帧导出到旁路 DOM，键盘导航与角色贯穿组件库                    |
+| 可测试性   | 语义树驱动 E2E，另可逐帧读取实际画出的文本，直接断言渲染结果          |
+| 降级链     | SharedArrayBuffer → `postMessage` → 主线程 Canvas2D                   |
 
 **目前没有**：CSS 选择器与层叠的完整兼容、SSR 与 HTML 首屏、`flex-wrap`、渐变与图案
 填充、图表。样式子集的逐条偏差见

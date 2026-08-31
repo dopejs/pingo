@@ -1,6 +1,27 @@
-# 가상 스크롤
+# 스크롤과 가상화
 
-## 왜 엔진 안에서 하는가
+## 스크롤은 overflow에서 나온다
+
+View가 어떤 축에서 `overflow-x` / `overflow-y`를 `auto`, `scroll`, `hidden` 중 하나로
+선언하면 그 축의 스크롤 컨테이너가 됩니다. 다른 요소로 바꿀 필요가 없습니다.
+
+```ts
+View({
+  style: { height: 480, overflowY: "auto" },
+  children: rows,
+});
+```
+
+제스처, 휠, 스크롤 체인, 스크롤바가 모두 이 선언 하나에서 유도됩니다. 히트 경로는 가장
+가까운 스크롤 조상을 위로 찾고, 스크롤바는 Core가 이미 가진 스크롤 상태로 그리므로 스크롤
+프레임은 Shell로 들어가지 않습니다. `hidden`은 CSS와 같습니다. 사용자에게 바를 보여주지
+않을 뿐 프로그램적 스크롤은 그대로 동작합니다.
+
+**스크롤은 가상화가 아닙니다.** overflow는 박스를 스크롤시킬 뿐 데이터를 윈도화할지
+추측하지 않습니다. 아래의 `virtual`은 명시적 계약이며, overflow나 이미 실체화된 자식에서
+추론되는 일은 결코 없습니다.
+
+## 가상화를 왜 엔진 안에 두는가
 
 DOM 기반 가상 리스트의 꼬리 지연은 스크롤 이벤트가 메인 스레드로 돌아가 setState를 일으키고
 diff를 거쳐 재레이아웃하는 데서 옵니다. 메인 스레드가 바쁘면 프레임이 떨어집니다.
@@ -9,42 +30,58 @@ pingo는 윈도 계산을 Core에 둡니다. 스크롤 중에는 **Shell을 전�
 Core가 계획한 프리페치 윈도에 따라 보이는 구간만 실체화하고, 데이터가 아직 없으면 자리표시자를
 그린 뒤 이후 프레임에서 보완합니다.
 
-## 사용법
+## View에 데이터 윈도를 준다
+
+가상화는 View의 속성이지 다른 컴포넌트가 아닙니다. 같은 스크롤 박스가 평범한 자식도, 백만 행도 담을 수 있습니다.
 
 ```ts
-createElement("virtualList", {
-  width: 480,
-  height: 640,
-  itemCount: 1_000_000,
-  estimatedItemHeight: 32,
-  renderItem: (index: number) =>
-    createElement("container", {
-      width: 480,
-      height: 32,
-      children: createElement("text", { value: `${index}번째 행` }),
-    }),
+View({
+  style: { width: 480, height: 640, overflowY: "auto" },
+  virtual: {
+    axis: "y",
+    itemCount: 1_000_000,
+    estimatedItemSize: 32,
+    getItemKey: (index: number) => `order-${index}`,
+    renderItem: (index: number) =>
+      View({
+        style: { height: 32 },
+        children: Text({ value: `${index}번째 행` }),
+      }),
+  },
 });
 ```
 
-`estimatedItemHeight`는 초기 추정값일 뿐입니다. 실제 높이를 측정하면 Core가 누적합 트리(Fenwick)로
+`estimatedItemSize`는 초기 추정값일 뿐입니다. 실제 크기를 측정하면 Core가 누적합 트리(Fenwick)로
 앵커 위치를 보정하므로 스크롤 위치가 튀지 않습니다.
+
+`axis`는 단일 축입니다. 하나의 윈도는 `x` 또는 `y` 중 하나만 담당합니다.
+
+`VirtualList` 컴포넌트도 그대로 쓸 수 있습니다. 세로 목록의 축약형이며 같은 Core 계약으로
+내려갑니다. 가로 축, `getItemKey`, 또는 같은 박스에서 일반 내용과 윈도를 함께 다루고 싶다면
+View의 `virtual`을 쓰세요.
 
 ## 조정 가능한 항목
 
-| prop                     | 역할                                            |
-| ------------------------ | ----------------------------------------------- |
-| `baseOverscanViewports`  | 대칭 프리페치 범위(뷰포트 배수)                 |
-| `velocityHorizonSeconds` | 방향 예측에 쓰는 속도 투영 시간                 |
-| `maximumAheadViewports`  | 한 방향 프리페치 상한                           |
-| `scrollX` / `scrollY`    | 프로그램적 스크롤 위치(변할 때만 ScrollTo 발행) |
+| `virtual` 필드           | 역할                                                |
+| ------------------------ | --------------------------------------------------- |
+| `axis`                   | 윈도가 놓인 단일 축, `x` 또는 `y`(기본 `y`)         |
+| `itemCount`              | 논리 항목 총수                                      |
+| `estimatedItemSize`      | 초기 크기 추정값, 측정 후 Core가 보정               |
+| `getItemKey`             | 안정적인 항목 식별자, 윈도를 넘나드는 재사용에 쓰임 |
+| `renderItem`             | 항목 실체화, 프리페치 윈도 안의 인덱스에만 호출     |
+| `baseOverscanViewports`  | 대칭 프리페치 범위(뷰포트 배수)                     |
+| `velocityHorizonSeconds` | 방향 예측에 쓰는 속도 투영 시간                     |
+| `maximumAheadViewports`  | 한 방향 프리페치 상한                               |
 
 방향 예측은 빠른 플링에서 진행 방향을 우선 프리페치하며, 양쪽에 예산을 균등하게 낭비하지 않습니다.
 
 ## 프로그램적 스크롤
 
+`scrollX` / `scrollY`는 View 자신의 속성이며 가상화 여부와 무관합니다. 값이 바뀔 때만
+`ScrollTo`를 한 번 발행합니다.
+
 ```ts
-// prop 변화로 ScrollTo mutation을 한 번 발행합니다
-root.render(createElement("virtualList", { scrollY: 500_000 * 32 /* ... */ }));
+View({ style: { height: 480, overflowY: "auto" }, scrollY: 500_000 * 32, children: rows });
 ```
 
 커스텀 제스처에는 root의 직접 조작 API를 사용합니다.
@@ -66,9 +103,9 @@ root.endScroll(handle); // 플링 속도 추정은 Core에 맡깁니다
 
 ## 중첩과 편집
 
+휠은 가장 가까운 스크롤 조상, 즉 overflow를 선언한 가장 가까운 View를 스크롤합니다.
 포인터 드래그가 편집 가능한 텍스트 위에서 시작되면 텍스트 선택이 스크롤 드래그보다 우선합니다.
-휠은 여전히 가장 가까운 스크롤 조상을 스크롤합니다. 이 우선순위는 히트 경로의 깊이로 결정되며
-애플리케이션이 개입할 필요가 없습니다.
+이 우선순위는 히트 경로의 깊이로 결정되며 애플리케이션이 개입할 필요가 없습니다.
 
 ## 성능 기준
 

@@ -130,5 +130,5 @@ Aufbauend auf den fünf eingebauten Elementen bietet pingo drei weitere Ebenen a
 ## Nächste Schritte
 
 - [Architekturüberblick](/guide/architecture): Wie Shell und Core die Aufgaben aufteilen
-- [Virtuelles Scrollen](/guide/scrolling), [Text und Bearbeitung](/guide/editing)
+- [Scrollen und Virtualisierung](/guide/scrolling), [Text und Bearbeitung](/guide/editing)
 - [Playground](/playground): Interaktive Live-Demo

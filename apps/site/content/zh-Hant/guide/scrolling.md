@@ -1,6 +1,25 @@
-# 虛擬捲動
+# 捲動與虛擬化
 
-## 為什麼在引擎裡做
+## 捲動來自 overflow
+
+任何 View 只要在某個軸上把 `overflow-x` / `overflow-y` 宣告為 `auto`、`scroll` 或
+`hidden`，它就是那個軸上的捲動容器。不需要換成別的元素：
+
+```ts
+View({
+  style: { height: 480, overflowY: "auto" },
+  children: rows,
+});
+```
+
+手勢、滾輪、捲動鏈與捲軸都由這一條宣告推導：命中路徑向上找最近的捲動祖先，捲軸由
+Core 用它已經持有的捲動狀態繪製，所以捲動幀不進入 Shell。`hidden` 與 CSS 一致——不給
+使用者捲軸，程式化捲動仍然有效。
+
+**捲動不等於虛擬化。** overflow 只讓盒子捲動，它不會去猜你要不要把資料視窗化；下面的
+`virtual` 是一份顯式契約，絕不從 overflow 或已經具現化的子節點推斷出來。
+
+## 為什麼虛擬化放在引擎裡
 
 DOM 虛擬列表的長尾問題來自：捲動事件要回到主執行緒 → 觸發 setState → diff → 重排。
 主執行緒一忙，幀就掉。
@@ -8,42 +27,57 @@ DOM 虛擬列表的長尾問題來自：捲動事件要回到主執行緒 → �
 pingo 把視窗計算放進 Core：捲動穩態**完全不呼叫 Shell**。Shell 只負責依 Core 規劃的
 預熱視窗具現化可見區間；資料沒準備好時先畫佔位，後續幀補建。
 
-## 用法
+## 給 View 一份資料視窗
+
+虛擬化是 View 上的一個屬性，不是另一種元件——同一個捲動的盒子既可以裝普通子節點，也可以裝一百萬列：
 
 ```ts
-createElement("virtualList", {
-  width: 480,
-  height: 640,
-  itemCount: 1_000_000,
-  estimatedItemHeight: 32,
-  renderItem: (index: number) =>
-    createElement("container", {
-      width: 480,
-      height: 32,
-      children: createElement("text", { value: `第 ${index} 列` }),
-    }),
+View({
+  style: { width: 480, height: 640, overflowY: "auto" },
+  virtual: {
+    axis: "y",
+    itemCount: 1_000_000,
+    estimatedItemSize: 32,
+    getItemKey: (index: number) => `order-${index}`,
+    renderItem: (index: number) =>
+      View({
+        style: { height: 32 },
+        children: Text({ value: `第 ${index} 列` }),
+      }),
+  },
 });
 ```
 
-`estimatedItemHeight` 只是初始估計。真實高度量測出來後，Core 透過前綴和樹（Fenwick）
+`estimatedItemSize` 只是初始估計。真實尺寸量測出來後，Core 透過前綴和樹（Fenwick）
 校正錨點位置，捲軸不會跳動。
+
+`axis` 是單軸的：一個視窗負責 `x` 或 `y`，不會同時負責兩個。
+
+`VirtualList` 元件仍然可用，它是縱向列表的簡寫，落到同一套 Core 契約上；需要橫向、需要
+`getItemKey`，或想讓同一個盒子既捲動普通內容又開視窗時，用 View 上的 `virtual`。
 
 ## 可調項
 
-| prop                     | 作用                                    |
-| ------------------------ | --------------------------------------- |
-| `baseOverscanViewports`  | 對稱預熱範圍（視窗倍數）                |
-| `velocityHorizonSeconds` | 速度投影時長，用於方向預測              |
-| `maximumAheadViewports`  | 單方向預熱上限                          |
-| `scrollX` / `scrollY`    | 程式化捲動位置（變化時才發出 ScrollTo） |
+| `virtual` 欄位           | 作用                                   |
+| ------------------------ | -------------------------------------- |
+| `axis`                   | 窗口所在的單軸，`x` 或 `y`（預設 `y`） |
+| `itemCount`              | 邏輯項目總數                           |
+| `estimatedItemSize`      | 初始尺寸估計，量測後由 Core 校正       |
+| `getItemKey`             | 穩定的項目識別，用於跨視窗複用         |
+| `renderItem`             | 具現化單項，只對預熱視窗內的索引呼叫   |
+| `baseOverscanViewports`  | 對稱預熱範圍（視窗倍數）               |
+| `velocityHorizonSeconds` | 速度投影時長，用於方向預測             |
+| `maximumAheadViewports`  | 單方向預熱上限                         |
 
 方向預測會在快速 fling 時優先預熱運動方向，而不是對稱浪費兩側預算。
 
 ## 程式化捲動
 
+`scrollX` / `scrollY` 是 View 自己的屬性，與是否虛擬化無關，值變化時才發出一次
+`ScrollTo`：
+
 ```ts
-// 透過 prop 變化觸發一次 ScrollTo mutation
-root.render(createElement("virtualList", { scrollY: 500_000 * 32 /* ... */ }));
+View({ style: { height: 480, overflowY: "auto" }, scrollY: 500_000 * 32, children: rows });
 ```
 
 或用 root 上的直接操縱 API（用於自訂手勢）：
@@ -64,8 +98,8 @@ root.endScroll(handle); // 交給 Core 估算 fling 速度
 
 ## 巢狀與編輯
 
-指標拖曳落在可編輯文字上時，文字選取優先於捲動拖曳；滾輪仍然捲動最近的捲動祖先。
-這個優先序由命中路徑深度決定，不需要業務介入。
+滾輪捲動最近的捲動祖先——也就是最近一個宣告了 overflow 的 View。指標拖曳落在可編輯
+文字上時，文字選取優先於捲動拖曳；這個優先序由命中路徑深度決定，不需要業務介入。
 
 ## 效能口徑
 

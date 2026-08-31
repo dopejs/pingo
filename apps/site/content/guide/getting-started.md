@@ -130,5 +130,5 @@ const root = await createHostedCanvasRoot(canvas, {
 ## 下一步
 
 - [架构概览](/guide/architecture)：Shell 与 Core 如何分工
-- [虚拟滚动](/guide/scrolling)、[文本与编辑](/guide/editing)
+- [滚动与虚拟化](/guide/scrolling)、[文本与编辑](/guide/editing)
 - [Playground](/playground)：可交互的实时演示

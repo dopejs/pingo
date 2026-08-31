@@ -130,5 +130,5 @@ const root = await createHostedCanvasRoot(canvas, {
 ## הצעדים הבאים
 
 - [סקירת ארכיטקטורה](/guide/architecture): כיצד מתחלקים התפקידים בין Shell ל־Core
-- [גלילה וירטואלית](/guide/scrolling), [טקסט ועריכה](/guide/editing)
+- [גלילה ווירטואליזציה](/guide/scrolling), [טקסט ועריכה](/guide/editing)
 - [Playground](/playground): הדגמה חיה אינטראקטיבית

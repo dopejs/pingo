@@ -1,6 +1,28 @@
-# Scroll virtual
+# Scroll y virtualización
 
-## Por qué se hace dentro del motor
+## El scroll nace de overflow
+
+En cuanto un View declara `overflow-x` / `overflow-y` como `auto`, `scroll` o `hidden` en
+un eje, es un contenedor de scroll en ese eje. No hace falta cambiarlo por otro elemento:
+
+```ts
+View({
+  style: { height: 480, overflowY: "auto" },
+  children: rows,
+});
+```
+
+Gestos, rueda, encadenamiento y barra de scroll salen todos de esa única declaración: el
+camino de hit sube hasta el ancestro desplazable más cercano, y la barra la dibuja el Core
+con el estado de scroll que ya posee, así que una frame de scroll no llega al Shell.
+`hidden` se comporta como en CSS: sin barra para el usuario, pero el scroll programático
+sigue funcionando.
+
+**Hacer scroll no es virtualizar.** `overflow` solo hace desplazable la caja y no adivina
+si quieres ventanar los datos. El `virtual` de abajo es un contrato explícito, nunca
+inferido de `overflow` ni de los hijos ya materializados.
+
+## Por qué la virtualización vive en el motor
 
 La latencia de cola de las listas virtuales en DOM viene de la cadena: el evento de scroll vuelve al
 hilo principal, dispara setState, hay diff y reflow. En cuanto el hilo principal se ocupa, se pierden
@@ -11,43 +33,60 @@ capa TypeScript**. Ésta sólo materializa el rango visible siguiendo la ventana
 planifica el Core; si los datos aún no están, se dibuja un marcador y se completa en fotogramas
 posteriores.
 
-## Uso
+## Dar una ventana de datos a un View
+
+La virtualización es una propiedad del View, no otro componente: la misma caja desplazable lleva hijos normales o un millón de filas.
 
 ```ts
-createElement("virtualList", {
-  width: 480,
-  height: 640,
-  itemCount: 1_000_000,
-  estimatedItemHeight: 32,
-  renderItem: (index: number) =>
-    createElement("container", {
-      width: 480,
-      height: 32,
-      children: createElement("text", { value: `Fila ${index}` }),
-    }),
+View({
+  style: { width: 480, height: 640, overflowY: "auto" },
+  virtual: {
+    axis: "y",
+    itemCount: 1_000_000,
+    estimatedItemSize: 32,
+    getItemKey: (index: number) => `order-${index}`,
+    renderItem: (index: number) =>
+      View({
+        style: { height: 32 },
+        children: Text({ value: `Fila ${index}` }),
+      }),
+  },
 });
 ```
 
-`estimatedItemHeight` es sólo una estimación inicial. Cuando se mide la altura real, el Core corrige
-la posición del ancla mediante un árbol de sumas prefijas (Fenwick) y la barra de scroll no salta.
+`estimatedItemSize` es solo una estimación inicial. Cuando se mide el tamaño real, el Core
+corrige la posición del ancla con un árbol de sumas de prefijos (Fenwick) y la barra no da
+saltos.
+
+`axis` es de un solo eje: una ventana sirve `x` o `y`, no ambos.
+
+El componente `VirtualList` sigue existiendo: es el atajo para una lista vertical y acaba en el
+mismo contrato del Core. Para el eje horizontal, para `getItemKey`, o cuando la misma caja debe
+llevar contenido normal y una ventana, usa `virtual` en el View.
 
 ## Parámetros ajustables
 
-| prop                     | Efecto                                                               |
-| ------------------------ | -------------------------------------------------------------------- |
-| `baseOverscanViewports`  | Rango de precarga simétrico (múltiplos del viewport)                 |
-| `velocityHorizonSeconds` | Horizonte de proyección de velocidad para la predicción de dirección |
-| `maximumAheadViewports`  | Límite de precarga en una sola dirección                             |
-| `scrollX` / `scrollY`    | Posición programática (sólo emite ScrollTo cuando cambia)            |
+| Campo de `virtual`       | Función                                                        |
+| ------------------------ | -------------------------------------------------------------- |
+| `axis`                   | Eje único de la ventana, `x` o `y` (por defecto `y`)           |
+| `itemCount`              | Total de elementos lógicos                                     |
+| `estimatedItemSize`      | Estimación inicial, corregida por el Core tras medir           |
+| `getItemKey`             | Identidad estable del elemento, para reutilizar entre ventanas |
+| `renderItem`             | Materializa un elemento, solo para los índices de la ventana   |
+| `baseOverscanViewports`  | Rango de precalentamiento simétrico (múltiplos del viewport)   |
+| `velocityHorizonSeconds` | Tiempo de proyección de la velocidad, para predecir dirección  |
+| `maximumAheadViewports`  | Tope de precalentamiento en una dirección                      |
 
 La predicción de dirección precarga preferentemente hacia donde va el movimiento en un desplazamiento
 rápido, en vez de gastar el presupuesto por igual a ambos lados.
 
 ## Scroll programático
 
+`scrollX` / `scrollY` son propiedades del propio View, independientes de la
+virtualización. Solo un cambio de valor emite una mutación `ScrollTo`:
+
 ```ts
-// Un cambio de prop emite una única mutación ScrollTo
-root.render(createElement("virtualList", { scrollY: 500_000 * 32 /* ... */ }));
+View({ style: { height: 480, overflowY: "auto" }, scrollY: 500_000 * 32, children: rows });
 ```
 
 O bien la API de manipulación directa del root, pensada para gestos propios:
@@ -70,10 +109,10 @@ del contenido y sin overscroll, igual que en el navegador.
 
 ## Anidamiento y edición
 
-Cuando un arrastre de puntero empieza sobre texto editable, la selección de texto tiene prioridad
-sobre el arrastre de scroll; la rueda sigue desplazando el ancestro desplazable más cercano. Esta
-prioridad se decide por la profundidad de la ruta de hit testing y no requiere intervención de la
-aplicación.
+La rueda desplaza el ancestro desplazable más cercano, es decir, el View más cercano que
+declara `overflow`. Si un arrastre del puntero empieza sobre texto editable, la selección
+de texto tiene prioridad sobre el arrastre de scroll. Esta prioridad la decide la
+profundidad en el camino de hit; la aplicación no interviene.
 
 ## Criterio de rendimiento
 

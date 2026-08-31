@@ -130,5 +130,5 @@ const root = await createHostedCanvasRoot(canvas, {
 ## 次のステップ
 
 - [アーキテクチャ概要](/guide/architecture)：Shell と Core の役割分担
-- [仮想スクロール](/guide/scrolling)、[テキストと編集](/guide/editing)
+- [スクロールと仮想化](/guide/scrolling)、[テキストと編集](/guide/editing)
 - [Playground](/playground)：インタラクティブなライブデモ

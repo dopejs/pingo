@@ -123,5 +123,5 @@ const root = await createHostedCanvasRoot(canvas, {
 ## Дальнейшие шаги
 
 - [Обзор архитектуры](/guide/architecture): как разделены обязанности между Shell и Core
-- [Виртуальная прокрутка](/guide/scrolling), [Текст и редактирование](/guide/editing)
+- [Прокрутка и виртуализация](/guide/scrolling), [Текст и редактирование](/guide/editing)
 - [Playground](/playground): интерактивная живая демонстрация

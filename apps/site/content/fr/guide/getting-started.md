@@ -129,5 +129,5 @@ Au-dessus des cinq éléments intégrés, pingo offre également trois couches d
 ## Prochaines étapes
 
 - [Aperçu de l'architecture](/guide/architecture) : comment Shell et Core se répartissent les tâches
-- [Défilement virtuel](/guide/scrolling), [Texte et édition](/guide/editing)
+- [Défilement et virtualisation](/guide/scrolling), [Texte et édition](/guide/editing)
 - [Playground](/playground) : démonstrations interactives en temps réel

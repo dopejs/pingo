@@ -129,5 +129,5 @@ Sobre los cinco elementos integrados, pingo ofrece además tres capas de capacid
 ## Siguientes pasos
 
 - [Descripción general de la arquitectura](/guide/architecture): cómo se reparten el trabajo Shell y Core
-- [Desplazamiento virtual](/guide/scrolling), [Texto y edición](/guide/editing)
+- [Scroll y virtualización](/guide/scrolling), [Texto y edición](/guide/editing)
 - [Playground](/playground): demostración interactiva en tiempo real

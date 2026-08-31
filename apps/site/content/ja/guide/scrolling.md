@@ -1,6 +1,28 @@
-# 仮想スクロール
+# スクロールと仮想化
 
-## なぜエンジン側で行うのか
+## スクロールは overflow から生まれる
+
+View がある軸で `overflow-x` / `overflow-y` を `auto`、`scroll`、`hidden` のいずれかに
+宣言していれば、その軸のスクロールコンテナになります。別の要素に置き換える必要は
+ありません。
+
+```ts
+View({
+  style: { height: 480, overflowY: "auto" },
+  children: rows,
+});
+```
+
+ジェスチャ、ホイール、スクロールチェーン、スクロールバーはすべてこの宣言から導かれます。
+ヒットパスは最も近いスクロール祖先を上に辿り、スクロールバーは Core がすでに持っている
+スクロール状態から描くため、スクロールフレームは Shell に入りません。`hidden` は CSS と
+同じで、ユーザーにバーを見せないだけでプログラムからのスクロールは有効です。
+
+**スクロールは仮想化ではありません。** overflow はボックスをスクロールさせるだけで、
+データをウィンドウ化するかどうかを推測しません。次に出てくる `virtual` は明示的な契約で、
+overflow や既に実体化された子から推論されることは決してありません。
+
+## なぜ仮想化をエンジン側に置くのか
 
 DOM ベースの仮想リストのテールレイテンシは、スクロールイベントがメインスレッドに戻り、
 setState を起こし、差分を取り、再レイアウトするところから来ます。メインスレッドが忙しければ
@@ -10,42 +32,58 @@ pingo はウィンドウ計算を Core に置きます。スクロール中は**
 Shell は Core が計画したプリフェッチウィンドウに従って可視区間を実体化するだけで、データが
 まだ無ければプレースホルダーを描き、後続フレームで補完します。
 
-## 使い方
+## View にデータウィンドウを与える
+
+仮想化は View のプロパティであって、別のコンポーネントではありません。同じスクロールする箱が、普通の子も 100 万行も持てます。
 
 ```ts
-createElement("virtualList", {
-  width: 480,
-  height: 640,
-  itemCount: 1_000_000,
-  estimatedItemHeight: 32,
-  renderItem: (index: number) =>
-    createElement("container", {
-      width: 480,
-      height: 32,
-      children: createElement("text", { value: `${index} 行目` }),
-    }),
+View({
+  style: { width: 480, height: 640, overflowY: "auto" },
+  virtual: {
+    axis: "y",
+    itemCount: 1_000_000,
+    estimatedItemSize: 32,
+    getItemKey: (index: number) => `order-${index}`,
+    renderItem: (index: number) =>
+      View({
+        style: { height: 32 },
+        children: Text({ value: `${index} 行目` }),
+      }),
+  },
 });
 ```
 
-`estimatedItemHeight` はあくまで初期見積もりです。実際の高さを計測すると、Core が累積和ツリー
+`estimatedItemSize` はあくまで初期見積もりです。実際のサイズを計測すると、Core が累積和ツリー
 （Fenwick）でアンカー位置を補正するため、スクロール位置が飛ぶことはありません。
+
+`axis` は単軸です。1 つのウィンドウは `x` か `y` のどちらか一方を担当します。
+
+`VirtualList` コンポーネントも引き続き使えます。縦方向リストの短縮形で、同じ Core 契約に
+落ちます。横方向、`getItemKey`、あるいは同じ箱で普通の内容もウィンドウも扱いたい場合は View の
+`virtual` を使ってください。
 
 ## 調整できる項目
 
-| prop                     | 役割                                                  |
-| ------------------------ | ----------------------------------------------------- |
-| `baseOverscanViewports`  | 対称なプリフェッチ範囲（ビューポート倍数）            |
-| `velocityHorizonSeconds` | 方向予測に使う速度の投影時間                          |
-| `maximumAheadViewports`  | 片方向のプリフェッチ上限                              |
-| `scrollX` / `scrollY`    | プログラムからのスクロール位置（変化時のみ ScrollTo） |
+| `virtual` フィールド     | 役割                                                     |
+| ------------------------ | -------------------------------------------------------- |
+| `axis`                   | ウィンドウの単軸、`x` または `y`（既定は `y`）           |
+| `itemCount`              | 論理項目の総数                                           |
+| `estimatedItemSize`      | 初期サイズ見積もり、計測後に Core が補正                 |
+| `getItemKey`             | 安定した項目識別子、ウィンドウをまたぐ再利用に使う       |
+| `renderItem`             | 項目の実体化、プリフェッチウィンドウ内の添字だけ呼ばれる |
+| `baseOverscanViewports`  | 対称なプリフェッチ範囲（ビューポート倍数）               |
+| `velocityHorizonSeconds` | 方向予測に使う速度の投影時間                             |
+| `maximumAheadViewports`  | 片方向のプリフェッチ上限                                 |
 
 方向予測は速いフリック時に進行方向を優先してプリフェッチし、両側に予算を均等に浪費しません。
 
 ## プログラムからのスクロール
 
+`scrollX` / `scrollY` は View 自身のプロパティで、仮想化の有無とは無関係です。値が変わった
+ときだけ `ScrollTo` を 1 回発行します。
+
 ```ts
-// prop の変化で ScrollTo mutation を 1 回発行します
-root.render(createElement("virtualList", { scrollY: 500_000 * 32 /* ... */ }));
+View({ style: { height: 480, overflowY: "auto" }, scrollY: 500_000 * 32, children: rows });
 ```
 
 カスタムジェスチャ向けには root の直接操作 API を使います。
@@ -67,9 +105,9 @@ root.endScroll(handle); // フリング速度の推定は Core に任せます
 
 ## 入れ子と編集
 
+ホイールは最も近いスクロール祖先、つまり overflow を宣言した最も近い View をスクロールします。
 ポインタのドラッグが編集可能テキストの上で始まった場合はテキスト選択がスクロールドラッグより
-優先されます。ホイールは引き続き最も近いスクロール祖先をスクロールします。この優先順位は
-ヒットパスの深さで決まり、アプリケーション側の介入は不要です。
+優先されます。この優先順位はヒットパスの深さで決まり、アプリケーション側の介入は不要です。
 
 ## 性能の基準
 
