@@ -7,6 +7,13 @@ import { Text, useState, View, type PingoNode } from "@dopejs/pingo";
  * `jsxImportSource` is per file, so every tag in one file compiles to one
  * runtime. A React component cannot also contain pingo tags; it imports from
  * here instead, and that import is the entire boundary.
+ *
+ * The pragma is the mechanism -- nothing else in the toolchain can select a
+ * runtime per file. A nested `tsconfig.json` is ignored by `tsc`, and excluding
+ * a file by name does not stop `tsc` pulling it back in through this import and
+ * compiling it as React. The `.pingo.tsx` suffix is therefore a convention for
+ * readers and for bundler config, not a substitute: it earns its place in a
+ * directory like this one, where the two kinds of file sit side by side.
  */
 function Panel({ label }: { readonly label: string }): PingoNode {
   const [seen] = useState(label);

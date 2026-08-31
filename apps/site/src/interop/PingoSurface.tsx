@@ -5,7 +5,7 @@ import {
   type PaintedTextSnapshot,
 } from "@dopejs/pingo";
 
-import { scene } from "./scene";
+import { scene } from "./scene.pingo";
 
 interface PingoSurfaceProps {
   readonly label: string;
