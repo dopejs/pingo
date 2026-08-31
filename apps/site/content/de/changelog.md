@@ -7,6 +7,27 @@ title: Änderungsprotokoll
 Die Versionspolitik steht in `docs/release.md`: Alle 12 Pakete werden atomar in derselben Version
 veröffentlicht, npm-Semver und die Version des binären ABI werden getrennt verwaltet.
 
+## 0.4.0 - 2026-09-01
+
+- Neu: `@dopejs/pingo/react`. `PingoContainer` mountet ein pingo-Canvas in einer
+  React-Anwendung, ohne dass Sie Erzeugung, asynchrones Wettrennen und Aufräumen selbst
+  schreiben. Die Komponente erzeugt das Canvas selbst: Die Übergabe des Canvas durch den Root
+  ist endgültig und React StrictMode mountet in der Entwicklung zweimal, ein von React
+  gerendertes Canvas scheitert also.
+- TSX funktioniert jetzt wirklich. Bisher bestand keine Komponente aus `@dopejs/pingo-ui`,
+  kein Context-Provider und keine eigene Funktionskomponente mit dem Rückgabetyp `PingoNode`
+  die Typprüfung in TSX. Alle drei Fälle sind behoben, und die Dokumentation hat mit
+  [pingo in TSX schreiben](/de/guide/tsx) eine eigene Seite, samt Koexistenz mit React im
+  selben Repository.
+- Neue painted-text-Sonde: `onPaintedText` liefert pro Frame den tatsächlich gezeichneten
+  Text, seine Position und seinen Zeichenkanal, sodass sich das Rendering-Ergebnis ohne
+  Pixel-Snapshots behaupten lässt. Ohne Abonnement kostet sie nichts.
+- Behoben: In einem Frame ohne Strukturänderung wurden neu gesetzte `z-index`, `position`,
+  Flex-Größen oder `box-shadow` ignoriert — die Eigenschaft ließ sich korrekt zurücklesen,
+  wirkte aber nicht.
+- Der Fehler beim Übergeben eines Canvas an einen zweiten Root nennt jetzt Ursache und
+  Abhilfe.
+
 ## 0.3.1 - 2026-08-25
 
 - `@dopejs/pingo-ui` wird jetzt auf npm veröffentlicht, in derselben Version wie die Engine.

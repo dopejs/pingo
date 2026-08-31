@@ -7,6 +7,20 @@ title: 變更紀錄
 版本口徑見 `docs/release.md`：12 個套件同版本原子發佈，npm semver 與二進位
 ABI 版本獨立管理。
 
+## 0.4.0 - 2026-09-01
+
+- 新增 `@dopejs/pingo/react`：`PingoContainer` 讓你在 React 應用裡掛載一塊 pingo canvas，
+  不必自己寫建立、非同步競態與清理。它自己建立 canvas——root 對 canvas 的轉移是永久的，
+  React StrictMode 在開發期掛載兩次，交給它 React 渲染的 canvas 會失敗。
+- TSX 現在真的能用。此前 `@dopejs/pingo-ui` 的全部元件、context provider，以及回傳型別
+  標註為 `PingoNode` 的自訂函式元件，在 TSX 裡都通不過型別檢查。三類都已修復，文件站
+  新增[《用 TSX 寫 pingo》](/zh-Hant/guide/tsx)，包含與 React 在同一儲存庫共存的做法。
+- 新增 painted-text 探針：`onPaintedText` 逐幀給出實際畫出的文字、位置與繪製通道，可以
+  直接斷言渲染結果，而不必依賴像素快照。不訂閱時不產生任何開銷。
+- 修復：在沒有結構變化的幀裡新增 `z-index`、`position`、flex 尺寸或 `box-shadow` 會被
+  忽略——屬性讀回正確，但不生效。
+- 把 canvas 交給第二個 root 時的錯誤訊息改為可操作的說明。
+
 ## 0.3.1 - 2026-08-25
 
 - `@dopejs/pingo-ui` 開始發佈到 npm，與引擎同版本。它此前只存在於倉庫與文件站，

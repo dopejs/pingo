@@ -24,6 +24,10 @@ export const RELEASE_PACKAGES = [
   "widgets",
   "facade",
   "compat",
+  // The React binding is an optional subpath of the facade, so it publishes
+  // with it: `@dopejs/pingo` declares a dependency on it and the closure check
+  // below rejects a facade dependency that is not in this set.
+  "react",
   // The component library is not part of the engine's dependency closure, so
   // it publishes last. It rides the same version: the check below rejects any
   // package whose version differs from ENGINE_VERSION.

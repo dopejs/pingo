@@ -289,9 +289,10 @@ Do not pull WebGPU work before M2 is proven, or complex text work before the
 minimal text path and core are stable. A prototype may cross milestone
 boundaries only when it is isolated, disposable, and clearly marked as such.
 M9 work must preserve the inline DisplayList reference path and keep real-device
-qualification separate from automated engineering completion. Until M9-E
-upgrades the release workflow to the current full gate, do not tag or publish
-the unreleased M6+ changes.
+qualification separate from automated engineering completion. The release
+workflow now runs `pnpm release:gate`, so tagging is gated on the current full
+chain rather than on a historical one; a release still requires a maintainer to
+run that chain and authorize it, per `docs/release.md`.
 
 ## Documentation decisions
 

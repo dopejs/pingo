@@ -1,6 +1,6 @@
 {
   "name": "@dopejs/pingo-react",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "pingo internal: React host container for a pingo canvas root (use @dopejs/pingo/react)",
   "license": "Apache-2.0",
   "repository": {

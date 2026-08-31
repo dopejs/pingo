@@ -7,6 +7,24 @@ title: 변경 내역
 버전 정책은 `docs/release.md`를 보십시오. 11개 패키지를 같은 버전으로 원자적으로 배포하며,
 npm semver와 바이너리 ABI 버전은 독립적으로 관리합니다.
 
+## 0.4.0 - 2026-09-01
+
+- `@dopejs/pingo/react` 를 추가했습니다. `PingoContainer` 는 React 앱 안에 pingo canvas 를
+  마운트해 주며, 생성·비동기 경쟁·정리를 직접 쓰지 않아도 됩니다. canvas 는 컴포넌트가
+  직접 만듭니다. root 의 canvas 이양은 영구적이고 React StrictMode 는 개발 중 두 번
+  마운트하므로, React 가 렌더링한 canvas 를 넘기면 실패하기 때문입니다.
+- 이제 TSX 를 실제로 쓸 수 있습니다. 그동안 `@dopejs/pingo-ui` 의 모든 컴포넌트, context
+  provider, 그리고 반환 타입을 `PingoNode` 로 적은 사용자 함수 컴포넌트가 TSX 에서 타입
+  검사를 통과하지 못했습니다. 세 가지 모두 고쳤고, 문서에
+  [TSX 로 pingo 작성하기](/ko/guide/tsx)를 추가했습니다. 같은 저장소에서 React 와 공존하는
+  방법도 담았습니다.
+- painted-text 프로브를 추가했습니다. `onPaintedText` 가 프레임마다 실제로 그려진 텍스트,
+  위치, 그리기 채널을 제공하므로 픽셀 스냅숏 없이 렌더링 결과를 바로 단언할 수 있습니다.
+  구독하지 않으면 비용이 전혀 없습니다.
+- 수정: 구조 변화가 없는 프레임에서 `z-index`, `position`, flex 크기, `box-shadow` 를
+  추가하면 무시되었습니다. 속성 읽기는 정상인데 적용되지 않는 상태였습니다.
+- canvas 를 두 번째 root 에 넘길 때의 오류를 조치 가능한 설명으로 바꿨습니다.
+
 ## 0.3.1 - 2026-08-25
 
 - `@dopejs/pingo-ui`를 npm에 배포하기 시작했습니다. 버전은 엔진과 같습니다. 지금까지는 저장소와

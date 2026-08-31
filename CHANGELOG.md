@@ -1,9 +1,31 @@
 # Changelog
 
-版本口径见 `docs/release.md`：13 个包同版本原子发布，npm semver 与二进制
+版本口径见 `docs/release.md`：14 个包同版本原子发布，npm semver 与二进制
 ABI 版本独立管理。本文、面向用户的 `apps/site/content/changelog.md` 及其九份翻译必须
 覆盖同一组已发布版本，由 `scripts/check-changelog-sync.test.mjs` 强制；各份详略与读者
 不同，但不得缺少其他份已经记录的版本。
+
+## 0.4.0 - 2026-09-01
+
+- 新增 `@dopejs/pingo/react`：`PingoContainer` 在 React 树里挂载一个 pingo canvas root。
+  它自己创建 canvas 而不是接收 React 渲染的那个——root 对 canvas 的 OffscreenCanvas
+  转移是永久的，React StrictMode 的开发期双挂载会把同一个元素交给第二个 root 并失败。
+  发布集因此由 13 个包变为 14 个。
+- 修复 TSX 里三类元素不可用。`memo` 与 context provider 此前返回没有调用签名的纯对象，
+  而 TypeScript 从调用签名推导 JSX 标签的 props，所以 `<Button>` 与 `<ctx.Provider>` 都是
+  `TS2604`——`@dopejs/pingo-ui` 的 78 个导出全部不能在 TSX 中使用，context 在 TSX 里也
+  无法表达。两者改为携带同一 brand 的可调用对象，元素标识与 reconciler 分发不变。
+- 新增 `JSX.ElementType`，修复返回 `PingoNode` 的函数组件被拒为标签（`TS2786`）。该返回
+  类型正是文档示例使用的写法。
+- `ContextProvider<T>` 因新增参数而在 `T` 上变为不变型，查找桥与元素类型联合改用新增的
+  `AnyPingoContext` / `AnyContextProvider`，两者已加入公开导出。
+- 新增 painted-text 渲染 oracle：`onPaintedText` 与 `HostedCanvasRoot.paintedText()` 按
+  绘制顺序导出本帧实际发出的文本、节点、设备坐标与绘制通道。它是拉取式的，不订阅时
+  Core 不会遍历 paint 缓存，帧成本不变。worker protocol 升至 14。
+- 修复纯样式提交不刷新 Scene 的样式能力位：在没有结构变化也没有资源释放的帧里新增
+  `z-index`、`position`、flex 尺寸或 `box-shadow` 会被整体忽略，而属性读回却是正确的。
+- 向已经转移控制权的 canvas 创建第二个 root 时，不再抛出未加说明的 DOM
+  `InvalidStateError`，而是指出原因与做法（每个 root 用新的 canvas 元素）。
 
 ## 0.3.1 - 2026-08-25
 
