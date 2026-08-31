@@ -47,22 +47,24 @@ features:
 pnpm add @dopejs/pingo
 ```
 
-```ts
+```tsx
 import { createHostedCanvasRoot, Text, View } from "@dopejs/pingo";
 
 const root = await createHostedCanvasRoot(document.querySelector("canvas")!);
 
 root.render(
-  View({
-    style: { width: 480, height: 640, overflowY: "auto" },
-    virtual: {
+  <View
+    style={{ width: 480, height: 640, overflowY: "auto" }}
+    virtual={{
       itemCount: 1_000_000,
       estimatedItemSize: 32,
-      renderItem: (index) => Text({ value: `第 ${index} 行` }),
-    },
-  }),
+      renderItem: (index) => <Text value={`第 ${index} 行`} />,
+    }}
+  />,
 );
 ```
+
+Для TSX нужно указать `jsxImportSource` как `@dopejs/pingo` в `tsconfig.json`, см. [Начало работы](/guide/getting-started).
 
 Миллион строк не материализуется на стороне Shell, а прокрутка не вызывает обращений к дереву компонентов — расчёт окна и заполнение пропусков происходят внутри Core.
 

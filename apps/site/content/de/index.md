@@ -47,22 +47,24 @@ features:
 pnpm add @dopejs/pingo
 ```
 
-```ts
+```tsx
 import { createHostedCanvasRoot, Text, View } from "@dopejs/pingo";
 
 const root = await createHostedCanvasRoot(document.querySelector("canvas")!);
 
 root.render(
-  View({
-    style: { width: 480, height: 640, overflowY: "auto" },
-    virtual: {
+  <View
+    style={{ width: 480, height: 640, overflowY: "auto" }}
+    virtual={{
       itemCount: 1_000_000,
       estimatedItemSize: 32,
-      renderItem: (index) => Text({ value: `第 ${index} 行` }),
-    },
-  }),
+      renderItem: (index) => <Text value={`第 ${index} 行`} />,
+    }}
+  />,
 );
 ```
+
+TSX setzt voraus, dass `jsxImportSource` in `tsconfig.json` auf `@dopejs/pingo` zeigt, siehe [Erste Schritte](/guide/getting-started).
 
 Eine Million Zeilen werden auf Shell-Seite nicht materialisiert, und während des Scrollens erfolgt kein Rückruf an den Komponentenbaum – Fensterberechnung und Nachbau finden vollständig im Core statt.
 

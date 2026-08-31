@@ -47,22 +47,24 @@ features:
 pnpm add @dopejs/pingo
 ```
 
-```ts
+```tsx
 import { createHostedCanvasRoot, Text, View } from "@dopejs/pingo";
 
 const root = await createHostedCanvasRoot(document.querySelector("canvas")!);
 
 root.render(
-  View({
-    style: { width: 480, height: 640, overflowY: "auto" },
-    virtual: {
+  <View
+    style={{ width: 480, height: 640, overflowY: "auto" }}
+    virtual={{
       itemCount: 1_000_000,
       estimatedItemSize: 32,
-      renderItem: (index) => Text({ value: `第 ${index} 行` }),
-    },
-  }),
+      renderItem: (index) => <Text value={`第 ${index} 行`} />,
+    }}
+  />,
 );
 ```
+
+TSX requiere apuntar `jsxImportSource` a `@dopejs/pingo` en `tsconfig.json`; ver [Primeros pasos](/guide/getting-started).
 
 Un millón de filas no se materializan en el lado del Shell, y el proceso de desplazamiento tampoco devuelve llamadas al árbol de componentes: el cálculo de ventanas y la reconstrucción ocurren dentro del Core.
 

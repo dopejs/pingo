@@ -47,22 +47,24 @@ features:
 pnpm add @dopejs/pingo
 ```
 
-```ts
+```tsx
 import { createHostedCanvasRoot, Text, View } from "@dopejs/pingo";
 
 const root = await createHostedCanvasRoot(document.querySelector("canvas")!);
 
 root.render(
-  View({
-    style: { width: 480, height: 640, overflowY: "auto" },
-    virtual: {
+  <View
+    style={{ width: 480, height: 640, overflowY: "auto" }}
+    virtual={{
       itemCount: 1_000_000,
       estimatedItemSize: 32,
-      renderItem: (index) => Text({ value: `السطر ${index}` }),
-    },
-  }),
+      renderItem: (index) => <Text value={`السطر ${index}`} />,
+    }}
+  />,
 );
 ```
+
+يتطلّب TSX توجيه `jsxImportSource` إلى `@dopejs/pingo` في `tsconfig.json`، انظر [البداية السريعة](/guide/getting-started).
 
 مليون سطر لن تُجسَّد على جانب الغلاف، وعملية التمرير لا تستدعي شجرة المكونات — حساب النوافذ وبناء العناصر يقعان داخل النواة.
 

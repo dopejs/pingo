@@ -47,22 +47,24 @@ features:
 pnpm add @dopejs/pingo
 ```
 
-```ts
+```tsx
 import { createHostedCanvasRoot, Text, View } from "@dopejs/pingo";
 
 const root = await createHostedCanvasRoot(document.querySelector("canvas")!);
 
 root.render(
-  View({
-    style: { width: 480, height: 640, overflowY: "auto" },
-    virtual: {
+  <View
+    style={{ width: 480, height: 640, overflowY: "auto" }}
+    virtual={{
       itemCount: 1_000_000,
       estimatedItemSize: 32,
-      renderItem: (index) => Text({ value: `שורה ${index}` }),
-    },
-  }),
+      renderItem: (index) => <Text value={`שורה ${index}`} />,
+    }}
+  />,
 );
 ```
+
+‏TSX דורש להפנות את `jsxImportSource` אל `@dopejs/pingo` בקובץ `tsconfig.json`, ראו [תחילת עבודה](/guide/getting-started).
 
 מיליון שורות אינן מתממשות בצד ה-Shell, ותהליך הגלילה גם אינו קורא חזרה לעץ הרכיבים — חישובי החלונות וההשלמה מתרחשים כולם בתוך ה-Core.
 

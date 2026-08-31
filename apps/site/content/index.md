@@ -47,22 +47,24 @@ features:
 pnpm add @dopejs/pingo
 ```
 
-```ts
+```tsx
 import { createHostedCanvasRoot, Text, View } from "@dopejs/pingo";
 
 const root = await createHostedCanvasRoot(document.querySelector("canvas")!);
 
 root.render(
-  View({
-    style: { width: 480, height: 640, overflowY: "auto" },
-    virtual: {
+  <View
+    style={{ width: 480, height: 640, overflowY: "auto" }}
+    virtual={{
       itemCount: 1_000_000,
       estimatedItemSize: 32,
-      renderItem: (index) => Text({ value: `第 ${index} 行` }),
-    },
-  }),
+      renderItem: (index) => <Text value={`第 ${index} 行`} />,
+    }}
+  />,
 );
 ```
+
+TSX 需要在 `tsconfig.json` 里把 `jsxImportSource` 指向 `@dopejs/pingo`，见[快速开始](/guide/getting-started)。
 
 一百万行不会在 Shell 侧物化，滚动过程也不回调组件树——窗口计算与补建都发生在 Core 内。
 

@@ -47,22 +47,24 @@ features:
 pnpm add @dopejs/pingo
 ```
 
-```ts
+```tsx
 import { createHostedCanvasRoot, Text, View } from "@dopejs/pingo";
 
 const root = await createHostedCanvasRoot(document.querySelector("canvas")!);
 
 root.render(
-  View({
-    style: { width: 480, height: 640, overflowY: "auto" },
-    virtual: {
+  <View
+    style={{ width: 480, height: 640, overflowY: "auto" }}
+    virtual={{
       itemCount: 1_000_000,
       estimatedItemSize: 32,
-      renderItem: (index) => Text({ value: `第 ${index} 行` }),
-    },
-  }),
+      renderItem: (index) => <Text value={`第 ${index} 行`} />,
+    }}
+  />,
 );
 ```
+
+TSX には `tsconfig.json` の `jsxImportSource` を `@dopejs/pingo` に向ける設定が必要です。[はじめに](/guide/getting-started)を参照してください。
 
 100 万行がシェル側で実体化されることはなく、スクロール中もコンポーネントツリーへのコールバックは発生しない。ウィンドウ計算と補完はすべて Core 内で行われる。
 

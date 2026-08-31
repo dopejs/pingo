@@ -47,22 +47,24 @@ features:
 pnpm add @dopejs/pingo
 ```
 
-```ts
+```tsx
 import { createHostedCanvasRoot, Text, View } from "@dopejs/pingo";
 
 const root = await createHostedCanvasRoot(document.querySelector("canvas")!);
 
 root.render(
-  View({
-    style: { width: 480, height: 640, overflowY: "auto" },
-    virtual: {
+  <View
+    style={{ width: 480, height: 640, overflowY: "auto" }}
+    virtual={{
       itemCount: 1_000_000,
       estimatedItemSize: 32,
-      renderItem: (index) => Text({ value: `第 ${index} 行` }),
-    },
-  }),
+      renderItem: (index) => <Text value={`第 ${index} 行`} />,
+    }}
+  />,
 );
 ```
+
+TSX 를 쓰려면 `tsconfig.json` 의 `jsxImportSource` 를 `@dopejs/pingo` 로 지정해야 합니다. [시작하기](/guide/getting-started)를 참고하세요.
 
 백만 행이 셸 측에서 구체화되지 않으며, 스크롤 과정에서도 컴포넌트 트리로 콜백이 발생하지 않습니다. 윈도우 계산과 보충 생성은 모두 Core 내부에서 이루어집니다.
 
