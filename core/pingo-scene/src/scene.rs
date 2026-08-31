@@ -1209,7 +1209,22 @@ impl Scene {
         for mutation in actions {
             self.apply_non_structural_mutation(mutation)?;
         }
+        // A style-only commit can introduce a rare property for the first time.
+        // Without this the capability stayed off until some later structural or
+        // release commit happened to recompute it, so adding `z-index`,
+        // `position`, flex sizing, or `box-shadow` to an existing node was
+        // silently ignored for as long as the tree did not change.
+        //
+        // Gated on actually staging a computed style: this path only ever adds
+        // resources, so nothing can turn a capability off, and a frame that
+        // scrolls or animates pays nothing.
+        let defines_computed_style = staged_resources
+            .values()
+            .any(|resource| resource.computed_style.is_some());
         self.resources.extend(staged_resources);
+        if defines_computed_style {
+            self.refresh_style_capabilities();
+        }
         self.last_frame_seq = Some(batch.frame_seq);
         self.metrics.commits += 1;
         Ok(())
@@ -3080,6 +3095,58 @@ mod tests {
             ))
             .expect("basic scene");
         (scene, root, left, right)
+    }
+
+    #[test]
+    fn a_style_only_commit_turns_on_a_rare_property_capability() {
+        // Rare properties are answered once per commit from a capability flag.
+        // A style change with no tree change is the common case, so if that
+        // path does not refresh, adding `z-index` to a live node is ignored
+        // for as long as the topology holds still.
+        let mut scene = Scene::new();
+        scene
+            .commit(batch(
+                1,
+                vec![
+                    create(id(0, 1), NodeKind::Root, None),
+                    create(id(1, 1), NodeKind::Container, Some(id(0, 1))),
+                    create(id(2, 1), NodeKind::Container, Some(id(0, 1))),
+                ],
+            ))
+            .expect("structural commit");
+        assert_eq!(scene.z_index(id(1, 1)), 0);
+
+        scene
+            .commit(batch(
+                2,
+                vec![
+                    Mutation::DefineResource {
+                        resource_id: 1,
+                        kind: ResourceKind::ComputedStyle,
+                        bytes: computed_style(&[(
+                            StyleProperty::ZIndex,
+                            0,
+                            pingo_abi::STYLE_VALUE_LENGTH,
+                            {
+                                let mut bytes = vec![pingo_abi::STYLE_LENGTH_NUMBER, 0, 0, 0];
+                                bytes.extend_from_slice(&1.0_f32.to_le_bytes());
+                                bytes
+                            },
+                        )]),
+                    },
+                    Mutation::SetRef {
+                        node_id: id(1, 1).raw(),
+                        prop: Prop::ComputedStyle,
+                        resource_id: 1,
+                    },
+                ],
+            ))
+            .expect("style-only commit");
+
+        assert_eq!(scene.z_index(id(1, 1)), 1);
+        let mut painted = Vec::new();
+        scene.children_in_paint_order(id(0, 1), &mut painted);
+        assert_eq!(painted, vec![id(2, 1), id(1, 1)]);
     }
 
     #[test]
