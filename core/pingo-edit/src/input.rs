@@ -240,6 +240,7 @@ mod tests {
 
     use super::*;
     use crate::EditConfig;
+    use pingo_abi::{InputAffinity, InputPosition, InputSelection};
 
     fn instruction(command: InputCommand) -> InputInstruction {
         InputInstruction { flags: 0, command }
@@ -292,6 +293,103 @@ mod tests {
         assert!(first.can_undo());
         assert_eq!(first.text(), second.text());
         assert_eq!(first.selection(), second.selection());
+    }
+
+    #[test]
+    fn a_composition_recorded_across_a_mark_boundary_replays_deterministically() {
+        // The preedit starts inside a styled run and ends outside it, which is
+        // the case where a mark table and a composition span can disagree about
+        // where the value ends.
+        let bytes = InputBatch {
+            frame_seq: 9,
+            instructions: vec![
+                instruction(InputCommand::Insert {
+                    node_id: 7,
+                    base_revision: 10,
+                    text: "abcd".to_owned(),
+                }),
+                instruction(InputCommand::SetMarks {
+                    node_id: 7,
+                    base_revision: 11,
+                    start: 0,
+                    end: 2,
+                    style: 3,
+                    font: 0,
+                }),
+                instruction(InputCommand::SetSelection {
+                    node_id: 7,
+                    base_revision: 12,
+                    selection: InputSelection {
+                        anchor: InputPosition {
+                            offset: 1,
+                            affinity: InputAffinity::Downstream,
+                        },
+                        focus: InputPosition {
+                            offset: 3,
+                            affinity: InputAffinity::Downstream,
+                        },
+                    },
+                }),
+                instruction(InputCommand::BeginComposition {
+                    node_id: 7,
+                    base_revision: 13,
+                }),
+                instruction(InputCommand::UpdateComposition {
+                    node_id: 7,
+                    base_revision: 14,
+                    text: "に".to_owned(),
+                }),
+                instruction(InputCommand::UpdateComposition {
+                    node_id: 7,
+                    base_revision: 15,
+                    text: "日本".to_owned(),
+                }),
+                instruction(InputCommand::CommitComposition {
+                    node_id: 7,
+                    base_revision: 16,
+                    text: Some("日本語".to_owned()),
+                }),
+            ],
+        }
+        .encode()
+        .expect("input bytes");
+
+        let mut first = session();
+        let mut second = session();
+        let left = first.replay_input(7, &bytes).expect("first replay");
+        let right = second.replay_input(7, &bytes).expect("second replay");
+        assert_eq!(left, right);
+        assert_eq!(first.text(), "a日本語d");
+        // The committed text took the style the composition started in, and the
+        // table still tiles the value.
+        assert_eq!(
+            first
+                .marks()
+                .runs()
+                .iter()
+                .map(|run| (run.length, run.style))
+                .collect::<Vec<_>>(),
+            vec![(4, 3), (1, 0)]
+        );
+        assert_eq!(first.marks().length(), 5);
+        // The whole composition is one undo step, styling and all.
+        let mut editor = first;
+        editor
+            .apply(EditCommand {
+                base_revision: editor.revision(),
+                intent: EditIntent::Undo,
+            })
+            .expect("undo");
+        assert_eq!(editor.text(), "abcd");
+        assert_eq!(
+            editor
+                .marks()
+                .runs()
+                .iter()
+                .map(|run| (run.length, run.style))
+                .collect::<Vec<_>>(),
+            vec![(2, 3), (2, 0)]
+        );
     }
 
     #[test]
