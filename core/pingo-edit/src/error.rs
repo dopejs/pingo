@@ -9,6 +9,8 @@ pub enum EditError {
     OffsetOverflow,
     InvalidRange { start: u32, end: u32, text_len: u32 },
     InvalidMarkRuns { covered: u32, text_len: u32 },
+    DuplicateBlockKey { key: u64 },
+    UnknownBlock,
     InvalidUtf8Boundary { offset: usize },
     CompositionAlreadyActive,
     CompositionNotActive,

@@ -3,6 +3,7 @@
 
 //! Deterministic, revisioned editable-text state for pingo Core.
 
+mod document;
 mod error;
 mod index;
 mod input;
@@ -11,6 +12,10 @@ mod marks;
 mod session;
 mod types;
 
+pub use document::{
+    BlockKey, BlockProjection, BlockReplacement, Direction, Document, DocumentBlock, DocumentEdit,
+    DocumentPosition, DocumentSelection, FlatPosition, Granularity, StructureRequest,
+};
 pub use error::EditError;
 pub use index::{OffsetBias, TextIndex, word_boundary_utf16, word_range_utf16};
 pub use input::{InputReplayError, InputReplayOutcome, edit_command_from_input};
