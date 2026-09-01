@@ -73,8 +73,14 @@ pub struct Resource {
 pub struct TextRun {
     /// UTF-8 string resource identifier.
     pub string_id: u32,
-    /// Text style resource identifier.
+    /// Base text style resource identifier.
     pub style_id: u32,
+    /// Styled-run table resource identifier, or zero when the whole value uses
+    /// `style_id`.
+    ///
+    /// Zero is not a fallback: it is the single-run contract, and every code
+    /// path that reads it keeps the single-style behavior byte for byte.
+    pub runs_id: u32,
 }
 
 /// Validated Core-owned virtual-list policy attached to a Scroll node.
@@ -1284,10 +1290,21 @@ impl Scene {
                 string_id,
                 style_id,
                 ..
+            }
+            | Mutation::SetRichText {
+                string_id,
+                style_id,
+                runs_id: _,
+                ..
             } => {
+                let runs_id = match mutation {
+                    Mutation::SetRichText { runs_id, .. } => runs_id,
+                    _ => 0,
+                };
                 let next = Some(TextRun {
                     string_id,
                     style_id,
+                    runs_id,
                 });
                 if self.text_runs[index] != next {
                     self.text_runs[index] = next;
@@ -1468,6 +1485,18 @@ fn validate_non_structural_mutation(
             )?;
             validate_resource_kind(scene, staged_resources, *style_id, ResourceKind::TextStyle)
         }
+        Mutation::SetRichText {
+            string_id,
+            style_id,
+            runs_id,
+            ..
+        } => validate_rich_text_binding(
+            scene,
+            staged_resources,
+            *string_id,
+            *style_id,
+            *runs_id,
+        ),
         _ => Ok(()),
     }
 }
@@ -1522,7 +1551,9 @@ fn validate_node_operation(
 ) -> Result<(), SceneError> {
     let kind = scene.kind(node).ok_or(SceneError::StaleNode { node })?;
     let supported = match mutation {
-        Mutation::SetTextRun { .. } => matches!(kind, NodeKind::Text | NodeKind::EditableText),
+        Mutation::SetTextRun { .. } | Mutation::SetRichText { .. } => {
+            matches!(kind, NodeKind::Text | NodeKind::EditableText)
+        }
         Mutation::ScrollTo { .. } | Mutation::ConfigureVirtualList { .. } => {
             matches!(kind, NodeKind::Container | NodeKind::Scroll)
         }
@@ -1538,6 +1569,7 @@ fn validate_node_operation(
             kind,
             operation: match mutation {
                 Mutation::SetTextRun { .. } => "SetTextRun",
+                Mutation::SetRichText { .. } => "SetRichText",
                 Mutation::ScrollTo { .. } => "ScrollTo",
                 Mutation::ConfigureVirtualList { .. } => "ConfigureVirtualList",
                 Mutation::SetVirtualItem { .. } => "SetVirtualItem",
@@ -1570,6 +1602,7 @@ fn mutation_node(mutation: &Mutation) -> Option<u32> {
         | Mutation::SetFlags { node_id, .. }
         | Mutation::ClearProp { node_id, .. }
         | Mutation::SetTextRun { node_id, .. }
+        | Mutation::SetRichText { node_id, .. }
         | Mutation::ScrollTo { node_id, .. }
         | Mutation::ConfigureVirtualList { node_id, .. }
         | Mutation::SetVirtualItem { node_id, .. }
@@ -1641,9 +1674,77 @@ fn validate_resource(resource_id: u32, kind: ResourceKind, bytes: &[u8]) -> Resu
             pingo_abi::PathResource::decode(bytes)
                 .map_err(|_| SceneError::InvalidResourceEncoding { resource_id })?;
         }
+        ResourceKind::StyledRuns => {
+            pingo_abi::StyledRunsResource::decode(bytes)
+                .map_err(|_| SceneError::InvalidResourceEncoding { resource_id })?;
+        }
         ResourceKind::GlyphSpan => {}
     }
     Ok(())
+}
+
+/// Validates that a rich-text binding is internally consistent.
+///
+/// The three resources are checked together because that is the only moment
+/// both the string and the run table are known: a table that stops one byte
+/// short of the value would otherwise leave unstyled bytes that paint as a
+/// silent hole instead of failing the commit.
+fn validate_rich_text_binding(
+    scene: &Scene,
+    staged_resources: &BTreeMap<u32, Resource>,
+    string_id: u32,
+    style_id: u32,
+    runs_id: u32,
+) -> Result<(), SceneError> {
+    validate_resource_kind(scene, staged_resources, string_id, ResourceKind::Utf8String)?;
+    validate_resource_kind(scene, staged_resources, style_id, ResourceKind::TextStyle)?;
+    if runs_id == 0 {
+        return Ok(());
+    }
+    validate_resource_kind(scene, staged_resources, runs_id, ResourceKind::StyledRuns)?;
+    let value = lookup_resource(scene, staged_resources, string_id)
+        .ok_or(SceneError::MissingResource {
+            resource_id: string_id,
+        })?;
+    let text = std::str::from_utf8(&value.bytes)
+        .map_err(|_| SceneError::InvalidUtf8Resource { resource_id: string_id })?;
+    let table = lookup_resource(scene, staged_resources, runs_id).ok_or(
+        SceneError::MissingResource {
+            resource_id: runs_id,
+        },
+    )?;
+    let runs = pingo_abi::StyledRunsResource::decode(&table.bytes)
+        .map_err(|_| SceneError::InvalidResourceEncoding {
+            resource_id: runs_id,
+        })?;
+    if usize::try_from(runs.covered_bytes()) != Ok(text.len()) {
+        return Err(SceneError::InvalidResourceEncoding {
+            resource_id: runs_id,
+        });
+    }
+    for run in &runs.runs {
+        let start = usize::try_from(run.utf8_start).map_err(|_| {
+            SceneError::InvalidResourceEncoding {
+                resource_id: runs_id,
+            }
+        })?;
+        if !text.is_char_boundary(start) {
+            return Err(SceneError::InvalidResourceEncoding {
+                resource_id: runs_id,
+            });
+        }
+    }
+    Ok(())
+}
+
+fn lookup_resource<'a>(
+    scene: &'a Scene,
+    staged_resources: &'a BTreeMap<u32, Resource>,
+    resource_id: u32,
+) -> Option<&'a Resource> {
+    staged_resources
+        .get(&resource_id)
+        .or_else(|| scene.resources.get(&resource_id))
 }
 
 fn validate_video_frame_resource(resource_id: u32, bytes: &[u8]) -> Result<(), SceneError> {
@@ -1950,6 +2051,23 @@ fn validate_resource_graph(
     staged: &BTreeMap<u32, Resource>,
 ) -> Result<(), SceneError> {
     for (resource_id, resource) in existing.iter().chain(staged) {
+        if resource.kind == ResourceKind::StyledRuns {
+            // A run table reaches its styles and fonts indirectly, so without
+            // this edge releasing a style a run still points at would leave the
+            // table dangling until paint tried to draw it.
+            let table = pingo_abi::StyledRunsResource::decode(&resource.bytes).map_err(|_| {
+                SceneError::InvalidResourceEncoding {
+                    resource_id: *resource_id,
+                }
+            })?;
+            for run in &table.runs {
+                require_kind(existing, staged, run.style_id, ResourceKind::TextStyle)?;
+                if run.font_id != 0 {
+                    require_kind(existing, staged, run.font_id, ResourceKind::Font)?;
+                }
+            }
+            continue;
+        }
         if resource.kind != ResourceKind::TextStyle {
             continue;
         }
@@ -1976,12 +2094,37 @@ fn validate_resource_graph(
     Ok(())
 }
 
+fn require_kind(
+    existing: &BTreeMap<u32, Resource>,
+    staged: &BTreeMap<u32, Resource>,
+    resource_id: u32,
+    expected: ResourceKind,
+) -> Result<(), SceneError> {
+    let resource = staged
+        .get(&resource_id)
+        .or_else(|| existing.get(&resource_id))
+        .ok_or(SceneError::MissingResource { resource_id })?;
+    if resource.kind == expected {
+        Ok(())
+    } else {
+        Err(SceneError::WrongResourceKind {
+            resource_id,
+            expected,
+            actual: resource.kind,
+        })
+    }
+}
+
 fn resource_directly_referenced(scene: &Scene, resource_id: u32) -> bool {
     if scene
         .text_runs
         .iter()
         .flatten()
-        .any(|run| run.string_id == resource_id || run.style_id == resource_id)
+        .any(|run| {
+            run.string_id == resource_id
+                || run.style_id == resource_id
+                || run.runs_id == resource_id
+        })
     {
         return true;
     }
@@ -2273,6 +2416,7 @@ const fn mutation_target(mutation: &Mutation) -> Option<u32> {
         | Mutation::SetFlags { node_id, .. }
         | Mutation::ClearProp { node_id, .. }
         | Mutation::SetTextRun { node_id, .. }
+        | Mutation::SetRichText { node_id, .. }
         | Mutation::ScrollTo { node_id, .. }
         | Mutation::ConfigureVirtualList { node_id, .. }
         | Mutation::SetVirtualItem { node_id, .. }
@@ -2492,7 +2636,9 @@ fn plan_apply_property(
     let entry = nodes.get(&node).ok_or(SceneError::StaleNode { node })?;
     let kind = entry.kind;
     match &mutation {
-        Mutation::SetTextRun { .. } if !matches!(kind, NodeKind::Text | NodeKind::EditableText) => {
+        Mutation::SetTextRun { .. } | Mutation::SetRichText { .. }
+            if !matches!(kind, NodeKind::Text | NodeKind::EditableText) =>
+        {
             return Err(SceneError::UnsupportedNodeOperation {
                 node,
                 kind,
@@ -2590,6 +2736,23 @@ fn plan_apply_property(
                 .text_run = Some(TextRun {
                 string_id,
                 style_id,
+                runs_id: 0,
+            });
+        }
+        Mutation::SetRichText {
+            string_id,
+            style_id,
+            runs_id,
+            ..
+        } => {
+            validate_rich_text_binding(scene, staged_resources, string_id, style_id, runs_id)?;
+            nodes
+                .get_mut(&node)
+                .ok_or(SceneError::StaleNode { node })?
+                .text_run = Some(TextRun {
+                string_id,
+                style_id,
+                runs_id,
             });
         }
         Mutation::ScrollTo { x, y, .. } => {
@@ -3433,6 +3596,115 @@ mod tests {
         );
     }
 
+    fn styled_runs(runs: &[(u32, u32, u32)]) -> Vec<u8> {
+        let mut start = 0_u32;
+        pingo_abi::StyledRunsResource {
+            runs: runs
+                .iter()
+                .map(|(length, style_id, font_id)| {
+                    let run = pingo_abi::StyledRun {
+                        utf8_start: start,
+                        utf8_length: *length,
+                        style_id: *style_id,
+                        font_id: *font_id,
+                        flags: 0,
+                    };
+                    start += *length;
+                    run
+                })
+                .collect(),
+        }
+        .encode()
+        .expect("styled run table")
+    }
+
+    #[test]
+    fn a_rich_text_binding_is_accepted_only_when_its_runs_cover_the_value() {
+        let root = id(0, 1);
+        let text = id(1, 1);
+        let mut scene = Scene::default();
+        scene
+            .commit(batch(
+                1,
+                vec![
+                    create(root, NodeKind::Root, None),
+                    create(text, NodeKind::Text, Some(root)),
+                    define(1, ResourceKind::Paint, paint(0, 0, 0, 255)),
+                    define(2, ResourceKind::Utf8String, b"hello".to_vec()),
+                    define(3, ResourceKind::TextStyle, text_style(1, b"sans")),
+                    define(4, ResourceKind::TextStyle, text_style(1, b"serif")),
+                    define(5, ResourceKind::StyledRuns, styled_runs(&[(2, 3, 0), (3, 4, 0)])),
+                    Mutation::SetRichText {
+                        node_id: text.raw(),
+                        string_id: 2,
+                        style_id: 3,
+                        runs_id: 5,
+                    },
+                ],
+            ))
+            .expect("rich text commit");
+        assert_eq!(
+            scene.text_run(text),
+            Some(TextRun {
+                string_id: 2,
+                style_id: 3,
+                runs_id: 5,
+            })
+        );
+
+        // One byte short of the value leaves unstyled bytes; that is a rejected
+        // commit, not a run table paint has to second-guess.
+        let mut short = scene.clone();
+        assert_eq!(
+            short.commit(batch(
+                2,
+                vec![
+                    define(6, ResourceKind::StyledRuns, styled_runs(&[(2, 3, 0), (2, 4, 0)])),
+                    Mutation::SetRichText {
+                        node_id: text.raw(),
+                        string_id: 2,
+                        style_id: 3,
+                        runs_id: 6,
+                    },
+                ],
+            )),
+            Err(SceneError::InvalidResourceEncoding { resource_id: 6 })
+        );
+
+        // A boundary inside a multi-byte character would split it between two
+        // shaping calls.
+        let mut split = scene.clone();
+        assert_eq!(
+            split.commit(batch(
+                2,
+                vec![
+                    define(7, ResourceKind::Utf8String, "日本".as_bytes().to_vec()),
+                    define(8, ResourceKind::StyledRuns, styled_runs(&[(1, 3, 0), (5, 4, 0)])),
+                    Mutation::SetRichText {
+                        node_id: text.raw(),
+                        string_id: 7,
+                        style_id: 3,
+                        runs_id: 8,
+                    },
+                ],
+            )),
+            Err(SceneError::InvalidResourceEncoding { resource_id: 8 })
+        );
+
+        // A run table keeps its styles alive: releasing one is rejected.
+        let mut released = scene.clone();
+        assert_eq!(
+            released.commit(batch(2, vec![Mutation::ReleaseResource { resource_id: 4 }])),
+            Err(SceneError::MissingResource { resource_id: 4 })
+        );
+        // And the table itself is reachable, so it is not garbage either.
+        let mut release_table = scene;
+        assert_eq!(
+            release_table.commit(batch(2, vec![Mutation::ReleaseResource { resource_id: 5 }])),
+            Err(SceneError::ResourceInUse { resource_id: 5 })
+        );
+    }
+
     #[test]
     fn public_queries_and_every_non_structural_lane_are_observable() {
         let root = id(0, 1);
@@ -3532,6 +3804,7 @@ mod tests {
             Some(TextRun {
                 string_id: 12,
                 style_id: 13,
+                runs_id: 0,
             })
         );
         assert_eq!(

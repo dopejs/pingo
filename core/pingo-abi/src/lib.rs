@@ -19,6 +19,7 @@ mod mutation;
 mod path;
 mod picture_resources;
 mod recording;
+mod styled_runs;
 mod system_text_metrics;
 
 #[allow(missing_docs)]
@@ -56,6 +57,7 @@ pub use glyph_resources::{
     GlyphBitmapResource, GlyphPlacementResource, GlyphResourceBatch, GlyphResourceCommand,
     GlyphResourceInstruction, GlyphSpanResource,
 };
+pub use styled_runs::{StyledRun, StyledRunsResource};
 pub use input::{
     CaretDirection, CaretGranularity, EVENT_FLAG_MASK, EVENT_FLAG_PRECISE_WHEEL, InputAffinity,
     InputBatch, InputCommand, InputEventKind, InputFocusOrigin, InputInstruction, InputPointerType,
@@ -295,6 +297,7 @@ mod tests {
             MutationOpcode::SetFlags,
             MutationOpcode::ClearProp,
             MutationOpcode::SetTextRun,
+            MutationOpcode::SetRichText,
             MutationOpcode::DefineResource,
             MutationOpcode::ReleaseResource,
             MutationOpcode::ScrollTo,

@@ -863,6 +863,187 @@ mod tests {
     use crate::TextError;
     use swash::shape::ShapeContext;
 
+    /// Recorded from the single-style implementation this crate shipped before
+    /// styled runs existed. Never regenerate these to make a failure go away:
+    /// a change here means an existing document renders differently.
+    const SINGLE_RUN_GOLDEN_DIGESTS: [u64; 10] = [
+        11132011084540503141,
+        16039510277960932816,
+        2708984718430707376,
+        4025691793016605782,
+        2983939579241494904,
+        15952783547289015062,
+        14354493755076730074,
+        10572384073901225948,
+        8291623544088496449,
+        5071057201210176224,
+    ];
+
+    /// Stable digest of everything a backend can observe about a layout.
+    ///
+    /// This is the single-run byte-identity oracle: rich text must not move one
+    /// glyph of an existing single-style node, and a hash makes that assertion
+    /// exact instead of approximate.
+    fn layout_digest(layout: &super::TextLayout) -> u64 {
+        let mut hash = 0xcbf2_9ce4_8422_2325_u64;
+        let mut mix = |value: u64| {
+            hash ^= value;
+            hash = hash.wrapping_mul(0x0000_0100_0000_01b3);
+        };
+        mix(layout.text.len() as u64);
+        mix(layout.width.to_bits().into());
+        mix(layout.height.to_bits().into());
+        mix(layout.missing_glyphs as u64);
+        for grapheme in &layout.graphemes {
+            mix(grapheme.bytes.start as u64);
+            mix(grapheme.bytes.end as u64);
+            mix(u64::from(grapheme.utf16.start));
+            mix(u64::from(grapheme.utf16.end));
+        }
+        for cluster in &layout.clusters {
+            mix(cluster.bytes.start as u64);
+            mix(cluster.bytes.end as u64);
+            mix(cluster.glyphs.start as u64);
+            mix(cluster.glyphs.end as u64);
+        }
+        for glyph in &layout.glyphs {
+            mix(u64::from(glyph.id));
+            mix(glyph.cluster as u64);
+            mix(glyph.line as u64);
+            mix(u64::from(glyph.x.to_bits()));
+            mix(u64::from(glyph.y.to_bits()));
+            mix(u64::from(glyph.advance.to_bits()));
+        }
+        for line in &layout.lines {
+            mix(line.bytes.start as u64);
+            mix(line.bytes.end as u64);
+            mix(line.glyphs.start as u64);
+            mix(line.glyphs.end as u64);
+            mix(u64::from(line.width.to_bits()));
+            mix(u64::from(line.baseline.to_bits()));
+        }
+        for caret in &layout.carets {
+            mix(caret.byte_offset as u64);
+            mix(u64::from(caret.utf16_offset));
+            mix(caret.line as u64);
+            mix(u64::from(caret.x.to_bits()));
+            mix(u64::from(caret.y.to_bits()));
+            mix(u64::from(caret.height.to_bits()));
+        }
+        hash
+    }
+
+    /// Text built from the conformance font's private-use glyph range.
+    ///
+    /// The fixture font is an icon font: ASCII shapes to zero-advance
+    /// `.notdef`, so an ASCII corpus would pin a layout in which nothing ever
+    /// wraps, aligns, or elides. These code points have real advances.
+    fn glyph_text(pattern: &[usize]) -> String {
+        let mut value = String::new();
+        for (index, length) in pattern.iter().enumerate() {
+            if index != 0 {
+                value.push(' ');
+            }
+            for step in 0..*length {
+                value.push(
+                    char::from_u32(0xea60 + u32::try_from(step + index).expect("small index"))
+                        .expect("private use scalar"),
+                );
+            }
+        }
+        value
+    }
+
+    fn single_run_corpus() -> Vec<(String, TextOptions)> {
+        let base = TextOptions {
+            font_size: 16.0,
+            line_height: 20.0,
+            max_width: f32::INFINITY,
+            white_space: WhiteSpace::Normal,
+            overflow_wrap: OverflowWrap::Normal,
+            text_align: TextAlign::Start,
+            text_overflow: TextOverflow::Clip,
+        };
+        vec![
+            (String::new(), base),
+            (glyph_text(&[3, 4]), base),
+            (
+                glyph_text(&[4, 3, 5, 2, 6]),
+                TextOptions {
+                    max_width: 120.0,
+                    ..base
+                },
+            ),
+            (
+                format!("{}\n\n{}", glyph_text(&[4, 5]), glyph_text(&[3, 3])),
+                TextOptions {
+                    max_width: 90.0,
+                    white_space: WhiteSpace::PreLine,
+                    ..base
+                },
+            ),
+            (
+                glyph_text(&[24, 4]),
+                TextOptions {
+                    max_width: 60.0,
+                    overflow_wrap: OverflowWrap::BreakWord,
+                    ..base
+                },
+            ),
+            (
+                glyph_text(&[4, 4]),
+                TextOptions {
+                    max_width: 200.0,
+                    text_align: TextAlign::Center,
+                    ..base
+                },
+            ),
+            (
+                glyph_text(&[3, 2, 4, 3, 5]),
+                TextOptions {
+                    max_width: 110.0,
+                    text_align: TextAlign::Justify,
+                    ..base
+                },
+            ),
+            (
+                glyph_text(&[5, 6, 4]),
+                TextOptions {
+                    max_width: 80.0,
+                    white_space: WhiteSpace::Nowrap,
+                    text_overflow: TextOverflow::Ellipsis,
+                    ..base
+                },
+            ),
+            (
+                format!("{} a\u{301} \u{1f469}\u{200d}\u{1f4bb}", glyph_text(&[3])),
+                base,
+            ),
+            (
+                format!("{}   {}\t{}", glyph_text(&[2]), glyph_text(&[3]), glyph_text(&[2])),
+                TextOptions {
+                    white_space: WhiteSpace::Pre,
+                    ..base
+                },
+            ),
+        ]
+    }
+
+    #[test]
+    fn single_style_layout_is_byte_identical_to_its_recorded_golden() {
+        let font = crate::FontFace::from_bytes(1, 1, 0, crate::conformance_font())
+            .expect("conformance font");
+        let mut context = ShapeContext::new();
+        let digests = single_run_corpus()
+            .into_iter()
+            .map(|(text, options)| {
+                let layout = layout_text(&mut context, &font, &text, options).expect("layout");
+                layout_digest(&layout)
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(digests, SINGLE_RUN_GOLDEN_DIGESTS);
+    }
+
     #[test]
     fn offset_table_keeps_emoji_zwj_and_combining_sequences_atomic() {
         let text = "a e\u{301} 👩‍💻 中";

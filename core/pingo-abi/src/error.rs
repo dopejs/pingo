@@ -88,7 +88,7 @@ pub enum AbiError {
     RestoreUnderflow { offset: usize },
     /// DisplayList ended with unmatched Save commands.
     UnbalancedState { depth: u32 },
-    /// Encoding an in-memory value would violate the ABI.
+    /// A decoded or to-be-encoded value violates the ABI contract.
     InvalidValue(&'static str),
 }
 

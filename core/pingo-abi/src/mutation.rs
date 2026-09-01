@@ -94,6 +94,22 @@ pub enum Mutation {
         /// Text style resource identifier.
         style_id: u32,
     },
+    /// Associates text, a base style, and an optional styled-run table with a
+    /// text node.
+    ///
+    /// A zero `runs_id` means the node has one style and behaves exactly as
+    /// [`Mutation::SetTextRun`]; that is what keeps the single-run rendering
+    /// path unchanged when rich text is switched off.
+    SetRichText {
+        /// Target node.
+        node_id: u32,
+        /// UTF-8 string resource identifier.
+        string_id: u32,
+        /// Base text style resource identifier.
+        style_id: u32,
+        /// Styled-run table resource identifier, or zero for a single run.
+        runs_id: u32,
+    },
     /// Defines an immutable interned resource.
     DefineResource {
         /// Resource identifier.
@@ -381,6 +397,12 @@ fn decode_mutation(opcode: MutationOpcode, reader: &mut Reader<'_>) -> Result<Mu
             string_id: reader.read_u32()?,
             style_id: reader.read_u32()?,
         },
+        MutationOpcode::SetRichText => Mutation::SetRichText {
+            node_id: reader.read_u32()?,
+            string_id: reader.read_u32()?,
+            style_id: reader.read_u32()?,
+            runs_id: reader.read_u32()?,
+        },
         MutationOpcode::DefineResource => {
             let resource_id = reader.read_u32()?;
             let raw_kind = reader.read_u16()?;
@@ -597,6 +619,18 @@ fn encode_mutation(writer: &mut Writer, instruction: &MutationInstruction) -> Re
             writer.u32(*string_id);
             writer.u32(*style_id);
         }
+        Mutation::SetRichText {
+            node_id,
+            string_id,
+            style_id,
+            runs_id,
+        } => {
+            writer.instruction(MutationOpcode::SetRichText as u8, flags);
+            writer.u32(*node_id);
+            writer.u32(*string_id);
+            writer.u32(*style_id);
+            writer.u32(*runs_id);
+        }
         Mutation::DefineResource {
             resource_id,
             kind,
@@ -708,6 +742,7 @@ fn mutation_opcode(mutation: &Mutation) -> MutationOpcode {
         Mutation::SetFlags { .. } => MutationOpcode::SetFlags,
         Mutation::ClearProp { .. } => MutationOpcode::ClearProp,
         Mutation::SetTextRun { .. } => MutationOpcode::SetTextRun,
+        Mutation::SetRichText { .. } => MutationOpcode::SetRichText,
         Mutation::DefineResource { .. } => MutationOpcode::DefineResource,
         Mutation::ReleaseResource { .. } => MutationOpcode::ReleaseResource,
         Mutation::ScrollTo { .. } => MutationOpcode::ScrollTo,
@@ -862,6 +897,12 @@ mod tests {
             Mutation::ClearProp {
                 node_id: 11,
                 prop: Prop::SemanticLabel,
+            },
+            Mutation::SetRichText {
+                node_id: 12,
+                string_id: 13,
+                style_id: 14,
+                runs_id: 15,
             },
             Mutation::SetTextRun {
                 node_id: 12,

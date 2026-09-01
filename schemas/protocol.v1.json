@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "abiVersion": 22,
+  "abiVersion": 23,
   "minimumReadableAbiVersion": 4,
   "endianness": "little",
   "alignment": 4,
@@ -84,7 +84,8 @@
     "wordBoundaries": 262144,
     "recordingRecords": 1048576,
     "virtualItems": 4000000,
-    "maxObservedGeometryNodes": 64
+    "maxObservedGeometryNodes": 64,
+    "styledRuns": 65536
   },
   "recording": {
     "magic": "DOPR",
@@ -631,6 +632,16 @@
           "name": "SetTextRun",
           "opcode": 32,
           "fields": ["u32", "u32", "u32"]
+        },
+        {
+          "name": "SetRichText",
+          "opcode": 33,
+          "fields": [
+            { "name": "nodeId", "type": "u32" },
+            { "name": "stringId", "type": "u32" },
+            { "name": "styleId", "type": "u32" },
+            { "name": "runsId", "type": "u32" }
+          ]
         },
         {
           "name": "DefineResource",
@@ -1244,6 +1255,38 @@
       ]
     }
   },
+  "styledRunPayload": {
+    "version": 1,
+    "runFields": [
+      {
+        "name": "utf8Start",
+        "type": "u32"
+      },
+      {
+        "name": "utf8Length",
+        "type": "u32"
+      },
+      {
+        "name": "styleId",
+        "type": "u32"
+      },
+      {
+        "name": "fontId",
+        "type": "u32"
+      },
+      {
+        "name": "flags",
+        "type": "u32"
+      },
+      {
+        "name": "reserved",
+        "type": "u32"
+      }
+    ],
+    "flags": {
+      "atomic": 1
+    }
+  },
   "glyphSpanPayload": {
     "bitmapFields": [
       {
@@ -1534,6 +1577,10 @@
     {
       "name": "VideoFrame",
       "id": 11
+    },
+    {
+      "name": "StyledRuns",
+      "id": 12
     }
   ],
   "resourceLayouts": {
@@ -1893,6 +1940,31 @@
           },
           {
             "name": "payload",
+            "type": "bytes"
+          },
+          "align4"
+        ]
+      },
+      {
+        "name": "StyledRuns",
+        "resourceKind": "StyledRuns",
+        "variant": 1,
+        "fields": [
+          {
+            "name": "version",
+            "type": "u8"
+          },
+          {
+            "name": "variant",
+            "type": "u8"
+          },
+          "pad16",
+          {
+            "name": "runCount",
+            "type": "u32"
+          },
+          {
+            "name": "runs",
             "type": "bytes"
           },
           "align4"
