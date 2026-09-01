@@ -22,6 +22,86 @@ struct HistoryEntry {
     retained_bytes: usize,
 }
 
+/// Coarse character class used to seal an undo group at a semantic boundary.
+///
+/// Typing `hello world` is two bursts, not one: the space changes class and
+/// ends the first group. Classifying the whole inserted or removed chunk keeps
+/// a paste of mixed content opaque instead of silently joining a burst.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum TextClass {
+    /// Alphanumeric content, including CJK and combining marks.
+    Word,
+    /// Horizontal whitespace.
+    Space,
+    /// Punctuation and symbols.
+    Other,
+}
+
+/// The shape of the last committed history entry, for coalescing the next one.
+///
+/// Every variant records the caret edge the next command has to line up with,
+/// so a merge can never join two edits that are not physically adjacent.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum UndoAnchor {
+    /// Nothing at the top of the undo stack may absorb the next command.
+    None,
+    /// The top entry ends with an insertion whose caret sits at `caret`.
+    Insert {
+        caret: u32,
+        class: TextClass,
+    },
+    /// The top entry ends with a backward deletion that began at `start`.
+    DeleteBackward {
+        start: u32,
+        class: TextClass,
+    },
+    /// The top entry ends with a forward deletion anchored at `caret`.
+    DeleteForward {
+        caret: u32,
+        class: TextClass,
+    },
+}
+
+/// How one accepted command participates in undo grouping.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum GroupKind {
+    /// Caret insertion; may continue and start a typing burst.
+    Insert,
+    /// Backspace; may continue and start a deletion burst.
+    DeleteBackward,
+    /// Forward delete; may continue and start a deletion burst.
+    DeleteForward,
+    /// Anything else: it neither merges nor lets the next command merge.
+    Opaque,
+}
+
+/// Classifies a chunk, returning `None` for empty, mixed, or newline content.
+fn text_class(text: &str) -> Option<TextClass> {
+    let mut class = None;
+    for character in text.chars() {
+        if character == '\n' || character == '\r' {
+            return None;
+        }
+        let current = if character.is_alphanumeric() || character == '_' {
+            TextClass::Word
+        } else if character.is_whitespace() {
+            TextClass::Space
+        } else {
+            TextClass::Other
+        };
+        match class {
+            None => class = Some(current),
+            Some(previous) if previous == current => {}
+            Some(_) => return None,
+        }
+    }
+    class
+}
+
+fn utf16_units(text: &str) -> Result<u32, EditError> {
+    u32::try_from(text.encode_utf16().count()).map_err(|_| EditError::OffsetOverflow)
+}
+
 struct PreparedReplacement {
     next_text: String,
     next_index: TextIndex,
@@ -49,6 +129,9 @@ pub struct EditSession {
     redo: VecDeque<HistoryEntry>,
     undo_bytes: usize,
     redo_bytes: usize,
+    /// Shape of the entry currently on top of `undo`, or `None` when the next
+    /// command must start a fresh group.
+    undo_anchor: UndoAnchor,
 }
 
 impl EditSession {
@@ -74,6 +157,7 @@ impl EditSession {
             redo: VecDeque::new(),
             undo_bytes: 0,
             redo_bytes: 0,
+            undo_anchor: UndoAnchor::None,
         })
     }
 
@@ -147,6 +231,21 @@ impl EditSession {
         !self.redo.is_empty() && self.composition.is_none()
     }
 
+    /// Returns how many undo steps are retained, after grouping.
+    ///
+    /// This is the observable that makes grouping diagnosable: a burst of
+    /// twenty keystrokes must leave one step, not twenty.
+    #[must_use]
+    pub fn undo_depth(&self) -> usize {
+        self.undo.len()
+    }
+
+    /// Returns how many redo steps are retained.
+    #[must_use]
+    pub fn redo_depth(&self) -> usize {
+        self.redo.len()
+    }
+
     /// Revalidates the active value against a new policy without changing revision.
     ///
     /// Existing undo entries remain valid; history is trimmed to the new budgets.
@@ -164,6 +263,9 @@ impl EditSession {
         {
             let removed = self.redo.pop_front().expect("history is non-empty");
             self.redo_bytes -= removed.retained_bytes;
+        }
+        if self.undo.is_empty() {
+            self.undo_anchor = UndoAnchor::None;
         }
         Ok(())
     }
@@ -198,13 +300,18 @@ impl EditSession {
             EditIntent::Replace { range, text } => {
                 let prepared = self.prepare_replacement(range, text)?;
                 let delta = prepared.forward.clone();
-                self.commit_regular(prepared);
+                self.commit_regular(prepared, GroupKind::Opaque)?;
                 (Some(delta), TransactionKind::Edit)
             }
             EditIntent::Insert(text) => {
                 let prepared = self.prepare_replacement(self.selection.range(), text)?;
                 let delta = prepared.forward.clone();
-                self.commit_regular(prepared);
+                let group = if prepared.forward.range.is_collapsed() {
+                    GroupKind::Insert
+                } else {
+                    GroupKind::Opaque
+                };
+                self.commit_regular(prepared, group)?;
                 (Some(delta), TransactionKind::Edit)
             }
             EditIntent::DeleteBackward => {
@@ -216,7 +323,7 @@ impl EditSession {
                 };
                 let prepared = self.prepare_replacement(range, String::new())?;
                 let delta = prepared.forward.clone();
-                self.commit_regular(prepared);
+                self.commit_regular(prepared, GroupKind::DeleteBackward)?;
                 (Some(delta), TransactionKind::Edit)
             }
             EditIntent::DeleteForward => {
@@ -228,11 +335,17 @@ impl EditSession {
                 };
                 let prepared = self.prepare_replacement(range, String::new())?;
                 let delta = prepared.forward.clone();
-                self.commit_regular(prepared);
+                self.commit_regular(prepared, GroupKind::DeleteForward)?;
                 (Some(delta), TransactionKind::Edit)
             }
             EditIntent::SetSelection(selection) => {
-                self.selection = self.index.normalize_selection(selection)?;
+                let next = self.index.normalize_selection(selection)?;
+                if next != self.selection {
+                    // Moving the caret ends the burst: the next keystroke is a
+                    // separate user intention even though nothing else changed.
+                    self.undo_anchor = UndoAnchor::None;
+                }
+                self.selection = next;
                 (None, TransactionKind::Edit)
             }
             EditIntent::BeginComposition => {
@@ -247,6 +360,7 @@ impl EditSession {
                     original_text,
                     original_selection: self.selection,
                 });
+                self.undo_anchor = UndoAnchor::None;
                 (None, TransactionKind::Composition)
             }
             EditIntent::UpdateComposition(text) => {
@@ -319,6 +433,7 @@ impl EditSession {
                 // optimistic revision when it sends the command, and only this
                 // transaction's acknowledgement keeps the two in step. Skipping
                 // the command desynchronizes every edit that follows.
+                self.undo_anchor = UndoAnchor::None;
                 let Some(entry) = self.undo.back() else {
                     // No text or selection change; only the revision advances.
                     return Ok(self.finish_no_op(next_revision, TransactionKind::Undo));
@@ -335,6 +450,7 @@ impl EditSession {
                 (Some(delta), TransactionKind::Undo)
             }
             EditIntent::Redo => {
+                self.undo_anchor = UndoAnchor::None;
                 let Some(entry) = self.redo.back() else {
                     return Ok(self.finish_no_op(next_revision, TransactionKind::Redo));
                 };
@@ -414,6 +530,7 @@ impl EditSession {
         self.redo.clear();
         self.undo_bytes = 0;
         self.redo_bytes = 0;
+        self.undo_anchor = UndoAnchor::None;
         Ok(EditTransaction {
             base_revision,
             revision: self.revision,
@@ -465,20 +582,168 @@ impl EditSession {
         })
     }
 
-    fn commit_regular(&mut self, prepared: PreparedReplacement) {
-        let entry = prepared.text_changed.then(|| {
-            HistoryEntry::new(
-                prepared.forward.clone(),
-                prepared.inverse.clone(),
-                self.selection,
-                prepared.after_selection,
-            )
-        });
-        self.commit_prepared(prepared);
-        if let Some(entry) = entry {
-            self.push_undo(entry);
-            self.clear_redo();
+    fn commit_regular(
+        &mut self,
+        prepared: PreparedReplacement,
+        group: GroupKind,
+    ) -> Result<(), EditError> {
+        if !prepared.text_changed {
+            // Backspace at offset zero and friends: nothing happened, so the
+            // burst in progress must survive untouched.
+            self.commit_prepared(prepared);
+            return Ok(());
         }
+        let entry = HistoryEntry::new(
+            prepared.forward.clone(),
+            prepared.inverse.clone(),
+            self.selection,
+            prepared.after_selection,
+        );
+        let anchor = self.next_anchor(group, &entry)?;
+        let merged = self.config.group_undo && self.try_merge(group, &entry)?;
+        self.commit_prepared(prepared);
+        if !merged {
+            self.push_undo(entry);
+        }
+        self.clear_redo();
+        self.undo_anchor = anchor;
+        Ok(())
+    }
+
+    /// Returns the anchor the next command must line up with to continue this
+    /// burst, or [`UndoAnchor::None`] when the entry seals its group.
+    fn next_anchor(&self, group: GroupKind, entry: &HistoryEntry) -> Result<UndoAnchor, EditError> {
+        if self.config.max_history_entries == 0 {
+            return Ok(UndoAnchor::None);
+        }
+        Ok(match group {
+            GroupKind::Insert => match text_class(&entry.forward.text) {
+                Some(class) => UndoAnchor::Insert {
+                    caret: entry.after_selection.focus.offset,
+                    class,
+                },
+                None => UndoAnchor::None,
+            },
+            GroupKind::DeleteBackward => match text_class(&entry.inverse.text) {
+                Some(class) => UndoAnchor::DeleteBackward {
+                    start: entry.forward.range.start,
+                    class,
+                },
+                None => UndoAnchor::None,
+            },
+            GroupKind::DeleteForward => match text_class(&entry.inverse.text) {
+                Some(class) => UndoAnchor::DeleteForward {
+                    caret: entry.forward.range.start,
+                    class,
+                },
+                None => UndoAnchor::None,
+            },
+            GroupKind::Opaque => UndoAnchor::None,
+        })
+    }
+
+    /// Folds `entry` into the top of the undo stack when the two are adjacent
+    /// and of the same class, returning whether the fold happened.
+    ///
+    /// The merged entry has to undo to exactly the state the first command of
+    /// the burst started from, so it keeps the first entry's `before_selection`
+    /// and rewrites both deltas rather than storing a list of steps.
+    fn try_merge(&mut self, group: GroupKind, entry: &HistoryEntry) -> Result<bool, EditError> {
+        let Some(previous) = self.undo.back() else {
+            return Ok(false);
+        };
+        let merged = match (group, self.undo_anchor) {
+            (GroupKind::Insert, UndoAnchor::Insert { caret, class })
+                if entry.forward.range.is_collapsed()
+                    && entry.forward.range.start == caret
+                    && text_class(&entry.forward.text) == Some(class) =>
+            {
+                let mut text = previous.forward.text.clone();
+                text.push_str(&entry.forward.text);
+                let end = previous
+                    .inverse
+                    .range
+                    .end
+                    .checked_add(utf16_units(&entry.forward.text)?)
+                    .ok_or(EditError::OffsetOverflow)?;
+                HistoryEntry::new(
+                    EditDelta {
+                        range: previous.forward.range,
+                        text,
+                    },
+                    EditDelta {
+                        range: Utf16Range::new(previous.inverse.range.start, end),
+                        text: previous.inverse.text.clone(),
+                    },
+                    previous.before_selection,
+                    entry.after_selection,
+                )
+            }
+            (GroupKind::DeleteBackward, UndoAnchor::DeleteBackward { start, class })
+                if entry.forward.range.end == start
+                    && text_class(&entry.inverse.text) == Some(class) =>
+            {
+                let mut restored = entry.inverse.text.clone();
+                restored.push_str(&previous.inverse.text);
+                HistoryEntry::new(
+                    EditDelta {
+                        range: Utf16Range::new(
+                            entry.forward.range.start,
+                            previous.forward.range.end,
+                        ),
+                        text: String::new(),
+                    },
+                    EditDelta {
+                        range: Utf16Range::collapsed(entry.forward.range.start),
+                        text: restored,
+                    },
+                    previous.before_selection,
+                    entry.after_selection,
+                )
+            }
+            (GroupKind::DeleteForward, UndoAnchor::DeleteForward { caret, class })
+                if entry.forward.range.start == caret
+                    && text_class(&entry.inverse.text) == Some(class) =>
+            {
+                let mut restored = previous.inverse.text.clone();
+                restored.push_str(&entry.inverse.text);
+                let width = entry
+                    .forward
+                    .range
+                    .end
+                    .checked_sub(entry.forward.range.start)
+                    .ok_or(EditError::OffsetOverflow)?;
+                let end = previous
+                    .forward
+                    .range
+                    .end
+                    .checked_add(width)
+                    .ok_or(EditError::OffsetOverflow)?;
+                HistoryEntry::new(
+                    EditDelta {
+                        range: Utf16Range::new(previous.forward.range.start, end),
+                        text: String::new(),
+                    },
+                    EditDelta {
+                        range: Utf16Range::collapsed(previous.forward.range.start),
+                        text: restored,
+                    },
+                    previous.before_selection,
+                    entry.after_selection,
+                )
+            }
+            _ => return Ok(false),
+        };
+        if merged.retained_bytes > self.config.max_history_bytes {
+            // The burst outgrew the budget; keep the sealed entry and let the
+            // new command start its own group instead of evicting silently.
+            return Ok(false);
+        }
+        let replaced = self.undo.pop_back().expect("history entry validated");
+        self.undo_bytes -= replaced.retained_bytes;
+        self.undo_bytes += merged.retained_bytes;
+        self.undo.push_back(merged);
+        Ok(true)
     }
 
     fn commit_prepared(&mut self, prepared: PreparedReplacement) {
@@ -497,6 +762,7 @@ impl EditSession {
     }
 
     fn push_undo(&mut self, entry: HistoryEntry) {
+        self.undo_anchor = UndoAnchor::None;
         if self.config.max_history_entries == 0
             || entry.retained_bytes > self.config.max_history_bytes
         {
@@ -766,6 +1032,167 @@ mod tests {
         );
     }
 
+    #[test]
+    fn typing_burst_collapses_into_one_undo_step() {
+        let mut editor = session("", Selection::collapsed(0));
+        for character in ["h", "e", "l", "l", "o"] {
+            apply(&mut editor, EditIntent::Insert((*character).to_owned()));
+        }
+        assert_eq!(editor.text(), "hello");
+        assert_eq!(editor.undo_depth(), 1);
+        apply(&mut editor, EditIntent::Undo);
+        assert_eq!(editor.text(), "");
+        assert_eq!(editor.selection(), Selection::collapsed(0));
+        apply(&mut editor, EditIntent::Redo);
+        assert_eq!(editor.text(), "hello");
+        assert_eq!(editor.selection(), Selection::collapsed(5));
+    }
+
+    #[test]
+    fn class_change_caret_move_and_newline_seal_the_group() {
+        // A class change ends the burst: "hello" and " " and "world" are three.
+        let mut editor = session("", Selection::collapsed(0));
+        for chunk in ["h", "i", " ", "y", "o"] {
+            apply(&mut editor, EditIntent::Insert((*chunk).to_owned()));
+        }
+        assert_eq!(editor.undo_depth(), 3);
+        apply(&mut editor, EditIntent::Undo);
+        assert_eq!(editor.text(), "hi ");
+
+        // Moving the caret ends the burst even though nothing else changed.
+        let mut editor = session("ab", Selection::collapsed(2));
+        apply(&mut editor, EditIntent::Insert("c".to_owned()));
+        apply(
+            &mut editor,
+            EditIntent::SetSelection(Selection::collapsed(0)),
+        );
+        apply(&mut editor, EditIntent::Insert("z".to_owned()));
+        assert_eq!(editor.text(), "zabc");
+        assert_eq!(editor.undo_depth(), 2);
+
+        // A newline is never absorbed into a burst.
+        let mut editor = session("", Selection::collapsed(0));
+        apply(&mut editor, EditIntent::Insert("a".to_owned()));
+        apply(&mut editor, EditIntent::Insert("\n".to_owned()));
+        apply(&mut editor, EditIntent::Insert("b".to_owned()));
+        assert_eq!(editor.undo_depth(), 3);
+    }
+
+    #[test]
+    fn deletion_bursts_group_per_direction_and_never_across_directions() {
+        let mut editor = session("abcdef", Selection::collapsed(6));
+        for _ in 0..3 {
+            apply(&mut editor, EditIntent::DeleteBackward);
+        }
+        assert_eq!(editor.text(), "abc");
+        assert_eq!(editor.undo_depth(), 1);
+        apply(&mut editor, EditIntent::Undo);
+        assert_eq!(editor.text(), "abcdef");
+        assert_eq!(editor.selection(), Selection::collapsed(6));
+
+        let mut editor = session("abcdef", Selection::collapsed(2));
+        for _ in 0..3 {
+            apply(&mut editor, EditIntent::DeleteForward);
+        }
+        assert_eq!(editor.text(), "abf");
+        assert_eq!(editor.undo_depth(), 1);
+        apply(&mut editor, EditIntent::Undo);
+        assert_eq!(editor.text(), "abcdef");
+
+        // Backspace then forward-delete are two intentions, so two steps.
+        let mut editor = session("abcdef", Selection::collapsed(3));
+        apply(&mut editor, EditIntent::DeleteBackward);
+        apply(&mut editor, EditIntent::DeleteForward);
+        assert_eq!(editor.text(), "abef");
+        assert_eq!(editor.undo_depth(), 2);
+    }
+
+    #[test]
+    fn an_input_rule_replacement_is_its_own_undo_step() {
+        // Typing the closing delimiter, then the Shell rewriting the span, must
+        // undo as two steps: the format first, the burst second.
+        let mut editor = session("", Selection::collapsed(0));
+        for chunk in ["*", "*"] {
+            apply(&mut editor, EditIntent::Insert((*chunk).to_owned()));
+        }
+        apply(&mut editor, EditIntent::Insert("b".to_owned()));
+        apply(&mut editor, EditIntent::Insert("*".to_owned()));
+        apply(&mut editor, EditIntent::Insert("*".to_owned()));
+        assert_eq!(editor.text(), "**b**");
+        apply(
+            &mut editor,
+            EditIntent::Replace {
+                range: Utf16Range::new(0, 5),
+                text: "b".to_owned(),
+            },
+        );
+        assert_eq!(editor.text(), "b");
+        apply(&mut editor, EditIntent::Undo);
+        assert_eq!(editor.text(), "**b**");
+        // The following keystroke may not rejoin the replacement's group.
+        let mut editor = session("x", Selection::collapsed(1));
+        apply(
+            &mut editor,
+            EditIntent::Replace {
+                range: Utf16Range::new(0, 1),
+                text: "y".to_owned(),
+            },
+        );
+        apply(&mut editor, EditIntent::Insert("z".to_owned()));
+        assert_eq!(editor.undo_depth(), 2);
+    }
+
+    #[test]
+    fn grouping_is_disabled_by_configuration_and_survives_history_budgets() {
+        let ungrouped = EditConfig {
+            group_undo: false,
+            ..EditConfig::default()
+        };
+        let mut editor =
+            EditSession::new(String::new(), Selection::collapsed(0), 0, ungrouped).expect("session");
+        for character in ["a", "b", "c"] {
+            apply(&mut editor, EditIntent::Insert((*character).to_owned()));
+        }
+        assert_eq!(editor.undo_depth(), 3);
+
+        // A burst that outgrows the retained-byte budget seals the group rather
+        // than growing an entry past the budget. The sealed entry is then
+        // evicted by the ordinary byte budget, so the value it restores is the
+        // burst prefix, not the empty document.
+        let tight = EditConfig {
+            max_history_bytes: 3,
+            ..EditConfig::default()
+        };
+        let mut editor =
+            EditSession::new(String::new(), Selection::collapsed(0), 0, tight).expect("session");
+        for character in ["a", "b", "c", "d"] {
+            apply(&mut editor, EditIntent::Insert((*character).to_owned()));
+        }
+        assert_eq!(editor.text(), "abcd");
+        assert_eq!(editor.undo_depth(), 1);
+        apply(&mut editor, EditIntent::Undo);
+        assert_eq!(editor.text(), "abc");
+        assert!(!editor.can_undo());
+    }
+
+    #[test]
+    fn composition_and_external_values_never_join_a_typing_burst() {
+        let mut editor = session("", Selection::collapsed(0));
+        apply(&mut editor, EditIntent::Insert("a".to_owned()));
+        apply(&mut editor, EditIntent::BeginComposition);
+        apply(&mut editor, EditIntent::UpdateComposition("b".to_owned()));
+        apply(&mut editor, EditIntent::CommitComposition(None));
+        apply(&mut editor, EditIntent::Insert("c".to_owned()));
+        assert_eq!(editor.text(), "abc");
+        assert_eq!(editor.undo_depth(), 3);
+        apply(&mut editor, EditIntent::Undo);
+        assert_eq!(editor.text(), "ab");
+        apply(&mut editor, EditIntent::Undo);
+        assert_eq!(editor.text(), "a");
+        apply(&mut editor, EditIntent::Undo);
+        assert_eq!(editor.text(), "");
+    }
+
     proptest! {
         #[test]
         fn arbitrary_insert_delete_sequences_are_grapheme_safe_and_reversible(
@@ -796,6 +1223,61 @@ mod tests {
                 apply(&mut editor, EditIntent::Redo);
             }
             prop_assert_eq!(editor.text(), final_text);
+        }
+
+        #[test]
+        fn grouping_only_changes_undo_granularity_never_reachable_states(
+            operations in prop::collection::vec((0_usize..6, 0_usize..5), 0..80),
+        ) {
+            let corpus = ["a", "b", " ", ".", "日", "e\u{301}"];
+            let intents: Vec<EditIntent> = operations
+                .iter()
+                .map(|(corpus_index, action)| match action {
+                    0..=2 => EditIntent::Insert(corpus[*corpus_index].to_owned()),
+                    3 => EditIntent::DeleteBackward,
+                    4 => EditIntent::DeleteForward,
+                    _ => unreachable!("action range is 0..5"),
+                })
+                .collect();
+
+            let ungrouped_config = EditConfig {
+                group_undo: false,
+                ..EditConfig::default()
+            };
+            let mut ungrouped =
+                EditSession::new(String::new(), Selection::collapsed(0), 0, ungrouped_config)
+                    .expect("session");
+            let mut grouped = session("", Selection::collapsed(0));
+            // Every state the user actually passed through, newest last.
+            let mut snapshots = vec![(String::new(), Selection::collapsed(0))];
+            for intent in &intents {
+                apply(&mut ungrouped, intent.clone());
+                apply(&mut grouped, intent.clone());
+                // Grouping must not change the forward path at all.
+                prop_assert_eq!(grouped.text(), ungrouped.text());
+                prop_assert_eq!(grouped.selection(), ungrouped.selection());
+                snapshots.push((ungrouped.text().to_owned(), ungrouped.selection()));
+            }
+            let final_state = (grouped.text().to_owned(), grouped.selection());
+            prop_assert!(grouped.undo_depth() <= ungrouped.undo_depth());
+
+            // Undo may only land on states that existed, and must walk strictly
+            // backwards through them until the document is empty again.
+            let mut cursor = snapshots.len();
+            while grouped.can_undo() {
+                apply(&mut grouped, EditIntent::Undo);
+                let state = (grouped.text().to_owned(), grouped.selection());
+                let found = snapshots[..cursor]
+                    .iter()
+                    .rposition(|snapshot| *snapshot == state);
+                prop_assert!(found.is_some(), "undo reached a state that never existed");
+                cursor = found.expect("checked above");
+            }
+            prop_assert_eq!(grouped.text(), "");
+            while grouped.can_redo() {
+                apply(&mut grouped, EditIntent::Redo);
+            }
+            prop_assert_eq!((grouped.text().to_owned(), grouped.selection()), final_state);
         }
 
         #[test]

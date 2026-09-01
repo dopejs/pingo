@@ -110,6 +110,9 @@ pub struct EditConfig {
     pub max_history_entries: usize,
     /// Maximum UTF-8 payload retained by undo entries.
     pub max_history_bytes: usize,
+    /// Whether adjacent same-class typing or deletion collapses into one undo
+    /// entry. Disabling it restores one entry per accepted command.
+    pub group_undo: bool,
 }
 
 impl Default for EditConfig {
@@ -120,6 +123,7 @@ impl Default for EditConfig {
             max_graphemes: 1_000_000,
             max_history_entries: 100,
             max_history_bytes: 4 * 1024 * 1024,
+            group_undo: true,
         }
     }
 }
