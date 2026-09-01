@@ -1,3 +1,5 @@
+use crate::{MarkRuns, PositionMap};
+
 /// Caret affinity when a logical position has two visual interpretations.
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub enum Affinity {
@@ -163,6 +165,30 @@ pub enum EditIntent {
     CommitComposition(Option<String>),
     /// Restores the pre-composition value and selection.
     CancelComposition,
+    /// Applies one Shell-defined mark style to a range.
+    ///
+    /// Core does not know what the style means. `toggleMark` is a Shell command
+    /// that decides which style to apply and to what; Core only owns where the
+    /// styled span sits and how it moves.
+    SetMarks {
+        /// Range in the command's base revision.
+        range: Utf16Range,
+        /// Text style resource identity; zero is the value's base style.
+        style: u32,
+        /// Font resource identity; zero inherits the node's font.
+        font: u32,
+    },
+    /// Sets the style the next insertion at the caret adopts.
+    ///
+    /// Cleared by any selection change, so it survives exactly as long as the
+    /// caret stands still -- which is what "turn bold on, then type" means.
+    SetPendingMark(Option<(u32, u32)>),
+    /// Seals the current undo group so the next command starts a new one.
+    ///
+    /// An input rule rewrites a span after the keystroke that triggered it, and
+    /// without this the rewrite and the burst that preceded it would undo
+    /// together.
+    BreakUndoGroup,
     /// Applies the latest inverse transaction.
     Undo,
     /// Reapplies the latest undone transaction.
@@ -208,6 +234,14 @@ pub struct EditTransaction {
     pub composition: Option<Utf16Range>,
     /// Transition source.
     pub kind: TransactionKind,
+    /// How offsets in the base revision move into this one.
+    ///
+    /// Everything the Shell anchors to text -- a link's extent, a comment, a
+    /// remote cursor -- moves by consuming this, which is why there is no
+    /// second range-transform implementation to disagree with it.
+    pub map: PositionMap,
+    /// Mark table after the transaction, present only when it changed.
+    pub marks: Option<MarkRuns>,
 }
 
 /// Authoritative Shell state used for correction or recovery.
@@ -219,4 +253,6 @@ pub struct ExternalValue {
     pub text: String,
     /// Browser-facing UTF-16 selection.
     pub selection: Selection,
+    /// Mark table for `text`, or `None` to reset it to the base style.
+    pub marks: Option<MarkRuns>,
 }

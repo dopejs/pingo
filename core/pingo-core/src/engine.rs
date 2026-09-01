@@ -6518,6 +6518,183 @@ mod tests {
             .collect()
     }
 
+    /// An editable node with a real font and two text styles available to mark
+    /// with.
+    fn styled_editable_tree(text: &str) -> Vec<u8> {
+        let mut mutations = vec![
+            Mutation::CreateNode {
+                node_id: id(0),
+                kind: NodeKind::Root,
+                parent: NULL_NODE_ID,
+                before_sibling: NULL_NODE_ID,
+            },
+            Mutation::CreateNode {
+                node_id: id(1),
+                kind: NodeKind::EditableText,
+                parent: id(0),
+                before_sibling: NULL_NODE_ID,
+            },
+        ];
+        mutations.extend(rich_text_resources());
+        mutations.extend([
+            Mutation::DefineResource {
+                resource_id: 3,
+                kind: ResourceKind::Utf8String,
+                bytes: text.as_bytes().to_vec(),
+            },
+            Mutation::SetRef {
+                node_id: id(1),
+                prop: Prop::Font,
+                resource_id: 4,
+            },
+            Mutation::SetTextRun {
+                node_id: id(1),
+                string_id: 3,
+                style_id: 2,
+            },
+            Mutation::ConfigureEditable {
+                node_id: id(1),
+                revision: 0,
+                flags: 1,
+                max_graphemes: 100,
+            },
+        ]);
+        frame(1, mutations)
+    }
+
+    #[test]
+    fn marking_a_range_repaints_it_and_reports_a_map_the_shell_can_apply() {
+        let value = "\u{ea60}\u{ea61}\u{ea62}\u{ea63}";
+        let mut engine = CoreEngine::new(320.0, 240.0).expect("Core");
+        let first = engine.commit(&styled_editable_tree(value)).expect("frame");
+        // Before any marking the whole value is one span, exactly as a plain
+        // editable field has always drawn it.
+        assert_eq!(glyph_run_commands(&first).len(), 1);
+        let _ = engine.take_glyph_resources();
+        let _ = engine.take_edit_transactions().expect("drain");
+
+        // Style the middle two characters with the red text style.
+        let output = engine
+            .input(&input(
+                2,
+                vec![
+                    InputCommand::FocusEditable { node_id: id(1) },
+                    InputCommand::SetMarks {
+                        node_id: id(1),
+                        base_revision: 0,
+                        start: 1,
+                        end: 3,
+                        style: 6,
+                        font: 0,
+                    },
+                ],
+            ))
+            .expect("marking input")
+            .expect("frame");
+        assert_eq!(glyph_run_commands(&output).len(), 3, "plain, marked, plain");
+        let _ = engine.take_glyph_resources();
+
+        let transactions = pingo_abi::EditTransactionBatch::decode(
+            &engine.take_edit_transactions().expect("drain"),
+        )
+        .expect("transactions");
+        let marking = transactions
+            .records
+            .iter()
+            .find(|record| record.marks.is_some())
+            .expect("a record reports the new marks");
+        assert_eq!(
+            marking
+                .marks
+                .as_ref()
+                .expect("marks")
+                .iter()
+                .map(|run| (run.length, run.style))
+                .collect::<Vec<_>>(),
+            vec![(1, 0), (2, 6), (1, 0)]
+        );
+        // Styling moves nothing, so the map is the identity and the Shell has
+        // no anchors to move.
+        assert!(marking.map.is_empty(), "styling must not move anchors");
+        assert_eq!(marking.delta, None);
+    }
+
+    #[test]
+    fn typing_inside_a_marked_span_extends_it_and_reports_where_offsets_moved() {
+        let value = "\u{ea60}\u{ea61}\u{ea62}\u{ea63}";
+        let mut engine = CoreEngine::new(320.0, 240.0).expect("Core");
+        engine.commit(&styled_editable_tree(value)).expect("frame");
+        let _ = engine.take_glyph_resources();
+        let _ = engine.take_edit_transactions().expect("drain");
+        engine
+            .input(&input(
+                2,
+                vec![
+                    InputCommand::FocusEditable { node_id: id(1) },
+                    InputCommand::SetMarks {
+                        node_id: id(1),
+                        base_revision: 0,
+                        start: 1,
+                        end: 3,
+                        style: 6,
+                        font: 0,
+                    },
+                    InputCommand::SetSelection {
+                        node_id: id(1),
+                        base_revision: 1,
+                        selection: pingo_abi::InputSelection {
+                            anchor: pingo_abi::InputPosition {
+                                offset: 2,
+                                affinity: pingo_abi::InputAffinity::Downstream,
+                            },
+                            focus: pingo_abi::InputPosition {
+                                offset: 2,
+                                affinity: pingo_abi::InputAffinity::Downstream,
+                            },
+                        },
+                    },
+                    InputCommand::Insert {
+                        node_id: id(1),
+                        base_revision: 2,
+                        text: "\u{ea64}".to_owned(),
+                    },
+                ],
+            ))
+            .expect("typing input")
+            .expect("frame");
+        let _ = engine.take_glyph_resources();
+        let transactions = pingo_abi::EditTransactionBatch::decode(
+            &engine.take_edit_transactions().expect("drain"),
+        )
+        .expect("transactions");
+        let insert = transactions
+            .records
+            .iter()
+            .rev()
+            .find(|record| record.delta.is_some())
+            .expect("the insertion");
+        // The new character joined the marked run rather than starting a plain
+        // one, because the caret was inside it.
+        assert_eq!(
+            insert
+                .marks
+                .as_ref()
+                .expect("marks")
+                .iter()
+                .map(|run| (run.length, run.style))
+                .collect::<Vec<_>>(),
+            vec![(1, 0), (3, 6), (1, 0)]
+        );
+        // And the map says exactly where the tail went.
+        let map = &insert.map;
+        assert!(!map.is_empty());
+        assert_eq!(map.first().expect("first").old_start, 0);
+        assert_eq!(map.last().expect("last").old_end, 4);
+        let tail = map.last().expect("last");
+        assert!(tail.kept);
+        assert_eq!(tail.new_start, tail.old_start + 1);
+    }
+
     #[test]
     fn a_styled_run_table_draws_one_colored_span_per_run() {
         let mut engine = CoreEngine::new(320.0, 240.0).expect("Core");

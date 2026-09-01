@@ -451,6 +451,9 @@ describe("CanvasFrameSink", () => {
         focusAffinity: "downstream",
       },
       kind: "edit",
+      // A selection-only transaction moves nothing, so the map is empty and
+      // the Shell has no anchors to walk.
+      map: [],
     });
   });
 
@@ -1266,7 +1269,9 @@ function emptyDisplayList(): Uint8Array {
 }
 
 function selectionTransactionStream(): Uint8Array {
-  const bytes = new Uint8Array(72);
+  // 16 stream header + 64 instruction: the tail is textBytes, markRunCount and
+  // mapSegmentCount, all zero for a selection-only transaction.
+  const bytes = new Uint8Array(80);
   const view = new DataView(bytes.buffer);
   view.setUint32(0, EDIT_TRANSACTIONS_MAGIC, true);
   view.setUint16(4, ABI_VERSION, true);

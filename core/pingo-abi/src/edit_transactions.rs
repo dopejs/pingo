@@ -3,13 +3,15 @@ use crate::codec::{
     validate_encode_instruction_count,
 };
 use crate::{
-    AbiError, EDIT_TRANSACTIONS_MAGIC, EditTransactionOpcode, MAX_EDIT_TRANSACTION_INSTRUCTIONS,
+    AbiError, EDIT_MAP_SEGMENT_FLAG_KEPT, EDIT_TRANSACTIONS_MAGIC, EditTransactionOpcode,
+    MAX_EDIT_MAP_SEGMENTS, MAX_EDIT_MARK_RUNS, MAX_EDIT_TRANSACTION_INSTRUCTIONS,
     MAX_EDIT_TRANSACTIONS_BYTES, MAX_RESOURCE_BYTES, StreamKind,
 };
 
 const HAS_DELTA: u8 = 1;
 const HAS_COMPOSITION: u8 = 1 << 1;
-const KNOWN_FLAGS: u8 = HAS_DELTA | HAS_COMPOSITION;
+const HAS_MARKS: u8 = 1 << 2;
+const KNOWN_FLAGS: u8 = HAS_DELTA | HAS_COMPOSITION | HAS_MARKS;
 
 /// Browser-facing caret affinity encoded in edit transactions.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -32,6 +34,36 @@ impl WireAffinity {
             }),
         }
     }
+}
+
+/// One styled span of an editing value on the reverse editing ABI.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct WireMarkRun {
+    /// UTF-16 code-unit length of the span.
+    pub length: u32,
+    /// Text style resource identity; zero is the value's base style.
+    pub style: u32,
+    /// Font resource identity; zero inherits the node's font.
+    pub font: u32,
+}
+
+/// One old-space span of a position map and where it lands.
+///
+/// The Shell moves its own anchors by looking spans up in this table rather
+/// than recomputing the transformation, so there is exactly one implementation
+/// of what an edit does to a range.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct WireMapSegment {
+    /// Inclusive start in the old value.
+    pub old_start: u32,
+    /// Exclusive end in the old value.
+    pub old_end: u32,
+    /// Inclusive start in the new value.
+    pub new_start: u32,
+    /// Exclusive end in the new value.
+    pub new_end: u32,
+    /// Whether the span survived offset for offset.
+    pub kept: bool,
 }
 
 /// Half-open UTF-16 range used by the reverse editing ABI.
@@ -94,6 +126,12 @@ pub struct EditTransactionRecord {
     pub composition: Option<WireRange>,
     /// Transition source.
     pub kind: EditTransactionKind,
+    /// Mark table after the transition, present only when it changed.
+    pub marks: Option<Vec<WireMarkRun>>,
+    /// How base-revision offsets move into this revision.
+    ///
+    /// Empty means the identity: nothing the Shell anchors to has to move.
+    pub map: Vec<WireMapSegment>,
 }
 
 /// Transactional batch drained after one accepted Core operation.
@@ -218,12 +256,32 @@ impl EditTransactionBatch {
             writer.u32(composition.end);
             writer.u8(record.kind as u8);
             writer.u8((u8::from(record.delta.is_some()) * HAS_DELTA)
-                | (u8::from(record.composition.is_some()) * HAS_COMPOSITION));
+                | (u8::from(record.composition.is_some()) * HAS_COMPOSITION)
+                | (u8::from(record.marks.is_some()) * HAS_MARKS));
             writer.u8(record.affinities[0] as u8);
             writer.u8(record.affinities[1] as u8);
             writer.u32(u32::try_from(text.len()).map_err(|_| AbiError::ArithmeticOverflow)?);
+            let marks = record.marks.as_deref().unwrap_or_default();
+            writer.u32(u32::try_from(marks.len()).map_err(|_| AbiError::ArithmeticOverflow)?);
+            writer.u32(u32::try_from(record.map.len()).map_err(|_| AbiError::ArithmeticOverflow)?);
             writer.bytes(text.as_bytes());
             writer.pad();
+            for run in marks {
+                writer.u32(run.length);
+                writer.u32(run.style);
+                writer.u32(run.font);
+            }
+            for segment in &record.map {
+                writer.u32(segment.old_start);
+                writer.u32(segment.old_end);
+                writer.u32(segment.new_start);
+                writer.u32(segment.new_end);
+                writer.u32(if segment.kept {
+                    EDIT_MAP_SEGMENT_FLAG_KEPT
+                } else {
+                    0
+                });
+            }
         }
         writer.finish(MAX_EDIT_TRANSACTIONS_BYTES)
     }
@@ -260,10 +318,47 @@ fn decode_record(reader: &mut Reader<'_>) -> Result<EditTransactionRecord, AbiEr
             maximum: MAX_RESOURCE_BYTES,
         });
     }
+    let mark_count = reader.read_u32()?;
+    let map_count = reader.read_u32()?;
+    if mark_count > MAX_EDIT_MARK_RUNS || map_count > MAX_EDIT_MAP_SEGMENTS {
+        return Err(AbiError::InvalidValue(
+            "edit transaction payload exceeds its protocol budget",
+        ));
+    }
     let text = std::str::from_utf8(reader.read_bytes(length)?)
         .map_err(|_| AbiError::InvalidValue("edit transaction delta is not UTF-8"))?
         .to_owned();
     reader.read_zeroes(checked_padding(length)?)?;
+    let mut marks =
+        Vec::with_capacity(usize::try_from(mark_count).map_err(|_| AbiError::ArithmeticOverflow)?);
+    for _ in 0..mark_count {
+        marks.push(WireMarkRun {
+            length: reader.read_u32()?,
+            style: reader.read_u32()?,
+            font: reader.read_u32()?,
+        });
+    }
+    let mut map =
+        Vec::with_capacity(usize::try_from(map_count).map_err(|_| AbiError::ArithmeticOverflow)?);
+    for _ in 0..map_count {
+        let old_start = reader.read_u32()?;
+        let old_end = reader.read_u32()?;
+        let new_start = reader.read_u32()?;
+        let new_end = reader.read_u32()?;
+        let flags = reader.read_u32()?;
+        if flags & !EDIT_MAP_SEGMENT_FLAG_KEPT != 0 {
+            return Err(AbiError::InvalidValue(
+                "position map segment flags contain reserved bits",
+            ));
+        }
+        map.push(WireMapSegment {
+            old_start,
+            old_end,
+            new_start,
+            new_end,
+            kept: flags & EDIT_MAP_SEGMENT_FLAG_KEPT != 0,
+        });
+    }
     if flags & HAS_DELTA == 0
         && (!text.is_empty() || delta_range.start != 0 || delta_range.end != 0)
     {
@@ -286,7 +381,14 @@ fn decode_record(reader: &mut Reader<'_>) -> Result<EditTransactionRecord, AbiEr
         affinities,
         composition: (flags & HAS_COMPOSITION != 0).then_some(composition_range),
         kind,
+        marks: (flags & HAS_MARKS != 0).then_some(marks),
+        map,
     };
+    if flags & HAS_MARKS == 0 && mark_count != 0 {
+        return Err(AbiError::InvalidValue(
+            "absent mark table has a non-empty payload",
+        ));
+    }
     validate_record(&record)?;
     Ok(record)
 }
@@ -308,6 +410,29 @@ fn validate_record(record: &EditTransactionRecord) -> Result<(), AbiError> {
     }
     if let Some(range) = record.composition {
         validate_range(range)?;
+    }
+    if record.marks.as_ref().is_some_and(|marks| {
+        marks.len() > MAX_EDIT_MARK_RUNS as usize || marks.iter().any(|run| run.length == 0)
+    }) {
+        return Err(AbiError::InvalidValue(
+            "mark table has an empty or oversized span",
+        ));
+    }
+    if record.map.len() > MAX_EDIT_MAP_SEGMENTS as usize {
+        return Err(AbiError::InvalidValue("position map exceeds its budget"));
+    }
+    // The table has to tile the old offset space, or a lookup can miss.
+    let mut cursor = 0_u32;
+    for segment in &record.map {
+        if segment.old_start != cursor
+            || segment.old_end < segment.old_start
+            || segment.new_end < segment.new_start
+        {
+            return Err(AbiError::InvalidValue(
+                "position map segments are not ordered",
+            ));
+        }
+        cursor = segment.old_end;
     }
     Ok(())
 }
@@ -368,6 +493,34 @@ mod tests {
                 affinities: [WireAffinity::Upstream, WireAffinity::Downstream],
                 composition: Some(WireRange { start: 1, end: 4 }),
                 kind: EditTransactionKind::Composition,
+                marks: Some(vec![
+                    WireMarkRun {
+                        length: 1,
+                        style: 0,
+                        font: 0,
+                    },
+                    WireMarkRun {
+                        length: 3,
+                        style: 12,
+                        font: 5,
+                    },
+                ]),
+                map: vec![
+                    WireMapSegment {
+                        old_start: 0,
+                        old_end: 1,
+                        new_start: 0,
+                        new_end: 1,
+                        kept: true,
+                    },
+                    WireMapSegment {
+                        old_start: 1,
+                        old_end: 2,
+                        new_start: 1,
+                        new_end: 4,
+                        kept: false,
+                    },
+                ],
             }],
         };
         let bytes = batch.encode().expect("encode");
@@ -385,6 +538,8 @@ mod tests {
             affinities: [WireAffinity::Downstream, WireAffinity::Downstream],
             composition: None,
             kind: EditTransactionKind::Edit,
+            marks: None,
+            map: Vec::new(),
         };
         for kind in [
             EditTransactionKind::Edit,
@@ -443,6 +598,91 @@ mod tests {
     }
 
     #[test]
+    fn malformed_mark_tables_and_position_maps_fail_closed() {
+        let record = EditTransactionRecord {
+            node_id: 7,
+            base_revision: 0,
+            revision: 1,
+            delta: None,
+            selection: [0, 0],
+            affinities: [WireAffinity::Downstream; 2],
+            composition: None,
+            kind: EditTransactionKind::Edit,
+            marks: None,
+            map: Vec::new(),
+        };
+        // An empty span would make the table ambiguous about where a run ends.
+        assert!(
+            EditTransactionBatch {
+                records: vec![EditTransactionRecord {
+                    marks: Some(vec![WireMarkRun {
+                        length: 0,
+                        style: 1,
+                        font: 0,
+                    }]),
+                    ..record.clone()
+                }],
+            }
+            .encode()
+            .is_err()
+        );
+        // A map with a gap would let a lookup miss and silently return the end.
+        assert!(
+            EditTransactionBatch {
+                records: vec![EditTransactionRecord {
+                    map: vec![
+                        WireMapSegment {
+                            old_start: 0,
+                            old_end: 1,
+                            new_start: 0,
+                            new_end: 1,
+                            kept: true,
+                        },
+                        WireMapSegment {
+                            old_start: 2,
+                            old_end: 3,
+                            new_start: 1,
+                            new_end: 2,
+                            kept: true,
+                        },
+                    ],
+                    ..record.clone()
+                }],
+            }
+            .encode()
+            .is_err()
+        );
+
+        let bytes = EditTransactionBatch {
+            records: vec![EditTransactionRecord {
+                map: vec![WireMapSegment {
+                    old_start: 0,
+                    old_end: 2,
+                    new_start: 0,
+                    new_end: 3,
+                    kept: false,
+                }],
+                ..record
+            }],
+        }
+        .encode()
+        .expect("encode");
+        let mut reserved = bytes.clone();
+        // The segment flags word is the last u32 of the instruction.
+        let flags_at = reserved.len() - 4;
+        reserved[flags_at] = 0b10;
+        assert!(EditTransactionBatch::decode(&reserved).is_err());
+        assert_eq!(
+            EditTransactionBatch::decode(&bytes)
+                .expect("decode")
+                .records[0]
+                .map
+                .len(),
+            1
+        );
+    }
+
+    #[test]
     fn malformed_utf8_and_presence_bits_fail_closed() {
         let batch = EditTransactionBatch {
             records: vec![EditTransactionRecord {
@@ -454,11 +694,13 @@ mod tests {
                 affinities: [WireAffinity::Downstream; 2],
                 composition: None,
                 kind: EditTransactionKind::Edit,
+                marks: None,
+                map: Vec::new(),
             }],
         };
         let bytes = batch.encode().expect("encode");
         let mut bad_utf8 = bytes.clone();
-        bad_utf8[72] = 0xff;
+        bad_utf8[80] = 0xff;
         assert!(EditTransactionBatch::decode(&bad_utf8).is_err());
         let mut bad_flags = bytes;
         bad_flags[65] = 0;

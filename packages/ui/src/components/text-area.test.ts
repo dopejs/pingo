@@ -61,6 +61,7 @@ describe("TextArea", () => {
     const node = textAreaDescriptor({ onValueChange }, controller) as unknown as Tree;
     const transaction: EditTransaction = {
       baseRevision: 0n,
+      map: [],
       delta: { range: { start: 1, end: 1 }, text: "b" },
       kind: "edit",
       nodeId: 1,

@@ -152,6 +152,7 @@ function target(overrides: Partial<EditingTargetState> = {}): EditingTargetState
 function transaction(overrides: Partial<EditTransaction> = {}): EditTransaction {
   return {
     baseRevision: 7n,
+    map: [],
     delta: { range: { start: 2, end: 2 }, text: "c" },
     kind: "edit",
     nodeId: 17,
@@ -314,6 +315,7 @@ describe("NativeTextInputBridge (unit)", () => {
     expect(context?.text).toBe("abc");
     bridge.applyTransaction({
       baseRevision: 8n,
+      map: [],
       revision: 9n,
       kind: "edit",
       nodeId: 17,

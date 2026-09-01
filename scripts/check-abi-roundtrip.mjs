@@ -126,6 +126,26 @@ async function checkAbiRoundtrip() {
         text: "你好",
       },
       {
+        type: "setMarks",
+        nodeId: 0x0010_0007,
+        baseRevision: 0x0123_4567_89ab_cdf3n,
+        start: 1,
+        end: 3,
+        style: 12,
+        font: 4,
+      },
+      {
+        type: "setPendingMark",
+        nodeId: 0x0010_0007,
+        baseRevision: 0x0123_4567_89ab_cdf4n,
+        mark: { style: 12, font: 4 },
+      },
+      {
+        type: "breakUndoGroup",
+        nodeId: 0x0010_0007,
+        baseRevision: 0x0123_4567_89ab_cdf5n,
+      },
+      {
         type: "dispatchKeyEvent",
         eventId: 0x0000_0021,
         kind: "keydown",

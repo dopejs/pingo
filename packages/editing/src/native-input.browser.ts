@@ -40,6 +40,7 @@ function textUpdate(detail: {
 function transaction(overrides: Partial<EditTransaction> = {}): EditTransaction {
   return {
     baseRevision: 7n,
+    map: [],
     delta: { range: { start: 2, end: 2 }, text: "文" },
     kind: "edit",
     nodeId: 17,

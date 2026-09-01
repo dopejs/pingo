@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 
 use crate::{
     EditCommand, EditConfig, EditDelta, EditError, EditIntent, EditTransaction, ExternalValue,
-    OffsetBias, Selection, TextIndex, TransactionKind, Utf16Range,
+    MarkRuns, MarkSide, OffsetBias, PositionMap, Selection, TextIndex, TransactionKind, Utf16Range,
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -10,6 +10,7 @@ struct Composition {
     original_range: Utf16Range,
     current_range: Utf16Range,
     original_text: String,
+    original_marks: MarkRuns,
     original_selection: Selection,
 }
 
@@ -17,6 +18,10 @@ struct Composition {
 struct HistoryEntry {
     forward: EditDelta,
     inverse: EditDelta,
+    /// Marks the forward delta installs over its inserted text.
+    forward_marks: MarkRuns,
+    /// Marks the inverse delta restores, so undo returns styling as well as text.
+    inverse_marks: MarkRuns,
     before_selection: Selection,
     after_selection: Selection,
     retained_bytes: usize,
@@ -96,10 +101,17 @@ fn utf16_units(text: &str) -> Result<u32, EditError> {
 struct PreparedReplacement {
     next_text: String,
     next_index: TextIndex,
+    next_marks: MarkRuns,
     forward: EditDelta,
     inverse: EditDelta,
+    /// Marks covering the inserted text.
+    forward_marks: MarkRuns,
+    /// Marks covering the text this replacement removes.
+    inverse_marks: MarkRuns,
+    map: PositionMap,
     after_selection: Selection,
     text_changed: bool,
+    marks_changed: bool,
 }
 
 /// Core-owned state for one active editable-text node.
@@ -107,6 +119,10 @@ struct PreparedReplacement {
 pub struct EditSession {
     text: String,
     index: TextIndex,
+    marks: MarkRuns,
+    /// Style and font the next caret insertion adopts, cleared by any
+    /// selection change.
+    pending_mark: Option<(u32, u32)>,
     selection: Selection,
     composition: Option<Composition>,
     revision: u64,
@@ -123,22 +139,45 @@ pub struct EditSession {
     /// Shape of the entry currently on top of `undo`, or `None` when the next
     /// command must start a fresh group.
     undo_anchor: UndoAnchor,
+    /// Map produced by the replacement committed in the current command.
+    pending_map: Option<PositionMap>,
+    /// Whether the current command changed the mark table.
+    marks_dirty: bool,
 }
 
 impl EditSession {
-    /// Creates a validated session from authoritative initial state.
+    /// Creates a validated session whose value carries only the base style.
     pub fn new(
         text: String,
         selection: Selection,
         revision: u64,
         config: EditConfig,
     ) -> Result<Self, EditError> {
+        Self::new_styled(text, None, selection, revision, config)
+    }
+
+    /// Creates a validated session from authoritative initial state and marks.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`EditError::InvalidMarkRuns`] when the table does not tile the
+    /// value, plus the usual value-policy errors.
+    pub fn new_styled(
+        text: String,
+        marks: Option<MarkRuns>,
+        selection: Selection,
+        revision: u64,
+        config: EditConfig,
+    ) -> Result<Self, EditError> {
         let index = TextIndex::new(&text)?;
         validate_value(&config, &text, &index)?;
+        let marks = normalize_marks(marks, index.utf16_len())?;
         let selection = index.normalize_selection(selection)?;
         Ok(Self {
             text,
             index,
+            marks,
+            pending_mark: None,
             selection,
             composition: None,
             revision,
@@ -149,6 +188,8 @@ impl EditSession {
             undo_bytes: 0,
             redo_bytes: 0,
             undo_anchor: UndoAnchor::None,
+            pending_map: None,
+            marks_dirty: false,
         })
     }
 
@@ -182,6 +223,23 @@ impl EditSession {
             .checked_add(1)
             .ok_or(EditError::RevisionOverflow)?;
         Ok(self.finish_no_op(next_revision, TransactionKind::Edit))
+    }
+
+    /// Returns the mark table for the active revision.
+    #[must_use]
+    pub const fn marks(&self) -> &MarkRuns {
+        &self.marks
+    }
+
+    /// Returns the style and font the next caret insertion would adopt.
+    #[must_use]
+    pub fn effective_mark(&self) -> (u32, u32) {
+        self.pending_mark.unwrap_or_else(|| {
+            let run = self
+                .marks
+                .run_at(self.selection.range().start, MarkSide::Before);
+            (run.style, run.font)
+        })
     }
 
     /// Returns the conversion table for the active revision.
@@ -273,6 +331,9 @@ impl EditSession {
             .revision
             .checked_add(1)
             .ok_or(EditError::RevisionOverflow)?;
+        let base_length = self.index.utf16_len();
+        self.pending_map = None;
+        self.marks_dirty = false;
         if self.composition.is_some()
             && matches!(
                 command.intent,
@@ -289,13 +350,13 @@ impl EditSession {
 
         let (delta, kind) = match command.intent {
             EditIntent::Replace { range, text } => {
-                let prepared = self.prepare_replacement(range, text)?;
+                let prepared = self.prepare_replacement(range, text, None)?;
                 let delta = prepared.forward.clone();
                 self.commit_regular(prepared, GroupKind::Opaque)?;
                 (Some(delta), TransactionKind::Edit)
             }
             EditIntent::Insert(text) => {
-                let prepared = self.prepare_replacement(self.selection.range(), text)?;
+                let prepared = self.prepare_replacement(self.selection.range(), text, None)?;
                 let delta = prepared.forward.clone();
                 let group = if prepared.forward.range.is_collapsed() {
                     GroupKind::Insert
@@ -312,7 +373,7 @@ impl EditSession {
                 } else {
                     self.selection.range()
                 };
-                let prepared = self.prepare_replacement(range, String::new())?;
+                let prepared = self.prepare_replacement(range, String::new(), None)?;
                 let delta = prepared.forward.clone();
                 self.commit_regular(prepared, GroupKind::DeleteBackward)?;
                 (Some(delta), TransactionKind::Edit)
@@ -324,7 +385,7 @@ impl EditSession {
                 } else {
                     self.selection.range()
                 };
-                let prepared = self.prepare_replacement(range, String::new())?;
+                let prepared = self.prepare_replacement(range, String::new(), None)?;
                 let delta = prepared.forward.clone();
                 self.commit_regular(prepared, GroupKind::DeleteForward)?;
                 (Some(delta), TransactionKind::Edit)
@@ -334,7 +395,10 @@ impl EditSession {
                 if next != self.selection {
                     // Moving the caret ends the burst: the next keystroke is a
                     // separate user intention even though nothing else changed.
+                    // It also disarms a pending mark, which by definition only
+                    // applies where the caret was when the Shell armed it.
                     self.undo_anchor = UndoAnchor::None;
+                    self.pending_mark = None;
                 }
                 self.selection = next;
                 (None, TransactionKind::Edit)
@@ -345,10 +409,12 @@ impl EditSession {
                 }
                 let range = self.index.normalize_range(self.selection.range())?;
                 let original_text = self.slice(range)?.to_owned();
+                let original_marks = self.marks.slice(range)?;
                 self.composition = Some(Composition {
                     original_range: range,
                     current_range: range,
                     original_text,
+                    original_marks,
                     original_selection: self.selection,
                 });
                 self.undo_anchor = UndoAnchor::None;
@@ -359,7 +425,7 @@ impl EditSession {
                     .composition
                     .clone()
                     .ok_or(EditError::CompositionNotActive)?;
-                let prepared = self.prepare_replacement(composition.current_range, text)?;
+                let prepared = self.prepare_replacement(composition.current_range, text, None)?;
                 let delta = prepared.forward.clone();
                 let next_range = range_after(&prepared.forward)?;
                 self.commit_prepared(prepared);
@@ -375,7 +441,8 @@ impl EditSession {
                     .clone()
                     .ok_or(EditError::CompositionNotActive)?;
                 let delta = if let Some(text) = final_text {
-                    let prepared = self.prepare_replacement(composition.current_range, text)?;
+                    let prepared =
+                        self.prepare_replacement(composition.current_range, text, None)?;
                     let delta = prepared.forward.clone();
                     composition.current_range = range_after(&prepared.forward)?;
                     self.commit_prepared(prepared);
@@ -384,6 +451,7 @@ impl EditSession {
                     None
                 };
                 let final_text = self.slice(composition.current_range)?.to_owned();
+                let final_marks = self.marks.slice(composition.current_range)?;
                 let forward = EditDelta {
                     range: composition.original_range,
                     text: final_text,
@@ -396,6 +464,8 @@ impl EditSession {
                     let entry = HistoryEntry::new(
                         forward,
                         inverse,
+                        final_marks,
+                        composition.original_marks,
                         composition.original_selection,
                         self.selection,
                     );
@@ -410,13 +480,35 @@ impl EditSession {
                     .composition
                     .clone()
                     .ok_or(EditError::CompositionNotActive)?;
-                let prepared =
-                    self.prepare_replacement(composition.current_range, composition.original_text)?;
+                let prepared = self.prepare_replacement(
+                    composition.current_range,
+                    composition.original_text,
+                    Some(composition.original_marks),
+                )?;
                 let delta = prepared.forward.clone();
                 self.commit_prepared(prepared);
                 self.selection = composition.original_selection;
                 self.composition = None;
                 (Some(delta), TransactionKind::Composition)
+            }
+            EditIntent::SetMarks { range, style, font } => {
+                let range = self.index.normalize_range(range)?;
+                let text = self.slice(range)?.to_owned();
+                let span = MarkRuns::uniform(range.end - range.start, style, font);
+                let mut prepared = self.prepare_replacement(range, text, Some(span))?;
+                // Styling text does not move the caret, so the transaction has
+                // to keep the selection the user still has.
+                prepared.after_selection = self.selection;
+                self.commit_regular(prepared, GroupKind::Opaque)?;
+                (None, TransactionKind::Edit)
+            }
+            EditIntent::SetPendingMark(mark) => {
+                self.pending_mark = mark;
+                (None, TransactionKind::Edit)
+            }
+            EditIntent::BreakUndoGroup => {
+                self.undo_anchor = UndoAnchor::None;
+                (None, TransactionKind::Edit)
             }
             EditIntent::Undo => {
                 // An empty history is an ordinary key press, not an error. It
@@ -429,8 +521,11 @@ impl EditSession {
                     // No text or selection change; only the revision advances.
                     return Ok(self.finish_no_op(next_revision, TransactionKind::Undo));
                 };
-                let prepared =
-                    self.prepare_replacement(entry.inverse.range, entry.inverse.text.clone())?;
+                let prepared = self.prepare_replacement(
+                    entry.inverse.range,
+                    entry.inverse.text.clone(),
+                    Some(entry.inverse_marks.clone()),
+                )?;
                 let delta = prepared.forward.clone();
                 let entry = self.undo.pop_back().expect("history entry validated");
                 self.undo_bytes -= entry.retained_bytes;
@@ -445,8 +540,11 @@ impl EditSession {
                 let Some(entry) = self.redo.back() else {
                     return Ok(self.finish_no_op(next_revision, TransactionKind::Redo));
                 };
-                let prepared =
-                    self.prepare_replacement(entry.forward.range, entry.forward.text.clone())?;
+                let prepared = self.prepare_replacement(
+                    entry.forward.range,
+                    entry.forward.text.clone(),
+                    Some(entry.forward_marks.clone()),
+                )?;
                 let delta = prepared.forward.clone();
                 let entry = self.redo.pop_back().expect("redo entry validated");
                 self.redo_bytes -= entry.retained_bytes;
@@ -463,6 +561,12 @@ impl EditSession {
         if delta.is_some() {
             self.text_revision = next_revision;
         }
+        let map = self
+            .pending_map
+            .take()
+            .unwrap_or_else(|| PositionMap::identity(base_length));
+        let marks = self.marks_dirty.then(|| self.marks.clone());
+        self.marks_dirty = false;
         Ok(EditTransaction {
             base_revision,
             revision: next_revision,
@@ -470,6 +574,8 @@ impl EditSession {
             selection: self.selection,
             composition: self.composition_range(),
             kind,
+            map,
+            marks,
         })
     }
 
@@ -489,6 +595,8 @@ impl EditSession {
             selection: self.selection,
             composition: self.composition_range(),
             kind,
+            map: PositionMap::identity(self.index.utf16_len()),
+            marks: None,
         }
     }
 
@@ -505,14 +613,22 @@ impl EditSession {
         }
         let index = TextIndex::new(&external.text)?;
         validate_value(&self.config, &external.text, &index)?;
+        let marks = normalize_marks(external.marks, index.utf16_len())?;
         let selection = index.normalize_selection(external.selection)?;
         let base_revision = self.revision;
+        let map = PositionMap::from_replacement(
+            Utf16Range::new(0, self.index.utf16_len()),
+            index.utf16_len(),
+            self.index.utf16_len(),
+        )?;
         let delta = EditDelta {
             range: Utf16Range::new(0, self.index.utf16_len()),
             text: external.text.clone(),
         };
         self.text = external.text;
         self.index = index;
+        self.marks = marks;
+        self.pending_mark = None;
         self.selection = selection;
         self.composition = None;
         self.revision = external.revision;
@@ -522,6 +638,8 @@ impl EditSession {
         self.undo_bytes = 0;
         self.redo_bytes = 0;
         self.undo_anchor = UndoAnchor::None;
+        self.pending_map = None;
+        self.marks_dirty = false;
         Ok(EditTransaction {
             base_revision,
             revision: self.revision,
@@ -529,6 +647,8 @@ impl EditSession {
             selection: self.selection,
             composition: None,
             kind: TransactionKind::External,
+            map,
+            marks: Some(self.marks.clone()),
         })
     }
 
@@ -536,6 +656,7 @@ impl EditSession {
         &self,
         range: Utf16Range,
         inserted: String,
+        inserted_marks: Option<MarkRuns>,
     ) -> Result<PreparedReplacement, EditError> {
         let range = self.index.normalize_range(range)?;
         let start = self
@@ -549,17 +670,47 @@ impl EditSession {
         next_text.push_str(&self.text[end..]);
         let next_index = TextIndex::new(&next_text)?;
         validate_value(&self.config, &next_text, &next_index)?;
-        let inserted_units = u32::try_from(inserted.encode_utf16().count())
-            .map_err(|_| EditError::OffsetOverflow)?;
+        let inserted_units = utf16_units(&inserted)?;
         let inserted_end = range
             .start
             .checked_add(inserted_units)
             .ok_or(EditError::OffsetOverflow)?;
+        // Typing at a boundary continues the run it was touching unless the
+        // Shell has armed a different style, which is what "turn bold on and
+        // type" means.
+        let forward_marks = match inserted_marks {
+            Some(marks) if marks.length() == inserted_units => marks,
+            Some(_) => {
+                return Err(EditError::InvalidMarkRuns {
+                    covered: 0,
+                    text_len: inserted_units,
+                });
+            }
+            None => {
+                let (style, font) = self.pending_mark.unwrap_or_else(|| {
+                    let run = self.marks.run_at(range.start, MarkSide::Before);
+                    (run.style, run.font)
+                });
+                MarkRuns::uniform(inserted_units, style, font)
+            }
+        };
+        let inverse_marks = self.marks.slice(range)?;
+        let next_marks = self.marks.replace(range, &forward_marks)?;
+        // A replacement that puts back the same text moves nothing, and a
+        // mark change is exactly that. Reporting a replaced span there would
+        // collapse every Shell anchor inside it onto one edge.
+        let map = if removed == inserted {
+            PositionMap::identity(self.index.utf16_len())
+        } else {
+            PositionMap::from_replacement(range, inserted_units, self.index.utf16_len())?
+        };
         let after_selection = Selection::collapsed(inserted_end);
         let text_changed = next_text != self.text;
+        let marks_changed = next_marks != self.marks;
         Ok(PreparedReplacement {
             next_text,
             next_index,
+            next_marks,
             forward: EditDelta {
                 range,
                 text: inserted,
@@ -568,8 +719,12 @@ impl EditSession {
                 range: Utf16Range::new(range.start, inserted_end),
                 text: removed,
             },
+            forward_marks,
+            inverse_marks,
+            map,
             after_selection,
             text_changed,
+            marks_changed,
         })
     }
 
@@ -578,7 +733,7 @@ impl EditSession {
         prepared: PreparedReplacement,
         group: GroupKind,
     ) -> Result<(), EditError> {
-        if !prepared.text_changed {
+        if !prepared.text_changed && !prepared.marks_changed {
             // Backspace at offset zero and friends: nothing happened, so the
             // burst in progress must survive untouched.
             self.commit_prepared(prepared);
@@ -587,6 +742,8 @@ impl EditSession {
         let entry = HistoryEntry::new(
             prepared.forward.clone(),
             prepared.inverse.clone(),
+            prepared.forward_marks.clone(),
+            prepared.inverse_marks.clone(),
             self.selection,
             prepared.after_selection,
         );
@@ -657,6 +814,11 @@ impl EditSession {
                     .end
                     .checked_add(utf16_units(&entry.forward.text)?)
                     .ok_or(EditError::OffsetOverflow)?;
+                let mut forward_marks = previous.forward_marks.clone();
+                forward_marks = forward_marks.replace(
+                    Utf16Range::collapsed(forward_marks.length()),
+                    &entry.forward_marks,
+                )?;
                 HistoryEntry::new(
                     EditDelta {
                         range: previous.forward.range,
@@ -666,6 +828,8 @@ impl EditSession {
                         range: Utf16Range::new(previous.inverse.range.start, end),
                         text: previous.inverse.text.clone(),
                     },
+                    forward_marks,
+                    previous.inverse_marks.clone(),
                     previous.before_selection,
                     entry.after_selection,
                 )
@@ -676,6 +840,10 @@ impl EditSession {
             {
                 let mut restored = entry.inverse.text.clone();
                 restored.push_str(&previous.inverse.text);
+                let restored_marks = entry.inverse_marks.replace(
+                    Utf16Range::collapsed(entry.inverse_marks.length()),
+                    &previous.inverse_marks,
+                )?;
                 HistoryEntry::new(
                     EditDelta {
                         range: Utf16Range::new(
@@ -688,6 +856,8 @@ impl EditSession {
                         range: Utf16Range::collapsed(entry.forward.range.start),
                         text: restored,
                     },
+                    MarkRuns::default(),
+                    restored_marks,
                     previous.before_selection,
                     entry.after_selection,
                 )
@@ -698,6 +868,10 @@ impl EditSession {
             {
                 let mut restored = previous.inverse.text.clone();
                 restored.push_str(&entry.inverse.text);
+                let restored_marks = previous.inverse_marks.replace(
+                    Utf16Range::collapsed(previous.inverse_marks.length()),
+                    &entry.inverse_marks,
+                )?;
                 let width = entry
                     .forward
                     .range
@@ -719,6 +893,8 @@ impl EditSession {
                         range: Utf16Range::collapsed(previous.forward.range.start),
                         text: restored,
                     },
+                    MarkRuns::default(),
+                    restored_marks,
                     previous.before_selection,
                     entry.after_selection,
                 )
@@ -740,7 +916,13 @@ impl EditSession {
     fn commit_prepared(&mut self, prepared: PreparedReplacement) {
         self.text = prepared.next_text;
         self.index = prepared.next_index;
+        self.marks_dirty |= prepared.marks_changed;
+        self.marks = prepared.next_marks;
         self.selection = prepared.after_selection;
+        if prepared.text_changed {
+            self.pending_mark = None;
+        }
+        self.pending_map = Some(prepared.map);
     }
 
     fn slice(&self, range: Utf16Range) -> Result<&str, EditError> {
@@ -781,17 +963,35 @@ impl HistoryEntry {
     fn new(
         forward: EditDelta,
         inverse: EditDelta,
+        forward_marks: MarkRuns,
+        inverse_marks: MarkRuns,
         before_selection: Selection,
         after_selection: Selection,
     ) -> Self {
-        let retained_bytes = forward.text.len() + inverse.text.len();
+        let retained_bytes = forward.text.len()
+            + inverse.text.len()
+            + (forward_marks.runs().len() + inverse_marks.runs().len())
+                * size_of::<crate::MarkRun>();
         Self {
             forward,
             inverse,
+            forward_marks,
+            inverse_marks,
             before_selection,
             after_selection,
             retained_bytes,
         }
+    }
+}
+
+fn normalize_marks(marks: Option<MarkRuns>, length: u32) -> Result<MarkRuns, EditError> {
+    match marks {
+        Some(marks) if marks.length() == length => Ok(marks),
+        Some(marks) => Err(EditError::InvalidMarkRuns {
+            covered: marks.length(),
+            text_len: length,
+        }),
+        None => Ok(MarkRuns::plain(length)),
     }
 }
 
@@ -834,7 +1034,7 @@ mod tests {
     use proptest::prelude::*;
 
     use super::*;
-    use crate::Utf16Position;
+    use crate::{MapBias, MarkRun, Utf16Position};
 
     fn session(text: &str, selection: Selection) -> EditSession {
         EditSession::new(text.to_owned(), selection, 0, EditConfig::default()).expect("session")
@@ -1005,6 +1205,7 @@ mod tests {
                 revision: current + 10,
                 text: "server".to_owned(),
                 selection: Selection::collapsed(6),
+                marks: None,
             })
             .expect("newer external state");
         assert_eq!(editor.text(), "server");
@@ -1015,6 +1216,7 @@ mod tests {
                 revision: current,
                 text: "stale".to_owned(),
                 selection: Selection::collapsed(0),
+                marks: None,
             }),
             Err(EditError::StaleRevision {
                 current: current + 10,
@@ -1150,8 +1352,10 @@ mod tests {
         // than growing an entry past the budget. The sealed entry is then
         // evicted by the ordinary byte budget, so the value it restores is the
         // burst prefix, not the empty document.
+        // The budget counts retained text plus the mark runs that restore its
+        // styling, so it is stated in those units rather than in characters.
         let tight = EditConfig {
-            max_history_bytes: 3,
+            max_history_bytes: 3 + size_of::<crate::MarkRun>(),
             ..EditConfig::default()
         };
         let mut editor =
@@ -1182,6 +1386,308 @@ mod tests {
         assert_eq!(editor.text(), "a");
         apply(&mut editor, EditIntent::Undo);
         assert_eq!(editor.text(), "");
+    }
+
+    #[test]
+    fn typing_continues_the_run_the_caret_is_touching() {
+        let mut editor = session("ab", Selection::collapsed(2));
+        apply(
+            &mut editor,
+            EditIntent::SetMarks {
+                range: Utf16Range::new(0, 2),
+                style: 1,
+                font: 0,
+            },
+        );
+        assert_eq!(
+            editor.marks().runs(),
+            &[MarkRun {
+                length: 2,
+                style: 1,
+                font: 0,
+            }]
+        );
+        // The caret sits at the end of the bold run, so typing stays bold.
+        apply(&mut editor, EditIntent::Insert("c".to_owned()));
+        assert_eq!(
+            editor.marks().runs(),
+            &[MarkRun {
+                length: 3,
+                style: 1,
+                font: 0,
+            }]
+        );
+
+        // At offset zero there is no preceding run, so the following one
+        // answers and the value stays one bold span. The Shell overrides that
+        // with SetPendingMark when its schema wants the other reading.
+        apply(
+            &mut editor,
+            EditIntent::SetSelection(Selection::collapsed(0)),
+        );
+        apply(&mut editor, EditIntent::Insert("x".to_owned()));
+        assert_eq!(
+            editor.marks().runs(),
+            &[MarkRun {
+                length: 4,
+                style: 1,
+                font: 0,
+            }]
+        );
+        apply(
+            &mut editor,
+            EditIntent::SetSelection(Selection::collapsed(0)),
+        );
+        apply(&mut editor, EditIntent::SetPendingMark(Some((0, 0))));
+        apply(&mut editor, EditIntent::Insert("y".to_owned()));
+        assert_eq!(
+            editor.marks().runs(),
+            &[
+                MarkRun {
+                    length: 1,
+                    style: 0,
+                    font: 0,
+                },
+                MarkRun {
+                    length: 4,
+                    style: 1,
+                    font: 0,
+                },
+            ]
+        );
+    }
+
+    #[test]
+    fn an_armed_mark_applies_to_the_next_insertion_and_then_disarms() {
+        let mut editor = session("ab", Selection::collapsed(1));
+        apply(&mut editor, EditIntent::SetPendingMark(Some((4, 0))));
+        assert_eq!(editor.effective_mark(), (4, 0));
+        apply(&mut editor, EditIntent::Insert("Z".to_owned()));
+        assert_eq!(editor.text(), "aZb");
+        assert_eq!(
+            editor.marks().runs(),
+            &[
+                MarkRun {
+                    length: 1,
+                    style: 0,
+                    font: 0,
+                },
+                MarkRun {
+                    length: 1,
+                    style: 4,
+                    font: 0,
+                },
+                MarkRun {
+                    length: 1,
+                    style: 0,
+                    font: 0,
+                },
+            ]
+        );
+        // The caret is now inside the styled run, so it stays armed by position
+        // rather than by the one-shot request.
+        assert_eq!(editor.effective_mark(), (4, 0));
+        apply(
+            &mut editor,
+            EditIntent::SetSelection(Selection::collapsed(0)),
+        );
+        assert_eq!(editor.effective_mark(), (0, 0));
+    }
+
+    #[test]
+    fn styling_neither_moves_the_caret_nor_moves_shell_anchors() {
+        let selection = Selection {
+            anchor: Utf16Position::new(1),
+            focus: Utf16Position::new(4),
+        };
+        let mut editor = session("abcdef", selection);
+        let transaction = apply(
+            &mut editor,
+            EditIntent::SetMarks {
+                range: Utf16Range::new(1, 4),
+                style: 2,
+                font: 0,
+            },
+        );
+        assert_eq!(editor.selection(), selection);
+        assert_eq!(transaction.delta, None);
+        assert!(transaction.map.is_identity(), "styling moves nothing");
+        assert_eq!(
+            transaction.marks.expect("marks changed").runs(),
+            &[
+                MarkRun {
+                    length: 1,
+                    style: 0,
+                    font: 0,
+                },
+                MarkRun {
+                    length: 3,
+                    style: 2,
+                    font: 0,
+                },
+                MarkRun {
+                    length: 2,
+                    style: 0,
+                    font: 0,
+                },
+            ]
+        );
+        // And it is one undo step that restores the styling, not the text.
+        apply(&mut editor, EditIntent::Undo);
+        assert_eq!(editor.text(), "abcdef");
+        assert_eq!(
+            editor.marks().runs(),
+            &[MarkRun {
+                length: 6,
+                style: 0,
+                font: 0,
+            }]
+        );
+        apply(&mut editor, EditIntent::Redo);
+        assert_eq!(
+            editor.marks().runs(),
+            &[
+                MarkRun {
+                    length: 1,
+                    style: 0,
+                    font: 0,
+                },
+                MarkRun {
+                    length: 3,
+                    style: 2,
+                    font: 0,
+                },
+                MarkRun {
+                    length: 2,
+                    style: 0,
+                    font: 0,
+                },
+            ]
+        );
+    }
+
+    #[test]
+    fn undo_restores_marks_that_a_deletion_removed() {
+        let mut editor = session("abcdef", Selection::collapsed(0));
+        apply(
+            &mut editor,
+            EditIntent::SetMarks {
+                range: Utf16Range::new(2, 4),
+                style: 3,
+                font: 0,
+            },
+        );
+        apply(
+            &mut editor,
+            EditIntent::SetSelection(Selection {
+                anchor: Utf16Position::new(1),
+                focus: Utf16Position::new(5),
+            }),
+        );
+        apply(&mut editor, EditIntent::DeleteBackward);
+        assert_eq!(editor.text(), "af");
+        assert_eq!(
+            editor.marks().runs(),
+            &[MarkRun {
+                length: 2,
+                style: 0,
+                font: 0,
+            }]
+        );
+        apply(&mut editor, EditIntent::Undo);
+        assert_eq!(editor.text(), "abcdef");
+        assert_eq!(
+            editor.marks().runs(),
+            &[
+                MarkRun {
+                    length: 2,
+                    style: 0,
+                    font: 0,
+                },
+                MarkRun {
+                    length: 2,
+                    style: 3,
+                    font: 0,
+                },
+                MarkRun {
+                    length: 2,
+                    style: 0,
+                    font: 0,
+                },
+            ]
+        );
+    }
+
+    #[test]
+    fn composition_across_a_mark_boundary_commits_and_cancels_cleanly() {
+        // Preedit replaces a span that is half plain and half styled; the
+        // committed text takes the style the caret was touching, and cancelling
+        // puts the original two runs back exactly.
+        let mut editor = session("abcd", Selection::collapsed(0));
+        apply(
+            &mut editor,
+            EditIntent::SetMarks {
+                range: Utf16Range::new(2, 4),
+                style: 5,
+                font: 0,
+            },
+        );
+        apply(
+            &mut editor,
+            EditIntent::SetSelection(Selection {
+                anchor: Utf16Position::new(1),
+                focus: Utf16Position::new(3),
+            }),
+        );
+        apply(&mut editor, EditIntent::BeginComposition);
+        apply(&mut editor, EditIntent::UpdateComposition("に".to_owned()));
+        apply(
+            &mut editor,
+            EditIntent::UpdateComposition("日本".to_owned()),
+        );
+        apply(&mut editor, EditIntent::CancelComposition);
+        assert_eq!(editor.text(), "abcd");
+        assert_eq!(
+            editor.marks().runs(),
+            &[
+                MarkRun {
+                    length: 2,
+                    style: 0,
+                    font: 0,
+                },
+                MarkRun {
+                    length: 2,
+                    style: 5,
+                    font: 0,
+                },
+            ]
+        );
+
+        apply(&mut editor, EditIntent::BeginComposition);
+        apply(
+            &mut editor,
+            EditIntent::UpdateComposition("日本".to_owned()),
+        );
+        apply(&mut editor, EditIntent::CommitComposition(None));
+        assert_eq!(editor.text(), "a日本d");
+        assert_eq!(editor.marks().length(), 4);
+        apply(&mut editor, EditIntent::Undo);
+        assert_eq!(editor.text(), "abcd");
+        assert_eq!(
+            editor.marks().runs(),
+            &[
+                MarkRun {
+                    length: 2,
+                    style: 0,
+                    font: 0,
+                },
+                MarkRun {
+                    length: 2,
+                    style: 5,
+                    font: 0,
+                },
+            ]
+        );
     }
 
     proptest! {
@@ -1269,6 +1775,125 @@ mod tests {
                 apply(&mut grouped, EditIntent::Redo);
             }
             prop_assert_eq!((grouped.text().to_owned(), grouped.selection()), final_state);
+        }
+
+        #[test]
+        fn the_map_carries_untouched_spans_onto_the_same_text(
+            body in prop::collection::vec(prop::sample::select(&["a", "b", "c", "日", "e\u{301}"][..]), 0..24),
+            start in 0_usize..24,
+            span in 0_usize..24,
+            replacement in prop::collection::vec(prop::sample::select(&["x", "y", "🙂"][..]), 0..6),
+        ) {
+            let text = body.concat();
+            let mut editor = session(&text, Selection::collapsed(0));
+            let length = editor.text_index().utf16_len();
+            let start = u32::try_from(start).expect("small") % (length + 1);
+            let end = start
+                + u32::try_from(span).expect("small") % (length + 1 - start);
+            let range = editor
+                .text_index()
+                .normalize_range(Utf16Range::new(start, end))
+                .expect("range");
+            let inserted = replacement.concat();
+            let before = editor.text().to_owned();
+            let transaction = apply(
+                &mut editor,
+                EditIntent::Replace {
+                    range,
+                    text: inserted,
+                },
+            );
+            let after = editor.text().to_owned();
+            let map = &transaction.map;
+            prop_assert_eq!(map.old_length(), length);
+            prop_assert_eq!(map.new_length(), editor.text_index().utf16_len());
+
+            // A span that does not overlap the edit still delimits the exact
+            // same characters after the map is applied. That is the whole
+            // contract a link range or a comment anchor depends on.
+            let units: Vec<u16> = before.encode_utf16().collect();
+            let next_units: Vec<u16> = after.encode_utf16().collect();
+            for anchor_start in 0..=length {
+                for anchor_end in anchor_start..=length {
+                    let disjoint = anchor_end <= range.start || anchor_start >= range.end;
+                    // A span whose edge sits exactly where text was inserted
+                    // deliberately grows to contain it, so it is not a
+                    // content-preserving case. `map_range` pins that behavior.
+                    let touches_insertion = range.is_collapsed()
+                        && (anchor_start == range.start || anchor_end == range.start);
+                    if !disjoint || touches_insertion {
+                        continue;
+                    }
+                    let mapped = map.map_range(Utf16Range::new(anchor_start, anchor_end));
+                    prop_assert_eq!(
+                        &units[anchor_start as usize..anchor_end as usize],
+                        &next_units[mapped.start as usize..mapped.end as usize],
+                        "span {}..{} moved onto different text", anchor_start, anchor_end
+                    );
+                }
+            }
+
+            // Undoing produces the inverse journey: an offset strictly outside
+            // the edit returns to exactly where it started. An offset on either
+            // edge does not, and must not: with a left bias it deliberately
+            // stays in front of whatever is re-inserted there.
+            if editor.can_undo() {
+                let undo = apply(&mut editor, EditIntent::Undo);
+                for offset in 0..=length {
+                    if offset >= range.start && offset <= range.end {
+                        continue;
+                    }
+                    let round_trip = undo
+                        .map
+                        .map_offset(map.map_offset(offset, MapBias::Left), MapBias::Left);
+                    prop_assert_eq!(round_trip, offset, "offset {} did not come back", offset);
+                }
+            }
+        }
+
+        #[test]
+        fn the_mark_table_always_tiles_the_value(
+            operations in prop::collection::vec((0_usize..5, 0_u32..12, 0_u32..12, 0_u32..3), 0..48),
+        ) {
+            let mut editor = session("seed text", Selection::collapsed(0));
+            for (kind, first, second, style) in operations {
+                let length = editor.text_index().utf16_len();
+                let start = first % (length + 1);
+                let end = start + second % (length + 1 - start);
+                let intent = match kind {
+                    0 => EditIntent::Insert("ab".to_owned()),
+                    1 => EditIntent::DeleteBackward,
+                    2 => EditIntent::DeleteForward,
+                    3 => EditIntent::SetMarks {
+                        range: Utf16Range::new(start, end),
+                        style,
+                        font: 0,
+                    },
+                    _ => EditIntent::SetSelection(Selection {
+                        anchor: Utf16Position::new(start),
+                        focus: Utf16Position::new(end),
+                    }),
+                };
+                let transaction = apply(&mut editor, intent);
+                prop_assert_eq!(
+                    editor.marks().length(),
+                    editor.text_index().utf16_len(),
+                    "mark table stopped tiling the value"
+                );
+                for pair in editor.marks().runs().windows(2) {
+                    prop_assert_ne!(pair[0].style, pair[1].style);
+                }
+                prop_assert!(editor.marks().runs().iter().all(|run| run.length > 0));
+                if let Some(marks) = &transaction.marks {
+                    prop_assert_eq!(marks, editor.marks());
+                }
+            }
+            // Undoing everything restores the plain table it started from.
+            while editor.can_undo() {
+                apply(&mut editor, EditIntent::Undo);
+            }
+            prop_assert_eq!(editor.text(), "seed text");
+            prop_assert_eq!(editor.marks(), &MarkRuns::plain(9));
         }
 
         #[test]

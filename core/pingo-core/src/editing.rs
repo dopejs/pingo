@@ -4,11 +4,12 @@ use pingo_collections::OrderedMap;
 
 use pingo_abi::{
     EditTransactionBatch, EditTransactionKind, EditTransactionRecord, InputCommand,
-    MAX_RESOURCE_BYTES, NodeKind, ResourceKind, WireAffinity, WireRange,
+    MAX_RESOURCE_BYTES, NodeKind, ResourceKind, StyledRunsResource, WireAffinity, WireMapSegment,
+    WireMarkRun, WireRange,
 };
 use pingo_edit::{
     Affinity, EditCommand, EditConfig, EditError, EditIntent, EditSession, EditTransaction,
-    ExternalValue, Selection, TransactionKind, edit_command_from_input,
+    ExternalValue, MarkRun, MarkRuns, Selection, TransactionKind, edit_command_from_input,
 };
 use pingo_scene::{NodeId, Scene};
 
@@ -26,6 +27,15 @@ pub(crate) struct EditableConfiguration {
     pub(crate) revision: u64,
     pub(crate) flags: u32,
     pub(crate) max_graphemes: u32,
+}
+
+/// What an active editing session paints, which is not the Scene's value.
+#[derive(Clone, Debug)]
+pub(crate) struct EditDisplay {
+    /// The value to lay out, already masked for a password field.
+    pub(crate) text: Arc<str>,
+    /// Marks for that value, absent when it must render with the base style.
+    pub(crate) marks: Option<MarkRuns>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -131,6 +141,7 @@ impl EditingController {
                             revision: configuration.revision,
                             text: value.to_owned(),
                             selection,
+                            marks: scene_marks(scene, node),
                         })?;
                         self.pending.push((node, transaction));
                         changed.push(node);
@@ -151,8 +162,9 @@ impl EditingController {
                     max_graphemes: MAX_EDITABLE_GRAPHEMES,
                 });
                 let selection = Selection::collapsed(utf16_len(value)?);
-                let session = EditSession::new(
+                let session = EditSession::new_styled(
                     value.to_owned(),
+                    scene_marks(scene, node),
                     selection,
                     configuration.revision,
                     edit_config(configuration),
@@ -257,16 +269,20 @@ impl EditingController {
         Ok(outcome)
     }
 
-    pub(crate) fn display_overrides(&self) -> std::collections::HashMap<NodeId, Arc<str>> {
+    pub(crate) fn display_overrides(&self) -> std::collections::HashMap<NodeId, EditDisplay> {
         self.sessions
             .iter()
             .map(|(&node, active)| {
-                let display: Arc<str> = if active.flags & EDITABLE_PASSWORD == 0 {
-                    Arc::from(active.session.text())
-                } else {
+                let masked = active.flags & EDITABLE_PASSWORD != 0;
+                let text: Arc<str> = if masked {
                     Arc::from("\u{2022}".repeat(active.session.text_index().grapheme_count()))
+                } else {
+                    Arc::from(active.session.text())
                 };
-                (node, display)
+                // A masked value has different offsets and no styling to
+                // reveal, so it renders with the base style alone.
+                let marks = (!masked).then(|| active.session.marks().clone());
+                (node, EditDisplay { text, marks })
             })
             .collect()
     }
@@ -389,7 +405,71 @@ fn transaction_record(node: NodeId, transaction: EditTransaction) -> EditTransac
             TransactionKind::Redo => EditTransactionKind::Redo,
             TransactionKind::External => EditTransactionKind::External,
         },
+        marks: transaction.marks.map(|marks| {
+            marks
+                .runs()
+                .iter()
+                .map(|run| WireMarkRun {
+                    length: run.length,
+                    style: run.style,
+                    font: run.font,
+                })
+                .collect()
+        }),
+        // The identity map is the empty table: a selection-only transaction
+        // must not make every Shell anchor walk a segment list to learn that
+        // nothing moved.
+        map: if transaction.map.is_identity() {
+            Vec::new()
+        } else {
+            transaction
+                .map
+                .segments()
+                .iter()
+                .map(|segment| WireMapSegment {
+                    old_start: segment.old_start,
+                    old_end: segment.old_end,
+                    new_start: segment.new_start,
+                    new_end: segment.new_end,
+                    kept: segment.kept,
+                })
+                .collect()
+        },
     }
+}
+
+/// Reads a node's committed mark table from its styled-run resource.
+///
+/// Returns `None` when the node has no table, which starts the session with the
+/// base style everywhere.
+fn scene_marks(scene: &Scene, node: NodeId) -> Option<MarkRuns> {
+    let text_run = scene.text_run(node)?;
+    if text_run.runs_id == 0 {
+        return None;
+    }
+    let value = scene
+        .resource(text_run.string_id)
+        .filter(|resource| resource.kind == ResourceKind::Utf8String)
+        .and_then(|resource| std::str::from_utf8(&resource.bytes).ok())?;
+    let resource = scene
+        .resource(text_run.runs_id)
+        .filter(|resource| resource.kind == ResourceKind::StyledRuns)?;
+    let table = StyledRunsResource::decode(&resource.bytes).ok()?;
+    // The resource is in UTF-8 offsets and a session is in UTF-16 ones, so the
+    // spans are re-measured rather than reinterpreted.
+    let mut runs = Vec::with_capacity(table.runs.len());
+    for run in &table.runs {
+        let start = usize::try_from(run.utf8_start).ok()?;
+        let end = usize::try_from(run.utf8_end().ok()?).ok()?;
+        let span = value.get(start..end)?;
+        runs.push(MarkRun {
+            length: u32::try_from(span.encode_utf16().count()).ok()?,
+            style: run.style_id,
+            font: run.font_id,
+        });
+    }
+    let total = u32::try_from(value.encode_utf16().count()).ok()?;
+    MarkRuns::from_runs(&runs, total).ok()
 }
 
 const fn wire_affinity(affinity: Affinity) -> WireAffinity {

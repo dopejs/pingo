@@ -18,7 +18,7 @@ use pingo_text::{
     TextLayout, TextOptions, TextOverflow, WhiteSpace, soft_break_offsets_with_mode,
 };
 
-use crate::editing::ActiveEditorVisual;
+use crate::editing::{ActiveEditorVisual, EditDisplay};
 
 /// Cumulative explicit-font path counters.
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
@@ -104,7 +104,7 @@ pub(crate) struct CoreTextSystem {
     fonts: HashMap<u32, Option<FontFace>>,
     system_metrics: HashMap<(u32, u32), SystemTextMetric>,
     forced_fallback: HashMap<NodeId, ForcedFallbackRun>,
-    edit_overrides: HashMap<NodeId, Arc<str>>,
+    edit_overrides: HashMap<NodeId, EditDisplay>,
     editor_decorations: HashMap<NodeId, Vec<EditorDecoration>>,
     editor_scroll: HashMap<NodeId, [f32; 2]>,
     /// Soft break offsets and the wrapped string each fallback run last measured.
@@ -172,7 +172,7 @@ impl CoreTextSystem {
         Some(self.fallback_caret_stops(scene, node, text_run, &value, &style, box_width))
     }
 
-    pub(crate) fn set_edit_overrides(&mut self, overrides: HashMap<NodeId, Arc<str>>) {
+    pub(crate) fn set_edit_overrides(&mut self, overrides: HashMap<NodeId, EditDisplay>) {
         self.edit_overrides = overrides;
     }
 
@@ -600,7 +600,10 @@ impl IntrinsicMeasurer for CoreTextSystem {
         let Some(string) = self.text_value(scene, node) else {
             return self.measure_system_fallback(scene, node, constraints);
         };
-        let content_hash = hash_bytes(string.as_bytes());
+        // The same hash `prepare_resources` re-derives when it decides whether
+        // a prepared run is still current. Computing it a second way here made
+        // every styled editing frame look stale and fall back to system text.
+        let content_hash = forced.content_hash;
         let Some(style) = scene
             .resource(text_run.style_id)
             .filter(|resource| resource.kind == ResourceKind::TextStyle)
@@ -714,14 +717,22 @@ impl CoreTextSystem {
         style: &TextStyleResource,
         max_width: f32,
     ) -> Option<(Arc<TextLayout>, Vec<SpanStyle>)> {
-        // The run table only applies to the Scene's own value. An active editing
-        // session replaces that value wholesale, and the offsets in the table
-        // describe the committed string, not the one being typed.
-        let styled = (self.rich_text_enabled
-            && text_run.runs_id != 0
-            && !self.edit_overrides.contains_key(&node))
-        .then(|| self.resolve_runs(scene, text_run, font_id, font, string))
-        .flatten();
+        // An active session replaces the Scene's value wholesale, so the Scene's
+        // run table no longer describes it. The session's own mark table does,
+        // and it is the one that has been moving with every keystroke.
+        let styled = if !self.rich_text_enabled {
+            None
+        } else if let Some(marks) = self
+            .edit_overrides
+            .get(&node)
+            .and_then(|display| display.marks.clone())
+        {
+            self.resolve_marks(scene, &marks, font_id, font, style, string)
+        } else if text_run.runs_id != 0 && !self.edit_overrides.contains_key(&node) {
+            self.resolve_runs(scene, text_run, font_id, font, string)
+        } else {
+            None
+        };
         let mut options = TextOptions {
             font_size: style.font_size,
             line_height: style.line_height,
@@ -768,6 +779,76 @@ impl CoreTextSystem {
                 font_style: style.font_style,
             }],
         ))
+    }
+
+    /// Resolves an active session's mark table into faces, sizes, and paints.
+    ///
+    /// Mark spans are in UTF-16 code units because that is the space editing
+    /// works in; shaping wants UTF-8, so they are converted here rather than
+    /// leaving two offset spaces to drift.
+    fn resolve_marks(
+        &mut self,
+        scene: &Scene,
+        marks: &pingo_edit::MarkRuns,
+        node_font_id: u32,
+        node_font: &FontFace,
+        base: &TextStyleResource,
+        value: &str,
+    ) -> Option<ResolvedRuns> {
+        if marks
+            .runs()
+            .iter()
+            .all(|run| run.style == 0 && run.font == 0)
+        {
+            // Nothing to style: the single-run path renders this identically
+            // and skips a whole extra layout cache namespace.
+            return None;
+        }
+        let mut runs = Vec::with_capacity(marks.runs().len());
+        let mut spans = Vec::with_capacity(marks.runs().len());
+        let mut line_heights = Vec::with_capacity(marks.runs().len());
+        let mut byte_cursor = 0_usize;
+        for (index, mark) in marks.runs().iter().enumerate() {
+            let key = u32::try_from(index).ok()?;
+            let byte_end = utf8_offset_after_utf16(value, byte_cursor, mark.length)?;
+            let style = if mark.style == 0 {
+                base.clone()
+            } else {
+                let resource = scene
+                    .resource(mark.style)
+                    .filter(|resource| resource.kind == ResourceKind::TextStyle)?;
+                TextStyleResource::decode(mark.style, resource).ok()?
+            };
+            let (font_id, font) = if mark.font == 0 {
+                (node_font_id, node_font.clone())
+            } else {
+                (mark.font, self.font(scene, mark.font)?)
+            };
+            runs.push(RichRun {
+                bytes: byte_cursor..byte_end,
+                font: font.clone(),
+                font_size: style.font_size,
+                key,
+            });
+            line_heights.push(style.line_height);
+            spans.push(SpanStyle {
+                key,
+                font_id,
+                font,
+                font_size: style.font_size,
+                paint_id: style.paint_id,
+                font_style: style.font_style,
+            });
+            byte_cursor = byte_end;
+        }
+        if byte_cursor != value.len() {
+            return None;
+        }
+        Some(ResolvedRuns {
+            runs,
+            spans,
+            line_heights,
+        })
     }
 
     /// Resolves a styled-run table into faces, sizes, and paints.
@@ -849,7 +930,11 @@ impl TextPaintResolver for CoreTextSystem {
             .get(&node)
             .filter(|wrapped| wrapped.requires_inline)
             .map(|wrapped| wrapped.display.as_ref())
-            .or_else(|| self.edit_overrides.get(&node).map(Arc::as_ref))
+            .or_else(|| {
+                self.edit_overrides
+                    .get(&node)
+                    .map(|display| display.text.as_ref())
+            })
     }
 
     fn editor_decorations(&self, node: NodeId) -> &[EditorDecoration] {
@@ -1387,10 +1472,9 @@ impl CoreTextSystem {
         // that runs ahead of it, so it only applies while the two still agree —
         // which includes the whole time a focused field has not been typed into,
         // and is what keeps focus and blur from resizing the box.
-        let metric_fresh = self
-            .edit_overrides
-            .get(&node)
-            .is_none_or(|value| scene_string(scene, run.string_id) == Some(value.as_ref()));
+        let metric_fresh = self.edit_overrides.get(&node).is_none_or(|display| {
+            scene_string(scene, run.string_id) == Some(display.text.as_ref())
+        });
         let Some(text) = self.text_value(scene, node) else {
             return Size::ZERO;
         };
@@ -1493,8 +1577,8 @@ impl CoreTextSystem {
     /// never from `Scene::text_run`, or it will report a value the user never
     /// saw -- for a password field, the value itself.
     pub(crate) fn text_value(&self, scene: &Scene, node: NodeId) -> Option<Arc<str>> {
-        if let Some(value) = self.edit_overrides.get(&node) {
-            return Some(Arc::clone(value));
+        if let Some(display) = self.edit_overrides.get(&node) {
+            return Some(Arc::clone(&display.text));
         }
         let run = scene.text_run(node)?;
         let string = scene
@@ -1507,6 +1591,21 @@ impl CoreTextSystem {
     fn text_content_hash(&self, scene: &Scene, node: NodeId) -> Option<u64> {
         text_content_hash(scene, &self.edit_overrides, node)
     }
+}
+
+/// Returns the UTF-8 offset `units` UTF-16 code units after `start`.
+fn utf8_offset_after_utf16(value: &str, start: usize, units: u32) -> Option<usize> {
+    let mut remaining = units;
+    let mut offset = start;
+    for character in value.get(start..)?.chars() {
+        if remaining == 0 {
+            break;
+        }
+        let width = u32::try_from(character.len_utf16()).ok()?;
+        remaining = remaining.checked_sub(width)?;
+        offset += character.len_utf8();
+    }
+    (remaining == 0).then_some(offset)
 }
 
 #[allow(clippy::cast_precision_loss)]
@@ -1604,11 +1703,19 @@ fn hash_bytes(bytes: &[u8]) -> u64 {
 
 fn text_content_hash(
     scene: &Scene,
-    overrides: &HashMap<NodeId, Arc<str>>,
+    overrides: &HashMap<NodeId, EditDisplay>,
     node: NodeId,
 ) -> Option<u64> {
-    if let Some(value) = overrides.get(&node) {
-        return Some(hash_bytes(value.as_bytes()));
+    if let Some(display) = overrides.get(&node) {
+        // The mark table is part of what was measured, so a styling change with
+        // no text change still has to invalidate the prepared run.
+        let mut hash = hash_bytes(display.text.as_bytes());
+        for run in display.marks.iter().flat_map(pingo_edit::MarkRuns::runs) {
+            hash ^=
+                u64::from(run.length) ^ (u64::from(run.style) << 21) ^ (u64::from(run.font) << 42);
+            hash = hash.wrapping_mul(0x0000_0100_0000_01b3);
+        }
+        return Some(hash);
     }
     let run = scene.text_run(node)?;
     let bytes = &scene

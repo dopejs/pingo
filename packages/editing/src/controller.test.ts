@@ -6,6 +6,7 @@ import type { EditTransaction } from "./edit-transactions";
 function transaction(overrides: Partial<EditTransaction> = {}): EditTransaction {
   return {
     baseRevision: 0n,
+    map: [],
     delta: { range: { start: 1, end: 1 }, text: "🙂" },
     kind: "edit",
     nodeId: 1,
@@ -49,6 +50,7 @@ describe("TextEditingController", () => {
     expect(() =>
       controller.applyTransaction({
         baseRevision: 1n,
+        map: [],
         kind: "edit",
         nodeId: 1,
         revision: 2n,

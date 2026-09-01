@@ -579,6 +579,7 @@ describe("reconciler", () => {
     root.applyEditTransaction({
       nodeId: configuration.nodeId,
       baseRevision: 0n,
+      map: [],
       revision: 1n,
       delta: { range: { start: 1, end: 1 }, text: "🙂" },
       selection: {
@@ -597,6 +598,7 @@ describe("reconciler", () => {
     root.applyEditTransaction({
       nodeId: configuration.nodeId,
       baseRevision: 1n,
+      map: [],
       revision: 2n,
       delta: { range: { start: 3, end: 3 }, text: "!" },
       selection: {

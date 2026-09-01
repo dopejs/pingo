@@ -9,9 +9,12 @@ import {
   MINIMUM_READABLE_ABI_VERSION,
   MAX_EDIT_TRANSACTIONS_BYTES,
   MAX_EDIT_TRANSACTION_INSTRUCTIONS,
+  MAX_EDIT_MAP_SEGMENTS,
+  MAX_EDIT_MARK_RUNS,
   MAX_RESOURCE_BYTES,
   PROTOCOL_ALIGNMENT,
   STREAM_HEADER_BYTES,
+  EDIT_MAP_SEGMENT_FLAG_KEPT,
 } from "./generated";
 
 const utf8Decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
@@ -23,6 +26,29 @@ export interface Utf16Range {
   readonly end: number;
   readonly start: number;
 }
+
+/** One styled span of an editing value. */
+export interface EditMarkRun {
+  /** UTF-16 code-unit length of the span. */
+  readonly length: number;
+  /** Text style resource identity; zero is the value's base style. */
+  readonly style: number;
+  /** Font resource identity; zero inherits the node's font. */
+  readonly font: number;
+}
+
+/** One old-offset span of a position map and where it lands. */
+export interface EditMapSegment {
+  readonly oldStart: number;
+  readonly oldEnd: number;
+  readonly newStart: number;
+  readonly newEnd: number;
+  /** Whether the span survived offset for offset. */
+  readonly kept: boolean;
+}
+
+/** Which edge a position collapses to when it falls inside replaced text. */
+export type EditMapBias = "left" | "right";
 
 /** One fully validated Core-owned editing transition. */
 export interface EditTransaction {
@@ -38,6 +64,64 @@ export interface EditTransaction {
   };
   readonly composition?: Utf16Range;
   readonly kind: EditTransactionKind;
+  /** Mark table after the transition, present only when it changed. */
+  readonly marks?: readonly EditMarkRun[];
+  /**
+   * How base-revision offsets move into this revision.
+   *
+   * Core computes this table; the Shell only looks positions up in it, which
+   * is what keeps a link range, a comment anchor, and a remote cursor from
+   * each moving by a slightly different rule. Empty means nothing moved.
+   */
+  readonly map: readonly EditMapSegment[];
+}
+
+/**
+ * Moves one base-revision offset into the revision a transaction produced.
+ *
+ * Boundaries are unambiguous and ignore the bias: an offset at the start of a
+ * replaced span stays at the start, and one at its end lands after the
+ * replacement. Only an offset strictly inside a replaced span, or one sitting
+ * exactly where text was inserted, has to choose a side.
+ */
+export function mapEditOffset(
+  map: readonly EditMapSegment[],
+  offset: number,
+  bias: EditMapBias = "left",
+): number {
+  const last = map.at(-1);
+  if (last === undefined) return offset;
+  const oldLength = last.oldEnd;
+  const newLength = last.newEnd;
+  const clamped = Math.min(offset, oldLength);
+  // A pure insertion is a zero-width replaced span, and the kept span ending at
+  // the same offset would otherwise answer for it and make the bias unreachable.
+  const insertion = map.find(
+    (segment) =>
+      !segment.kept && segment.oldStart === segment.oldEnd && segment.oldStart === clamped,
+  );
+  if (insertion !== undefined) return bias === "left" ? insertion.newStart : insertion.newEnd;
+  for (const segment of map) {
+    if (clamped < segment.oldStart) break;
+    if (clamped > segment.oldEnd) continue;
+    if (segment.kept) return segment.newStart + (clamped - segment.oldStart);
+    if (clamped === segment.oldStart) return segment.newStart;
+    if (clamped === segment.oldEnd) return segment.newEnd;
+    return bias === "left" ? segment.newStart : segment.newEnd;
+  }
+  return newLength;
+}
+
+/**
+ * Moves a range, keeping it normalized and never inverted.
+ *
+ * The edges use outward bias, so a span that brackets an edit still brackets
+ * its replacement instead of collapsing onto one side of it.
+ */
+export function mapEditRange(map: readonly EditMapSegment[], range: Utf16Range): Utf16Range {
+  const start = mapEditOffset(map, range.start, "left");
+  const end = mapEditOffset(map, range.end, "right");
+  return { start, end: Math.max(start, end) };
 }
 
 export class EditTransactionDecodingError extends Error {
@@ -102,14 +186,48 @@ function decodeTransaction(reader: Reader): EditTransaction {
   const compositionRange = range(reader.u32(), reader.u32(), "composition");
   const kind = transactionKind(reader.u8());
   const flags = reader.u8();
-  if ((flags & ~3) !== 0) fail("edit transaction flags contain reserved bits");
+  if ((flags & ~7) !== 0) fail("edit transaction flags contain reserved bits");
   const anchorAffinity = affinity(reader.u8());
   const focusAffinity = affinity(reader.u8());
   const textLength = reader.u32();
   if (textLength > MAX_RESOURCE_BYTES) fail("edit transaction delta exceeds byte limit");
+  const markCount = reader.u32();
+  const mapCount = reader.u32();
+  if (markCount > MAX_EDIT_MARK_RUNS || mapCount > MAX_EDIT_MAP_SEGMENTS) {
+    fail("edit transaction payload exceeds its protocol budget");
+  }
   const text = reader.utf8(textLength);
+  const marks: EditMarkRun[] = [];
+  for (let index = 0; index < markCount; index += 1) {
+    marks.push({ length: reader.u32(), style: reader.u32(), font: reader.u32() });
+  }
+  const map: EditMapSegment[] = [];
+  let cursor = 0;
+  for (let index = 0; index < mapCount; index += 1) {
+    const oldStart = reader.u32();
+    const oldEnd = reader.u32();
+    const newStart = reader.u32();
+    const newEnd = reader.u32();
+    const segmentFlags = reader.u32();
+    if ((segmentFlags & ~EDIT_MAP_SEGMENT_FLAG_KEPT) !== 0) {
+      fail("position map segment flags contain reserved bits");
+    }
+    if (oldStart !== cursor || oldEnd < oldStart || newEnd < newStart) {
+      fail("position map segments are not ordered");
+    }
+    cursor = oldEnd;
+    map.push({
+      oldStart,
+      oldEnd,
+      newStart,
+      newEnd,
+      kept: (segmentFlags & EDIT_MAP_SEGMENT_FLAG_KEPT) !== 0,
+    });
+  }
   const hasDelta = (flags & 1) !== 0;
   const hasComposition = (flags & 2) !== 0;
+  const hasMarks = (flags & 4) !== 0;
+  if (!hasMarks && markCount !== 0) fail("absent mark table has a payload");
   if (!hasDelta && (text !== "" || deltaRange.start !== 0 || deltaRange.end !== 0)) {
     fail("absent edit delta has a payload");
   }
@@ -124,6 +242,8 @@ function decodeTransaction(reader: Reader): EditTransaction {
     selection: { anchor, anchorAffinity, focus, focusAffinity },
     ...(hasComposition ? { composition: compositionRange } : {}),
     kind,
+    ...(hasMarks ? { marks } : {}),
+    map,
   };
 }
 

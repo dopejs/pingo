@@ -152,6 +152,31 @@ pub fn edit_command_from_input(
             node_id,
             base_revision,
         } => (node_id, base_revision, EditIntent::CancelComposition),
+        InputCommand::SetMarks {
+            node_id,
+            base_revision,
+            start,
+            end,
+            style,
+            font,
+        } => (
+            node_id,
+            base_revision,
+            EditIntent::SetMarks {
+                range: Utf16Range::new(start, end),
+                style,
+                font,
+            },
+        ),
+        InputCommand::SetPendingMark {
+            node_id,
+            base_revision,
+            mark,
+        } => (node_id, base_revision, EditIntent::SetPendingMark(mark)),
+        InputCommand::BreakUndoGroup {
+            node_id,
+            base_revision,
+        } => (node_id, base_revision, EditIntent::BreakUndoGroup),
         InputCommand::Undo {
             node_id,
             base_revision,

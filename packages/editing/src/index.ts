@@ -21,7 +21,12 @@ export {
 export {
   EditTransactionDecodingError,
   decodeEditTransactionBatch,
+  mapEditOffset,
+  mapEditRange,
   type EditAffinity,
+  type EditMapBias,
+  type EditMapSegment,
+  type EditMarkRun,
   type EditTransaction,
   type EditTransactionKind,
   type Utf16Range,

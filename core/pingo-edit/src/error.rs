@@ -8,6 +8,7 @@ pub enum EditError {
     RevisionOverflow,
     OffsetOverflow,
     InvalidRange { start: u32, end: u32, text_len: u32 },
+    InvalidMarkRuns { covered: u32, text_len: u32 },
     InvalidUtf8Boundary { offset: usize },
     CompositionAlreadyActive,
     CompositionNotActive,

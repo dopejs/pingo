@@ -49,7 +49,8 @@ pub use computed_style::{
 };
 pub use display_list::{DisplayCommand, DisplayInstruction, DisplayList, EditorDecorationKind};
 pub use edit_transactions::{
-    EditTransactionBatch, EditTransactionKind, EditTransactionRecord, WireAffinity, WireRange,
+    EditTransactionBatch, EditTransactionKind, EditTransactionRecord, WireAffinity, WireMapSegment,
+    WireMarkRun, WireRange,
 };
 pub use error::{AbiError, StreamKind};
 pub use event_transactions::{EventTransactionBatch, EventTransactionRecord};

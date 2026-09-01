@@ -371,6 +371,37 @@ pub enum InputCommand {
         /// Exact Core revision observed by the producer.
         base_revision: u64,
     },
+    /// Applies one Shell-defined mark style to a range of the value.
+    SetMarks {
+        /// Target editable node.
+        node_id: u32,
+        /// Exact Core revision observed by the producer.
+        base_revision: u64,
+        /// Inclusive UTF-16 start offset.
+        start: u32,
+        /// Exclusive UTF-16 end offset.
+        end: u32,
+        /// Text style resource identity; zero is the value's base style.
+        style: u32,
+        /// Font resource identity; zero inherits the node's font.
+        font: u32,
+    },
+    /// Arms, or disarms, the style the next caret insertion adopts.
+    SetPendingMark {
+        /// Target editable node.
+        node_id: u32,
+        /// Exact Core revision observed by the producer.
+        base_revision: u64,
+        /// Style and font to arm, or `None` to fall back to the caret's run.
+        mark: Option<(u32, u32)>,
+    },
+    /// Seals the current undo group so the next command starts a new one.
+    BreakUndoGroup {
+        /// Target editable node.
+        node_id: u32,
+        /// Exact Core revision observed by the producer.
+        base_revision: u64,
+    },
     /// Applies the latest inverse edit.
     Undo {
         /// Target editable node.
@@ -837,6 +868,57 @@ fn decode_command(opcode: InputOpcode, reader: &mut Reader<'_>) -> Result<InputC
                 base_revision,
             }
         }
+        InputOpcode::SetMarks => {
+            let (node_id, base_revision) = read_target(reader)?;
+            let start = reader.read_u32()?;
+            let end = reader.read_u32()?;
+            if start > end {
+                return Err(AbiError::InvalidValue("mark range is reversed"));
+            }
+            InputCommand::SetMarks {
+                node_id,
+                base_revision,
+                start,
+                end,
+                style: reader.read_u32()?,
+                font: reader.read_u32()?,
+            }
+        }
+        InputOpcode::SetPendingMark => {
+            let (node_id, base_revision) = read_target(reader)?;
+            let style = reader.read_u32()?;
+            let font = reader.read_u32()?;
+            let present = reader.read_u8()?;
+            reader.read_zeroes(3)?;
+            let mark = match present {
+                0 => {
+                    if style != 0 || font != 0 {
+                        return Err(AbiError::InvalidValue(
+                            "absent pending mark has a non-zero payload",
+                        ));
+                    }
+                    None
+                }
+                1 => Some((style, font)),
+                _ => {
+                    return Err(AbiError::InvalidValue(
+                        "pending mark presence flag is not a boolean",
+                    ));
+                }
+            };
+            InputCommand::SetPendingMark {
+                node_id,
+                base_revision,
+                mark,
+            }
+        }
+        InputOpcode::BreakUndoGroup => {
+            let (node_id, base_revision) = read_target(reader)?;
+            InputCommand::BreakUndoGroup {
+                node_id,
+                base_revision,
+            }
+        }
         InputOpcode::FocusEditable => InputCommand::FocusEditable {
             node_id: reader.read_u32()?,
         },
@@ -1172,6 +1254,36 @@ fn encode_command(writer: &mut Writer, instruction: &InputInstruction) -> Result
             writer.u16(0);
             write_text(writer, text.as_deref().unwrap_or_default())?;
         }
+        InputCommand::SetMarks {
+            node_id,
+            base_revision,
+            start,
+            end,
+            style,
+            font,
+        } => {
+            if start > end {
+                return Err(AbiError::InvalidValue("mark range is reversed"));
+            }
+            write_target(writer, *node_id, *base_revision);
+            writer.u32(*start);
+            writer.u32(*end);
+            writer.u32(*style);
+            writer.u32(*font);
+        }
+        InputCommand::SetPendingMark {
+            node_id,
+            base_revision,
+            mark,
+        } => {
+            write_target(writer, *node_id, *base_revision);
+            let (style, font) = mark.unwrap_or((0, 0));
+            writer.u32(style);
+            writer.u32(font);
+            writer.u8(u8::from(mark.is_some()));
+            writer.u8(0);
+            writer.u16(0);
+        }
         InputCommand::ScrollBegin { node_id }
         | InputCommand::FocusEditable { node_id }
         | InputCommand::BlurEditable { node_id }
@@ -1428,6 +1540,10 @@ fn command_target(command: &InputCommand) -> (u32, u64) {
             node_id,
             base_revision,
         }
+        | InputCommand::BreakUndoGroup {
+            node_id,
+            base_revision,
+        }
         | InputCommand::Undo {
             node_id,
             base_revision,
@@ -1451,6 +1567,9 @@ fn command_opcode(command: &InputCommand) -> InputOpcode {
         InputCommand::UpdateComposition { .. } => InputOpcode::UpdateComposition,
         InputCommand::CommitComposition { .. } => InputOpcode::CommitComposition,
         InputCommand::CancelComposition { .. } => InputOpcode::CancelComposition,
+        InputCommand::SetMarks { .. } => InputOpcode::SetMarks,
+        InputCommand::SetPendingMark { .. } => InputOpcode::SetPendingMark,
+        InputCommand::BreakUndoGroup { .. } => InputOpcode::BreakUndoGroup,
         InputCommand::Undo { .. } => InputOpcode::Undo,
         InputCommand::Redo { .. } => InputOpcode::Redo,
         InputCommand::FocusEditable { .. } => InputOpcode::FocusEditable,

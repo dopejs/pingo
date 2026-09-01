@@ -115,6 +115,25 @@ export type InputCommand =
   | (InputTarget & { readonly type: "updateComposition"; readonly text: string })
   | (InputTarget & { readonly type: "commitComposition"; readonly text?: string })
   | (InputTarget & { readonly type: "cancelComposition" })
+  | (InputTarget & {
+      /** Applies one Shell-chosen mark style to a range of the value. */
+      readonly type: "setMarks";
+      readonly start: number;
+      readonly end: number;
+      /** Text style resource identity; zero is the value's base style. */
+      readonly style: number;
+      /** Font resource identity; zero inherits the node's font. */
+      readonly font: number;
+    })
+  | (InputTarget & {
+      /** Arms the style the next caret insertion adopts, or disarms it. */
+      readonly type: "setPendingMark";
+      readonly mark?: { readonly style: number; readonly font: number };
+    })
+  | (InputTarget & {
+      /** Seals the current undo group so the next command starts a new one. */
+      readonly type: "breakUndoGroup";
+    })
   | (InputTarget & { readonly type: "undo" })
   | (InputTarget & { readonly type: "redo" })
   | { readonly type: "focusEditable"; readonly nodeId: number }
@@ -514,6 +533,26 @@ function encodeCommand(writer: ByteWriter, command: InputCommand): void {
       writer.u16(0);
       writer.text(command.text ?? "");
       return;
+    case "setMarks":
+      assertU32(command.start, "mark range start");
+      assertU32(command.end, "mark range end");
+      assertU32(command.style, "mark style");
+      assertU32(command.font, "mark font");
+      if (command.start > command.end) fail("mark range is reversed");
+      writer.u32(command.start);
+      writer.u32(command.end);
+      writer.u32(command.style);
+      writer.u32(command.font);
+      return;
+    case "setPendingMark":
+      assertU32(command.mark?.style ?? 0, "pending mark style");
+      assertU32(command.mark?.font ?? 0, "pending mark font");
+      writer.u32(command.mark?.style ?? 0);
+      writer.u32(command.mark?.font ?? 0);
+      writer.u8(command.mark === undefined ? 0 : 1);
+      writer.u8(0);
+      writer.u16(0);
+      return;
     default:
       return;
   }
@@ -567,6 +606,28 @@ function decodeCommand(reader: ByteReader, opcode: InputOpcode): InputCommand {
     }
     case InputOpcode.CancelComposition:
       return { ...reader.target(), type: "cancelComposition" };
+    case InputOpcode.SetMarks: {
+      const target = reader.target();
+      const start = reader.u32();
+      const end = reader.u32();
+      if (start > end) fail("mark range is reversed");
+      return { ...target, type: "setMarks", start, end, style: reader.u32(), font: reader.u32() };
+    }
+    case InputOpcode.SetPendingMark: {
+      const target = reader.target();
+      const style = reader.u32();
+      const font = reader.u32();
+      const present = reader.u8();
+      reader.zeroes(3);
+      if (present === 0) {
+        if (style !== 0 || font !== 0) fail("absent pending mark has a payload");
+        return { ...target, type: "setPendingMark" };
+      }
+      if (present !== 1) fail("invalid pending mark presence flag");
+      return { ...target, type: "setPendingMark", mark: { style, font } };
+    }
+    case InputOpcode.BreakUndoGroup:
+      return { ...reader.target(), type: "breakUndoGroup" };
     case InputOpcode.Undo:
       return { ...reader.target(), type: "undo" };
     case InputOpcode.Redo:
@@ -772,6 +833,12 @@ function opcodeFor(command: InputCommand): InputOpcode {
       return InputOpcode.CommitComposition;
     case "cancelComposition":
       return InputOpcode.CancelComposition;
+    case "setMarks":
+      return InputOpcode.SetMarks;
+    case "setPendingMark":
+      return InputOpcode.SetPendingMark;
+    case "breakUndoGroup":
+      return InputOpcode.BreakUndoGroup;
     case "undo":
       return InputOpcode.Undo;
     case "redo":

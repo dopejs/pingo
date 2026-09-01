@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "abiVersion": 23,
+  "abiVersion": 24,
   "minimumReadableAbiVersion": 4,
   "endianness": "little",
   "alignment": 4,
@@ -85,7 +85,9 @@
     "recordingRecords": 1048576,
     "virtualItems": 4000000,
     "maxObservedGeometryNodes": 64,
-    "styledRuns": 65536
+    "styledRuns": 65536,
+    "editMarkRuns": 65536,
+    "editMapSegments": 65536
   },
   "recording": {
     "magic": "DOPR",
@@ -777,6 +779,42 @@
           ]
         },
         {
+          "name": "SetMarks",
+          "opcode": 18,
+          "fields": [
+            { "name": "nodeId", "type": "u32" },
+            { "name": "baseRevisionLow", "type": "u32" },
+            { "name": "baseRevisionHigh", "type": "u32" },
+            { "name": "start", "type": "u32" },
+            { "name": "end", "type": "u32" },
+            { "name": "style", "type": "u32" },
+            { "name": "font", "type": "u32" }
+          ]
+        },
+        {
+          "name": "SetPendingMark",
+          "opcode": 19,
+          "fields": [
+            { "name": "nodeId", "type": "u32" },
+            { "name": "baseRevisionLow", "type": "u32" },
+            { "name": "baseRevisionHigh", "type": "u32" },
+            { "name": "style", "type": "u32" },
+            { "name": "font", "type": "u32" },
+            { "name": "present", "type": "u8" },
+            { "name": "reserved", "type": "u8" },
+            "pad16"
+          ]
+        },
+        {
+          "name": "BreakUndoGroup",
+          "opcode": 20,
+          "fields": [
+            { "name": "nodeId", "type": "u32" },
+            { "name": "baseRevisionLow", "type": "u32" },
+            { "name": "baseRevisionHigh", "type": "u32" }
+          ]
+        },
+        {
           "name": "MoveCaret",
           "opcode": 16,
           "fields": ["u32", "u8", "u8", "u8", "u8"]
@@ -1206,6 +1244,8 @@
             "u8",
             "u8",
             "u32",
+            "u32",
+            "u32",
             "bytes",
             "align4"
           ]
@@ -1253,6 +1293,47 @@
           ]
         }
       ]
+    }
+  },
+  "editTransactionPayload": {
+    "markRunFields": [
+      {
+        "name": "length",
+        "type": "u32"
+      },
+      {
+        "name": "style",
+        "type": "u32"
+      },
+      {
+        "name": "font",
+        "type": "u32"
+      }
+    ],
+    "mapSegmentFields": [
+      {
+        "name": "oldStart",
+        "type": "u32"
+      },
+      {
+        "name": "oldEnd",
+        "type": "u32"
+      },
+      {
+        "name": "newStart",
+        "type": "u32"
+      },
+      {
+        "name": "newEnd",
+        "type": "u32"
+      },
+      {
+        "name": "flags",
+        "type": "u32"
+      }
+    ],
+    "flags": {
+      "kept": 1
     }
   },
   "styledRunPayload": {
