@@ -2595,6 +2595,43 @@ const editor = useTextEditingController({ value: cell.value });
 - 输入过滤不得破坏正在进行的 composition；校验失败必须通过版本化校正事务
   处理，不能静默丢弃输入法中间态。
 
+### 富文本与文档模型（E15 决策，2026-09-01）
+
+完整论证见 [`e15-rich-text-design.md`](e15-rich-text-design.md)；这里只记它改变了
+架构里的哪几条。
+
+**职责边界。** 文档模型按职责切，不按层切：Shell 拥有文档树、schema、命令、输入规则与
+序列化；Core 拥有扁平位置空间、每块的文本与 styled runs、shaping、caret 几何、三种选区、
+IME、undo 栈与位置映射。「caret、选区、IME、剪贴板、undo/redo 归引擎」这条不变量因此
+不变，而且现在是**跨块**成立的——它们都建在 Core 自己的位置空间上。
+
+**位置空间。** Core 的文档坐标是 `(block_key, utf16_offset)`，另有一个线性化整数位置用于
+跨块比较。空间持有**每块的长度**和**已物化块的文本**：长度让虚拟化文档保持一个完整的
+位置空间，每块一个整数；文本只有 caret 能进入的块才需要。
+
+**三种选区。** `Selection` 在文档层是 Text、Node、Gap 三态。把后两者折进文本范围正是
+「删掉这张图片」与「在两张图片之间打字」表达不出来的原因。
+
+**结构编辑的往返。** 改变树的按键由 Core 乐观预演（caret 当帧就位），帧后发出结构请求，
+Shell 按 schema 决定实际结构并提交新投影；分歧以 Shell 为准并计入帧诊断
+（`documentCorrections`）。请求走既有的反向编辑通道，仍然遵守「不在 Core 帧循环里调用
+Shell」。
+
+**唯一一份范围变换。** 每个 `EditTransaction` 带一份位置映射表，Shell 查表搬运自己的
+锚点。链接范围、评论锚点与远端光标因此不会各按各的规则移动。
+
+**ABI。** 22 → 26：`StyledRuns` 资源与 `SetRichText`（多样式渲染）、mark 指令与事务上的
+mark/映射负载、`ConfigureDocument` 的声明式块列表、`Structure` 与 `DocumentSelection`
+反向记录。
+
+**包体。** 富文本是 `pingo-core` 的 `rich-text` feature，默认开启（`cargo test` 测完整
+能力），但**不在默认发布产物里**——编译进来要 16,002 gzip bytes，超出 M9 工程门禁。
+`PINGO_RICH_TEXT=1 pnpm core:wasm` 产出含它的产物。归因见
+[`wasm-size-attribution.md`](wasm-size-attribution.md)。
+
+**门禁。** `pnpm e15:perf` 是新增的验收口径：同一按键序列跑 500 块与 5,000 块两遍，断言
+延迟比值而不只是绝对值——出口要求是「编辑延迟不随文档长度增长」。
+
 ---
 
 ## 12. 事件与命中测试
