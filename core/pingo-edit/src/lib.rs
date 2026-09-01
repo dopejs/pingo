@@ -3,6 +3,7 @@
 
 //! Deterministic, revisioned editable-text state for pingo Core.
 
+#[cfg(feature = "document")]
 mod document;
 mod error;
 mod index;
@@ -12,6 +13,7 @@ mod marks;
 mod session;
 mod types;
 
+#[cfg(feature = "document")]
 pub use document::{
     BlockKey, BlockProjection, BlockReplacement, Direction, Document, DocumentBlock, DocumentEdit,
     DocumentPosition, DocumentSelection, FlatPosition, Granularity, StructureRequest,

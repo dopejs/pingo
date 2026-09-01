@@ -185,7 +185,10 @@ pub fn edit_command_from_input(
             node_id,
             base_revision,
         } => (node_id, base_revision, EditIntent::Redo),
-        InputCommand::FocusEditable { .. }
+        InputCommand::SetDocumentSelection { .. }
+        | InputCommand::MoveDocumentCaret { .. }
+        | InputCommand::EditDocument { .. }
+        | InputCommand::FocusEditable { .. }
         | InputCommand::BlurEditable { .. }
         | InputCommand::PlaceCaret { .. }
         | InputCommand::MoveCaret { .. }

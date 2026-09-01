@@ -210,6 +210,43 @@ E14 的设计（[`e14-painted-text-probe-design.md`](e14-painted-text-probe-desi
 的字批布局。若余量吃紧，把 `probe.rs` 与 `CoreEngine::painted_text` 一起 `#[cfg]`
 掉即可全额回收：帧路径不引用它们，摘除是机械的。
 
+## 2026-09-01：E15 富文本
+
+同一 `pnpm core:wasm` 口径，三次构建：
+
+| 构建                                 | raw bytes | gzip bytes | 相对基线 |
+| ------------------------------------ | --------- | ---------- | -------- |
+| E15 之前（`f0ce23a`）                | 1,031,280 | 378,668    | —        |
+| E15，`--no-default-features`（默认） | 1,064,138 | 390,732    | +12,064  |
+| E15，`PINGO_RICH_TEXT=1`             | 1,108,059 | 406,734    | +28,066  |
+
+带上 `rich-text` 的构建 **超出 384 KiB 工程门禁 13,518 bytes**，距 400 KiB 产品上限
+只剩 2,866 bytes。这正是 E15 设计 §10 风险表里写好的那一行——"WASM 体积吃掉 M9 余量
+→ 富文本作为可选模块"——所以按它处置：
+
+- `pingo-core` 的 `rich-text` feature 默认开启，`cargo test --workspace` 因此测的是
+  完整能力；
+- `pnpm core:wasm` 默认传 `--no-default-features`，发布产物 **不含** 该模块，落在
+  390,732，工程门禁下仍余 2,484 bytes；
+- `PINGO_RICH_TEXT=1 pnpm core:wasm` 产出含该模块的产物，此时按产品上限计量，manifest
+  的 `richText: true` 记录了产物是哪一种。
+
+**12,064 的常驻增量**（feature 关掉也在）来自不能按能力摘除的部分：ABI 新增的
+`StyledRuns` 资源、`SetRichText`、编辑事务上的 mark/映射负载、三条文档输入指令与
+`Structure`/`DocumentSelection` 反向记录；Scene 的 `documents` lane 与 run 表校验；
+`EditSession` 里织进去的 mark 表与位置映射。把这些也做成 feature 会让**解码器出现两种
+方言**——同一个 ABI 版本号，两套可接受的指令集——这是信任边界上不该引入的歧义，所以没有
+做。
+
+由此工程余量从 14,625 降到 2,484。**下一次 Rust 能力新增必须先归因、再动手**：常驻
+路径已经没有空间了。可回收的部分按代价排序：
+
+1. 把 ABI 的文档指令与 `Structure`/`DocumentSelection` 记录一并 feature 化（约 4–6 KiB，
+   但引入双方言）；
+2. 把 `EditSession` 的 mark 表与 `PositionMap` 拆到 feature 后（约 3–4 KiB，需要把
+   undo 历史里的 marks 一起拆开）；
+3. 重新审视 `pingo-text` 的多 run 机器（约 1–2 KiB）。
+
 ## 失败模式与回滚
 
 - 任一 clean build 不同：拒绝候选，保留两个产物和工具版本做差分，不更新基线掩盖差异；

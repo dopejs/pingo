@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "abiVersion": 24,
+  "abiVersion": 25,
   "minimumReadableAbiVersion": 4,
   "endianness": "little",
   "alignment": 4,
@@ -87,7 +87,8 @@
     "maxObservedGeometryNodes": 64,
     "styledRuns": 65536,
     "editMarkRuns": 65536,
-    "editMapSegments": 65536
+    "editMapSegments": 65536,
+    "documentBlockKeys": 65536
   },
   "recording": {
     "magic": "DOPR",
@@ -112,7 +113,7 @@
     ]
   },
   "frameDiagnostics": {
-    "version": 10,
+    "version": 11,
     "fields": [
       {
         "name": "version",
@@ -292,6 +293,14 @@
       },
       {
         "name": "observeGeometryRejected",
+        "type": "u32"
+      },
+      {
+        "name": "documentStructureRequests",
+        "type": "u32"
+      },
+      {
+        "name": "documentCorrections",
         "type": "u32"
       }
     ]
@@ -676,6 +685,16 @@
           "fields": ["u32", "u32", "u32", "u32", "u32"]
         },
         {
+          "name": "ConfigureDocument",
+          "opcode": 97,
+          "fields": [
+            { "name": "nodeId", "type": "u32" },
+            { "name": "revisionLow", "type": "u32" },
+            { "name": "revisionHigh", "type": "u32" },
+            { "name": "flags", "type": "u32" }
+          ]
+        },
+        {
           "name": "ObserveGeometry",
           "opcode": 96,
           "fields": ["u32", "u32"]
@@ -818,6 +837,51 @@
           "name": "MoveCaret",
           "opcode": 16,
           "fields": ["u32", "u8", "u8", "u8", "u8"]
+        },
+        {
+          "name": "SetDocumentSelection",
+          "opcode": 21,
+          "fields": [
+            { "name": "nodeId", "type": "u32" },
+            { "name": "baseRevisionLow", "type": "u32" },
+            { "name": "baseRevisionHigh", "type": "u32" },
+            { "name": "kind", "type": "u8" },
+            { "name": "reserved", "type": "u8" },
+            "pad16",
+            { "name": "anchorKey", "type": "u32" },
+            { "name": "anchorOffset", "type": "u32" },
+            { "name": "focusKey", "type": "u32" },
+            { "name": "focusOffset", "type": "u32" },
+            { "name": "gapIndex", "type": "u32" }
+          ]
+        },
+        {
+          "name": "MoveDocumentCaret",
+          "opcode": 22,
+          "fields": [
+            { "name": "nodeId", "type": "u32" },
+            { "name": "direction", "type": "u8" },
+            { "name": "granularity", "type": "u8" },
+            { "name": "extend", "type": "u8" },
+            { "name": "reserved", "type": "u8" }
+          ]
+        },
+        {
+          "name": "EditDocument",
+          "opcode": 23,
+          "fields": [
+            { "name": "nodeId", "type": "u32" },
+            { "name": "baseRevisionLow", "type": "u32" },
+            { "name": "baseRevisionHigh", "type": "u32" },
+            { "name": "operation", "type": "u8" },
+            { "name": "reserved", "type": "u8" },
+            "pad16",
+            { "name": "style", "type": "u32" },
+            { "name": "font", "type": "u32" },
+            { "name": "textBytes", "type": "u32" },
+            { "name": "text", "type": "bytes" },
+            "align4"
+          ]
         },
         {
           "name": "ScrollBegin",
@@ -1224,6 +1288,38 @@
       "magic": "DOPE",
       "maxBytes": 16777216,
       "commands": [
+        {
+          "name": "DocumentSelection",
+          "opcode": 3,
+          "fields": [
+            { "name": "nodeId", "type": "u32" },
+            { "name": "kind", "type": "u8" },
+            { "name": "reserved", "type": "u8" },
+            "pad16",
+            { "name": "anchorKey", "type": "u32" },
+            { "name": "anchorOffset", "type": "u32" },
+            { "name": "focusKey", "type": "u32" },
+            { "name": "focusOffset", "type": "u32" },
+            { "name": "gapIndex", "type": "u32" }
+          ]
+        },
+        {
+          "name": "Structure",
+          "opcode": 2,
+          "fields": [
+            { "name": "nodeId", "type": "u32" },
+            { "name": "sequence", "type": "u32" },
+            { "name": "kind", "type": "u8" },
+            { "name": "reserved", "type": "u8" },
+            "pad16",
+            { "name": "target", "type": "u32" },
+            { "name": "source", "type": "u32" },
+            { "name": "offset", "type": "u32" },
+            { "name": "keyCount", "type": "u32" },
+            { "name": "keys", "type": "bytes" },
+            "align4"
+          ]
+        },
         {
           "name": "Transaction",
           "opcode": 1,

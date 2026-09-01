@@ -6,6 +6,13 @@ license.workspace = true
 repository.workspace = true
 rust-version.workspace = true
 
+[features]
+default = ["document"]
+# The document position space, its three selection kinds, and the structure
+# protocol. Everything else in this crate -- one value, its marks, its undo
+# history -- is unconditional, because a plain input field needs it.
+document = []
+
 [dependencies]
 pingo-abi = { path = "../pingo-abi" }
 unicode-segmentation = "=1.13.3"

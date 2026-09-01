@@ -110,6 +110,19 @@ pub enum Mutation {
         /// Styled-run table resource identifier, or zero for a single run.
         runs_id: u32,
     },
+    /// Marks a container as the root of an editable document.
+    ///
+    /// Its text, editable, and object descendants become Core's block
+    /// projection in topology order. Core does not learn the tree's shape from
+    /// this -- only that these blocks are one document, in this order.
+    ConfigureDocument {
+        /// Container or scroll node owning the document.
+        node_id: u32,
+        /// Shell revision of the projection.
+        revision: u64,
+        /// Reserved for future document policy; must be zero.
+        flags: u32,
+    },
     /// Defines an immutable interned resource.
     DefineResource {
         /// Resource identifier.
@@ -403,6 +416,21 @@ fn decode_mutation(opcode: MutationOpcode, reader: &mut Reader<'_>) -> Result<Mu
             style_id: reader.read_u32()?,
             runs_id: reader.read_u32()?,
         },
+        MutationOpcode::ConfigureDocument => {
+            let node_id = reader.read_u32()?;
+            let revision = u64::from(reader.read_u32()?) | (u64::from(reader.read_u32()?) << 32);
+            let flags = reader.read_u32()?;
+            if flags != 0 {
+                return Err(AbiError::InvalidValue(
+                    "document flags contain reserved bits",
+                ));
+            }
+            Mutation::ConfigureDocument {
+                node_id,
+                revision,
+                flags,
+            }
+        }
         MutationOpcode::DefineResource => {
             let resource_id = reader.read_u32()?;
             let raw_kind = reader.read_u16()?;
@@ -631,6 +659,24 @@ fn encode_mutation(writer: &mut Writer, instruction: &MutationInstruction) -> Re
             writer.u32(*style_id);
             writer.u32(*runs_id);
         }
+        Mutation::ConfigureDocument {
+            node_id,
+            revision,
+            flags: document_flags,
+        } => {
+            if *document_flags != 0 {
+                return Err(AbiError::InvalidValue(
+                    "document flags contain reserved bits",
+                ));
+            }
+            writer.instruction(MutationOpcode::ConfigureDocument as u8, flags);
+            writer.u32(*node_id);
+            #[allow(clippy::cast_possible_truncation)]
+            writer.u32((*revision & 0xffff_ffff) as u32);
+            #[allow(clippy::cast_possible_truncation)]
+            writer.u32((*revision >> 32) as u32);
+            writer.u32(*document_flags);
+        }
         Mutation::DefineResource {
             resource_id,
             kind,
@@ -743,6 +789,7 @@ fn mutation_opcode(mutation: &Mutation) -> MutationOpcode {
         Mutation::ClearProp { .. } => MutationOpcode::ClearProp,
         Mutation::SetTextRun { .. } => MutationOpcode::SetTextRun,
         Mutation::SetRichText { .. } => MutationOpcode::SetRichText,
+        Mutation::ConfigureDocument { .. } => MutationOpcode::ConfigureDocument,
         Mutation::DefineResource { .. } => MutationOpcode::DefineResource,
         Mutation::ReleaseResource { .. } => MutationOpcode::ReleaseResource,
         Mutation::ScrollTo { .. } => MutationOpcode::ScrollTo,

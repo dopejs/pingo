@@ -4,8 +4,9 @@ use crate::codec::{
 };
 use crate::{
     AbiError, EDIT_MAP_SEGMENT_FLAG_KEPT, EDIT_TRANSACTIONS_MAGIC, EditTransactionOpcode,
-    MAX_EDIT_MAP_SEGMENTS, MAX_EDIT_MARK_RUNS, MAX_EDIT_TRANSACTION_INSTRUCTIONS,
-    MAX_EDIT_TRANSACTIONS_BYTES, MAX_RESOURCE_BYTES, StreamKind,
+    MAX_DOCUMENT_BLOCK_KEYS, MAX_EDIT_MAP_SEGMENTS, MAX_EDIT_MARK_RUNS,
+    MAX_EDIT_TRANSACTION_INSTRUCTIONS, MAX_EDIT_TRANSACTIONS_BYTES, MAX_RESOURCE_BYTES, StreamKind,
+    WireDocumentSelection,
 };
 
 const HAS_DELTA: u8 = 1;
@@ -134,11 +135,87 @@ pub struct EditTransactionRecord {
     pub map: Vec<WireMapSegment>,
 }
 
+/// A structural change only the Shell can carry out.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[repr(u8)]
+pub enum StructureKind {
+    /// Remove the listed blocks from the tree.
+    Remove = 1,
+    /// Append `source` to `target` and remove `source`.
+    Merge = 2,
+    /// Split `target` at `offset`.
+    Split = 3,
+}
+
+impl StructureKind {
+    fn decode(value: u8) -> Result<Self, AbiError> {
+        match value {
+            1 => Ok(Self::Remove),
+            2 => Ok(Self::Merge),
+            3 => Ok(Self::Split),
+            _ => Err(AbiError::UnknownIdentifier {
+                category: "structure request kind",
+                value: u32::from(value),
+            }),
+        }
+    }
+}
+
+/// One Core-to-Shell structure request.
+///
+/// Core predicted this and already moved the caret; the Shell decides what its
+/// schema actually does and answers with the next projection. That is why the
+/// request carries a sequence number: the Shell echoes it so a disagreement is
+/// attributable rather than merely visible.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct StructureRequestRecord {
+    /// Document root node.
+    pub node_id: u32,
+    /// Monotonic per-document request sequence.
+    pub sequence: u32,
+    /// What the Shell is being asked to do.
+    pub kind: StructureKind,
+    /// Block that survives a merge, or is split.
+    pub target: u32,
+    /// Block consumed by a merge.
+    pub source: u32,
+    /// UTF-16 offset a split happens at.
+    pub offset: u32,
+    /// Blocks a removal names, in document order.
+    pub keys: Vec<u32>,
+}
+
+/// A document selection reported back to the Shell.
+///
+/// The Shell needs this because Core is what moved the caret: an arrow key or a
+/// delete changes the selection inside Core's position space, and a toolbar
+/// that does not know where the selection is cannot say whether bold is on.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct DocumentSelectionRecord {
+    /// Document root node.
+    pub node_id: u32,
+    /// The selection Core now holds.
+    pub selection: WireDocumentSelection,
+}
+
+/// One record of the reverse editing stream.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum EditStreamRecord {
+    /// A committed value transition.
+    Transaction(EditTransactionRecord),
+    /// A structural change handed to the Shell.
+    Structure(StructureRequestRecord),
+}
+
 /// Transactional batch drained after one accepted Core operation.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct EditTransactionBatch {
     /// Records in exact Core commit order.
     pub records: Vec<EditTransactionRecord>,
+    /// Structure requests in exact Core emission order.
+    pub structure: Vec<StructureRequestRecord>,
+    /// Document selections that changed during this operation.
+    pub selections: Vec<DocumentSelectionRecord>,
 }
 
 impl EditTransactionBatch {
@@ -177,15 +254,23 @@ impl EditTransactionBatch {
                 maximum: MAX_EDIT_TRANSACTION_INSTRUCTIONS,
             });
         }
-        let maximum =
-            u32::try_from(reader.remaining() / EditTransactionOpcode::Transaction.minimum_bytes())
-                .map_err(|_| AbiError::ArithmeticOverflow)?;
+        // The smallest instruction the stream can carry, not the largest: a
+        // batch of structure requests is legal and must not be rejected for
+        // being denser than a batch of transactions.
+        let smallest = EditTransactionOpcode::Transaction
+            .minimum_bytes()
+            .min(EditTransactionOpcode::Structure.minimum_bytes())
+            .min(EditTransactionOpcode::DocumentSelection.minimum_bytes());
+        let maximum = u32::try_from(reader.remaining() / smallest)
+            .map_err(|_| AbiError::ArithmeticOverflow)?;
         if declared > maximum {
             return Err(AbiError::InstructionCountTooLarge { declared, maximum });
         }
         let mut records = Vec::with_capacity(
             usize::try_from(declared).map_err(|_| AbiError::ArithmeticOverflow)?,
         );
+        let mut structure = Vec::new();
+        let mut selections = Vec::new();
         while reader.remaining() != 0 {
             let header = read_instruction_header(&mut reader)?;
             let (offset, raw_opcode) = (header.offset, header.opcode);
@@ -204,14 +289,23 @@ impl EditTransactionBatch {
                     offset,
                 });
             };
-            let record = decode_record(&mut reader)?;
+            match opcode {
+                EditTransactionOpcode::Transaction => {
+                    records.push(decode_record(&mut reader)?);
+                }
+                EditTransactionOpcode::Structure => {
+                    structure.push(decode_structure(&mut reader)?);
+                }
+                EditTransactionOpcode::DocumentSelection => {
+                    selections.push(decode_document_selection(&mut reader)?);
+                }
+            }
             validate_instruction_size(opcode, offset, reader.offset())?;
             finish_instruction(&reader, header)?;
-            records.push(record);
         }
         // A skipped record was still in the stream, so it counts toward the
         // declared total; otherwise the count check rejects every downgrade.
-        let actual = u32::try_from(records.len())
+        let actual = u32::try_from(records.len() + structure.len() + selections.len())
             .map_err(|_| AbiError::ArithmeticOverflow)?
             .checked_add(skipped)
             .ok_or(AbiError::ArithmeticOverflow)?;
@@ -219,7 +313,11 @@ impl EditTransactionBatch {
             return Err(AbiError::InstructionCountMismatch { declared, actual });
         }
         Ok((
-            Self { records },
+            Self {
+                records,
+                structure,
+                selections,
+            },
             crate::DecodeReport {
                 skipped_instructions: skipped,
                 producer_abi_version: stream.producer_version,
@@ -230,7 +328,7 @@ impl EditTransactionBatch {
     /// Encodes one canonical reverse editing batch.
     pub fn encode(&self) -> Result<Vec<u8>, AbiError> {
         validate_encode_instruction_count(
-            self.records.len(),
+            self.records.len() + self.structure.len() + self.selections.len(),
             0,
             MAX_EDIT_TRANSACTION_INSTRUCTIONS,
         )?;
@@ -283,8 +381,168 @@ impl EditTransactionBatch {
                 });
             }
         }
+        for request in &self.structure {
+            validate_structure(request)?;
+            writer.instruction(EditTransactionOpcode::Structure as u8, 0);
+            writer.u32(request.node_id);
+            writer.u32(request.sequence);
+            writer.u8(request.kind as u8);
+            writer.u8(0);
+            writer.u16(0);
+            writer.u32(request.target);
+            writer.u32(request.source);
+            writer.u32(request.offset);
+            writer
+                .u32(u32::try_from(request.keys.len()).map_err(|_| AbiError::ArithmeticOverflow)?);
+            for key in &request.keys {
+                writer.u32(*key);
+            }
+        }
+        for record in &self.selections {
+            writer.instruction(EditTransactionOpcode::DocumentSelection as u8, 0);
+            writer.u32(record.node_id);
+            let (kind, anchor_key, anchor_offset, focus_key, focus_offset, gap_index) =
+                match record.selection {
+                    WireDocumentSelection::Text {
+                        anchor_key,
+                        anchor_offset,
+                        focus_key,
+                        focus_offset,
+                    } => (1, anchor_key, anchor_offset, focus_key, focus_offset, 0),
+                    WireDocumentSelection::Node { key } => (2, key, 0, 0, 0, 0),
+                    WireDocumentSelection::Gap { index } => (3, 0, 0, 0, 0, index),
+                };
+            writer.u8(kind);
+            writer.u8(0);
+            writer.u16(0);
+            writer.u32(anchor_key);
+            writer.u32(anchor_offset);
+            writer.u32(focus_key);
+            writer.u32(focus_offset);
+            writer.u32(gap_index);
+        }
         writer.finish(MAX_EDIT_TRANSACTIONS_BYTES)
     }
+}
+
+fn decode_document_selection(reader: &mut Reader<'_>) -> Result<DocumentSelectionRecord, AbiError> {
+    let node_id = reader.read_u32()?;
+    let kind = reader.read_u8()?;
+    reader.read_zeroes(3)?;
+    let anchor_key = reader.read_u32()?;
+    let anchor_offset = reader.read_u32()?;
+    let focus_key = reader.read_u32()?;
+    let focus_offset = reader.read_u32()?;
+    let gap_index = reader.read_u32()?;
+    let selection = match kind {
+        1 => {
+            if gap_index != 0 {
+                return Err(AbiError::InvalidValue(
+                    "text document selection has a gap index",
+                ));
+            }
+            WireDocumentSelection::Text {
+                anchor_key,
+                anchor_offset,
+                focus_key,
+                focus_offset,
+            }
+        }
+        2 => {
+            if anchor_offset != 0 || focus_key != 0 || focus_offset != 0 || gap_index != 0 {
+                return Err(AbiError::InvalidValue(
+                    "node document selection has a non-zero payload",
+                ));
+            }
+            WireDocumentSelection::Node { key: anchor_key }
+        }
+        3 => {
+            if anchor_key != 0 || anchor_offset != 0 || focus_key != 0 || focus_offset != 0 {
+                return Err(AbiError::InvalidValue(
+                    "gap document selection has a non-zero payload",
+                ));
+            }
+            WireDocumentSelection::Gap { index: gap_index }
+        }
+        _ => {
+            return Err(AbiError::UnknownIdentifier {
+                category: "document selection kind",
+                value: u32::from(kind),
+            });
+        }
+    };
+    Ok(DocumentSelectionRecord { node_id, selection })
+}
+
+fn decode_structure(reader: &mut Reader<'_>) -> Result<StructureRequestRecord, AbiError> {
+    let node_id = reader.read_u32()?;
+    let sequence = reader.read_u32()?;
+    let kind = StructureKind::decode(reader.read_u8()?)?;
+    reader.read_zeroes(3)?;
+    let target = reader.read_u32()?;
+    let source = reader.read_u32()?;
+    let offset = reader.read_u32()?;
+    let count = reader.read_u32()?;
+    if count > MAX_DOCUMENT_BLOCK_KEYS {
+        return Err(AbiError::InvalidValue(
+            "structure request names too many blocks",
+        ));
+    }
+    let mut keys =
+        Vec::with_capacity(usize::try_from(count).map_err(|_| AbiError::ArithmeticOverflow)?);
+    for _ in 0..count {
+        keys.push(reader.read_u32()?);
+    }
+    let record = StructureRequestRecord {
+        node_id,
+        sequence,
+        kind,
+        target,
+        source,
+        offset,
+        keys,
+    };
+    validate_structure(&record)?;
+    Ok(record)
+}
+
+fn validate_structure(request: &StructureRequestRecord) -> Result<(), AbiError> {
+    if request.keys.len() > MAX_DOCUMENT_BLOCK_KEYS as usize {
+        return Err(AbiError::InvalidValue(
+            "structure request names too many blocks",
+        ));
+    }
+    match request.kind {
+        StructureKind::Remove => {
+            if request.keys.is_empty()
+                || request.target != 0
+                || request.source != 0
+                || request.offset != 0
+            {
+                return Err(AbiError::InvalidValue(
+                    "removal must name blocks and nothing else",
+                ));
+            }
+        }
+        StructureKind::Merge => {
+            if !request.keys.is_empty()
+                || request.offset != 0
+                || request.target == 0
+                || request.source == 0
+                || request.target == request.source
+            {
+                return Err(AbiError::InvalidValue(
+                    "merge must name two distinct blocks",
+                ));
+            }
+        }
+        StructureKind::Split => {
+            if !request.keys.is_empty() || request.source != 0 || request.target == 0 {
+                return Err(AbiError::InvalidValue("split must name one block"));
+            }
+        }
+    }
+    Ok(())
 }
 
 fn decode_record(reader: &mut Reader<'_>) -> Result<EditTransactionRecord, AbiError> {
@@ -484,6 +742,8 @@ mod tests {
     #[test]
     fn unicode_delta_and_optional_composition_round_trip() {
         let batch = EditTransactionBatch {
+            selections: Vec::new(),
+            structure: Vec::new(),
             records: vec![EditTransactionRecord {
                 node_id: 7,
                 base_revision: 9,
@@ -549,6 +809,8 @@ mod tests {
             EditTransactionKind::External,
         ] {
             let batch = EditTransactionBatch {
+                selections: Vec::new(),
+                structure: Vec::new(),
                 records: vec![EditTransactionRecord {
                     kind,
                     ..base.clone()
@@ -563,6 +825,8 @@ mod tests {
             mutate(&mut record);
             assert!(
                 EditTransactionBatch {
+                    selections: Vec::new(),
+                    structure: Vec::new(),
                     records: vec![record],
                 }
                 .encode()
@@ -574,6 +838,8 @@ mod tests {
         reject(|record| record.composition = Some(WireRange { start: 9, end: 3 }));
 
         let bytes = EditTransactionBatch {
+            selections: Vec::new(),
+            structure: Vec::new(),
             records: vec![base],
         }
         .encode()
@@ -598,6 +864,87 @@ mod tests {
     }
 
     #[test]
+    fn structure_requests_round_trip_and_reject_incoherent_shapes() {
+        let batch = EditTransactionBatch {
+            selections: Vec::new(),
+            records: Vec::new(),
+            structure: vec![
+                StructureRequestRecord {
+                    node_id: 4,
+                    sequence: 1,
+                    kind: StructureKind::Remove,
+                    target: 0,
+                    source: 0,
+                    offset: 0,
+                    keys: vec![7, 8],
+                },
+                StructureRequestRecord {
+                    node_id: 4,
+                    sequence: 2,
+                    kind: StructureKind::Merge,
+                    target: 5,
+                    source: 6,
+                    offset: 0,
+                    keys: Vec::new(),
+                },
+                StructureRequestRecord {
+                    node_id: 4,
+                    sequence: 3,
+                    kind: StructureKind::Split,
+                    target: 5,
+                    source: 0,
+                    offset: 12,
+                    keys: Vec::new(),
+                },
+            ],
+        };
+        let bytes = batch.encode().expect("encode");
+        assert_eq!(EditTransactionBatch::decode(&bytes), Ok(batch));
+
+        // Each kind owns exactly the fields it needs, so a request that mixes
+        // them cannot be read two ways.
+        let incoherent = |request: StructureRequestRecord| {
+            EditTransactionBatch {
+                selections: Vec::new(),
+                records: Vec::new(),
+                structure: vec![request],
+            }
+            .encode()
+            .is_err()
+        };
+        let base = StructureRequestRecord {
+            node_id: 4,
+            sequence: 1,
+            kind: StructureKind::Remove,
+            target: 0,
+            source: 0,
+            offset: 0,
+            keys: vec![7],
+        };
+        assert!(incoherent(StructureRequestRecord {
+            keys: Vec::new(),
+            ..base.clone()
+        }));
+        assert!(incoherent(StructureRequestRecord {
+            target: 1,
+            ..base.clone()
+        }));
+        assert!(incoherent(StructureRequestRecord {
+            kind: StructureKind::Merge,
+            target: 5,
+            source: 5,
+            keys: Vec::new(),
+            ..base.clone()
+        }));
+        assert!(incoherent(StructureRequestRecord {
+            kind: StructureKind::Split,
+            target: 0,
+            keys: Vec::new(),
+            ..base
+        }));
+    }
+
+    #[test]
     fn malformed_mark_tables_and_position_maps_fail_closed() {
         let record = EditTransactionRecord {
             node_id: 7,
@@ -614,6 +961,8 @@ mod tests {
         // An empty span would make the table ambiguous about where a run ends.
         assert!(
             EditTransactionBatch {
+                selections: Vec::new(),
+                structure: Vec::new(),
                 records: vec![EditTransactionRecord {
                     marks: Some(vec![WireMarkRun {
                         length: 0,
@@ -629,6 +978,8 @@ mod tests {
         // A map with a gap would let a lookup miss and silently return the end.
         assert!(
             EditTransactionBatch {
+                selections: Vec::new(),
+                structure: Vec::new(),
                 records: vec![EditTransactionRecord {
                     map: vec![
                         WireMapSegment {
@@ -654,6 +1005,8 @@ mod tests {
         );
 
         let bytes = EditTransactionBatch {
+            selections: Vec::new(),
+            structure: Vec::new(),
             records: vec![EditTransactionRecord {
                 map: vec![WireMapSegment {
                     old_start: 0,
@@ -685,6 +1038,8 @@ mod tests {
     #[test]
     fn malformed_utf8_and_presence_bits_fail_closed() {
         let batch = EditTransactionBatch {
+            selections: Vec::new(),
+            structure: Vec::new(),
             records: vec![EditTransactionRecord {
                 node_id: 7,
                 base_revision: 0,

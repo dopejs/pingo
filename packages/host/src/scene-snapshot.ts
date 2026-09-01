@@ -162,9 +162,13 @@ export class MutationSceneSnapshot {
         mutations.push({ clear: 0, nodeId, set: node.flags, type: "setFlags" });
       }
       if (node.textRun !== undefined) {
-        // Replayed as the rich form unconditionally: a zero runsId encodes the
-        // same single-style binding, so one branch cannot drift from the other.
-        mutations.push({ nodeId, type: "setRichText", ...node.textRun });
+        // A single-style binding replays as SetTextRun, so a snapshot stays
+        // readable by a Core built without the optional rich-text module.
+        mutations.push(
+          node.textRun.runsId === 0
+            ? { nodeId, type: "setTextRun", ...node.textRun }
+            : { nodeId, type: "setRichText", ...node.textRun },
+        );
       }
       if (node.scroll !== undefined) {
         mutations.push({ nodeId, type: "scrollTo", ...node.scroll });

@@ -33,6 +33,16 @@ if (rustcVersion !== expectedRustc) {
   throw new Error(`product Core requires ${expectedRustc}; received ${rustcVersion}`);
 }
 const verifyReproducible = process.argv.includes("--verify-reproducible");
+/**
+ * Rich text is an optional Core module.
+ *
+ * Compiling it in costs 16,002 gzip bytes, which does not fit under the M9
+ * engineering budget alongside everything else the Core already carries. The
+ * E15 design named this outcome and its answer: ship rich text as a module a
+ * build opts into. `PINGO_RICH_TEXT=1 pnpm core:wasm` produces the artifact
+ * that has it, and the budget is then reported against the product limit.
+ */
+const richText = process.env.PINGO_RICH_TEXT === "1";
 let cleanRoots = [];
 let result;
 let wasmOptVersion;
@@ -76,11 +86,14 @@ try {
     attribution: result.attribution,
     engineeringMaximumGzipBytes,
     gzipBytes: result.gzipBytes,
-    maximumGzipBytes: engineeringMaximumGzipBytes,
+    // A rich-text build is measured against the product limit, because the
+    // engineering budget's reserve is what the module spends.
+    maximumGzipBytes: richText ? productMaximumGzipBytes : engineeringMaximumGzipBytes,
     optimizationPasses,
     productMaximumGzipBytes,
     rawBytes: result.rawBytes,
     reproducibleCleanBuilds: verifyReproducible ? 2 : 0,
+    richText,
     rustc: rustcVersion,
     sha256: result.sha256,
     target: "web",
@@ -96,9 +109,11 @@ try {
   process.stdout.write(
     `Product Core WASM: ${String(result.rawBytes)} bytes raw, ${String(result.gzipBytes)} bytes gzip${verifyReproducible ? ", two clean builds byte-identical" : ""}\n`,
   );
-  if (result.gzipBytes > engineeringMaximumGzipBytes) {
+  if (result.gzipBytes > (richText ? productMaximumGzipBytes : engineeringMaximumGzipBytes)) {
     throw new Error(
-      `product Core WASM is ${String(result.gzipBytes)} gzip bytes; M9 limit is ${String(engineeringMaximumGzipBytes)}`,
+      `product Core WASM is ${String(result.gzipBytes)} gzip bytes; limit is ${String(
+        richText ? productMaximumGzipBytes : engineeringMaximumGzipBytes,
+      )}`,
     );
   }
 } finally {
@@ -119,6 +134,7 @@ async function build(outputDirectory, cargoTargetDirectory) {
       outputDirectory,
       "--out-name",
       "pingo_core",
+      ...(richText ? [] : ["--", "--no-default-features"]),
     ],
     cargoTargetDirectory === undefined ? undefined : { CARGO_TARGET_DIR: cargoTargetDirectory },
   );

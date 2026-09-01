@@ -258,6 +258,13 @@ pub struct FrameDiagnostics {
     /// A refused observation degrades one overlay to static placement, which is
     /// safe but invisible from the outside; this is what makes it findable.
     pub observe_geometry_rejected: u32,
+    /// Structure requests handed to the Shell since the engine started.
+    pub document_structure_requests: u32,
+    /// Times the Shell's projection disagreed with Core's optimistic guess.
+    ///
+    /// Disagreement is legal -- the Shell owns the schema -- but a silent one
+    /// is not diagnosable, so it is counted rather than absorbed.
+    pub document_corrections: u32,
 }
 
 impl FrameDiagnostics {
@@ -334,6 +341,9 @@ impl FrameDiagnostics {
         words[FRAME_DIAGNOSTICS_PICTURE_BUDGET_FALLBACKS_INDEX] =
             count_u64_word(self.picture_budget_fallbacks);
         words[FRAME_DIAGNOSTICS_OBSERVE_GEOMETRY_REJECTED_INDEX] = self.observe_geometry_rejected;
+        words[pingo_abi::FRAME_DIAGNOSTICS_DOCUMENT_STRUCTURE_REQUESTS_INDEX] =
+            self.document_structure_requests;
+        words[pingo_abi::FRAME_DIAGNOSTICS_DOCUMENT_CORRECTIONS_INDEX] = self.document_corrections;
         words
     }
 }
@@ -360,6 +370,7 @@ pub struct CoreEngine {
     animation: AnimationController,
     text: CoreTextSystem,
     editing: EditingController,
+    documents: crate::document::DocumentController,
     hit: HitIndex,
     pending_events: Vec<u8>,
     pending_picture_resources: Arc<[u8]>,
@@ -826,6 +837,7 @@ impl CoreEngine {
             animation: AnimationController::default(),
             text: CoreTextSystem::default(),
             editing: EditingController::default(),
+            documents: crate::document::DocumentController::default(),
             hit: HitIndex::default(),
             pending_events: Vec::new(),
             pending_picture_resources: Arc::from([]),
@@ -906,19 +918,24 @@ impl CoreEngine {
         self.apply_geometry_observations(&observations);
         self.reconcile_interaction_after_commit()?;
 
-        let editing_changed = match self
-            .editing
-            .synchronize(&self.scene, &editable_configurations)
-        {
-            Ok(changed) => changed,
-            Err(error) => return self.poison(error),
-        };
+        if let Err(error) = self.documents.synchronize(&self.scene) {
+            return self.poison(error);
+        }
+        let documents = self.documents.clone();
+        let editing_changed =
+            match self
+                .editing
+                .synchronize(&self.scene, &editable_configurations, &|node| {
+                    documents.owns(node)
+                }) {
+                Ok(changed) => changed,
+                Err(error) => return self.poison(error),
+            };
         self.phase_timings.scene_ms = phase.split();
         if let Err(error) = self.editing.encode_pending() {
             return self.poison(CoreError::EditTransactions(error));
         }
-        self.text
-            .set_edit_overrides(self.editing.display_overrides());
+        self.text.set_edit_overrides(self.text_overrides());
         self.text
             .set_non_wrapping(self.editing.non_wrapping_nodes());
         if !editing_changed.is_empty() {
@@ -1181,6 +1198,72 @@ impl CoreEngine {
     /// Laid-out border-box width of a node, or zero when it has no geometry.
     ///
     /// Caret stops need it to place themselves the way paint aligns the line.
+    /// Applies a batch's document commands to a candidate controller.
+    ///
+    /// Nothing is installed until the whole batch succeeds, so a rejected
+    /// command cannot leave half a caret movement behind.
+    fn apply_document_commands(
+        &self,
+        commands: &[InputCommand],
+    ) -> Result<(crate::document::DocumentController, Vec<NodeId>), CoreError> {
+        let mut candidate = self.documents.clone();
+        let mut changed = Vec::new();
+        for command in commands {
+            changed.extend(candidate.apply_command(command)?);
+        }
+        Ok((candidate, changed))
+    }
+
+    /// Draws the document selection: character ranges inside blocks, an
+    /// outline over a selected object, and a caret in a gap between blocks.
+    fn decorate_document_selection(&mut self) {
+        for visual in self.documents.visuals() {
+            let Some((_, size)) = self.layout.snapshot().geometry(visual.node) else {
+                continue;
+            };
+            let decorations = match visual.kind {
+                crate::document::BlockVisualKind::Text { selection } => {
+                    self.text.document_text_decorations(
+                        &self.scene,
+                        visual.node,
+                        selection,
+                        self.caret_visible,
+                        size.width,
+                    )
+                }
+                crate::document::BlockVisualKind::Object => vec![pingo_paint::EditorDecoration {
+                    rect: [0.0, 0.0, size.width, size.height],
+                    rgba: 0x3390_ff66,
+                    kind: pingo_abi::EditorDecorationKind::Selection,
+                }],
+                crate::document::BlockVisualKind::Gap { trailing } if self.caret_visible => {
+                    vec![pingo_paint::EditorDecoration {
+                        rect: [
+                            0.0,
+                            if trailing { size.height } else { 0.0 },
+                            size.width.max(1.5),
+                            1.5,
+                        ],
+                        rgba: 0x1111_11ff,
+                        kind: pingo_abi::EditorDecorationKind::Caret,
+                    }]
+                }
+                crate::document::BlockVisualKind::Gap { .. } => Vec::new(),
+            };
+            self.text.add_editor_decorations(visual.node, decorations);
+        }
+    }
+
+    /// Merges the editing controller's overrides with the document blocks'.
+    ///
+    /// The two never overlap: a node inside a document has no independent
+    /// session, precisely so the caret has one owner.
+    fn text_overrides(&self) -> std::collections::HashMap<NodeId, crate::editing::EditDisplay> {
+        let mut overrides = self.editing.display_overrides();
+        overrides.extend(self.documents.display_overrides());
+        overrides
+    }
+
     fn node_box_width(&self, node: NodeId) -> f32 {
         self.layout
             .snapshot()
@@ -1683,9 +1766,22 @@ impl CoreEngine {
                 return Err(error);
             }
         };
+        // Document commands and single-field commands never mix in one batch:
+        // one names a document root and the other an editable node, and letting
+        // them interleave would make "which caret moved" depend on order.
+        let (document_commands, edit_commands): (Vec<_>, Vec<_>) =
+            edit_commands.into_iter().partition(is_document_command);
         let mut candidate_scene = self.scene.clone();
         let mut candidate_scroll = self.scroll.clone();
         let mut candidate_editing = self.editing.clone();
+        let (candidate_documents, document_changed) =
+            match self.apply_document_commands(&document_commands) {
+                Ok(result) => result,
+                Err(error) => {
+                    self.metrics.input_rejections = self.metrics.input_rejections.saturating_add(1);
+                    return Err(error);
+                }
+            };
         let scroll_outcome = if scroll_instructions.is_empty() {
             ScrollAdvance::default()
         } else {
@@ -1718,20 +1814,24 @@ impl CoreEngine {
         self.scene = candidate_scene;
         self.scroll = candidate_scroll;
         self.editing = candidate_editing;
+        self.documents = candidate_documents;
         self.caret_desired_x = desired_x;
-        if edit_outcome.accepted_commands > 0 {
+        if edit_outcome.accepted_commands > 0 || !document_commands.is_empty() {
             self.requested_character_range = None;
             self.caret_elapsed_seconds = 0.0;
             self.caret_visible = true;
         }
         self.last_input_sequence = Some(batch.frame_seq);
-        self.text
-            .set_edit_overrides(self.editing.display_overrides());
+        self.text.set_edit_overrides(self.text_overrides());
         self.text
             .set_non_wrapping(self.editing.non_wrapping_nodes());
         self.metrics.accepted_input_batches = self.metrics.accepted_input_batches.saturating_add(1);
-        if edit_outcome.changed_nodes.is_empty() {
-            if !scroll_outcome.changed {
+        if !document_changed.is_empty() {
+            self.layout
+                .mark_text_measurements_changed(&document_changed);
+        }
+        if edit_outcome.changed_nodes.is_empty() && document_changed.is_empty() {
+            if !scroll_outcome.changed && document_commands.is_empty() {
                 return Ok(None);
             }
             let frame_seq = self
@@ -1746,7 +1846,11 @@ impl CoreEngine {
         } else {
             None
         };
-        let output = self.repaint_after_edit(&edit_outcome.changed_nodes, reveal)?;
+        let mut changed = edit_outcome.changed_nodes;
+        changed.extend(document_changed);
+        changed.sort_unstable();
+        changed.dedup();
+        let output = self.repaint_after_edit(&changed, reveal)?;
         Ok(Some(output))
     }
 
@@ -2120,17 +2224,23 @@ impl CoreEngine {
     ///
     /// Returns an ABI error only if an internal encoding invariant is violated.
     pub fn take_edit_transactions(&mut self) -> Result<Vec<u8>, CoreError> {
-        if !self.editing.has_pending_transactions() {
+        if !self.editing.has_pending_transactions() && !self.documents.has_pending_structure() {
             return Ok(Vec::new());
         }
-        let bytes = self
-            .editing
-            .encode_pending()
-            .map_err(CoreError::EditTransactions)?;
-        let taken = self.editing.take_transactions();
+        // Structure requests ride the same reverse channel as transactions and
+        // are drained after the frame, never inside it: the Core frame loop
+        // must not call into the Shell.
+        let mut batch = self.editing.take_transactions();
+        batch.structure = self.documents.take_structure();
+        batch.selections = self.documents.take_selections();
+        let bytes = batch.encode().map_err(CoreError::EditTransactions)?;
         debug_assert_eq!(
-            taken.records.len(),
-            pingo_abi::EditTransactionBatch::decode(&bytes).map_or(0, |batch| batch.records.len())
+            batch.records.len() + batch.structure.len() + batch.selections.len(),
+            pingo_abi::EditTransactionBatch::decode(&bytes).map_or(0, |decoded| decoded
+                .records
+                .len()
+                + decoded.structure.len()
+                + decoded.selections.len())
         );
         Ok(bytes)
     }
@@ -2526,6 +2636,7 @@ impl CoreEngine {
             self.caret_visible,
             active_visual.map_or(0.0, |visual| self.node_box_width(visual.node)),
         );
+        self.decorate_document_selection();
         let scene_nodes = self.scene.len();
         let dirty_layout_nodes = dirty_count(&self.scene, DirtyDomain::Layout);
         let dirty_paint_nodes = dirty_count(&self.scene, DirtyDomain::Paint);
@@ -2587,6 +2698,10 @@ impl CoreEngine {
             picture_resource_bytes: paint_metrics.picture_resource_bytes,
             picture_budget_fallbacks: paint_metrics.picture_budget_fallbacks,
             observe_geometry_rejected: self.observe_geometry_rejections,
+            document_structure_requests: saturating_u32(
+                self.documents.metrics().structure_requests,
+            ),
+            document_corrections: saturating_u32(self.documents.metrics().corrections),
         };
         if !painted.picture_resources.is_empty() {
             self.pending_picture_resources = painted.picture_resources.clone();
@@ -2684,7 +2799,7 @@ impl CoreEngine {
         if !self.pending_picture_resources.is_empty() {
             return Err(CoreError::PictureResourcesNotAcknowledged);
         }
-        if self.editing.has_pending_transactions() {
+        if self.editing.has_pending_transactions() || self.documents.has_pending_structure() {
             return Err(CoreError::EditTransactionsNotDrained);
         }
         if !self.pending_events.is_empty() {
@@ -2752,6 +2867,21 @@ fn merge_geometry(
         target.insert(index);
     }
     *visited = (*visited).saturating_add(source_visited);
+}
+
+/// Narrows a cumulative counter for the u32 diagnostics word.
+fn saturating_u32(value: u64) -> u32 {
+    u32::try_from(value).unwrap_or(u32::MAX)
+}
+
+/// Returns whether a command targets a document rather than one editable node.
+const fn is_document_command(command: &InputCommand) -> bool {
+    matches!(
+        command,
+        InputCommand::SetDocumentSelection { .. }
+            | InputCommand::MoveDocumentCaret { .. }
+            | InputCommand::EditDocument { .. }
+    )
 }
 
 fn is_scroll_command(command: &InputCommand) -> bool {
@@ -6377,6 +6507,7 @@ mod tests {
         )));
     }
 
+    #[cfg(feature = "rich-text")]
     fn rich_text_resources() -> Vec<Mutation> {
         let font_bytes = test_font_bytes();
         let font = sfnt_font_resource(&font_bytes);
@@ -6439,6 +6570,7 @@ mod tests {
         ]
     }
 
+    #[cfg(feature = "rich-text")]
     fn rich_text_tree() -> Vec<u8> {
         let value = "\u{ea60}\u{ea61}\u{ea62}\u{ea63}";
         let first = "\u{ea60}\u{ea61}".len();
@@ -6502,6 +6634,7 @@ mod tests {
         frame(1, mutations)
     }
 
+    #[cfg(feature = "rich-text")]
     fn glyph_run_commands(output: &super::FrameOutput) -> Vec<(u32, u32)> {
         DisplayList::decode(&output.display_list)
             .expect("DisplayList")
@@ -6520,6 +6653,7 @@ mod tests {
 
     /// An editable node with a real font and two text styles available to mark
     /// with.
+    #[cfg(feature = "rich-text")]
     fn styled_editable_tree(text: &str) -> Vec<u8> {
         let mut mutations = vec![
             Mutation::CreateNode {
@@ -6562,6 +6696,349 @@ mod tests {
         frame(1, mutations)
     }
 
+    /// Root, a document container, and three blocks: text, object, text.
+    #[cfg(feature = "rich-text")]
+    fn document_tree(frame_seq: u32, revision: u64, blocks: &[(u32, Option<&str>)]) -> Vec<u8> {
+        let mut mutations = vec![
+            Mutation::CreateNode {
+                node_id: id(0),
+                kind: NodeKind::Root,
+                parent: NULL_NODE_ID,
+                before_sibling: NULL_NODE_ID,
+            },
+            Mutation::CreateNode {
+                node_id: id(1),
+                kind: NodeKind::Container,
+                parent: id(0),
+                before_sibling: NULL_NODE_ID,
+            },
+            Mutation::DefineResource {
+                resource_id: 1,
+                kind: ResourceKind::Paint,
+                bytes: SolidPaint {
+                    red: 0,
+                    green: 0,
+                    blue: 0,
+                    alpha: 255,
+                }
+                .encode()
+                .to_vec(),
+            },
+            Mutation::DefineResource {
+                resource_id: 2,
+                kind: ResourceKind::TextStyle,
+                bytes: TextStyleResource {
+                    paint_id: 1,
+                    font_size: 16.0,
+                    line_height: 20.0,
+                    weight: 400,
+                    family: "sans-serif".to_owned(),
+                    font_style: StyleKeyword::Normal,
+                    text_align: StyleKeyword::Start,
+                    white_space: StyleKeyword::PreWrap,
+                    overflow_wrap: StyleKeyword::Anywhere,
+                    text_overflow: StyleKeyword::Clip,
+                }
+                .encode()
+                .expect("text style"),
+            },
+        ];
+        for (index, (node, text)) in blocks.iter().enumerate() {
+            let resource = 16 + u32::try_from(index).expect("small index");
+            match text {
+                Some(value) => {
+                    mutations.push(Mutation::CreateNode {
+                        node_id: *node,
+                        kind: NodeKind::EditableText,
+                        parent: id(1),
+                        before_sibling: NULL_NODE_ID,
+                    });
+                    mutations.push(Mutation::DefineResource {
+                        resource_id: resource,
+                        kind: ResourceKind::Utf8String,
+                        bytes: (*value).as_bytes().to_vec(),
+                    });
+                    mutations.push(Mutation::SetTextRun {
+                        node_id: *node,
+                        string_id: resource,
+                        style_id: 2,
+                    });
+                }
+                None => mutations.push(Mutation::CreateNode {
+                    node_id: *node,
+                    kind: NodeKind::Image,
+                    parent: id(1),
+                    before_sibling: NULL_NODE_ID,
+                }),
+            }
+        }
+        mutations.push(Mutation::ConfigureDocument {
+            node_id: id(1),
+            revision,
+            flags: 0,
+        });
+        frame(frame_seq, mutations)
+    }
+
+    #[cfg(feature = "rich-text")]
+    fn structure_requests(engine: &mut CoreEngine) -> Vec<pingo_abi::StructureRequestRecord> {
+        let bytes = engine.take_edit_transactions().expect("drain");
+        if bytes.is_empty() {
+            return Vec::new();
+        }
+        pingo_abi::EditTransactionBatch::decode(&bytes)
+            .expect("transactions")
+            .structure
+    }
+
+    #[cfg(feature = "rich-text")]
+    #[test]
+    fn a_document_caret_steps_over_an_object_and_stops_in_the_gaps_around_it() {
+        let mut engine = CoreEngine::new(320.0, 240.0).expect("Core");
+        engine
+            .commit(&document_tree(
+                1,
+                1,
+                &[(id(2), Some("ab")), (id(3), None), (id(4), Some("cd"))],
+            ))
+            .expect("document frame");
+        let _ = engine.take_glyph_resources();
+        let _ = engine.take_edit_transactions().expect("drain");
+
+        let root = NodeId::from_raw(id(1)).expect("root");
+        engine
+            .input(&input(
+                2,
+                vec![InputCommand::SetDocumentSelection {
+                    node_id: id(1),
+                    base_revision: 0,
+                    selection: pingo_abi::WireDocumentSelection::Text {
+                        anchor_key: id(2),
+                        anchor_offset: 2,
+                        focus_key: id(2),
+                        focus_offset: 2,
+                    },
+                }],
+            ))
+            .expect("selection");
+        let _ = engine.take_glyph_resources();
+        let _ = engine.take_edit_transactions().expect("drain");
+
+        // Right arrow leaves the text block, stops before the object, then
+        // after it, then enters the following text block.
+        let expected = [
+            pingo_edit::DocumentSelection::Gap { before: 1 },
+            pingo_edit::DocumentSelection::Gap { before: 2 },
+            pingo_edit::DocumentSelection::Text {
+                anchor: pingo_edit::DocumentPosition::new(u64::from(id(4)), 0),
+                focus: pingo_edit::DocumentPosition::new(u64::from(id(4)), 0),
+            },
+        ];
+        for (step, selection) in expected.into_iter().enumerate() {
+            engine
+                .input(&input(
+                    3 + u32::try_from(step).expect("small"),
+                    vec![InputCommand::MoveDocumentCaret {
+                        node_id: id(1),
+                        direction: pingo_abi::CaretDirection::Forward,
+                        granularity: pingo_abi::CaretGranularity::Grapheme,
+                        extend: false,
+                    }],
+                ))
+                .expect("move");
+            let _ = engine.take_glyph_resources();
+            assert_eq!(engine.documents.selection(root), Some(selection));
+            // Core moved the caret, so it has to tell the Shell where it went.
+            let reported = pingo_abi::EditTransactionBatch::decode(
+                &engine.take_edit_transactions().expect("drain"),
+            )
+            .expect("transactions")
+            .selections;
+            assert_eq!(reported.len(), 1);
+            assert_eq!(reported[0].node_id, id(1));
+        }
+    }
+
+    #[cfg(feature = "rich-text")]
+    #[test]
+    fn deleting_a_selected_object_asks_the_shell_to_remove_that_block() {
+        let mut engine = CoreEngine::new(320.0, 240.0).expect("Core");
+        engine
+            .commit(&document_tree(
+                1,
+                1,
+                &[(id(2), Some("ab")), (id(3), None), (id(4), Some("cd"))],
+            ))
+            .expect("document frame");
+        let _ = engine.take_glyph_resources();
+        let _ = engine.take_edit_transactions().expect("drain");
+
+        engine
+            .input(&input(
+                2,
+                vec![
+                    InputCommand::SetDocumentSelection {
+                        node_id: id(1),
+                        base_revision: 0,
+                        selection: pingo_abi::WireDocumentSelection::Node { key: id(3) },
+                    },
+                    InputCommand::EditDocument {
+                        node_id: id(1),
+                        base_revision: 0,
+                        operation: pingo_abi::DocumentOperation::DeleteForward,
+                        style: 0,
+                        font: 0,
+                        text: String::new(),
+                    },
+                ],
+            ))
+            .expect("delete");
+        let _ = engine.take_glyph_resources();
+        assert_eq!(
+            structure_requests(&mut engine),
+            vec![pingo_abi::StructureRequestRecord {
+                node_id: id(1),
+                sequence: 1,
+                kind: pingo_abi::StructureKind::Remove,
+                target: 0,
+                source: 0,
+                offset: 0,
+                keys: vec![id(3)],
+            }]
+        );
+    }
+
+    #[cfg(feature = "rich-text")]
+    #[test]
+    fn a_cross_block_delete_reports_a_merge_and_moves_the_caret_the_same_frame() {
+        let mut engine = CoreEngine::new(320.0, 240.0).expect("Core");
+        engine
+            .commit(&document_tree(
+                1,
+                1,
+                &[(id(2), Some("hello")), (id(3), Some("world"))],
+            ))
+            .expect("document frame");
+        let _ = engine.take_glyph_resources();
+        let _ = engine.take_edit_transactions().expect("drain");
+
+        engine
+            .input(&input(
+                2,
+                vec![
+                    InputCommand::SetDocumentSelection {
+                        node_id: id(1),
+                        base_revision: 0,
+                        selection: pingo_abi::WireDocumentSelection::Text {
+                            anchor_key: id(2),
+                            anchor_offset: 2,
+                            focus_key: id(3),
+                            focus_offset: 3,
+                        },
+                    },
+                    InputCommand::EditDocument {
+                        node_id: id(1),
+                        base_revision: 0,
+                        operation: pingo_abi::DocumentOperation::DeleteBackward,
+                        style: 0,
+                        font: 0,
+                        text: String::new(),
+                    },
+                ],
+            ))
+            .expect("delete");
+        let _ = engine.take_glyph_resources();
+        assert_eq!(
+            structure_requests(&mut engine),
+            vec![pingo_abi::StructureRequestRecord {
+                node_id: id(1),
+                sequence: 1,
+                kind: pingo_abi::StructureKind::Merge,
+                target: id(2),
+                source: id(3),
+                offset: 0,
+                keys: Vec::new(),
+            }]
+        );
+        // The caret is already at the join, on the frame the key produced.
+        let root = NodeId::from_raw(id(1)).expect("root");
+        assert_eq!(
+            engine.documents.selection(root),
+            Some(pingo_edit::DocumentSelection::Text {
+                anchor: pingo_edit::DocumentPosition::new(u64::from(id(2)), 2),
+                focus: pingo_edit::DocumentPosition::new(u64::from(id(2)), 2),
+            })
+        );
+    }
+
+    #[cfg(feature = "rich-text")]
+    #[test]
+    fn a_shell_projection_that_differs_from_the_prediction_is_counted() {
+        let mut engine = CoreEngine::new(320.0, 240.0).expect("Core");
+        engine
+            .commit(&document_tree(
+                1,
+                1,
+                &[(id(2), Some("hello")), (id(3), Some("world"))],
+            ))
+            .expect("document frame");
+        let _ = engine.take_glyph_resources();
+        let _ = engine.take_edit_transactions().expect("drain");
+        engine
+            .input(&input(
+                2,
+                vec![
+                    InputCommand::SetDocumentSelection {
+                        node_id: id(1),
+                        base_revision: 0,
+                        selection: pingo_abi::WireDocumentSelection::Text {
+                            anchor_key: id(3),
+                            anchor_offset: 0,
+                            focus_key: id(3),
+                            focus_offset: 0,
+                        },
+                    },
+                    InputCommand::EditDocument {
+                        node_id: id(1),
+                        base_revision: 0,
+                        operation: pingo_abi::DocumentOperation::DeleteBackward,
+                        style: 0,
+                        font: 0,
+                        text: String::new(),
+                    },
+                ],
+            ))
+            .expect("merge");
+        let _ = engine.take_glyph_resources();
+        let _ = structure_requests(&mut engine);
+        assert_eq!(engine.documents.metrics().corrections, 0);
+
+        // The Shell kept both blocks instead: its schema said no. Core takes
+        // the Shell's answer and records that they disagreed.
+        let output = engine
+            .commit(&frame(
+                3,
+                vec![Mutation::ConfigureDocument {
+                    node_id: id(1),
+                    revision: 2,
+                    flags: 0,
+                }],
+            ))
+            .expect("correction frame");
+        let _ = engine.take_glyph_resources();
+        assert_eq!(engine.documents.metrics().corrections, 1);
+        let words = output.diagnostics.to_words();
+        assert_eq!(
+            words[pingo_abi::FRAME_DIAGNOSTICS_DOCUMENT_CORRECTIONS_INDEX],
+            1
+        );
+        assert_eq!(
+            words[pingo_abi::FRAME_DIAGNOSTICS_DOCUMENT_STRUCTURE_REQUESTS_INDEX],
+            1
+        );
+    }
+
+    #[cfg(feature = "rich-text")]
     #[test]
     fn marking_a_range_repaints_it_and_reports_a_map_the_shell_can_apply() {
         let value = "\u{ea60}\u{ea61}\u{ea62}\u{ea63}";
@@ -6619,6 +7096,7 @@ mod tests {
         assert_eq!(marking.delta, None);
     }
 
+    #[cfg(feature = "rich-text")]
     #[test]
     fn typing_inside_a_marked_span_extends_it_and_reports_where_offsets_moved() {
         let value = "\u{ea60}\u{ea61}\u{ea62}\u{ea63}";
@@ -6695,6 +7173,7 @@ mod tests {
         assert_eq!(tail.new_start, tail.old_start + 1);
     }
 
+    #[cfg(feature = "rich-text")]
     #[test]
     fn a_styled_run_table_draws_one_colored_span_per_run() {
         let mut engine = CoreEngine::new(320.0, 240.0).expect("Core");
@@ -6736,6 +7215,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "rich-text")]
     #[test]
     fn disabling_rich_text_degrades_a_styled_node_to_its_base_style() {
         let mut engine = CoreEngine::new(320.0, 240.0).expect("Core");

@@ -99,6 +99,7 @@ impl EditingController {
         &mut self,
         scene: &Scene,
         configurations: &[EditableConfiguration],
+        document_owned: &dyn Fn(NodeId) -> bool,
     ) -> Result<Vec<NodeId>, CoreError> {
         let mut requested = OrderedMap::new();
         for configuration in configurations {
@@ -110,8 +111,11 @@ impl EditingController {
             requested.insert(node, *configuration);
         }
 
-        self.sessions
-            .retain(|node, _| scene.kind(*node) == Some(NodeKind::EditableText));
+        // A block inside a document is owned by the document's position space.
+        // Two owners of one value would each move the caret their own way.
+        self.sessions.retain(|node, _| {
+            scene.kind(*node) == Some(NodeKind::EditableText) && !document_owned(*node)
+        });
         if self
             .active_node
             .is_some_and(|node| !self.sessions.contains_key(&node))
@@ -122,12 +126,9 @@ impl EditingController {
             .retain(|(node, _)| scene.kind(*node) == Some(NodeKind::EditableText));
 
         let mut changed = Vec::new();
-        for node in scene
-            .ids()
-            .iter()
-            .copied()
-            .filter(|node| scene.kind(*node) == Some(NodeKind::EditableText))
-        {
+        for node in scene.ids().iter().copied().filter(|node| {
+            scene.kind(*node) == Some(NodeKind::EditableText) && !document_owned(*node)
+        }) {
             let value = scene_text(scene, node)?;
             let requested_config = requested.get(&node).copied();
             if let Some(active) = self.sessions.get_mut(&node) {
@@ -342,6 +343,8 @@ impl EditingController {
 
     pub(crate) fn take_transactions(&mut self) -> EditTransactionBatch {
         EditTransactionBatch {
+            selections: Vec::new(),
+            structure: Vec::new(),
             records: std::mem::take(&mut self.pending)
                 .into_iter()
                 .map(|(node, transaction)| transaction_record(node, transaction))
@@ -351,6 +354,8 @@ impl EditingController {
 
     pub(crate) fn encode_pending(&self) -> Result<Vec<u8>, pingo_abi::AbiError> {
         EditTransactionBatch {
+            selections: Vec::new(),
+            structure: Vec::new(),
             records: self
                 .pending
                 .iter()
@@ -500,6 +505,18 @@ fn edit_config(configuration: EditableConfiguration) -> EditConfig {
         max_graphemes: configuration.max_graphemes as usize,
         ..EditConfig::default()
     }
+}
+
+/// Returns a block's committed value, or `None` when it has none.
+#[cfg(feature = "rich-text")]
+pub(crate) fn scene_block_text(scene: &Scene, node: NodeId) -> Option<String> {
+    scene_text(scene, node).ok().map(str::to_owned)
+}
+
+/// Returns a block's committed mark table, or `None` for the base style.
+#[cfg(feature = "rich-text")]
+pub(crate) fn scene_block_marks(scene: &Scene, node: NodeId) -> Option<MarkRuns> {
+    scene_marks(scene, node)
 }
 
 fn scene_text(scene: &Scene, node: NodeId) -> Result<&str, CoreError> {

@@ -20,6 +20,7 @@ export {
 } from "./input-stream";
 export {
   EditTransactionDecodingError,
+  decodeEditStream,
   decodeEditTransactionBatch,
   mapEditOffset,
   mapEditRange,
@@ -28,7 +29,12 @@ export {
   type EditMapSegment,
   type EditMarkRun,
   type EditTransaction,
+  type EditStream,
   type EditTransactionKind,
+  type DocumentSelectionReport,
+  type DocumentSelectionState,
+  type StructureRequest,
+  type StructureRequestKind,
   type Utf16Range,
 } from "./edit-transactions";
 export {

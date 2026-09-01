@@ -145,6 +145,8 @@ pub struct Scene {
     kinds: Vec<NodeKind>,
     flags: Vec<u32>,
     text_runs: Vec<Option<TextRun>>,
+    /// Shell revision of each node's document projection, when it is one.
+    documents: Vec<Option<u64>>,
     scroll_positions: Vec<Option<[f32; 2]>>,
     virtual_lists: Vec<Option<VirtualListConfig>>,
     virtual_item_indices: Vec<Option<u32>>,
@@ -188,6 +190,7 @@ impl Scene {
             kinds: Vec::new(),
             flags: Vec::new(),
             text_runs: Vec::new(),
+            documents: Vec::new(),
             scroll_positions: Vec::new(),
             virtual_lists: Vec::new(),
             virtual_item_indices: Vec::new(),
@@ -436,6 +439,12 @@ impl Scene {
     #[must_use]
     pub fn text_run(&self, node: NodeId) -> Option<TextRun> {
         self.resolve(node).and_then(|index| self.text_runs[index])
+    }
+
+    /// Returns a node's document projection revision, when it is a document root.
+    #[must_use]
+    pub fn document_revision(&self, node: NodeId) -> Option<u64> {
+        self.resolve(node).and_then(|index| self.documents[index])
     }
 
     /// Returns an immutable resource.
@@ -1026,6 +1035,7 @@ impl Scene {
             || self.kinds.len() != length
             || self.flags.len() != length
             || self.text_runs.len() != length
+            || self.documents.len() != length
             || self.scroll_positions.len() != length
             || self.virtual_lists.len() != length
             || self.virtual_item_indices.len() != length
@@ -1330,6 +1340,15 @@ impl Scene {
                     );
                 }
             }
+            Mutation::ConfigureDocument { revision, .. } => {
+                let next = Some(revision);
+                if self.documents[index] != next {
+                    self.documents[index] = next;
+                    // A projection change is a semantics change: the block
+                    // sequence a screen reader walks is exactly this list.
+                    self.mark(index, Invalidation::SEMANTICS);
+                }
+            }
             Mutation::ConfigureEditable { .. } => {}
             // Observation is Engine state keyed by node, not scene-graph data,
             // so the Scene only resolves the node and leaves it alone — the same
@@ -1485,6 +1504,13 @@ fn validate_non_structural_mutation(
             )?;
             validate_resource_kind(scene, staged_resources, *style_id, ResourceKind::TextStyle)
         }
+        Mutation::ConfigureDocument { flags, .. } => {
+            if *flags != 0 {
+                Err(SceneError::InvalidResourceEncoding { resource_id: 0 })
+            } else {
+                Ok(())
+            }
+        }
         Mutation::SetRichText {
             string_id,
             style_id,
@@ -1553,6 +1579,12 @@ fn validate_node_operation(
         }
         Mutation::SetVirtualItem { .. } => kind == NodeKind::Container,
         Mutation::ConfigureEditable { .. } => kind == NodeKind::EditableText,
+        Mutation::ConfigureDocument { .. } => {
+            matches!(
+                kind,
+                NodeKind::Container | NodeKind::Scroll | NodeKind::Root
+            )
+        }
         _ => true,
     };
     if supported {
@@ -1568,6 +1600,7 @@ fn validate_node_operation(
                 Mutation::ConfigureVirtualList { .. } => "ConfigureVirtualList",
                 Mutation::SetVirtualItem { .. } => "SetVirtualItem",
                 Mutation::ConfigureEditable { .. } => "ConfigureEditable",
+                Mutation::ConfigureDocument { .. } => "ConfigureDocument",
                 _ => "unknown",
             },
         })
@@ -1601,6 +1634,7 @@ fn mutation_node(mutation: &Mutation) -> Option<u32> {
         | Mutation::ConfigureVirtualList { node_id, .. }
         | Mutation::SetVirtualItem { node_id, .. }
         | Mutation::ConfigureEditable { node_id, .. }
+        | Mutation::ConfigureDocument { node_id, .. }
         | Mutation::ObserveGeometry { node_id, .. } => Some(*node_id),
         Mutation::CreateNode { .. }
         | Mutation::Reparent { .. }
@@ -2148,6 +2182,7 @@ struct PlanNode {
     children: Vec<NodeId>,
     flags: u32,
     text_run: Option<TextRun>,
+    document: Option<u64>,
     scroll_position: Option<[f32; 2]>,
     virtual_list: Option<VirtualListConfig>,
     virtual_item_index: Option<u32>,
@@ -2275,6 +2310,7 @@ impl Scene {
                     children: Vec::new(),
                     flags: self.flags[index],
                     text_run: self.text_runs[index],
+                    document: self.documents[index],
                     scroll_position: self.scroll_positions[index],
                     virtual_list: self.virtual_lists[index],
                     virtual_item_index: self.virtual_item_indices[index],
@@ -2338,6 +2374,7 @@ impl Scene {
             next.kinds.push(node.kind);
             next.flags.push(node.flags);
             next.text_runs.push(node.text_run);
+            next.documents.push(node.document);
             next.scroll_positions.push(node.scroll_position);
             next.virtual_lists.push(node.virtual_list);
             next.virtual_item_indices.push(node.virtual_item_index);
@@ -2408,6 +2445,7 @@ const fn mutation_target(mutation: &Mutation) -> Option<u32> {
         | Mutation::ConfigureVirtualList { node_id, .. }
         | Mutation::SetVirtualItem { node_id, .. }
         | Mutation::ConfigureEditable { node_id, .. }
+        | Mutation::ConfigureDocument { node_id, .. }
         | Mutation::ObserveGeometry { node_id, .. } => Some(*node_id),
         Mutation::DefineResource { .. } | Mutation::ReleaseResource { .. } => None,
     }
@@ -2492,6 +2530,7 @@ fn plan_create(
             children: Vec::new(),
             flags: 0,
             text_run: None,
+            document: None,
             scroll_position: None,
             virtual_list: None,
             virtual_item_index: None,
@@ -2662,6 +2701,18 @@ fn plan_apply_property(
                 operation: "ConfigureEditable",
             });
         }
+        Mutation::ConfigureDocument { .. }
+            if !matches!(
+                kind,
+                NodeKind::Container | NodeKind::Scroll | NodeKind::Root
+            ) =>
+        {
+            return Err(SceneError::UnsupportedNodeOperation {
+                node,
+                kind,
+                operation: "ConfigureDocument",
+            });
+        }
         _ => {}
     }
     match mutation {
@@ -2741,6 +2792,17 @@ fn plan_apply_property(
                 style_id,
                 runs_id,
             });
+        }
+        Mutation::ConfigureDocument {
+            revision, flags, ..
+        } => {
+            if flags != 0 {
+                return Err(SceneError::InvalidResourceEncoding { resource_id: 0 });
+            }
+            nodes
+                .get_mut(&node)
+                .ok_or(SceneError::StaleNode { node })?
+                .document = Some(revision);
         }
         Mutation::ScrollTo { x, y, .. } => {
             nodes

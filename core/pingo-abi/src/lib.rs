@@ -49,7 +49,8 @@ pub use computed_style::{
 };
 pub use display_list::{DisplayCommand, DisplayInstruction, DisplayList, EditorDecorationKind};
 pub use edit_transactions::{
-    EditTransactionBatch, EditTransactionKind, EditTransactionRecord, WireAffinity, WireMapSegment,
+    DocumentSelectionRecord, EditStreamRecord, EditTransactionBatch, EditTransactionKind,
+    EditTransactionRecord, StructureKind, StructureRequestRecord, WireAffinity, WireMapSegment,
     WireMarkRun, WireRange,
 };
 pub use error::{AbiError, StreamKind};
@@ -59,9 +60,10 @@ pub use glyph_resources::{
     GlyphResourceInstruction, GlyphSpanResource,
 };
 pub use input::{
-    CaretDirection, CaretGranularity, EVENT_FLAG_MASK, EVENT_FLAG_PRECISE_WHEEL, InputAffinity,
-    InputBatch, InputCommand, InputEventKind, InputFocusOrigin, InputInstruction, InputPointerType,
-    InputPosition, InputSelection, InteractionResetReason, KEY_FLAG_MASK, KEY_FLAG_REPEAT,
+    CaretDirection, CaretGranularity, DocumentOperation, EVENT_FLAG_MASK, EVENT_FLAG_PRECISE_WHEEL,
+    InputAffinity, InputBatch, InputCommand, InputEventKind, InputFocusOrigin, InputInstruction,
+    InputPointerType, InputPosition, InputSelection, InteractionResetReason, KEY_FLAG_MASK,
+    KEY_FLAG_REPEAT, WireDocumentSelection,
 };
 pub use mutation::{Mutation, MutationBatch, MutationInstruction, OBSERVE_GEOMETRY_FLAG_ACTIVE};
 pub use path::{FillRule, PathResource, PathVerb};

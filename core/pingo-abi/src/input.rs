@@ -291,6 +291,61 @@ pub const KEY_FLAG_REPEAT: u16 = 1;
 /// Every key flag bit this ABI version defines.
 pub const KEY_FLAG_MASK: u16 = KEY_FLAG_REPEAT;
 
+/// A selection of a whole document, in Shell-assigned block keys.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum WireDocumentSelection {
+    /// A run of characters, possibly spanning blocks.
+    Text {
+        /// Fixed edge's block.
+        anchor_key: u32,
+        /// Fixed edge's UTF-16 offset.
+        anchor_offset: u32,
+        /// Moving edge's block.
+        focus_key: u32,
+        /// Moving edge's UTF-16 offset.
+        focus_offset: u32,
+    },
+    /// One whole block selected as an object.
+    Node {
+        /// The selected block.
+        key: u32,
+    },
+    /// The caret between two blocks.
+    Gap {
+        /// Index of the block the gap precedes.
+        index: u32,
+    },
+}
+
+/// One document-level edit operation.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[repr(u8)]
+pub enum DocumentOperation {
+    /// Delete toward the start of the document.
+    DeleteBackward = 1,
+    /// Delete toward the end of the document.
+    DeleteForward = 2,
+    /// Replace the selection with the command's text.
+    Insert = 3,
+    /// Split the block at the caret.
+    Split = 4,
+}
+
+impl DocumentOperation {
+    fn decode(value: u8) -> Result<Self, AbiError> {
+        match value {
+            1 => Ok(Self::DeleteBackward),
+            2 => Ok(Self::DeleteForward),
+            3 => Ok(Self::Insert),
+            4 => Ok(Self::Split),
+            _ => Err(AbiError::UnknownIdentifier {
+                category: "document operation",
+                value: u32::from(value),
+            }),
+        }
+    }
+}
+
 /// One browser-independent editing or direct-manipulation command.
 #[derive(Clone, Debug, PartialEq)]
 pub enum InputCommand {
@@ -370,6 +425,42 @@ pub enum InputCommand {
         node_id: u32,
         /// Exact Core revision observed by the producer.
         base_revision: u64,
+    },
+    /// Kind of a document selection on the wire.
+    /// Replaces the selection of a whole document.
+    SetDocumentSelection {
+        /// Document root node.
+        node_id: u32,
+        /// Exact Core revision observed by the producer.
+        base_revision: u64,
+        /// Requested selection.
+        selection: WireDocumentSelection,
+    },
+    /// Moves the document caret by one grapheme, word, or block boundary.
+    MoveDocumentCaret {
+        /// Document root node.
+        node_id: u32,
+        /// Movement direction.
+        direction: CaretDirection,
+        /// Movement granularity.
+        granularity: CaretGranularity,
+        /// Whether the selection anchor stays put.
+        extend: bool,
+    },
+    /// Applies one document-level edit.
+    EditDocument {
+        /// Document root node.
+        node_id: u32,
+        /// Exact Core revision observed by the producer.
+        base_revision: u64,
+        /// Requested operation.
+        operation: DocumentOperation,
+        /// Text style resource for inserted text; zero is the base style.
+        style: u32,
+        /// Font resource for inserted text; zero inherits the node's font.
+        font: u32,
+        /// Inserted UTF-8 text; empty for the deletions and the split.
+        text: String,
     },
     /// Applies one Shell-defined mark style to a range of the value.
     SetMarks {
@@ -868,6 +959,102 @@ fn decode_command(opcode: InputOpcode, reader: &mut Reader<'_>) -> Result<InputC
                 base_revision,
             }
         }
+        InputOpcode::SetDocumentSelection => {
+            let (node_id, base_revision) = read_target(reader)?;
+            let kind = reader.read_u8()?;
+            reader.read_zeroes(3)?;
+            let anchor_key = reader.read_u32()?;
+            let anchor_offset = reader.read_u32()?;
+            let focus_key = reader.read_u32()?;
+            let focus_offset = reader.read_u32()?;
+            let gap_index = reader.read_u32()?;
+            let selection = match kind {
+                1 => {
+                    if gap_index != 0 {
+                        return Err(AbiError::InvalidValue(
+                            "text document selection has a gap index",
+                        ));
+                    }
+                    WireDocumentSelection::Text {
+                        anchor_key,
+                        anchor_offset,
+                        focus_key,
+                        focus_offset,
+                    }
+                }
+                2 => {
+                    if anchor_offset != 0 || focus_key != 0 || focus_offset != 0 || gap_index != 0 {
+                        return Err(AbiError::InvalidValue(
+                            "node document selection has a non-zero payload",
+                        ));
+                    }
+                    WireDocumentSelection::Node { key: anchor_key }
+                }
+                3 => {
+                    if anchor_key != 0 || anchor_offset != 0 || focus_key != 0 || focus_offset != 0
+                    {
+                        return Err(AbiError::InvalidValue(
+                            "gap document selection has a non-zero payload",
+                        ));
+                    }
+                    WireDocumentSelection::Gap { index: gap_index }
+                }
+                _ => {
+                    return Err(AbiError::UnknownIdentifier {
+                        category: "document selection kind",
+                        value: u32::from(kind),
+                    });
+                }
+            };
+            InputCommand::SetDocumentSelection {
+                node_id,
+                base_revision,
+                selection,
+            }
+        }
+        InputOpcode::MoveDocumentCaret => {
+            let node_id = reader.read_u32()?;
+            let direction = CaretDirection::decode(reader.read_u8()?)?;
+            let granularity = CaretGranularity::decode(reader.read_u8()?)?;
+            let extend = match reader.read_u8()? {
+                0 => false,
+                1 => true,
+                value => {
+                    return Err(AbiError::UnknownIdentifier {
+                        category: "document caret extend flag",
+                        value: u32::from(value),
+                    });
+                }
+            };
+            reader.read_zeroes(1)?;
+            InputCommand::MoveDocumentCaret {
+                node_id,
+                direction,
+                granularity,
+                extend,
+            }
+        }
+        InputOpcode::EditDocument => {
+            let (node_id, base_revision) = read_target(reader)?;
+            let operation = DocumentOperation::decode(reader.read_u8()?)?;
+            reader.read_zeroes(3)?;
+            let style = reader.read_u32()?;
+            let font = reader.read_u32()?;
+            let text = read_text(reader)?;
+            if operation != DocumentOperation::Insert && !text.is_empty() {
+                return Err(AbiError::InvalidValue(
+                    "only an insertion carries document text",
+                ));
+            }
+            InputCommand::EditDocument {
+                node_id,
+                base_revision,
+                operation,
+                style,
+                font,
+                text,
+            }
+        }
         InputOpcode::SetMarks => {
             let (node_id, base_revision) = read_target(reader)?;
             let start = reader.read_u32()?;
@@ -1254,6 +1441,65 @@ fn encode_command(writer: &mut Writer, instruction: &InputInstruction) -> Result
             writer.u16(0);
             write_text(writer, text.as_deref().unwrap_or_default())?;
         }
+        InputCommand::SetDocumentSelection {
+            node_id,
+            base_revision,
+            selection,
+        } => {
+            write_target(writer, *node_id, *base_revision);
+            let (kind, anchor_key, anchor_offset, focus_key, focus_offset, gap_index) =
+                match *selection {
+                    WireDocumentSelection::Text {
+                        anchor_key,
+                        anchor_offset,
+                        focus_key,
+                        focus_offset,
+                    } => (1, anchor_key, anchor_offset, focus_key, focus_offset, 0),
+                    WireDocumentSelection::Node { key } => (2, key, 0, 0, 0, 0),
+                    WireDocumentSelection::Gap { index } => (3, 0, 0, 0, 0, index),
+                };
+            writer.u8(kind);
+            writer.u8(0);
+            writer.u16(0);
+            writer.u32(anchor_key);
+            writer.u32(anchor_offset);
+            writer.u32(focus_key);
+            writer.u32(focus_offset);
+            writer.u32(gap_index);
+        }
+        InputCommand::MoveDocumentCaret {
+            node_id,
+            direction,
+            granularity,
+            extend,
+        } => {
+            writer.u32(*node_id);
+            writer.u8(*direction as u8);
+            writer.u8(*granularity as u8);
+            writer.u8(u8::from(*extend));
+            writer.u8(0);
+        }
+        InputCommand::EditDocument {
+            node_id,
+            base_revision,
+            operation,
+            style,
+            font,
+            text,
+        } => {
+            if *operation != DocumentOperation::Insert && !text.is_empty() {
+                return Err(AbiError::InvalidValue(
+                    "only an insertion carries document text",
+                ));
+            }
+            write_target(writer, *node_id, *base_revision);
+            writer.u8(*operation as u8);
+            writer.u8(0);
+            writer.u16(0);
+            writer.u32(*style);
+            writer.u32(*font);
+            write_text(writer, text)?;
+        }
         InputCommand::SetMarks {
             node_id,
             base_revision,
@@ -1567,6 +1813,9 @@ fn command_opcode(command: &InputCommand) -> InputOpcode {
         InputCommand::UpdateComposition { .. } => InputOpcode::UpdateComposition,
         InputCommand::CommitComposition { .. } => InputOpcode::CommitComposition,
         InputCommand::CancelComposition { .. } => InputOpcode::CancelComposition,
+        InputCommand::SetDocumentSelection { .. } => InputOpcode::SetDocumentSelection,
+        InputCommand::MoveDocumentCaret { .. } => InputOpcode::MoveDocumentCaret,
+        InputCommand::EditDocument { .. } => InputOpcode::EditDocument,
         InputCommand::SetMarks { .. } => InputOpcode::SetMarks,
         InputCommand::SetPendingMark { .. } => InputOpcode::SetPendingMark,
         InputCommand::BreakUndoGroup { .. } => InputOpcode::BreakUndoGroup,

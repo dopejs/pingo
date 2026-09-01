@@ -9,6 +9,7 @@ import {
   MINIMUM_READABLE_ABI_VERSION,
   MAX_EDIT_TRANSACTIONS_BYTES,
   MAX_EDIT_TRANSACTION_INSTRUCTIONS,
+  MAX_DOCUMENT_BLOCK_KEYS,
   MAX_EDIT_MAP_SEGMENTS,
   MAX_EDIT_MARK_RUNS,
   MAX_RESOURCE_BYTES,
@@ -49,6 +50,55 @@ export interface EditMapSegment {
 
 /** Which edge a position collapses to when it falls inside replaced text. */
 export type EditMapBias = "left" | "right";
+
+/** A structural change only the Shell can carry out. */
+export type StructureRequestKind = "merge" | "remove" | "split";
+
+/**
+ * One Core-to-Shell structure request.
+ *
+ * Core predicted this and already moved the caret; the Shell decides what its
+ * schema actually does. The sequence number is what makes a disagreement
+ * attributable rather than merely visible.
+ */
+export interface StructureRequest {
+  readonly nodeId: number;
+  readonly sequence: number;
+  readonly kind: StructureRequestKind;
+  /** Block that survives a merge, or is split. */
+  readonly target: number;
+  /** Block consumed by a merge. */
+  readonly source: number;
+  /** UTF-16 offset a split happens at. */
+  readonly offset: number;
+  /** Blocks a removal names, in document order. */
+  readonly keys: readonly number[];
+}
+
+/** A selection of a whole document, in Shell-assigned block keys. */
+export type DocumentSelectionState =
+  | {
+      readonly kind: "text";
+      readonly anchorKey: number;
+      readonly anchorOffset: number;
+      readonly focusKey: number;
+      readonly focusOffset: number;
+    }
+  | { readonly kind: "node"; readonly key: number }
+  | { readonly kind: "gap"; readonly index: number };
+
+/** Where Core's document caret is now. */
+export interface DocumentSelectionReport {
+  readonly nodeId: number;
+  readonly selection: DocumentSelectionState;
+}
+
+/** Everything one reverse editing batch carries. */
+export interface EditStream {
+  readonly transactions: readonly EditTransaction[];
+  readonly structure: readonly StructureRequest[];
+  readonly selections: readonly DocumentSelectionReport[];
+}
 
 /** One fully validated Core-owned editing transition. */
 export interface EditTransaction {
@@ -133,6 +183,11 @@ export class EditTransactionDecodingError extends Error {
 
 /** Validates an entire reverse batch before exposing any transaction. */
 export function decodeEditTransactionBatch(input: Uint8Array): readonly EditTransaction[] {
+  return decodeEditStream(input).transactions;
+}
+
+/** Validates an entire reverse batch, including its document side channels. */
+export function decodeEditStream(input: Uint8Array): EditStream {
   if (input.byteLength > MAX_EDIT_TRANSACTIONS_BYTES) fail("edit transaction stream is too large");
   if (input.byteLength % PROTOCOL_ALIGNMENT !== 0) fail("edit transaction stream is not aligned");
   const reader = new Reader(input);
@@ -146,33 +201,112 @@ export function decodeEditTransactionBatch(input: Uint8Array): readonly EditTran
   if (declared > MAX_EDIT_TRANSACTION_INSTRUCTIONS) {
     fail("edit transaction instruction count exceeds limit");
   }
-  if (declared > Math.floor(reader.remaining / EDIT_TRANSACTION_LAYOUTS[1].minimumBytes)) {
+  // The smallest instruction the stream can carry, not the largest: a batch of
+  // structure requests is legal and must not be rejected for being denser than
+  // a batch of transactions.
+  const smallest = Math.min(
+    EDIT_TRANSACTION_LAYOUTS[EditTransactionOpcode.Transaction].minimumBytes,
+    EDIT_TRANSACTION_LAYOUTS[EditTransactionOpcode.Structure].minimumBytes,
+  );
+  if (declared > Math.floor(reader.remaining / smallest)) {
     fail("edit transaction instruction count cannot fit in input");
   }
 
   const transactions: EditTransaction[] = [];
+  const structure: StructureRequest[] = [];
+  const selections: DocumentSelectionReport[] = [];
   while (reader.remaining > 0) {
     const offset = reader.offset;
     const header = reader.instruction();
-    if (header.opcode !== Number(EditTransactionOpcode.Transaction)) {
+    const opcode: EditTransactionOpcode = header.opcode;
+    if (
+      opcode !== EditTransactionOpcode.Transaction &&
+      opcode !== EditTransactionOpcode.Structure &&
+      opcode !== EditTransactionOpcode.DocumentSelection
+    ) {
       // Skipping is the producer's call: an unmarked unknown instruction is
       // still fatal, because losing it could change what the stream means.
       if (!header.optional) fail("unknown edit transaction opcode");
       reader.seekTo(header.end);
       continue;
     }
-    transactions.push(decodeTransaction(reader));
+    if (opcode === EditTransactionOpcode.Transaction) {
+      transactions.push(decodeTransaction(reader));
+    } else if (opcode === EditTransactionOpcode.Structure) {
+      structure.push(decodeStructure(reader));
+    } else {
+      selections.push(decodeDocumentSelection(reader));
+    }
     const consumed = reader.offset - offset;
-    if (
-      consumed < EDIT_TRANSACTION_LAYOUTS[EditTransactionOpcode.Transaction].minimumBytes ||
-      consumed % 4 !== 0
-    ) {
+    if (consumed < EDIT_TRANSACTION_LAYOUTS[opcode].minimumBytes || consumed % 4 !== 0) {
       fail("edit transaction instruction has invalid length");
     }
     if (reader.offset !== header.end) fail("instruction length does not match its payload");
   }
-  if (transactions.length !== declared) fail("edit transaction count does not match input");
-  return transactions;
+  if (transactions.length + structure.length + selections.length !== declared) {
+    fail("edit transaction count does not match input");
+  }
+  return { transactions, structure, selections };
+}
+
+function decodeStructure(reader: Reader): StructureRequest {
+  const nodeId = reader.u32();
+  const sequence = reader.u32();
+  const kindCode = reader.u8();
+  reader.zeroes(3);
+  const target = reader.u32();
+  const source = reader.u32();
+  const offset = reader.u32();
+  const count = reader.u32();
+  if (count > MAX_DOCUMENT_BLOCK_KEYS) fail("structure request names too many blocks");
+  const keys: number[] = [];
+  for (let index = 0; index < count; index += 1) keys.push(reader.u32());
+  const kind =
+    kindCode === 1 ? "remove" : kindCode === 2 ? "merge" : kindCode === 3 ? "split" : undefined;
+  if (kind === undefined) fail("unknown structure request kind");
+  // Each kind owns exactly the fields it needs, so a request that mixes them
+  // cannot be read two ways.
+  if (kind === "remove" && (keys.length === 0 || target !== 0 || source !== 0 || offset !== 0)) {
+    fail("removal must name blocks and nothing else");
+  }
+  if (kind === "merge" && (keys.length !== 0 || offset !== 0 || target === 0 || source === 0)) {
+    fail("merge must name two distinct blocks");
+  }
+  if (kind === "split" && (keys.length !== 0 || source !== 0 || target === 0)) {
+    fail("split must name one block");
+  }
+  return { nodeId, sequence, kind, target, source, offset, keys };
+}
+
+function decodeDocumentSelection(reader: Reader): DocumentSelectionReport {
+  const nodeId = reader.u32();
+  const kind = reader.u8();
+  reader.zeroes(3);
+  const anchorKey = reader.u32();
+  const anchorOffset = reader.u32();
+  const focusKey = reader.u32();
+  const focusOffset = reader.u32();
+  const gapIndex = reader.u32();
+  if (kind === 1) {
+    if (gapIndex !== 0) fail("text document selection has a gap index");
+    return {
+      nodeId,
+      selection: { kind: "text", anchorKey, anchorOffset, focusKey, focusOffset },
+    };
+  }
+  if (kind === 2) {
+    if (anchorOffset !== 0 || focusKey !== 0 || focusOffset !== 0 || gapIndex !== 0) {
+      fail("node document selection has a payload");
+    }
+    return { nodeId, selection: { kind: "node", key: anchorKey } };
+  }
+  if (kind === 3) {
+    if (anchorKey !== 0 || anchorOffset !== 0 || focusKey !== 0 || focusOffset !== 0) {
+      fail("gap document selection has a payload");
+    }
+    return { nodeId, selection: { kind: "gap", index: gapIndex } };
+  }
+  return fail("unknown document selection kind");
 }
 
 function decodeTransaction(reader: Reader): EditTransaction {
@@ -315,6 +449,13 @@ class Reader {
   public seekTo(offset: number): void {
     if (offset < this.#offset || offset > this.#bytes.byteLength) fail("invalid instruction skip");
     this.#offset = offset;
+  }
+
+  /** Consumes reserved padding, which the ABI requires to be zero. */
+  public zeroes(count: number): void {
+    for (let index = 0; index < count; index += 1) {
+      if (this.u8() !== 0) fail("reserved bytes must be zero");
+    }
   }
 
   public u8(): number {

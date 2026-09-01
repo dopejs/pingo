@@ -4,6 +4,12 @@
 //! Deterministic top-level orchestration for the pingo rendering Core.
 
 mod animation;
+#[cfg(feature = "rich-text")]
+#[path = "document_rich.rs"]
+mod document;
+#[cfg(not(feature = "rich-text"))]
+#[path = "document_stub.rs"]
+mod document;
 mod editing;
 mod engine;
 mod error;

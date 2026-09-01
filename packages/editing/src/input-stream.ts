@@ -68,6 +68,21 @@ export type CaretMoveDirection = "backward" | "down" | "forward" | "lineEnd" | "
 /** Horizontal caret movement granularity. */
 export type CaretMoveGranularity = "grapheme" | "word";
 
+/** One document-level edit operation. */
+export type DocumentOperation = "deleteBackward" | "deleteForward" | "insert" | "split";
+
+/** A selection of a whole document, in Shell-assigned block keys. */
+export type DocumentSelection =
+  | {
+      readonly kind: "text";
+      readonly anchorKey: number;
+      readonly anchorOffset: number;
+      readonly focusKey: number;
+      readonly focusOffset: number;
+    }
+  | { readonly kind: "node"; readonly key: number }
+  | { readonly kind: "gap"; readonly index: number };
+
 export type InputEventKind =
   | "blur"
   | "click"
@@ -115,6 +130,30 @@ export type InputCommand =
   | (InputTarget & { readonly type: "updateComposition"; readonly text: string })
   | (InputTarget & { readonly type: "commitComposition"; readonly text?: string })
   | (InputTarget & { readonly type: "cancelComposition" })
+  | (InputTarget & {
+      /** Replaces the selection of a whole document. */
+      readonly type: "setDocumentSelection";
+      readonly selection: DocumentSelection;
+    })
+  | {
+      /** Moves the document caret by one grapheme, word, or block boundary. */
+      readonly type: "moveDocumentCaret";
+      readonly nodeId: number;
+      readonly direction: CaretMoveDirection;
+      readonly granularity: CaretMoveGranularity;
+      readonly extend: boolean;
+    }
+  | (InputTarget & {
+      /** Applies one document-level edit. */
+      readonly type: "editDocument";
+      readonly operation: DocumentOperation;
+      /** Text style resource for inserted text; zero is the base style. */
+      readonly style: number;
+      /** Font resource for inserted text; zero inherits the node's font. */
+      readonly font: number;
+      /** Inserted text; empty for the deletions and the split. */
+      readonly text: string;
+    })
   | (InputTarget & {
       /** Applies one Shell-chosen mark style to a range of the value. */
       readonly type: "setMarks";
@@ -431,6 +470,14 @@ function encodeCommand(writer: ByteWriter, command: InputCommand): void {
       for (const offset of command.boundaries) writer.u32(offset);
       return;
     }
+    case "moveDocumentCaret":
+      assertU32(command.nodeId, "document nodeId");
+      writer.u32(command.nodeId);
+      writer.u8(caretDirectionCode(command.direction));
+      writer.u8(command.granularity === "word" ? 1 : 0);
+      writer.u8(command.extend ? 1 : 0);
+      writer.u8(0);
+      return;
     case "moveCaret":
       assertU32(command.nodeId, "editable nodeId");
       writer.u32(command.nodeId);
@@ -533,6 +580,51 @@ function encodeCommand(writer: ByteWriter, command: InputCommand): void {
       writer.u16(0);
       writer.text(command.text ?? "");
       return;
+    case "setDocumentSelection": {
+      const selection = command.selection;
+      const kind = selection.kind === "text" ? 1 : selection.kind === "node" ? 2 : 3;
+      const anchorKey =
+        selection.kind === "text"
+          ? selection.anchorKey
+          : selection.kind === "node"
+            ? selection.key
+            : 0;
+      const anchorOffset = selection.kind === "text" ? selection.anchorOffset : 0;
+      const focusKey = selection.kind === "text" ? selection.focusKey : 0;
+      const focusOffset = selection.kind === "text" ? selection.focusOffset : 0;
+      const gapIndex = selection.kind === "gap" ? selection.index : 0;
+      for (const [value, label] of [
+        [anchorKey, "anchor key"],
+        [anchorOffset, "anchor offset"],
+        [focusKey, "focus key"],
+        [focusOffset, "focus offset"],
+        [gapIndex, "gap index"],
+      ] as const) {
+        assertU32(value, label);
+      }
+      writer.u8(kind);
+      writer.u8(0);
+      writer.u16(0);
+      writer.u32(anchorKey);
+      writer.u32(anchorOffset);
+      writer.u32(focusKey);
+      writer.u32(focusOffset);
+      writer.u32(gapIndex);
+      return;
+    }
+    case "editDocument":
+      assertU32(command.style, "document mark style");
+      assertU32(command.font, "document mark font");
+      if (command.operation !== "insert" && command.text.length > 0) {
+        fail("only an insertion carries document text");
+      }
+      writer.u8(documentOperationCode(command.operation));
+      writer.u8(0);
+      writer.u16(0);
+      writer.u32(command.style);
+      writer.u32(command.font);
+      writer.text(command.text);
+      return;
     case "setMarks":
       assertU32(command.start, "mark range start");
       assertU32(command.end, "mark range end");
@@ -606,6 +698,73 @@ function decodeCommand(reader: ByteReader, opcode: InputOpcode): InputCommand {
     }
     case InputOpcode.CancelComposition:
       return { ...reader.target(), type: "cancelComposition" };
+    case InputOpcode.SetDocumentSelection: {
+      const target = reader.target();
+      const kind = reader.u8();
+      reader.zeroes(3);
+      const anchorKey = reader.u32();
+      const anchorOffset = reader.u32();
+      const focusKey = reader.u32();
+      const focusOffset = reader.u32();
+      const gapIndex = reader.u32();
+      if (kind === 1) {
+        if (gapIndex !== 0) fail("text document selection has a gap index");
+        return {
+          ...target,
+          type: "setDocumentSelection",
+          selection: { kind: "text", anchorKey, anchorOffset, focusKey, focusOffset },
+        };
+      }
+      if (kind === 2) {
+        if (anchorOffset !== 0 || focusKey !== 0 || focusOffset !== 0 || gapIndex !== 0) {
+          fail("node document selection has a payload");
+        }
+        return {
+          ...target,
+          type: "setDocumentSelection",
+          selection: { kind: "node", key: anchorKey },
+        };
+      }
+      if (kind === 3) {
+        if (anchorKey !== 0 || anchorOffset !== 0 || focusKey !== 0 || focusOffset !== 0) {
+          fail("gap document selection has a payload");
+        }
+        return {
+          ...target,
+          type: "setDocumentSelection",
+          selection: { kind: "gap", index: gapIndex },
+        };
+      }
+      return fail("unknown document selection kind");
+    }
+    case InputOpcode.MoveDocumentCaret: {
+      const nodeId = reader.u32();
+      const direction = caretDirectionName(reader.u8());
+      const granularityCode = reader.u8();
+      if (granularityCode > 1) fail("document caret granularity is unknown");
+      const extendCode = reader.u8();
+      if (extendCode > 1) fail("document caret extend flag is unknown");
+      if (reader.u8() !== 0) fail("document caret padding must be zero");
+      return {
+        type: "moveDocumentCaret",
+        nodeId,
+        direction,
+        granularity: granularityCode === 1 ? "word" : "grapheme",
+        extend: extendCode === 1,
+      };
+    }
+    case InputOpcode.EditDocument: {
+      const target = reader.target();
+      const operation = documentOperationName(reader.u8());
+      reader.zeroes(3);
+      const style = reader.u32();
+      const font = reader.u32();
+      const text = reader.text();
+      if (operation !== "insert" && text.length > 0) {
+        fail("only an insertion carries document text");
+      }
+      return { ...target, type: "editDocument", operation, style, font, text };
+    }
     case InputOpcode.SetMarks: {
       const target = reader.target();
       const start = reader.u32();
@@ -833,6 +992,12 @@ function opcodeFor(command: InputCommand): InputOpcode {
       return InputOpcode.CommitComposition;
     case "cancelComposition":
       return InputOpcode.CancelComposition;
+    case "setDocumentSelection":
+      return InputOpcode.SetDocumentSelection;
+    case "moveDocumentCaret":
+      return InputOpcode.MoveDocumentCaret;
+    case "editDocument":
+      return InputOpcode.EditDocument;
     case "setMarks":
       return InputOpcode.SetMarks;
     case "setPendingMark":
@@ -883,6 +1048,34 @@ function opcodeFor(command: InputCommand): InputOpcode {
       return InputOpcode.BlurNode;
     case "resetInteraction":
       return InputOpcode.ResetInteraction;
+  }
+}
+
+function documentOperationCode(operation: DocumentOperation): number {
+  switch (operation) {
+    case "deleteBackward":
+      return 1;
+    case "deleteForward":
+      return 2;
+    case "insert":
+      return 3;
+    case "split":
+      return 4;
+  }
+}
+
+function documentOperationName(code: number): DocumentOperation {
+  switch (code) {
+    case 1:
+      return "deleteBackward";
+    case 2:
+      return "deleteForward";
+    case 3:
+      return "insert";
+    case 4:
+      return "split";
+    default:
+      return fail("unknown document operation");
   }
 }
 

@@ -83,6 +83,18 @@ export type Mutation =
       readonly runsId: number;
     }
   | {
+      /**
+       * Marks a container as the root of an editable document.
+       *
+       * Its text, editable, and object descendants become Core's block
+       * projection in topology order.
+       */
+      readonly type: "configureDocument";
+      readonly nodeId: number;
+      readonly revision: bigint;
+      readonly flags: number;
+    }
+  | {
       readonly type: "defineResource";
       readonly resourceId: number;
       readonly kind: ResourceKind;
@@ -349,6 +361,16 @@ function encodeMutation(writer: ByteWriter, mutation: Mutation): void {
       writer.u32(mutation.styleId);
       writer.u32(mutation.runsId);
       return;
+    case "configureDocument":
+      assertU32(mutation.nodeId, "nodeId");
+      assertU64(mutation.revision, "revision");
+      if (mutation.flags !== 0) fail("document flags contain reserved bits");
+      writer.instruction(MutationOpcode.ConfigureDocument);
+      writer.u32(mutation.nodeId);
+      writer.u32(Number(mutation.revision & 0xffff_ffffn));
+      writer.u32(Number(mutation.revision >> 32n));
+      writer.u32(mutation.flags);
+      return;
     case "defineResource":
       assertU32(mutation.resourceId, "resourceId");
       assertEnum(ResourceKind, mutation.kind, "resource kind");
@@ -501,6 +523,13 @@ function decodeMutation(reader: ByteReader, opcode: MutationOpcode): Mutation {
         styleId: reader.u32(),
         runsId: reader.u32(),
       };
+    case MutationOpcode.ConfigureDocument: {
+      const nodeId = reader.u32();
+      const revision = BigInt(reader.u32()) | (BigInt(reader.u32()) << 32n);
+      const flags = reader.u32();
+      if (flags !== 0) fail("document flags contain reserved bits");
+      return { type: "configureDocument", nodeId, revision, flags };
+    }
     case MutationOpcode.DefineResource: {
       const resourceId = reader.u32();
       const kind = reader.u16();

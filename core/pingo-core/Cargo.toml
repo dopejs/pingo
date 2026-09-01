@@ -10,6 +10,15 @@ publish = false
 [lib]
 crate-type = ["cdylib", "rlib"]
 
+[features]
+default = ["rich-text"]
+# Document-level rich text: the block position space, the three selection
+# kinds, the structure round trip, and styled-run layout. Turning it off leaves
+# single-style text and single-value editing, and is how a build that has to
+# fit a tighter WASM budget drops the capability wholesale rather than shipping
+# it half-wired.
+rich-text = ["pingo-edit/document"]
+
 [dependencies]
 pingo-abi = { path = "../pingo-abi" }
 pingo-anim = { path = "../pingo-anim" }

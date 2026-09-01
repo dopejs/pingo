@@ -217,6 +217,49 @@ impl CoreTextSystem {
         self.editor_decorations.insert(visual.node, decorations);
     }
 
+    /// Returns the decorations one document block draws for a character range.
+    pub(crate) fn document_text_decorations(
+        &self,
+        scene: &Scene,
+        node: NodeId,
+        selection: [u32; 2],
+        caret_visible: bool,
+        box_width: f32,
+    ) -> Vec<EditorDecoration> {
+        let Some(carets) = self.editor_caret_stops(scene, node, box_width) else {
+            return Vec::new();
+        };
+        decorations_from_carets(
+            &carets,
+            ActiveEditorVisual {
+                node,
+                selection,
+                composition: None,
+                scroll_offset: [0.0, 0.0],
+            },
+            caret_visible,
+        )
+    }
+
+    /// Adds decorations a caller derived from geometry Core text does not own.
+    ///
+    /// An object selection covers a whole block box and a gap caret sits
+    /// between two of them; neither is expressible as a caret stop inside one
+    /// block's text.
+    pub(crate) fn add_editor_decorations(
+        &mut self,
+        node: NodeId,
+        decorations: Vec<EditorDecoration>,
+    ) {
+        if decorations.is_empty() {
+            return;
+        }
+        self.editor_decorations
+            .entry(node)
+            .or_default()
+            .extend(decorations);
+    }
+
     pub(crate) fn validate_system_metrics(
         &self,
         batch: &SystemTextMetricBatch,
@@ -708,8 +751,8 @@ impl CoreTextSystem {
     #[allow(clippy::too_many_arguments)]
     fn shape_value(
         &mut self,
-        scene: &Scene,
-        node: NodeId,
+        #[cfg_attr(not(feature = "rich-text"), allow(unused_variables))] scene: &Scene,
+        #[cfg_attr(not(feature = "rich-text"), allow(unused_variables))] node: NodeId,
         text_run: TextRun,
         font_id: u32,
         font: &FontFace,
@@ -720,6 +763,9 @@ impl CoreTextSystem {
         // An active session replaces the Scene's value wholesale, so the Scene's
         // run table no longer describes it. The session's own mark table does,
         // and it is the one that has been moving with every keystroke.
+        #[cfg(not(feature = "rich-text"))]
+        let styled: Option<ResolvedRuns> = None;
+        #[cfg(feature = "rich-text")]
         let styled = if !self.rich_text_enabled {
             None
         } else if let Some(marks) = self
@@ -733,6 +779,8 @@ impl CoreTextSystem {
         } else {
             None
         };
+        #[cfg(not(feature = "rich-text"))]
+        let _ = text_run;
         let mut options = TextOptions {
             font_size: style.font_size,
             line_height: style.line_height,
@@ -782,6 +830,7 @@ impl CoreTextSystem {
     }
 
     /// Resolves an active session's mark table into faces, sizes, and paints.
+    #[cfg(feature = "rich-text")]
     ///
     /// Mark spans are in UTF-16 code units because that is the space editing
     /// works in; shaping wants UTF-8, so they are converted here rather than
@@ -852,6 +901,7 @@ impl CoreTextSystem {
     }
 
     /// Resolves a styled-run table into faces, sizes, and paints.
+    #[cfg(feature = "rich-text")]
     ///
     /// Returns `None` when anything is missing or inconsistent; the caller then
     /// uses the single-style path, which is the same behavior the kill switch
@@ -1594,6 +1644,7 @@ impl CoreTextSystem {
 }
 
 /// Returns the UTF-8 offset `units` UTF-16 code units after `start`.
+#[cfg(feature = "rich-text")]
 fn utf8_offset_after_utf16(value: &str, start: usize, units: u32) -> Option<usize> {
     let mut remaining = units;
     let mut offset = start;
