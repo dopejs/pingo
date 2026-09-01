@@ -39,6 +39,7 @@ export const COMPONENT_CATALOG: readonly ComponentEntry[] = [
   { name: "accordion", group: "layout" },
   { name: "card", group: "layout" },
   { name: "tabs", group: "layout" },
+  { name: "typography", group: "layout" },
   { name: "divider", group: "layout" },
   { name: "resizable", group: "layout" },
   { name: "scroll-area", group: "layout" },
