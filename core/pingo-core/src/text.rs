@@ -725,6 +725,16 @@ impl IntrinsicMeasurer for CoreTextSystem {
     }
 }
 
+/// One span the caller wants resolved, in the value's UTF-8 offsets.
+#[cfg(feature = "rich-text")]
+struct SpanRequest {
+    bytes: std::ops::Range<usize>,
+    /// Text style resource, or zero for the node's base style.
+    style_id: u32,
+    /// Font resource, or zero to inherit the node's font.
+    font_id: u32,
+}
+
 /// Per-run style resolved from a node's styled-run table.
 struct SpanStyle {
     key: u32,
@@ -829,12 +839,72 @@ impl CoreTextSystem {
         ))
     }
 
-    /// Resolves an active session's mark table into faces, sizes, and paints.
-    #[cfg(feature = "rich-text")]
+    /// Resolves one span table into faces, sizes, and paints.
     ///
-    /// Mark spans are in UTF-16 code units because that is the space editing
-    /// works in; shaping wants UTF-8, so they are converted here rather than
-    /// leaving two offset spaces to drift.
+    /// The Scene's run table and an active session's mark table are the same
+    /// question asked in two offset spaces -- UTF-8 for the committed value,
+    /// UTF-16 for the one being typed -- so they resolve through one function.
+    /// Two copies of this would be two places for a style to resolve
+    /// differently between a committed frame and the frame being edited.
+    #[cfg(feature = "rich-text")]
+    fn resolve_spans(
+        &mut self,
+        scene: &Scene,
+        spans: &[SpanRequest],
+        node_font_id: u32,
+        node_font: &FontFace,
+        base: Option<&TextStyleResource>,
+        value: &str,
+    ) -> Option<ResolvedRuns> {
+        let mut runs = Vec::with_capacity(spans.len());
+        let mut styles = Vec::with_capacity(spans.len());
+        let mut line_heights = Vec::with_capacity(spans.len());
+        for (index, span) in spans.iter().enumerate() {
+            let key = u32::try_from(index).ok()?;
+            let style = if span.style_id == 0 {
+                base?.clone()
+            } else {
+                let resource = scene
+                    .resource(span.style_id)
+                    .filter(|resource| resource.kind == ResourceKind::TextStyle)?;
+                TextStyleResource::decode(span.style_id, resource).ok()?
+            };
+            let (font_id, font) = if span.font_id == 0 {
+                (node_font_id, node_font.clone())
+            } else {
+                (span.font_id, self.font(scene, span.font_id)?)
+            };
+            if span.bytes.end > value.len()
+                || !value.is_char_boundary(span.bytes.start)
+                || !value.is_char_boundary(span.bytes.end)
+            {
+                return None;
+            }
+            runs.push(RichRun {
+                bytes: span.bytes.clone(),
+                font: font.clone(),
+                font_size: style.font_size,
+                key,
+            });
+            line_heights.push(style.line_height);
+            styles.push(SpanStyle {
+                key,
+                font_id,
+                font,
+                font_size: style.font_size,
+                paint_id: style.paint_id,
+                font_style: style.font_style,
+            });
+        }
+        Some(ResolvedRuns {
+            runs,
+            spans: styles,
+            line_heights,
+        })
+    }
+
+    /// Resolves an active session's mark table, whose spans are UTF-16.
+    #[cfg(feature = "rich-text")]
     fn resolve_marks(
         &mut self,
         scene: &Scene,
@@ -853,59 +923,25 @@ impl CoreTextSystem {
             // and skips a whole extra layout cache namespace.
             return None;
         }
-        let mut runs = Vec::with_capacity(marks.runs().len());
         let mut spans = Vec::with_capacity(marks.runs().len());
-        let mut line_heights = Vec::with_capacity(marks.runs().len());
-        let mut byte_cursor = 0_usize;
-        for (index, mark) in marks.runs().iter().enumerate() {
-            let key = u32::try_from(index).ok()?;
-            let byte_end = utf8_offset_after_utf16(value, byte_cursor, mark.length)?;
-            let style = if mark.style == 0 {
-                base.clone()
-            } else {
-                let resource = scene
-                    .resource(mark.style)
-                    .filter(|resource| resource.kind == ResourceKind::TextStyle)?;
-                TextStyleResource::decode(mark.style, resource).ok()?
-            };
-            let (font_id, font) = if mark.font == 0 {
-                (node_font_id, node_font.clone())
-            } else {
-                (mark.font, self.font(scene, mark.font)?)
-            };
-            runs.push(RichRun {
-                bytes: byte_cursor..byte_end,
-                font: font.clone(),
-                font_size: style.font_size,
-                key,
+        let mut cursor = 0_usize;
+        for mark in marks.runs() {
+            let end = utf8_offset_after_utf16(value, cursor, mark.length)?;
+            spans.push(SpanRequest {
+                bytes: cursor..end,
+                style_id: mark.style,
+                font_id: mark.font,
             });
-            line_heights.push(style.line_height);
-            spans.push(SpanStyle {
-                key,
-                font_id,
-                font,
-                font_size: style.font_size,
-                paint_id: style.paint_id,
-                font_style: style.font_style,
-            });
-            byte_cursor = byte_end;
+            cursor = end;
         }
-        if byte_cursor != value.len() {
+        if cursor != value.len() {
             return None;
         }
-        Some(ResolvedRuns {
-            runs,
-            spans,
-            line_heights,
-        })
+        self.resolve_spans(scene, &spans, node_font_id, node_font, Some(base), value)
     }
 
-    /// Resolves a styled-run table into faces, sizes, and paints.
+    /// Resolves a node's committed run table, whose spans are UTF-8.
     #[cfg(feature = "rich-text")]
-    ///
-    /// Returns `None` when anything is missing or inconsistent; the caller then
-    /// uses the single-style path, which is the same behavior the kill switch
-    /// produces.
     fn resolve_runs(
         &mut self,
         scene: &Scene,
@@ -923,46 +959,16 @@ impl CoreTextSystem {
             // is an override the table was never written for.
             return None;
         }
-        let mut runs = Vec::with_capacity(table.runs.len());
         let mut spans = Vec::with_capacity(table.runs.len());
-        let mut line_heights = Vec::with_capacity(table.runs.len());
-        for (index, run) in table.runs.iter().enumerate() {
-            let key = u32::try_from(index).ok()?;
-            let style = scene
-                .resource(run.style_id)
-                .filter(|resource| resource.kind == ResourceKind::TextStyle)
-                .and_then(|resource| TextStyleResource::decode(run.style_id, resource).ok())?;
-            let (font_id, font) = if run.font_id == 0 {
-                (node_font_id, node_font.clone())
-            } else {
-                (run.font_id, self.font(scene, run.font_id)?)
-            };
-            let start = usize::try_from(run.utf8_start).ok()?;
-            let end = usize::try_from(run.utf8_end().ok()?).ok()?;
-            if end > value.len() || !value.is_char_boundary(start) || !value.is_char_boundary(end) {
-                return None;
-            }
-            runs.push(RichRun {
-                bytes: start..end,
-                font: font.clone(),
-                font_size: style.font_size,
-                key,
-            });
-            line_heights.push(style.line_height);
-            spans.push(SpanStyle {
-                key,
-                font_id,
-                font,
-                font_size: style.font_size,
-                paint_id: style.paint_id,
-                font_style: style.font_style,
+        for run in &table.runs {
+            spans.push(SpanRequest {
+                bytes: usize::try_from(run.utf8_start).ok()?
+                    ..usize::try_from(run.utf8_end().ok()?).ok()?,
+                style_id: run.style_id,
+                font_id: run.font_id,
             });
         }
-        Some(ResolvedRuns {
-            runs,
-            spans,
-            line_heights,
-        })
+        self.resolve_spans(scene, &spans, node_font_id, node_font, None, value)
     }
 }
 
