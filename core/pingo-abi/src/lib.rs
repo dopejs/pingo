@@ -65,7 +65,9 @@ pub use input::{
     InputPointerType, InputPosition, InputSelection, InteractionResetReason, KEY_FLAG_MASK,
     KEY_FLAG_REPEAT, WireDocumentSelection,
 };
-pub use mutation::{Mutation, MutationBatch, MutationInstruction, OBSERVE_GEOMETRY_FLAG_ACTIVE};
+pub use mutation::{
+    DocumentBlockRecord, Mutation, MutationBatch, MutationInstruction, OBSERVE_GEOMETRY_FLAG_ACTIVE,
+};
 pub use path::{FillRule, PathResource, PathVerb};
 pub use picture_resources::{
     PictureResourceBatch, PictureResourceCommand, PictureResourceInstruction,

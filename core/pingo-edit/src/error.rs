@@ -11,6 +11,7 @@ pub enum EditError {
     InvalidMarkRuns { covered: u32, text_len: u32 },
     DuplicateBlockKey { key: u64 },
     UnknownBlock,
+    BlockNotMaterialized { key: u64 },
     InvalidUtf8Boundary { offset: usize },
     CompositionAlreadyActive,
     CompositionNotActive,

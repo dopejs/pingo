@@ -8,8 +8,9 @@
 use std::sync::Arc;
 
 use pingo_abi::{
-    CaretDirection, CaretGranularity, DocumentOperation, DocumentSelectionRecord, InputCommand,
-    NodeKind, StructureKind, StructureRequestRecord, WireDocumentSelection,
+    CaretDirection, CaretGranularity, DocumentBlockRecord, DocumentOperation,
+    DocumentSelectionRecord, InputCommand, NodeKind, StructureKind, StructureRequestRecord,
+    WireDocumentSelection,
 };
 use pingo_collections::OrderedMap;
 use pingo_edit::{
@@ -44,6 +45,11 @@ struct ActiveDocument {
     pending: Vec<StructureRequestRecord>,
     /// Selection last reported to the Shell, so only changes are sent.
     reported: Option<DocumentSelection>,
+    /// Scene node holding each materialized block's text.
+    ///
+    /// Keys are the Shell's, not node identifiers: a block the Shell has not
+    /// materialized has no node at all, so the two cannot be the same number.
+    nodes: OrderedMap<BlockKey, NodeId>,
 }
 
 /// Core-owned document position spaces, one per configured document root.
@@ -63,13 +69,26 @@ impl DocumentController {
             .ids()
             .iter()
             .copied()
-            .filter(|node| scene.document_revision(*node).is_some())
+            .filter(|node| scene.document(*node).is_some())
             .collect::<Vec<_>>();
         self.documents.retain(|node, _| roots.contains(node));
         for root in roots {
-            let revision = scene.document_revision(root).unwrap_or_default();
-            let projection = project(scene, root);
+            let Some(declared) = scene.document(root) else {
+                continue;
+            };
+            let revision = declared.revision;
+            let projection = project(scene, &declared.blocks);
             let keys = projection.iter().map(|block| block.key).collect::<Vec<_>>();
+            let nodes = declared
+                .blocks
+                .iter()
+                .filter_map(|record| {
+                    NodeId::from_raw(record.node_id)
+                        .ok()
+                        .filter(|node| scene.resolve(*node).is_some())
+                        .map(|node| (BlockKey::from(record.key), node))
+                })
+                .collect::<OrderedMap<_, _>>();
             if let Some(active) = self.documents.get_mut(&root) {
                 if active.shell_revision == revision {
                     continue;
@@ -80,6 +99,7 @@ impl DocumentController {
                     self.metrics.corrections = self.metrics.corrections.saturating_add(1);
                 }
                 active.shell_revision = revision;
+                active.nodes = nodes;
                 active
                     .document
                     .reproject(projection)
@@ -96,6 +116,7 @@ impl DocumentController {
                     next_sequence: 1,
                     pending: Vec::new(),
                     reported: None,
+                    nodes,
                 },
             );
         }
@@ -104,12 +125,9 @@ impl DocumentController {
 
     /// Returns whether a node belongs to a document Core already owns.
     pub(crate) fn owns(&self, node: NodeId) -> bool {
-        self.documents.values().any(|active| {
-            active
-                .document
-                .index_of(BlockKey::from(node.raw()))
-                .is_some()
-        })
+        self.documents
+            .values()
+            .any(|active| active.nodes.values().any(|owned| *owned == node))
     }
 
     /// Returns the observable round-trip counters.
@@ -122,11 +140,11 @@ impl DocumentController {
         let mut result = std::collections::HashMap::new();
         for active in self.documents.values() {
             for block in active.document.blocks() {
-                let Ok(node) = NodeId::from_raw(block_node(block.key())) else {
+                let Some(node) = active.nodes.get(&block.key()) else {
                     continue;
                 };
                 result.insert(
-                    node,
+                    *node,
                     EditDisplay {
                         text: Arc::from(block.text()),
                         marks: Some(block.marks().clone()),
@@ -253,7 +271,7 @@ impl DocumentController {
             node_id: root.raw(),
             sequence,
             kind: StructureKind::Split,
-            target: block_node(focus.key),
+            target: wire_key(focus.key),
             source: 0,
             offset: focus.offset,
             keys: Vec::new(),
@@ -270,7 +288,7 @@ impl DocumentController {
         let mut changed = edit
             .replacements
             .iter()
-            .filter_map(|replacement| NodeId::from_raw(block_node(replacement.key)).ok())
+            .filter_map(|replacement| active.nodes.get(&replacement.key).copied())
             .collect::<Vec<_>>();
         active.document.apply_edit(edit).map_err(CoreError::Edit)?;
         for request in &edit.structure {
@@ -284,16 +302,16 @@ impl DocumentController {
                     target: 0,
                     source: 0,
                     offset: 0,
-                    keys: keys.iter().copied().map(block_node).collect(),
+                    keys: keys.iter().copied().map(wire_key).collect(),
                 },
                 StructureRequest::Merge { target, source } => {
-                    changed.extend(NodeId::from_raw(block_node(*target)));
+                    changed.extend(active.nodes.get(target).copied());
                     StructureRequestRecord {
                         node_id: root.raw(),
                         sequence,
                         kind: StructureKind::Merge,
-                        target: block_node(*target),
-                        source: block_node(*source),
+                        target: wire_key(*target),
+                        source: wire_key(*source),
                         offset: 0,
                         keys: Vec::new(),
                     }
@@ -380,7 +398,7 @@ impl DocumentController {
                     };
                     for (index, range) in covered {
                         let block = &document.blocks()[index];
-                        let Ok(node) = NodeId::from_raw(block_node(block.key())) else {
+                        let Some(node) = active.nodes.get(&block.key()).copied() else {
                             continue;
                         };
                         visuals.push(BlockVisual {
@@ -392,7 +410,7 @@ impl DocumentController {
                     }
                 }
                 DocumentSelection::Node { key } => {
-                    if let Ok(node) = NodeId::from_raw(block_node(key)) {
+                    if let Some(node) = active.nodes.get(&key).copied() {
                         visuals.push(BlockVisual {
                             node,
                             kind: BlockVisualKind::Object,
@@ -410,7 +428,7 @@ impl DocumentController {
                     let Some(block) = document.blocks().get(index) else {
                         continue;
                     };
-                    if let Ok(node) = NodeId::from_raw(block_node(block.key())) {
+                    if let Some(node) = active.nodes.get(&block.key()).copied() {
                         visuals.push(BlockVisual {
                             node,
                             kind: BlockVisualKind::Gap { trailing },
@@ -449,60 +467,44 @@ pub(crate) enum BlockVisualKind {
     },
 }
 
-/// Collects a document root's blocks in topology order.
-fn project(scene: &Scene, root: NodeId) -> Vec<BlockProjection> {
-    let mut blocks = Vec::new();
-    let mut stack = vec![root];
-    let mut order = Vec::new();
-    // Topology order is what the Scene already guarantees, so a depth-first
-    // walk of first-child/next-sibling produces document order directly.
-    while let Some(node) = stack.pop() {
-        order.push(node);
-        let mut children = Vec::new();
-        let mut child = scene.first_child(node);
-        while let Some(current) = child {
-            children.push(current);
-            child = scene.next_sibling(current);
-        }
-        stack.extend(children.into_iter().rev());
-    }
-    for node in order.into_iter().skip(1) {
-        let Some(kind) = scene.kind(node) else {
-            continue;
-        };
-        match kind {
-            NodeKind::Text | NodeKind::EditableText => {
-                let (text, marks) = block_content(scene, node);
-                blocks.push(BlockProjection {
-                    key: BlockKey::from(node.raw()),
-                    text,
-                    marks,
-                    atomic: false,
-                });
-            }
-            NodeKind::Image | NodeKind::Video => blocks.push(BlockProjection {
-                key: BlockKey::from(node.raw()),
-                text: String::new(),
-                marks: None,
-                atomic: true,
-            }),
-            NodeKind::Root | NodeKind::Container | NodeKind::Scroll => {}
-        }
-    }
-    blocks
-}
-
-fn block_content(scene: &Scene, node: NodeId) -> (String, Option<MarkRuns>) {
-    let text = crate::editing::scene_block_text(scene, node).unwrap_or_default();
-    let marks = crate::editing::scene_block_marks(scene, node);
-    (text, marks)
-}
-
-/// A block key is the Scene node it came from, so a stale key cannot resolve.
+/// Turns the Shell's declared block list into a projection.
 ///
-/// Keys are only ever produced from `NodeId::raw`, so the narrowing is exact;
-/// a truncated key would fail to resolve rather than resolve to the wrong node.
-fn block_node(key: BlockKey) -> u32 {
+/// The list is authoritative about which blocks exist and how long they are;
+/// the Scene supplies the text of the ones it has nodes for. A block with no
+/// node is one the Shell has not materialized, and it enters the position
+/// space as a placeholder of the declared length.
+fn project(scene: &Scene, declared: &[DocumentBlockRecord]) -> Vec<BlockProjection> {
+    declared
+        .iter()
+        .map(|record| {
+            let key = BlockKey::from(record.key);
+            if record.atomic {
+                return BlockProjection::object(key);
+            }
+            let materialized = NodeId::from_raw(record.node_id)
+                .ok()
+                .filter(|node| {
+                    matches!(
+                        scene.kind(*node),
+                        Some(NodeKind::Text | NodeKind::EditableText)
+                    )
+                })
+                .and_then(|node| block_content(scene, node));
+            match materialized {
+                Some((text, marks)) => BlockProjection::text(key, text, marks),
+                None => BlockProjection::placeholder(key, record.len_utf16),
+            }
+        })
+        .collect()
+}
+
+fn block_content(scene: &Scene, node: NodeId) -> Option<(String, Option<MarkRuns>)> {
+    let text = crate::editing::scene_block_text(scene, node)?;
+    Some((text, crate::editing::scene_block_marks(scene, node)))
+}
+
+/// Narrows a block key for the wire, which carries the Shell's own u32 keys.
+fn wire_key(key: BlockKey) -> u32 {
     u32::try_from(key).unwrap_or(u32::MAX)
 }
 
@@ -530,14 +532,12 @@ const fn caret_granularity(granularity: CaretGranularity) -> Granularity {
 fn wire_selection(selection: DocumentSelection, document: &Document) -> WireDocumentSelection {
     match selection {
         DocumentSelection::Text { anchor, focus } => WireDocumentSelection::Text {
-            anchor_key: block_node(anchor.key),
+            anchor_key: wire_key(anchor.key),
             anchor_offset: anchor.offset,
-            focus_key: block_node(focus.key),
+            focus_key: wire_key(focus.key),
             focus_offset: focus.offset,
         },
-        DocumentSelection::Node { key } => WireDocumentSelection::Node {
-            key: block_node(key),
-        },
+        DocumentSelection::Node { key } => WireDocumentSelection::Node { key: wire_key(key) },
         DocumentSelection::Gap { before } => WireDocumentSelection::Gap {
             index: u32::try_from(before.min(document.blocks().len())).unwrap_or(u32::MAX),
         },

@@ -3,8 +3,8 @@ use std::sync::Arc;
 
 use pingo_abi::{
     AFFINE_A_OFFSET, AFFINE_RESOURCE_FIXED_BYTES, AFFINE_RESOURCE_VARIANT, AFFINE_VARIANT_OFFSET,
-    AFFINE_VERSION_OFFSET, ComputedStyleResource, ComputedStyleValue, IMAGE_BITMAP_HEIGHT_OFFSET,
-    IMAGE_BITMAP_PIXEL_BYTES_OFFSET, IMAGE_BITMAP_PIXELS_OFFSET,
+    AFFINE_VERSION_OFFSET, ComputedStyleResource, ComputedStyleValue, DocumentBlockRecord,
+    IMAGE_BITMAP_HEIGHT_OFFSET, IMAGE_BITMAP_PIXEL_BYTES_OFFSET, IMAGE_BITMAP_PIXELS_OFFSET,
     IMAGE_BITMAP_RESOURCE_MINIMUM_BYTES, IMAGE_BITMAP_RESOURCE_VARIANT,
     IMAGE_BITMAP_VARIANT_OFFSET, IMAGE_BITMAP_VERSION_OFFSET, IMAGE_BITMAP_WIDTH_OFFSET,
     Invalidation, MAX_RESOURCE_BYTES, MAX_VIRTUAL_ITEMS, Mutation, MutationBatch, NULL_NODE_ID,
@@ -83,6 +83,19 @@ pub struct TextRun {
     pub runs_id: u32,
 }
 
+/// A container's declared block projection.
+///
+/// The list is the projection, not a summary of the tree: a block the Shell has
+/// not materialized has no Scene node, and declaring its length is what lets a
+/// virtualized document keep one position space.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct DocumentProjection {
+    /// Shell revision of the list.
+    pub revision: u64,
+    /// Blocks in document order.
+    pub blocks: Arc<[DocumentBlockRecord]>,
+}
+
 /// Validated Core-owned virtual-list policy attached to a Scroll node.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct VirtualListConfig {
@@ -145,8 +158,8 @@ pub struct Scene {
     kinds: Vec<NodeKind>,
     flags: Vec<u32>,
     text_runs: Vec<Option<TextRun>>,
-    /// Shell revision of each node's document projection, when it is one.
-    documents: Vec<Option<u64>>,
+    /// Each node's declared document projection, when it is a document root.
+    documents: Vec<Option<DocumentProjection>>,
     scroll_positions: Vec<Option<[f32; 2]>>,
     virtual_lists: Vec<Option<VirtualListConfig>>,
     virtual_item_indices: Vec<Option<u32>>,
@@ -441,10 +454,11 @@ impl Scene {
         self.resolve(node).and_then(|index| self.text_runs[index])
     }
 
-    /// Returns a node's document projection revision, when it is a document root.
+    /// Returns a node's declared block projection, when it is a document root.
     #[must_use]
-    pub fn document_revision(&self, node: NodeId) -> Option<u64> {
-        self.resolve(node).and_then(|index| self.documents[index])
+    pub fn document(&self, node: NodeId) -> Option<&DocumentProjection> {
+        self.resolve(node)
+            .and_then(|index| self.documents[index].as_ref())
     }
 
     /// Returns an immutable resource.
@@ -1340,8 +1354,13 @@ impl Scene {
                     );
                 }
             }
-            Mutation::ConfigureDocument { revision, .. } => {
-                let next = Some(revision);
+            Mutation::ConfigureDocument {
+                revision, blocks, ..
+            } => {
+                let next = Some(DocumentProjection {
+                    revision,
+                    blocks: Arc::from(blocks),
+                });
                 if self.documents[index] != next {
                     self.documents[index] = next;
                     // A projection change is a semantics change: the block
@@ -2182,7 +2201,7 @@ struct PlanNode {
     children: Vec<NodeId>,
     flags: u32,
     text_run: Option<TextRun>,
-    document: Option<u64>,
+    document: Option<DocumentProjection>,
     scroll_position: Option<[f32; 2]>,
     virtual_list: Option<VirtualListConfig>,
     virtual_item_index: Option<u32>,
@@ -2310,7 +2329,7 @@ impl Scene {
                     children: Vec::new(),
                     flags: self.flags[index],
                     text_run: self.text_runs[index],
-                    document: self.documents[index],
+                    document: self.documents[index].clone(),
                     scroll_position: self.scroll_positions[index],
                     virtual_list: self.virtual_lists[index],
                     virtual_item_index: self.virtual_item_indices[index],
@@ -2794,7 +2813,10 @@ fn plan_apply_property(
             });
         }
         Mutation::ConfigureDocument {
-            revision, flags, ..
+            revision,
+            flags,
+            blocks,
+            ..
         } => {
             if flags != 0 {
                 return Err(SceneError::InvalidResourceEncoding { resource_id: 0 });
@@ -2802,7 +2824,10 @@ fn plan_apply_property(
             nodes
                 .get_mut(&node)
                 .ok_or(SceneError::StaleNode { node })?
-                .document = Some(revision);
+                .document = Some(DocumentProjection {
+                revision,
+                blocks: Arc::from(blocks),
+            });
         }
         Mutation::ScrollTo { x, y, .. } => {
             nodes

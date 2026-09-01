@@ -11,4 +11,6 @@ mod scene;
 pub use bit_set::{BitSet, SetBits};
 pub use error::SceneError;
 pub use node_id::{MAX_GENERATION, MAX_NODE_SLOTS, NodeId};
-pub use scene::{DirtyDomain, Resource, Scene, SceneMetrics, TextRun, VirtualListConfig};
+pub use scene::{
+    DirtyDomain, DocumentProjection, Resource, Scene, SceneMetrics, TextRun, VirtualListConfig,
+};

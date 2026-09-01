@@ -84,6 +84,16 @@ async function checkAbiRoundtrip() {
       },
       { type: "setTextRun", nodeId: 7, stringId: 9, styleId: 10 },
       { type: "setRichText", nodeId: 7, stringId: 9, styleId: 10, runsId: 11 },
+      {
+        type: "configureDocument",
+        nodeId: 7,
+        revision: 3n,
+        flags: 0,
+        blocks: [
+          { key: 7, nodeId: 7, lenUtf16: 5, atomic: false },
+          { key: 8, nodeId: reconciler.NULL_NODE_ID, lenUtf16: 120, atomic: false },
+        ],
+      },
       { type: "observeGeometry", nodeId: 7, flags: 1 },
       { type: "observeGeometry", nodeId: 7, flags: 0 },
     ],

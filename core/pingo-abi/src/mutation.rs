@@ -3,8 +3,9 @@ use crate::codec::{
     validate_encode_instruction_count,
 };
 use crate::{
-    AbiError, MAX_MUTATION_BYTES, MAX_MUTATION_INSTRUCTIONS, MAX_RESOURCE_BYTES, MUTATION_MAGIC,
-    MutationOpcode, NodeKind, Prop, PropValueType, ResourceKind, StreamKind, VirtualAxis,
+    AbiError, DOCUMENT_BLOCK_FLAG_ATOMIC, MAX_DOCUMENT_BLOCK_KEYS, MAX_MUTATION_BYTES,
+    MAX_MUTATION_INSTRUCTIONS, MAX_RESOURCE_BYTES, MUTATION_MAGIC, MutationOpcode, NodeKind, Prop,
+    PropValueType, ResourceKind, StreamKind, VirtualAxis,
 };
 
 /// Version 1 observation flags: bit 0 asks Core to report this node's geometry.
@@ -13,6 +14,20 @@ use crate::{
 /// check — an unknown bit must not be read as "withdraw".
 pub const OBSERVE_GEOMETRY_FLAG_ACTIVE: u32 = 1;
 const OBSERVE_GEOMETRY_FLAG_MASK: u32 = OBSERVE_GEOMETRY_FLAG_ACTIVE;
+
+/// One block of a document projection.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct DocumentBlockRecord {
+    /// Stable Shell-assigned identity; never zero.
+    pub key: u32,
+    /// Scene node holding the block's text, or [`crate::NULL_NODE_ID`] when the
+    /// Shell has not materialized it.
+    pub node_id: u32,
+    /// UTF-16 length the Shell declares for the block.
+    pub len_utf16: u32,
+    /// Whether the caret may not enter the block.
+    pub atomic: bool,
+}
 
 /// One validated Shell-to-Core mutation.
 #[derive(Clone, Debug, PartialEq)]
@@ -110,11 +125,18 @@ pub enum Mutation {
         /// Styled-run table resource identifier, or zero for a single run.
         runs_id: u32,
     },
-    /// Marks a container as the root of an editable document.
+    /// Declares a container's block projection.
     ///
-    /// Its text, editable, and object descendants become Core's block
-    /// projection in topology order. Core does not learn the tree's shape from
-    /// this -- only that these blocks are one document, in this order.
+    /// The list is the projection: an ordered block sequence with a stable key
+    /// each, the Scene node holding its text when it has one, and its UTF-16
+    /// length. Core does not learn the tree's shape from this -- only that
+    /// these blocks are one document, in this order.
+    ///
+    /// A block with no node is one the Shell has not materialized. Declaring
+    /// its length is what lets a virtualized document keep one position space:
+    /// the caret can be told where it is relative to blocks nobody has built
+    /// yet, and the block costs Core an integer instead of a second copy of
+    /// the document.
     ConfigureDocument {
         /// Container or scroll node owning the document.
         node_id: u32,
@@ -122,6 +144,8 @@ pub enum Mutation {
         revision: u64,
         /// Reserved for future document policy; must be zero.
         flags: u32,
+        /// Blocks in document order.
+        blocks: Vec<DocumentBlockRecord>,
     },
     /// Defines an immutable interned resource.
     DefineResource {
@@ -425,10 +449,38 @@ fn decode_mutation(opcode: MutationOpcode, reader: &mut Reader<'_>) -> Result<Mu
                     "document flags contain reserved bits",
                 ));
             }
+            let count = reader.read_u32()?;
+            if count > MAX_DOCUMENT_BLOCK_KEYS {
+                return Err(AbiError::InvalidValue(
+                    "document projection names too many blocks",
+                ));
+            }
+            let mut blocks = Vec::with_capacity(
+                usize::try_from(count).map_err(|_| AbiError::ArithmeticOverflow)?,
+            );
+            for _ in 0..count {
+                let key = reader.read_u32()?;
+                let block_node = reader.read_u32()?;
+                let len_utf16 = reader.read_u32()?;
+                let block_flags = reader.read_u32()?;
+                if block_flags & !DOCUMENT_BLOCK_FLAG_ATOMIC != 0 {
+                    return Err(AbiError::InvalidValue(
+                        "document block flags contain reserved bits",
+                    ));
+                }
+                blocks.push(DocumentBlockRecord {
+                    key,
+                    node_id: block_node,
+                    len_utf16,
+                    atomic: block_flags & DOCUMENT_BLOCK_FLAG_ATOMIC != 0,
+                });
+            }
+            validate_document_blocks(&blocks)?;
             Mutation::ConfigureDocument {
                 node_id,
                 revision,
                 flags,
+                blocks,
             }
         }
         MutationOpcode::DefineResource => {
@@ -663,12 +715,14 @@ fn encode_mutation(writer: &mut Writer, instruction: &MutationInstruction) -> Re
             node_id,
             revision,
             flags: document_flags,
+            blocks,
         } => {
             if *document_flags != 0 {
                 return Err(AbiError::InvalidValue(
                     "document flags contain reserved bits",
                 ));
             }
+            validate_document_blocks(blocks)?;
             writer.instruction(MutationOpcode::ConfigureDocument as u8, flags);
             writer.u32(*node_id);
             #[allow(clippy::cast_possible_truncation)]
@@ -676,6 +730,17 @@ fn encode_mutation(writer: &mut Writer, instruction: &MutationInstruction) -> Re
             #[allow(clippy::cast_possible_truncation)]
             writer.u32((*revision >> 32) as u32);
             writer.u32(*document_flags);
+            writer.u32(u32::try_from(blocks.len()).map_err(|_| AbiError::ArithmeticOverflow)?);
+            for block in blocks {
+                writer.u32(block.key);
+                writer.u32(block.node_id);
+                writer.u32(block.len_utf16);
+                writer.u32(if block.atomic {
+                    DOCUMENT_BLOCK_FLAG_ATOMIC
+                } else {
+                    0
+                });
+            }
         }
         Mutation::DefineResource {
             resource_id,
@@ -774,6 +839,31 @@ fn encode_mutation(writer: &mut Writer, instruction: &MutationInstruction) -> Re
         offset,
         writer.offset(),
     )?;
+    Ok(())
+}
+
+/// Rejects a projection Core could not build a position space from.
+fn validate_document_blocks(blocks: &[DocumentBlockRecord]) -> Result<(), AbiError> {
+    if blocks.len() > MAX_DOCUMENT_BLOCK_KEYS as usize {
+        return Err(AbiError::InvalidValue(
+            "document projection names too many blocks",
+        ));
+    }
+    let mut seen = std::collections::BTreeSet::new();
+    for block in blocks {
+        if block.key == 0 || !seen.insert(block.key) {
+            // Key zero is reserved for "no block", and a repeated key would
+            // make two positions indistinguishable.
+            return Err(AbiError::InvalidValue(
+                "document block keys must be non-zero and unique",
+            ));
+        }
+        if block.atomic && block.len_utf16 != 0 {
+            return Err(AbiError::InvalidValue(
+                "an atomic document block has no text length",
+            ));
+        }
+    }
     Ok(())
 }
 

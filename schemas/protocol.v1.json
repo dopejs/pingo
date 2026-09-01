@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "abiVersion": 25,
+  "abiVersion": 26,
   "minimumReadableAbiVersion": 4,
   "endianness": "little",
   "alignment": 4,
@@ -691,7 +691,10 @@
             { "name": "nodeId", "type": "u32" },
             { "name": "revisionLow", "type": "u32" },
             { "name": "revisionHigh", "type": "u32" },
-            { "name": "flags", "type": "u32" }
+            { "name": "flags", "type": "u32" },
+            { "name": "blockCount", "type": "u32" },
+            { "name": "blocks", "type": "bytes" },
+            "align4"
           ]
         },
         {
@@ -1430,6 +1433,30 @@
     ],
     "flags": {
       "kept": 1
+    }
+  },
+  "documentBlockPayload": {
+    "version": 1,
+    "blockFields": [
+      {
+        "name": "key",
+        "type": "u32"
+      },
+      {
+        "name": "nodeId",
+        "type": "u32"
+      },
+      {
+        "name": "lenUtf16",
+        "type": "u32"
+      },
+      {
+        "name": "flags",
+        "type": "u32"
+      }
+    ],
+    "flags": {
+      "atomic": 1
     }
   },
   "styledRunPayload": {

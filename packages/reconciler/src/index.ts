@@ -12,6 +12,7 @@ export {
   NULL_NODE_ID,
   decodeMutationBatch,
   encodeMutationBatch,
+  type DocumentBlock,
   type Mutation,
   type MutationBatch,
 } from "./mutation-stream";

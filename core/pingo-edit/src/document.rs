@@ -10,15 +10,38 @@ use crate::{
 /// role `getItemKey` plays in a virtual list.
 pub type BlockKey = u64;
 
+/// What the Shell has told Core about one block's contents.
+///
+/// This is the answer to whether Core's position space holds the whole
+/// document: it holds every block's **length**, and only a materialized
+/// block's **text**. Lengths are what the flat space and cross-block selection
+/// need, and they are O(1) per block; text is what grapheme-safe movement and
+/// partial deletion need, and only a block the user can see requires those.
+/// A five-thousand-block document therefore costs Core one integer per
+/// off-screen block rather than a second copy of the document.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum BlockContent {
+    /// The Shell has materialized this block.
+    Materialized {
+        /// The block's UTF-8 value; empty for an atomic block.
+        text: String,
+        /// Mark table for that value, or `None` for the base style throughout.
+        marks: Option<MarkRuns>,
+    },
+    /// The Shell knows only how long the block is.
+    Placeholder {
+        /// UTF-16 code-unit length the Shell declares.
+        len_utf16: u32,
+    },
+}
+
 /// One block of the Shell's projection.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct BlockProjection {
     /// Stable identity.
     pub key: BlockKey,
-    /// The block's UTF-8 value; empty for an atomic block.
-    pub text: String,
-    /// Mark table for that value, or `None` for the base style throughout.
-    pub marks: Option<MarkRuns>,
+    /// What Core knows about the block.
+    pub content: BlockContent,
     /// Whether the caret may enter the block.
     ///
     /// An atomic block is an object, not text: arrow keys step over it and the
@@ -26,6 +49,44 @@ pub struct BlockProjection {
     /// block's contents, because "a code block is one object" is a schema
     /// decision and the schema lives in the Shell.
     pub atomic: bool,
+}
+
+impl BlockProjection {
+    /// Creates a materialized text block.
+    #[must_use]
+    pub fn text(key: BlockKey, text: impl Into<String>, marks: Option<MarkRuns>) -> Self {
+        Self {
+            key,
+            content: BlockContent::Materialized {
+                text: text.into(),
+                marks,
+            },
+            atomic: false,
+        }
+    }
+
+    /// Creates a block the caret may not enter.
+    #[must_use]
+    pub fn object(key: BlockKey) -> Self {
+        Self {
+            key,
+            content: BlockContent::Materialized {
+                text: String::new(),
+                marks: None,
+            },
+            atomic: true,
+        }
+    }
+
+    /// Creates a block the Shell has not materialized yet.
+    #[must_use]
+    pub const fn placeholder(key: BlockKey, len_utf16: u32) -> Self {
+        Self {
+            key,
+            content: BlockContent::Placeholder { len_utf16 },
+            atomic: false,
+        }
+    }
 }
 
 /// One block's Core-owned state.
@@ -36,6 +97,9 @@ pub struct DocumentBlock {
     index: TextIndex,
     marks: MarkRuns,
     atomic: bool,
+    /// Declared length, which is all Core knows about an unmaterialized block.
+    len_utf16: u32,
+    materialized: bool,
 }
 
 impl DocumentBlock {
@@ -63,10 +127,25 @@ impl DocumentBlock {
         self.atomic
     }
 
-    /// Returns the block's UTF-16 length.
+    /// Returns the block's UTF-16 length, declared or measured.
     #[must_use]
     pub const fn len_utf16(&self) -> u32 {
-        self.index.utf16_len()
+        self.len_utf16
+    }
+
+    /// Returns whether the Shell has materialized this block's text.
+    #[must_use]
+    pub const fn is_materialized(&self) -> bool {
+        self.materialized
+    }
+
+    /// Returns whether the caret may stand inside this block.
+    ///
+    /// An object has no text positions, and a placeholder has no text to put
+    /// them on until the Shell sends it.
+    #[must_use]
+    pub const fn is_enterable(&self) -> bool {
+        !self.atomic && self.materialized
     }
 }
 
@@ -165,6 +244,8 @@ pub struct Document {
     starts: Vec<FlatPosition>,
     length: FlatPosition,
     selection: DocumentSelection,
+    /// Blocks the caret wanted to be in but the Shell has not sent yet.
+    pending_materialization: Vec<BlockKey>,
 }
 
 impl Document {
@@ -198,23 +279,38 @@ impl Document {
             if !seen.insert(block.key) {
                 return Err(EditError::DuplicateBlockKey { key: block.key });
             }
-            let index = TextIndex::new(&block.text)?;
-            let marks = match block.marks {
-                Some(marks) if marks.length() == index.utf16_len() => marks,
-                Some(marks) => {
-                    return Err(EditError::InvalidMarkRuns {
-                        covered: marks.length(),
-                        text_len: index.utf16_len(),
-                    });
+            blocks.push(match block.content {
+                BlockContent::Materialized { text, marks } => {
+                    let index = TextIndex::new(&text)?;
+                    let marks = match marks {
+                        Some(marks) if marks.length() == index.utf16_len() => marks,
+                        Some(marks) => {
+                            return Err(EditError::InvalidMarkRuns {
+                                covered: marks.length(),
+                                text_len: index.utf16_len(),
+                            });
+                        }
+                        None => MarkRuns::plain(index.utf16_len()),
+                    };
+                    DocumentBlock {
+                        key: block.key,
+                        len_utf16: index.utf16_len(),
+                        text,
+                        index,
+                        marks,
+                        atomic: block.atomic,
+                        materialized: true,
+                    }
                 }
-                None => MarkRuns::plain(index.utf16_len()),
-            };
-            blocks.push(DocumentBlock {
-                key: block.key,
-                text: block.text,
-                index,
-                marks,
-                atomic: block.atomic,
+                BlockContent::Placeholder { len_utf16 } => DocumentBlock {
+                    key: block.key,
+                    text: String::new(),
+                    index: TextIndex::new("")?,
+                    marks: MarkRuns::default(),
+                    atomic: block.atomic,
+                    len_utf16,
+                    materialized: false,
+                },
             });
         }
         let previous = std::mem::replace(&mut self.blocks, blocks);
@@ -247,6 +343,29 @@ impl Document {
         self.selection
     }
 
+    /// Returns the blocks the caret needs but the Shell has not sent.
+    ///
+    /// A placeholder is a real position in the document, so the caret can be
+    /// asked to go there; it just cannot move *within* one until the text
+    /// arrives. Reporting the request is what turns that into one frame of
+    /// latency instead of a caret that refuses to move.
+    #[must_use]
+    pub fn pending_materialization(&self) -> &[BlockKey] {
+        &self.pending_materialization
+    }
+
+    /// Records that the caret needs a block the Shell has not materialized.
+    fn request_materialization(&mut self, key: BlockKey) {
+        if !self.pending_materialization.contains(&key) {
+            self.pending_materialization.push(key);
+        }
+    }
+
+    /// Drains the materialization requests produced since the last drain.
+    pub fn take_materialization_requests(&mut self) -> Vec<BlockKey> {
+        std::mem::take(&mut self.pending_materialization)
+    }
+
     /// Returns the index of the block with `key`.
     #[must_use]
     pub fn index_of(&self, key: BlockKey) -> Option<usize> {
@@ -261,7 +380,38 @@ impl Document {
     /// document, or an offset error when a position leaves its block.
     pub fn set_selection(&mut self, selection: DocumentSelection) -> Result<(), EditError> {
         self.selection = self.normalize_selection(selection)?;
+        for key in self.unmaterialized_edges(self.selection) {
+            self.request_materialization(key);
+        }
         Ok(())
+    }
+
+    /// Returns the selection's own blocks that have no text yet.
+    fn unmaterialized_edges(&self, selection: DocumentSelection) -> Vec<BlockKey> {
+        let keys = match selection {
+            DocumentSelection::Text { anchor, focus } => vec![anchor.key, focus.key],
+            DocumentSelection::Node { key } => vec![key],
+            DocumentSelection::Gap { before } => {
+                // Typing in a gap lands in whichever block the Shell makes
+                // there, so its neighbours are what the caret will need next.
+                let mut keys = Vec::new();
+                if let Some(index) = before.checked_sub(1)
+                    && let Some(block) = self.blocks.get(index)
+                {
+                    keys.push(block.key);
+                }
+                if let Some(block) = self.blocks.get(before) {
+                    keys.push(block.key);
+                }
+                keys
+            }
+        };
+        keys.into_iter()
+            .filter(|key| {
+                self.index_of(*key)
+                    .is_some_and(|index| !self.blocks[index].materialized)
+            })
+            .collect()
     }
 
     /// Normalizes a selection onto positions the caret may actually occupy.
@@ -480,6 +630,8 @@ impl Document {
         direction: Direction,
         granularity: Granularity,
     ) -> Result<FlatPosition, EditError> {
+        // A block the caret is standing in is materialized by construction:
+        // `normalize_position` refuses to put it anywhere else.
         if let Some(index) = self.block_containing(from) {
             let block = &self.blocks[index];
             let start = self.starts[index] + 1;
@@ -510,20 +662,20 @@ impl Document {
                 let Some(index) = gap.checked_sub(1) else {
                     return Ok(from);
                 };
-                Ok(if self.blocks[index].atomic {
-                    self.gap_position(index)
-                } else {
+                Ok(if self.blocks[index].is_enterable() {
                     self.starts[index] + 1 + self.blocks[index].len_utf16()
+                } else {
+                    self.gap_position(index)
                 })
             }
             Direction::Forward => {
                 let Some(block) = self.blocks.get(gap) else {
                     return Ok(from);
                 };
-                Ok(if block.atomic {
-                    self.gap_position(gap + 1)
-                } else {
+                Ok(if block.is_enterable() {
                     self.starts[gap] + 1
+                } else {
+                    self.gap_position(gap + 1)
                 })
             }
         }
@@ -573,6 +725,20 @@ impl Document {
         let block = &self.blocks[index];
         if block.atomic {
             return Ok(None);
+        }
+        if !block.materialized {
+            // The offsets exist -- the Shell declared the length -- but there
+            // is no text to snap them to a grapheme boundary against. Clamp to
+            // an edge, which is always a boundary, and ask for the block.
+            return Ok(Some(DocumentPosition {
+                key: position.key,
+                offset: if position.offset * 2 >= block.len_utf16 {
+                    block.len_utf16
+                } else {
+                    0
+                },
+                affinity: position.affinity,
+            }));
         }
         let bias = match position.affinity {
             Affinity::Upstream => OffsetBias::Backward,
@@ -904,6 +1070,7 @@ impl Document {
             next.push_str(&block.text[end..]);
             block.marks = block.marks.replace(range, &replacement.marks)?;
             block.index = TextIndex::new(&next)?;
+            block.len_utf16 = block.index.utf16_len();
             block.text = next;
         }
         for request in &edit.structure {
@@ -926,6 +1093,7 @@ impl Document {
                         .replace(Utf16Range::collapsed(at), &moved.marks)?;
                     block.text.push_str(&moved.text);
                     block.index = TextIndex::new(&block.text)?;
+                    block.len_utf16 = block.index.utf16_len();
                 }
             }
         }
@@ -965,6 +1133,16 @@ impl Document {
     /// blocks.
     fn plan_range_delete(&self) -> Result<DocumentEdit, EditError> {
         let covered = self.covered_blocks(self.selection)?;
+        // A block the selection swallows whole is removed without its text; a
+        // block it only trims needs grapheme boundaries, and those need the
+        // text. Refusing here is what keeps a virtualized delete from guessing.
+        for (index, range) in &covered {
+            let block = &self.blocks[*index];
+            let whole = range.start == 0 && range.end == block.len_utf16();
+            if !whole && !block.materialized {
+                return Err(EditError::BlockNotMaterialized { key: block.key });
+            }
+        }
         let mut replacements = Vec::new();
         let mut removed = Vec::new();
         let mut survivor: Option<usize> = None;
@@ -972,9 +1150,11 @@ impl Document {
         for (index, range) in covered {
             let block = &self.blocks[index];
             let whole = range.start == 0 && range.end == block.len_utf16();
-            if whole && (block.atomic || survivor.is_some()) {
+            if whole && (block.atomic || !block.materialized || survivor.is_some()) {
                 // A block the selection swallows whole disappears, except for
-                // the first one: emptying it keeps the caret somewhere.
+                // the first one: emptying it keeps the caret somewhere. An
+                // unmaterialized block is never that survivor -- it has no text
+                // to keep, and the caret cannot stand in it.
                 removed.push(block.key);
                 continue;
             }
@@ -1032,21 +1212,11 @@ mod tests {
     use super::*;
 
     fn text_block(key: BlockKey, text: &str) -> BlockProjection {
-        BlockProjection {
-            key,
-            text: text.to_owned(),
-            marks: None,
-            atomic: false,
-        }
+        BlockProjection::text(key, text, None)
     }
 
     fn object(key: BlockKey) -> BlockProjection {
-        BlockProjection {
-            key,
-            text: String::new(),
-            marks: None,
-            atomic: true,
-        }
+        BlockProjection::object(key)
     }
 
     fn document(blocks: Vec<BlockProjection>) -> Document {
@@ -1361,12 +1531,11 @@ mod tests {
             Err(EditError::DuplicateBlockKey { key: 1 })
         );
         assert!(matches!(
-            Document::new(vec![BlockProjection {
-                key: 1,
-                text: "abc".to_owned(),
-                marks: Some(MarkRuns::uniform(2, 1, 0)),
-                atomic: false,
-            }]),
+            Document::new(vec![BlockProjection::text(
+                1,
+                "abc",
+                Some(MarkRuns::uniform(2, 1, 0)),
+            )]),
             Err(EditError::InvalidMarkRuns { .. })
         ));
         let document = document(vec![text_block(1, "a")]);
@@ -1560,6 +1729,165 @@ mod tests {
                 .expect("plan")
                 .is_selection_only()
         );
+    }
+
+    fn placeholder(key: BlockKey, len: u32) -> BlockProjection {
+        BlockProjection::placeholder(key, len)
+    }
+
+    #[test]
+    fn an_unmaterialized_block_still_occupies_the_position_space() {
+        let document = document(vec![
+            text_block(1, "ab"),
+            placeholder(2, 500),
+            text_block(3, "cd"),
+        ]);
+        // The middle block costs one integer, not five hundred characters, but
+        // it occupies exactly the positions its length claims.
+        assert_eq!(document.len(), 4 + 502 + 4);
+        assert_eq!(document.gap_position(2), 4 + 502);
+        assert!(!document.blocks()[1].is_materialized());
+        assert_eq!(document.blocks()[1].text(), "");
+        assert_eq!(document.blocks()[1].len_utf16(), 500);
+
+        // A selection can still span it, and it reports as fully covered.
+        let selection = DocumentSelection::Text {
+            anchor: DocumentPosition::new(1, 1),
+            focus: DocumentPosition::new(3, 1),
+        };
+        assert_eq!(
+            document.covered_blocks(selection).expect("covered"),
+            vec![
+                (0, Utf16Range::new(1, 2)),
+                (1, Utf16Range::new(0, 500)),
+                (2, Utf16Range::new(0, 1)),
+            ]
+        );
+    }
+
+    #[test]
+    fn the_caret_stops_at_an_unmaterialized_block_and_asks_for_it() {
+        let mut document = document(vec![text_block(1, "ab"), placeholder(2, 5)]);
+        document
+            .set_selection(DocumentSelection::Text {
+                anchor: DocumentPosition::new(1, 2),
+                focus: DocumentPosition::new(1, 2),
+            })
+            .expect("caret");
+        assert!(document.take_materialization_requests().is_empty());
+
+        // Forward leaves the text block for the gap, then stops: there is no
+        // text in the next block to put a caret on yet.
+        let next = document
+            .moved(Direction::Forward, Granularity::Character, false)
+            .expect("moved");
+        assert_eq!(next, DocumentSelection::Gap { before: 1 });
+        document.set_selection(next).expect("gap");
+        assert_eq!(document.take_materialization_requests(), vec![2]);
+        assert_eq!(
+            document
+                .moved(Direction::Forward, Granularity::Character, false)
+                .expect("moved"),
+            DocumentSelection::Gap { before: 2 }
+        );
+
+        // Once the Shell sends it, the same key enters it.
+        document
+            .reproject(vec![text_block(1, "ab"), text_block(2, "xyzzy")])
+            .expect("reproject");
+        document
+            .set_selection(DocumentSelection::Gap { before: 1 })
+            .expect("gap");
+        assert_eq!(
+            document
+                .moved(Direction::Forward, Granularity::Character, false)
+                .expect("moved"),
+            DocumentSelection::Text {
+                anchor: DocumentPosition::new(2, 0),
+                focus: DocumentPosition::new(2, 0),
+            }
+        );
+    }
+
+    #[test]
+    fn a_selection_edge_inside_an_unmaterialized_block_clamps_and_asks_for_it() {
+        let mut document = document(vec![text_block(1, "ab"), placeholder(2, 10)]);
+        document
+            .set_selection(DocumentSelection::Text {
+                anchor: DocumentPosition::new(1, 0),
+                focus: DocumentPosition::new(2, 7),
+            })
+            .expect("selection");
+        // Offset seven of ten has no grapheme boundary Core can check, so it
+        // clamps to the nearer edge rather than inventing one.
+        assert_eq!(
+            document.selection(),
+            DocumentSelection::Text {
+                anchor: DocumentPosition::new(1, 0),
+                focus: DocumentPosition::new(2, 10),
+            }
+        );
+        assert_eq!(document.take_materialization_requests(), vec![2]);
+    }
+
+    #[test]
+    fn a_delete_that_only_trims_an_unmaterialized_block_is_refused() {
+        let mut document = document(vec![
+            text_block(1, "ab"),
+            placeholder(2, 10),
+            text_block(3, "cd"),
+        ]);
+        // Whole blocks are removable without their text.
+        document
+            .set_selection(DocumentSelection::Text {
+                anchor: DocumentPosition::new(1, 1),
+                focus: DocumentPosition::new(3, 1),
+            })
+            .expect("selection");
+        let edit = document.plan_delete(Direction::Backward).expect("plan");
+        assert_eq!(
+            edit.structure
+                .iter()
+                .filter_map(|request| match request {
+                    StructureRequest::Remove { keys } => Some(keys.clone()),
+                    StructureRequest::Merge { .. } => None,
+                })
+                .collect::<Vec<_>>(),
+            vec![vec![2]]
+        );
+
+        // An unmaterialized block is never the block that survives a delete:
+        // emptying it would need text it does not have, so it is removed and
+        // the caret goes to a block that does.
+        let mut leading = document;
+        leading
+            .set_selection(DocumentSelection::Text {
+                anchor: DocumentPosition::new(2, 0),
+                focus: DocumentPosition::new(3, 1),
+            })
+            .expect("selection");
+        let edit = leading.plan_delete(Direction::Backward).expect("plan");
+        assert_eq!(
+            edit.structure,
+            vec![StructureRequest::Remove { keys: vec![2] }]
+        );
+        assert_eq!(
+            edit.replacements
+                .iter()
+                .map(|replacement| replacement.key)
+                .collect::<Vec<_>>(),
+            vec![3]
+        );
+        leading.apply_edit(&edit).expect("apply");
+        assert_eq!(
+            leading
+                .blocks()
+                .iter()
+                .map(DocumentBlock::key)
+                .collect::<Vec<_>>(),
+            vec![1, 3]
+        );
+        assert_eq!(leading.blocks()[1].text(), "d");
     }
 
     proptest! {

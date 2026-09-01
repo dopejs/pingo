@@ -227,19 +227,19 @@ E14 的设计（[`e14-painted-text-probe-design.md`](e14-painted-text-probe-desi
 - `pingo-core` 的 `rich-text` feature 默认开启，`cargo test --workspace` 因此测的是
   完整能力；
 - `pnpm core:wasm` 默认传 `--no-default-features`，发布产物 **不含** 该模块，落在
-  390,732，工程门禁下仍余 2,484 bytes；
+  392,071，工程门禁下仅余 **1,145 bytes**；
 - `PINGO_RICH_TEXT=1 pnpm core:wasm` 产出含该模块的产物，此时按产品上限计量，manifest
   的 `richText: true` 记录了产物是哪一种。
 
-**12,064 的常驻增量**（feature 关掉也在）来自不能按能力摘除的部分：ABI 新增的
-`StyledRuns` 资源、`SetRichText`、编辑事务上的 mark/映射负载、三条文档输入指令与
-`Structure`/`DocumentSelection` 反向记录；Scene 的 `documents` lane 与 run 表校验；
-`EditSession` 里织进去的 mark 表与位置映射。把这些也做成 feature 会让**解码器出现两种
+**13,403 的常驻增量**（feature 关掉也在）来自不能按能力摘除的部分：ABI 新增的
+`StyledRuns` 资源、`SetRichText`、编辑事务上的 mark/映射负载、三条文档输入指令、
+`ConfigureDocument` 的块列表，以及 `Structure`/`DocumentSelection` 反向记录；Scene 的
+`documents` lane 与 run 表校验；`EditSession` 里织进去的 mark 表与位置映射。把这些也做成 feature 会让**解码器出现两种
 方言**——同一个 ABI 版本号，两套可接受的指令集——这是信任边界上不该引入的歧义，所以没有
 做。
 
-由此工程余量从 14,625 降到 2,484。**下一次 Rust 能力新增必须先归因、再动手**：常驻
-路径已经没有空间了。可回收的部分按代价排序：
+由此工程余量从 14,625 降到 **1,145**。**下一次 Rust 能力新增必须先回收再动手**：常驻
+路径已经没有空间了，任何新增都会直接顶破工程门禁。可回收的部分按代价排序：
 
 1. 把 ABI 的文档指令与 `Structure`/`DocumentSelection` 记录一并 feature 化（约 4–6 KiB，
    但引入双方言）；

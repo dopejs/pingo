@@ -1,5 +1,7 @@
 import {
   ABI_VERSION,
+  DOCUMENT_BLOCK_FLAG_ATOMIC,
+  MAX_DOCUMENT_BLOCK_KEYS,
   INSTRUCTION_HEADER_BYTES,
   MAX_MUTATION_BYTES,
   MAX_MUTATION_INSTRUCTIONS,
@@ -24,6 +26,18 @@ import type { Prop } from "./generated";
 export { NULL_NODE_ID } from "./generated";
 
 /** A generated, validated mutation command. */
+/** One block of a document projection. */
+export interface DocumentBlock {
+  /** Stable Shell-assigned identity; never zero. */
+  readonly key: number;
+  /** Scene node holding the block's text, or NULL_NODE_ID when unmaterialized. */
+  readonly nodeId: number;
+  /** UTF-16 length the Shell declares for the block. */
+  readonly lenUtf16: number;
+  /** Whether the caret may not enter the block. */
+  readonly atomic: boolean;
+}
+
 export type Mutation =
   | {
       readonly type: "createNode";
@@ -84,15 +98,18 @@ export type Mutation =
     }
   | {
       /**
-       * Marks a container as the root of an editable document.
+       * Declares a container's block projection.
        *
-       * Its text, editable, and object descendants become Core's block
-       * projection in topology order.
+       * A block with no node is one the Shell has not materialized; declaring
+       * its length is what lets a virtualized document keep one position
+       * space.
        */
       readonly type: "configureDocument";
       readonly nodeId: number;
       readonly revision: bigint;
       readonly flags: number;
+      /** Blocks in document order. */
+      readonly blocks: readonly DocumentBlock[];
     }
   | {
       readonly type: "defineResource";
@@ -361,16 +378,42 @@ function encodeMutation(writer: ByteWriter, mutation: Mutation): void {
       writer.u32(mutation.styleId);
       writer.u32(mutation.runsId);
       return;
-    case "configureDocument":
+    case "configureDocument": {
       assertU32(mutation.nodeId, "nodeId");
       assertU64(mutation.revision, "revision");
       if (mutation.flags !== 0) fail("document flags contain reserved bits");
+      if (mutation.blocks.length > MAX_DOCUMENT_BLOCK_KEYS) {
+        fail("document projection names too many blocks");
+      }
+      const seen = new Set<number>();
+      for (const block of mutation.blocks) {
+        assertU32(block.key, "document block key");
+        assertU32(block.nodeId, "document block nodeId");
+        assertU32(block.lenUtf16, "document block length");
+        // Key zero is reserved for "no block", and a repeated key would make
+        // two positions indistinguishable.
+        if (block.key === 0 || seen.has(block.key)) {
+          fail("document block keys must be non-zero and unique");
+        }
+        seen.add(block.key);
+        if (block.atomic && block.lenUtf16 !== 0) {
+          fail("an atomic document block has no text length");
+        }
+      }
       writer.instruction(MutationOpcode.ConfigureDocument);
       writer.u32(mutation.nodeId);
       writer.u32(Number(mutation.revision & 0xffff_ffffn));
       writer.u32(Number(mutation.revision >> 32n));
       writer.u32(mutation.flags);
+      writer.u32(mutation.blocks.length);
+      for (const block of mutation.blocks) {
+        writer.u32(block.key);
+        writer.u32(block.nodeId);
+        writer.u32(block.lenUtf16);
+        writer.u32(block.atomic ? DOCUMENT_BLOCK_FLAG_ATOMIC : 0);
+      }
       return;
+    }
     case "defineResource":
       assertU32(mutation.resourceId, "resourceId");
       assertEnum(ResourceKind, mutation.kind, "resource kind");
@@ -528,7 +571,27 @@ function decodeMutation(reader: ByteReader, opcode: MutationOpcode): Mutation {
       const revision = BigInt(reader.u32()) | (BigInt(reader.u32()) << 32n);
       const flags = reader.u32();
       if (flags !== 0) fail("document flags contain reserved bits");
-      return { type: "configureDocument", nodeId, revision, flags };
+      const count = reader.u32();
+      if (count > MAX_DOCUMENT_BLOCK_KEYS) fail("document projection names too many blocks");
+      const blocks: DocumentBlock[] = [];
+      const seen = new Set<number>();
+      for (let index = 0; index < count; index += 1) {
+        const key = reader.u32();
+        const blockNodeId = reader.u32();
+        const lenUtf16 = reader.u32();
+        const blockFlags = reader.u32();
+        if ((blockFlags & ~DOCUMENT_BLOCK_FLAG_ATOMIC) !== 0) {
+          fail("document block flags contain reserved bits");
+        }
+        if (key === 0 || seen.has(key)) {
+          fail("document block keys must be non-zero and unique");
+        }
+        seen.add(key);
+        const atomic = (blockFlags & DOCUMENT_BLOCK_FLAG_ATOMIC) !== 0;
+        if (atomic && lenUtf16 !== 0) fail("an atomic document block has no text length");
+        blocks.push({ key, nodeId: blockNodeId, lenUtf16, atomic });
+      }
+      return { type: "configureDocument", nodeId, revision, flags, blocks };
     }
     case MutationOpcode.DefineResource: {
       const resourceId = reader.u32();

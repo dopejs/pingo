@@ -6776,6 +6776,17 @@ mod tests {
             node_id: id(1),
             revision,
             flags: 0,
+            blocks: blocks
+                .iter()
+                .map(|(node, text)| pingo_abi::DocumentBlockRecord {
+                    key: *node,
+                    node_id: *node,
+                    len_utf16: text.map_or(0, |value| {
+                        u32::try_from(value.encode_utf16().count()).expect("small block")
+                    }),
+                    atomic: text.is_none(),
+                })
+                .collect(),
         });
         frame(frame_seq, mutations)
     }
@@ -6973,6 +6984,91 @@ mod tests {
 
     #[cfg(feature = "rich-text")]
     #[test]
+    fn a_block_the_shell_has_not_materialized_still_holds_its_place() {
+        let mut engine = CoreEngine::new(320.0, 240.0).expect("Core");
+        // Three blocks, but only the first and last have Scene nodes: the
+        // middle one is a paragraph the Shell has not built yet.
+        let mut mutations = pingo_abi::MutationBatch::decode(&document_tree(
+            1,
+            1,
+            &[(id(2), Some("ab")), (id(3), Some("cd"))],
+        ))
+        .expect("decode")
+        .instructions
+        .into_iter()
+        .map(|instruction| instruction.mutation)
+        .filter(|mutation| !matches!(mutation, Mutation::ConfigureDocument { .. }))
+        .collect::<Vec<_>>();
+        mutations.push(Mutation::ConfigureDocument {
+            node_id: id(1),
+            revision: 1,
+            flags: 0,
+            blocks: vec![
+                pingo_abi::DocumentBlockRecord {
+                    key: id(2),
+                    node_id: id(2),
+                    len_utf16: 2,
+                    atomic: false,
+                },
+                pingo_abi::DocumentBlockRecord {
+                    key: 0x00ff_0001,
+                    node_id: NULL_NODE_ID,
+                    len_utf16: 500,
+                    atomic: false,
+                },
+                pingo_abi::DocumentBlockRecord {
+                    key: id(3),
+                    node_id: id(3),
+                    len_utf16: 2,
+                    atomic: false,
+                },
+            ],
+        });
+        engine.commit(&frame(1, mutations)).expect("document frame");
+        let _ = engine.take_glyph_resources();
+        let _ = engine.take_edit_transactions().expect("drain");
+
+        // Selecting across the placeholder is legal, and deleting removes it
+        // whole without Core ever holding its five hundred characters.
+        engine
+            .input(&input(
+                2,
+                vec![
+                    InputCommand::SetDocumentSelection {
+                        node_id: id(1),
+                        base_revision: 0,
+                        selection: pingo_abi::WireDocumentSelection::Text {
+                            anchor_key: id(2),
+                            anchor_offset: 1,
+                            focus_key: id(3),
+                            focus_offset: 1,
+                        },
+                    },
+                    InputCommand::EditDocument {
+                        node_id: id(1),
+                        base_revision: 0,
+                        operation: pingo_abi::DocumentOperation::DeleteBackward,
+                        style: 0,
+                        font: 0,
+                        text: String::new(),
+                    },
+                ],
+            ))
+            .expect("delete across a placeholder");
+        let _ = engine.take_glyph_resources();
+        let requests = structure_requests(&mut engine);
+        assert_eq!(
+            requests
+                .iter()
+                .filter(|request| request.kind == pingo_abi::StructureKind::Remove)
+                .map(|request| request.keys.clone())
+                .collect::<Vec<_>>(),
+            vec![vec![0x00ff_0001]]
+        );
+    }
+
+    #[cfg(feature = "rich-text")]
+    #[test]
     fn a_shell_projection_that_differs_from_the_prediction_is_counted() {
         let mut engine = CoreEngine::new(320.0, 240.0).expect("Core");
         engine
@@ -7022,6 +7118,17 @@ mod tests {
                     node_id: id(1),
                     revision: 2,
                     flags: 0,
+                    // The Shell kept both blocks: its schema said no to the
+                    // merge Core predicted.
+                    blocks: [(id(2), 5_u32), (id(3), 5)]
+                        .into_iter()
+                        .map(|(node, len_utf16)| pingo_abi::DocumentBlockRecord {
+                            key: node,
+                            node_id: node,
+                            len_utf16,
+                            atomic: false,
+                        })
+                        .collect(),
                 }],
             ))
             .expect("correction frame");

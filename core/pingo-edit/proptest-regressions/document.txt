@@ -6,3 +6,4 @@
 # everyone who runs the test benefits from these saved cases.
 cc fedfbe6a08aa9712f57c23c83e57e2dfc9b59b806d4476df7af245bfddc07e75 # shrinks to shape = [(true, 1), (true, 1), (true, 1), (false, 3)], anchor = 21, focus = 6
 cc 2c88d8a4a7dd3ad855b41cc1e229ed081d7f5384be78fd0da104dcf5e2816cd8 # shrinks to shape = [(false, 1), (false, 1)], anchor = 19, focus = 19
+cc fec8c645592bb300444d440c137ea4b0c8eb4d0bec44074e4bb6a71fd290c8c8 # shrinks to shape = [(false, 2)], anchor = 17, focus = 1

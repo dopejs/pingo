@@ -29,6 +29,18 @@ const GOLDEN_BATCH: MutationBatch = {
     },
     { type: "setTextRun", nodeId: 7, stringId: 9, styleId: 10 },
     { type: "setRichText", nodeId: 7, stringId: 9, styleId: 10, runsId: 11 },
+    {
+      type: "configureDocument",
+      nodeId: 7,
+      revision: 3n,
+      flags: 0,
+      blocks: [
+        { key: 7, nodeId: 7, lenUtf16: 5, atomic: false },
+        // A block with no node is one the Shell has not materialized.
+        { key: 8, nodeId: NULL_NODE_ID, lenUtf16: 120, atomic: false },
+        { key: 9, nodeId: 9, lenUtf16: 0, atomic: true },
+      ],
+    },
   ],
 };
 
@@ -68,7 +80,7 @@ describe("Mutation Stream", () => {
     const bytes = encodeMutationBatch(GOLDEN_BATCH);
     expect(decodeMutationBatch(bytes)).toEqual(GOLDEN_BATCH);
     expect(toHex(bytes)).toBe(
-      "444f504d190010007800000006000000010005000700000003000000ffffffffffffffff1000040007000000010000000040a0433000060009000000010000000500000068656c6c6f0000002000040007000000090000000a0000002100050007000000090000000a0000000b000000f00002002a000000",
+      "444f504d1a001000c000000007000000010005000700000003000000ffffffffffffffff1000040007000000010000000040a0433000060009000000010000000500000068656c6c6f0000002000040007000000090000000a0000002100050007000000090000000a0000000b0000006100120007000000030000000000000000000000030000000700000007000000050000000000000008000000ffffffff780000000000000009000000090000000000000001000000f00002002a000000",
     );
   });
 
