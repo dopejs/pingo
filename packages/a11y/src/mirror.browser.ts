@@ -50,6 +50,9 @@ describe("semantic mirror state", () => {
       node({ nodeId: 6, role: "slider", value: "40", label: "音量" }),
       node({ nodeId: 7, role: "columnheader", value: "descending", label: "提交" }),
       node({ nodeId: 8, role: "button", value: "current", label: "第 3 页" }),
+      node({ nodeId: 9, role: "heading", value: "1", label: "标题" }),
+      node({ nodeId: 10, role: "heading", value: "", label: "无层级" }),
+      node({ nodeId: 11, role: "heading", value: "9", label: "越界" }),
     ]);
     expect(element(mirror, 1).getAttribute("aria-checked")).toBe("true");
     expect(element(mirror, 2).getAttribute("aria-checked")).toBe("false");
@@ -59,6 +62,12 @@ describe("semantic mirror state", () => {
     expect(element(mirror, 6).getAttribute("aria-valuenow")).toBe("40");
     expect(element(mirror, 7).getAttribute("aria-sort")).toBe("descending");
     expect(element(mirror, 8).getAttribute("aria-current")).toBe("true");
+    // Without a level a screen reader announces every heading as level 2, so
+    // an H1 and an H4 would be indistinguishable. A value outside 1..6 is not
+    // a level and is dropped rather than passed through.
+    expect(element(mirror, 9).getAttribute("aria-level")).toBe("1");
+    expect(element(mirror, 10).getAttribute("aria-level")).toBeNull();
+    expect(element(mirror, 11).getAttribute("aria-level")).toBeNull();
     // The state is an attribute, so it is not also the element's name.
     expect(element(mirror, 1).textContent).toBe("");
     mirror.dispose();

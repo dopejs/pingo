@@ -47,6 +47,20 @@ export {
   CardTitle,
 } from "./components/card";
 export type { CardSectionProps, CardTextProps } from "./components/card";
+export {
+  Blockquote,
+  H1,
+  H2,
+  H3,
+  H4,
+  InlineCode,
+  Large,
+  Lead,
+  Muted,
+  P,
+  Small,
+} from "./components/typography";
+export type { HeadingProps, TypographyProps } from "./components/typography";
 export { Checkbox } from "./components/checkbox";
 export { Command } from "./components/command";
 export type { CommandItem, CommandProps } from "./components/command";

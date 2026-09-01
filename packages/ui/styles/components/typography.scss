@@ -1,0 +1,137 @@
+@use "../tokens" as t;
+
+// shadcn's typography page is CSS on real heading and paragraph elements. Here
+// each step is a class on a text node, because pingo resolves text metrics per
+// node rather than by inheritance: nothing cascades a font size down a subtree.
+
+.pui-h1 {
+  font-size: t.$font-size-4xl;
+  line-height: t.$line-height-4xl;
+  font-weight: t.$font-weight-extrabold;
+  color: t.$foreground;
+  &.pui-dark {
+    color: t.$dark-foreground;
+  }
+}
+
+.pui-h2 {
+  font-size: t.$font-size-3xl;
+  line-height: t.$line-height-3xl;
+  font-weight: t.$font-weight-semibold;
+  color: t.$foreground;
+  &.pui-dark {
+    color: t.$dark-foreground;
+  }
+}
+
+.pui-h3 {
+  font-size: t.$font-size-2xl;
+  line-height: t.$line-height-2xl;
+  font-weight: t.$font-weight-semibold;
+  color: t.$foreground;
+  &.pui-dark {
+    color: t.$dark-foreground;
+  }
+}
+
+.pui-h4 {
+  font-size: t.$font-size-xl;
+  line-height: t.$line-height-xl;
+  font-weight: t.$font-weight-semibold;
+  color: t.$foreground;
+  &.pui-dark {
+    color: t.$dark-foreground;
+  }
+}
+
+.pui-p {
+  font-size: t.$font-size-base;
+  line-height: t.$line-height-base;
+  color: t.$foreground;
+  &.pui-dark {
+    color: t.$dark-foreground;
+  }
+}
+
+.pui-lead {
+  font-size: t.$font-size-xl;
+  line-height: t.$line-height-xl;
+  color: t.$muted-foreground;
+  &.pui-dark {
+    color: t.$dark-muted-foreground;
+  }
+}
+
+.pui-large {
+  font-size: t.$font-size-lg;
+  line-height: t.$line-height-lg;
+  font-weight: t.$font-weight-semibold;
+  color: t.$foreground;
+  &.pui-dark {
+    color: t.$dark-foreground;
+  }
+}
+
+.pui-small {
+  font-size: t.$font-size-sm;
+  line-height: t.$line-height-sm;
+  font-weight: t.$font-weight-medium;
+  color: t.$foreground;
+  &.pui-dark {
+    color: t.$dark-foreground;
+  }
+}
+
+.pui-muted {
+  font-size: t.$font-size-sm;
+  line-height: t.$line-height-sm;
+  color: t.$muted-foreground;
+  &.pui-dark {
+    color: t.$dark-muted-foreground;
+  }
+}
+
+// The rule is a left border on the wrapper; the text inside keeps its own
+// metrics, so the quote is a box with one styled child rather than a styled
+// run of prose.
+.pui-blockquote {
+  border-left-width: t.$typography-quote-border;
+  border-left-style: solid;
+  border-left-color: t.$border;
+  padding-left: t.$typography-quote-padding;
+  &.pui-dark {
+    border-left-color: t.$dark-border;
+  }
+}
+
+.pui-blockquote__text {
+  font-size: t.$font-size-base;
+  line-height: t.$line-height-base;
+  color: t.$foreground;
+  &.pui-dark {
+    color: t.$dark-foreground;
+  }
+}
+
+.pui-code {
+  align-items: center;
+  padding-top: t.$code-padding-y;
+  padding-bottom: t.$code-padding-y;
+  padding-left: t.$code-padding-x;
+  padding-right: t.$code-padding-x;
+  border-radius: t.$radius-sm;
+  background-color: t.$muted;
+  &.pui-dark {
+    background-color: t.$dark-muted;
+  }
+}
+
+.pui-code__text {
+  font-size: t.$font-size-sm;
+  line-height: t.$line-height-sm;
+  font-weight: t.$font-weight-semibold;
+  color: t.$foreground;
+  &.pui-dark {
+    color: t.$dark-foreground;
+  }
+}

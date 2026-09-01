@@ -64,6 +64,7 @@ const STATE_ATTRIBUTES = [
   "aria-current",
   "aria-sort",
   "aria-valuenow",
+  "aria-level",
 ] as const;
 
 /** Roles that share one Tab stop per group, per WAI-ARIA. */
@@ -113,6 +114,14 @@ function ariaState(role: string, value: string): { name: string; value: string }
       return Number.isFinite(Number(value)) ? { name: "aria-valuenow", value } : undefined;
     case "columnheader":
       return SORT_VALUES.has(value) ? { name: "aria-sort", value } : undefined;
+    case "heading": {
+      // A heading with no level is announced as level 2 by most screen readers,
+      // so an H1 and an H4 would sound identical without this.
+      const level = Number(value);
+      return Number.isInteger(level) && level >= 1 && level <= 6
+        ? { name: "aria-level", value }
+        : undefined;
+    }
     default:
       return undefined;
   }
