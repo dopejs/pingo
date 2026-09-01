@@ -21,6 +21,9 @@ export const RELEASE_PACKAGES = [
   "a11y",
   "reconciler",
   "host",
+  // The document editor is an optional subpath of the facade, so it publishes
+  // with it for the same reason the React binding does.
+  "editor",
   "widgets",
   "facade",
   "compat",

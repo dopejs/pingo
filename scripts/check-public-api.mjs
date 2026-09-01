@@ -9,6 +9,7 @@ const pairs = [
   ["packages/facade/dist/jsx-runtime.d.ts", "benchmarks/api/jsx-runtime.v1.d.ts"],
   ["packages/facade/dist/jsx-dev-runtime.d.ts", "benchmarks/api/jsx-dev-runtime.v1.d.ts"],
   ["packages/facade/dist/backend-canvas2d.d.ts", "benchmarks/api/backend-canvas2d.v1.d.ts"],
+  ["packages/facade/dist/editor.d.ts", "benchmarks/api/editor.v1.d.ts"],
   ["packages/facade/dist/react.d.ts", "benchmarks/api/react.v1.d.ts"],
 ];
 
@@ -34,6 +35,7 @@ const packageJson = JSON.parse(
 const expectedSubpaths = [
   ".",
   "./backend-canvas2d",
+  "./editor",
   "./jsx-dev-runtime",
   "./jsx-runtime",
   "./react",

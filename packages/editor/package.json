@@ -1,0 +1,35 @@
+{
+  "name": "@dopejs/pingo-editor",
+  "version": "0.4.0",
+  "description": "pingo internal: document schema, commands, input rules and serialization (use @dopejs/pingo)",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dopejs/pingo.git",
+    "directory": "packages/editor"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "LICENSE",
+    "NOTICE",
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@dopejs/pingo-editing": "workspace:*",
+    "@dopejs/pingo-reconciler": "workspace:*"
+  }
+}

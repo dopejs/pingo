@@ -130,6 +130,15 @@ importers:
 
   packages/editing: {}
 
+  packages/editor:
+    dependencies:
+      '@dopejs/pingo-editing':
+        specifier: workspace:*
+        version: link:../editing
+      '@dopejs/pingo-reconciler':
+        specifier: workspace:*
+        version: link:../reconciler
+
   packages/facade:
     dependencies:
       '@dopejs/pingo-a11y':
@@ -141,6 +150,9 @@ importers:
       '@dopejs/pingo-editing':
         specifier: workspace:*
         version: link:../editing
+      '@dopejs/pingo-editor':
+        specifier: workspace:*
+        version: link:../editor
       '@dopejs/pingo-host':
         specifier: workspace:*
         version: link:../host

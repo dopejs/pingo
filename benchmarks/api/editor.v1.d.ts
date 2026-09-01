@@ -1,0 +1,51 @@
+/**
+ * Document schema, commands, input rules and serialization.
+ *
+ * A separate subpath because a document editor is a much larger surface than
+ * a text field, and an application that only needs the latter should not pay
+ * for the former.
+ */
+export {
+  BlockKeyAllocator,
+  Editor,
+  MAXIMUM_LIST_DEPTH,
+  acceptsInputRules,
+  acceptsMark,
+  applyBlockRule,
+  applyInlineRule,
+  attributesAfterSplit,
+  fromHtml,
+  fromMarkdown,
+  indentRule,
+  isAtomic,
+  isLiteral,
+  liftListItem,
+  markIsActive,
+  mergeBlocks,
+  normalizeBlock,
+  normalizeDocument,
+  removeBlocks,
+  replaceText,
+  setBlockType,
+  sinkListItem,
+  splitBlock,
+  toHtml,
+  toMarkdown,
+  toggleMark,
+  typeAfterSplit,
+  utf16Length,
+  type Anchor,
+  type Block,
+  type BlockAttributes,
+  type BlockNodes,
+  type BlockRange,
+  type BlockType,
+  type CommandResult,
+  type DocumentModel,
+  type EditorOptions,
+  type EditorProjection,
+  type MarkName,
+  type MarkRange,
+  type RuleContext,
+  type RuleOutcome,
+} from "@dopejs/pingo-editor";

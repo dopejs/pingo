@@ -27,6 +27,10 @@
       "types": "./dist/backend-canvas2d.d.ts",
       "import": "./dist/backend-canvas2d.js"
     },
+    "./editor": {
+      "types": "./dist/editor.d.ts",
+      "import": "./dist/editor.js"
+    },
     "./jsx-dev-runtime": {
       "types": "./dist/jsx-dev-runtime.d.ts",
       "import": "./dist/jsx-dev-runtime.js"
@@ -44,6 +48,7 @@
     "@dopejs/pingo-a11y": "workspace:*",
     "@dopejs/pingo-backend-canvas2d": "workspace:*",
     "@dopejs/pingo-editing": "workspace:*",
+    "@dopejs/pingo-editor": "workspace:*",
     "@dopejs/pingo-host": "workspace:*",
     "@dopejs/pingo-jsx": "workspace:*",
     "@dopejs/pingo-react": "workspace:*",
