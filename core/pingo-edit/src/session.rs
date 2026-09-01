@@ -46,20 +46,11 @@ enum UndoAnchor {
     /// Nothing at the top of the undo stack may absorb the next command.
     None,
     /// The top entry ends with an insertion whose caret sits at `caret`.
-    Insert {
-        caret: u32,
-        class: TextClass,
-    },
+    Insert { caret: u32, class: TextClass },
     /// The top entry ends with a backward deletion that began at `start`.
-    DeleteBackward {
-        start: u32,
-        class: TextClass,
-    },
+    DeleteBackward { start: u32, class: TextClass },
     /// The top entry ends with a forward deletion anchored at `caret`.
-    DeleteForward {
-        caret: u32,
-        class: TextClass,
-    },
+    DeleteForward { caret: u32, class: TextClass },
 }
 
 /// How one accepted command participates in undo grouping.
@@ -1148,8 +1139,8 @@ mod tests {
             group_undo: false,
             ..EditConfig::default()
         };
-        let mut editor =
-            EditSession::new(String::new(), Selection::collapsed(0), 0, ungrouped).expect("session");
+        let mut editor = EditSession::new(String::new(), Selection::collapsed(0), 0, ungrouped)
+            .expect("session");
         for character in ["a", "b", "c"] {
             apply(&mut editor, EditIntent::Insert((*character).to_owned()));
         }

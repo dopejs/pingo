@@ -130,6 +130,41 @@ pub struct ShapeCluster {
     pub utf16: Range<u32>,
     /// Range in [`TextLayout::glyphs`].
     pub glyphs: Range<usize>,
+    /// Identity of the styled run this cluster was shaped with.
+    ///
+    /// Single-style text has one run whose key is zero, so this is `0` for
+    /// every cluster produced by [`layout_text`].
+    pub run: u32,
+}
+
+/// One styled span of a rich-text value, resolved to a concrete face.
+///
+/// Runs are the unit of shaping: a cluster never spans two of them, which is
+/// what keeps a bold word from splitting a ligature across two draw calls.
+#[derive(Clone, Debug)]
+pub struct RichRun {
+    /// UTF-8 byte range of the value covered by this run.
+    pub bytes: Range<usize>,
+    /// Face used to shape it.
+    pub font: FontFace,
+    /// Font size in logical pixels.
+    pub font_size: f32,
+    /// Caller-defined identity echoed back on clusters and segments.
+    pub key: u32,
+}
+
+/// A maximal group of consecutive glyphs on one line sharing one run.
+///
+/// This is what a backend draws: one segment becomes one glyph span, so its
+/// glyph range is contiguous by construction.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct LayoutSegment {
+    /// Identity of the [`RichRun`] that produced these glyphs.
+    pub run: u32,
+    /// Visual line index.
+    pub line: usize,
+    /// Range in [`TextLayout::glyphs`].
+    pub glyphs: Range<usize>,
 }
 
 /// One positioned font glyph.
@@ -200,6 +235,8 @@ pub struct TextLayout {
     pub lines: Vec<TextLine>,
     /// Legal caret positions.
     pub carets: Vec<CaretStop>,
+    /// Draw-order glyph groups, one per line and run.
+    pub segments: Vec<LayoutSegment>,
     /// Maximum line width.
     pub width: f32,
     /// Total line-box height.
@@ -234,12 +271,40 @@ impl TextLayout {
             )
             .saturating_add(self.lines.len().saturating_mul(size_of::<TextLine>()))
             .saturating_add(self.carets.len().saturating_mul(size_of::<CaretStop>()))
+            .saturating_add(
+                self.segments
+                    .len()
+                    .saturating_mul(size_of::<LayoutSegment>()),
+            )
     }
 }
 
 pub(crate) fn layout_text(
     context: &mut ShapeContext,
     font: &FontFace,
+    text: &str,
+    options: TextOptions,
+) -> Result<TextLayout, TextError> {
+    // One run covering everything is not a special case of rich text: it is the
+    // same code path, which is what makes single-style output identical.
+    let runs = [RichRun {
+        bytes: 0..text.len(),
+        font: font.clone(),
+        font_size: options.font_size,
+        key: 0,
+    }];
+    layout_runs(context, &runs, text, options)
+}
+
+/// Lays out text whose styling changes along the value.
+///
+/// `runs` must be ascending, contiguous, and cover `text` exactly; boundaries
+/// must sit on grapheme cluster boundaries. Callers get that from
+/// [`snap_runs_to_graphemes`], which is the only sanctioned way to build the
+/// table, so a boundary can never split a cluster here.
+pub(crate) fn layout_runs(
+    context: &mut ShapeContext,
+    runs: &[RichRun],
     text: &str,
     options: TextOptions,
 ) -> Result<TextLayout, TextError> {
@@ -250,6 +315,7 @@ pub(crate) fn layout_text(
             maximum: MAX_TEXT_BYTES,
         });
     }
+    validate_runs(runs, text)?;
     if text.chars().any(|character| {
         matches!(
             character.bidi_class(),
@@ -279,11 +345,10 @@ pub(crate) fn layout_text(
     let graphemes = grapheme_table(text)?;
     let ranges = line_ranges(
         context,
-        font,
+        runs,
         transformed.text.as_ref(),
         WrapConfig {
             max_width,
-            font_size: options.font_size,
             emergency: options.overflow_wrap != OverflowWrap::Normal,
         },
     )?;
@@ -297,6 +362,7 @@ pub(crate) fn layout_text(
         glyphs: Vec::new(),
         lines: Vec::with_capacity(ranges.len()),
         carets: Vec::new(),
+        segments: Vec::new(),
         width: 0.0,
         height: 0.0,
         missing_glyphs: 0,
@@ -305,7 +371,7 @@ pub(crate) fn layout_text(
     for (line_index, bytes) in ranges.into_iter().enumerate() {
         append_line(
             context,
-            font,
+            runs,
             &transformed,
             &mut layout,
             line_index,
@@ -314,18 +380,127 @@ pub(crate) fn layout_text(
         )?;
     }
     if layout.lines.is_empty() {
-        append_line(context, font, &transformed, &mut layout, 0, 0..0, options)?;
+        append_line(context, runs, &transformed, &mut layout, 0, 0..0, options)?;
     }
     layout.height = usize_to_f32(layout.lines.len()) * options.line_height;
     if options.text_overflow == TextOverflow::Ellipsis
         && !options.white_space.wraps()
         && options.max_width.is_finite()
     {
-        apply_ellipsis(context, font, &mut layout, options)?;
+        apply_ellipsis(context, runs, &mut layout, options)?;
     }
     build_carets(&mut layout, options.line_height)?;
     apply_alignment(&mut layout, transformed.text.as_ref(), options);
+    build_segments(&mut layout);
     Ok(layout)
+}
+
+/// Rewrites run boundaries so none of them falls inside a grapheme cluster.
+///
+/// A boundary inside a cluster would shape the two halves separately and
+/// produce two broken glyphs where the value has one character, so a grapheme
+/// is assigned whole to the run that owns its first byte. Runs that end up
+/// empty are dropped.
+#[must_use]
+pub fn snap_runs_to_graphemes(runs: &[RichRun], text: &str) -> Vec<RichRun> {
+    let mut result: Vec<RichRun> = Vec::with_capacity(runs.len());
+    for (start, grapheme) in text.grapheme_indices(true) {
+        let end = start + grapheme.len();
+        let Some(owner) = runs
+            .iter()
+            .find(|run| run.bytes.start <= start && start < run.bytes.end)
+            .or_else(|| runs.last())
+        else {
+            continue;
+        };
+        match result.last_mut() {
+            Some(last) if last.key == owner.key && last.bytes.end == start => {
+                last.bytes.end = end;
+            }
+            _ => result.push(RichRun {
+                bytes: start..end,
+                font: owner.font.clone(),
+                font_size: owner.font_size,
+                key: owner.key,
+            }),
+        }
+    }
+    if result.is_empty()
+        && let Some(first) = runs.first()
+    {
+        result.push(RichRun {
+            bytes: 0..text.len(),
+            font: first.font.clone(),
+            font_size: first.font_size,
+            key: first.key,
+        });
+    }
+    result
+}
+
+fn validate_runs(runs: &[RichRun], text: &str) -> Result<(), TextError> {
+    let mut cursor = 0_usize;
+    for run in runs {
+        if run.bytes.start != cursor
+            || run.bytes.end < run.bytes.start
+            || run.bytes.end > text.len()
+            || !text.is_char_boundary(run.bytes.start)
+            || !text.is_char_boundary(run.bytes.end)
+            || !run.font_size.is_finite()
+            || run.font_size <= 0.0
+        {
+            return Err(TextError::InvalidOptions);
+        }
+        cursor = run.bytes.end;
+    }
+    if cursor != text.len() {
+        return Err(TextError::InvalidOptions);
+    }
+    Ok(())
+}
+
+/// Returns the runs overlapping `range`, clipped to it, in ascending order.
+fn run_slices(
+    runs: &[RichRun],
+    range: Range<usize>,
+) -> impl Iterator<Item = (&RichRun, Range<usize>)> {
+    runs.iter().filter_map(move |run| {
+        let start = run.bytes.start.max(range.start);
+        let end = run.bytes.end.min(range.end);
+        if start < end {
+            Some((run, start..end))
+        } else {
+            None
+        }
+    })
+}
+
+/// Returns the run that owns `offset`, falling back to the nearest one.
+fn run_at(runs: &[RichRun], offset: usize) -> Option<&RichRun> {
+    runs.iter()
+        .find(|run| run.bytes.start <= offset && offset < run.bytes.end)
+        .or_else(|| runs.last())
+}
+
+/// Groups the finished glyph stream into one draw command per line and run.
+fn build_segments(layout: &mut TextLayout) {
+    let mut segments: Vec<LayoutSegment> = Vec::new();
+    for (index, glyph) in layout.glyphs.iter().enumerate() {
+        let run = layout.clusters[glyph.cluster].run;
+        match segments.last_mut() {
+            Some(last)
+                if last.run == run && last.line == glyph.line && last.glyphs.end == index =>
+            {
+                last.glyphs.end = index + 1;
+            }
+            _ => segments.push(LayoutSegment {
+                run,
+                line: glyph.line,
+                glyphs: index..index + 1,
+            }),
+        }
+    }
+    layout.segments = segments;
 }
 
 fn suppress_line_edge_spaces(transformed: &mut WhitespaceTransform<'_>, ranges: &[Range<usize>]) {
@@ -384,7 +559,7 @@ fn transform_whitespace(text: &str, mode: WhiteSpace) -> WhitespaceTransform<'_>
 
 fn line_ranges(
     context: &mut ShapeContext,
-    font: &FontFace,
+    runs: &[RichRun],
     text: &str,
     config: WrapConfig,
 ) -> Result<Vec<Range<usize>>, TextError> {
@@ -397,7 +572,7 @@ fn line_ranges(
             .ok_or(TextError::ArithmeticOverflow)?;
         wrap_paragraph(
             context,
-            font,
+            runs,
             text,
             paragraph_start..paragraph_end,
             config,
@@ -415,7 +590,7 @@ fn line_ranges(
     } else if paragraph_start < text.len() {
         wrap_paragraph(
             context,
-            font,
+            runs,
             text,
             paragraph_start..text.len(),
             config,
@@ -428,13 +603,12 @@ fn line_ranges(
 #[derive(Clone, Copy)]
 struct WrapConfig {
     max_width: f32,
-    font_size: f32,
     emergency: bool,
 }
 
 fn wrap_paragraph(
     context: &mut ShapeContext,
-    font: &FontFace,
+    runs: &[RichRun],
     text: &str,
     paragraph: Range<usize>,
     config: WrapConfig,
@@ -449,8 +623,20 @@ fn wrap_paragraph(
         output.push(paragraph);
         return Ok(());
     }
-    let shaped = shape(context, font, value, config.font_size)?;
-    let mut clusters = cluster_advances(&shaped);
+    let mut clusters = Vec::new();
+    for (run, slice) in run_slices(runs, paragraph.clone()) {
+        let shaped = shape(context, &run.font, &text[slice.clone()], run.font_size)?;
+        let base = slice.start - paragraph.start;
+        clusters.extend(
+            cluster_advances(&shaped)
+                .into_iter()
+                .map(|cluster| ClusterAdvance {
+                    start: base + cluster.start,
+                    end: base + cluster.end,
+                    ..cluster
+                }),
+        );
+    }
     let allowed = linebreaks(value)
         .filter_map(|(offset, opportunity)| {
             matches!(
@@ -525,58 +711,71 @@ fn cluster_advances(shaped: &[RawCluster]) -> Vec<ClusterAdvance> {
 
 fn append_line(
     context: &mut ShapeContext,
-    font: &FontFace,
+    runs: &[RichRun],
     transformed: &WhitespaceTransform<'_>,
     layout: &mut TextLayout,
     line_index: usize,
     bytes: Range<usize>,
     options: TextOptions,
 ) -> Result<(), TextError> {
-    let shaped = shape(
-        context,
-        font,
-        &transformed.text[bytes.clone()],
-        options.font_size,
-    )?;
     let glyph_start = layout.glyphs.len();
     let cluster_start = layout.clusters.len();
-    let baseline = options.font_size + usize_to_f32(line_index) * options.line_height;
+    // The tallest run on the line owns the baseline; with one run this is the
+    // node's font size, which is what the single-style path has always used.
+    let line_font_size = run_slices(runs, bytes.clone())
+        .map(|(run, _)| run.font_size)
+        .fold(f32::NEG_INFINITY, f32::max);
+    let line_font_size = if line_font_size.is_finite() {
+        line_font_size
+    } else {
+        run_at(runs, bytes.start).map_or(options.font_size, |run| run.font_size)
+    };
+    let baseline = line_font_size + usize_to_f32(line_index) * options.line_height;
     let mut x = 0.0_f32;
-    for raw_cluster in shaped {
-        let global_start = bytes
-            .start
-            .checked_add(raw_cluster.bytes.start)
-            .ok_or(TextError::ArithmeticOverflow)?;
-        let global_end = bytes
-            .start
-            .checked_add(raw_cluster.bytes.end)
-            .ok_or(TextError::ArithmeticOverflow)?;
-        let cluster_index = layout.clusters.len();
-        let cluster_glyph_start = layout.glyphs.len();
-        let suppressed_cluster = transformed.suppressed.contains(&global_start);
-        for glyph in raw_cluster.glyphs {
-            if suppressed_cluster {
-                continue;
+    for (run, slice) in run_slices(runs, bytes.clone()) {
+        let shaped = shape(
+            context,
+            &run.font,
+            &transformed.text[slice.clone()],
+            run.font_size,
+        )?;
+        for raw_cluster in shaped {
+            let global_start = slice
+                .start
+                .checked_add(raw_cluster.bytes.start)
+                .ok_or(TextError::ArithmeticOverflow)?;
+            let global_end = slice
+                .start
+                .checked_add(raw_cluster.bytes.end)
+                .ok_or(TextError::ArithmeticOverflow)?;
+            let cluster_index = layout.clusters.len();
+            let cluster_glyph_start = layout.glyphs.len();
+            let suppressed_cluster = transformed.suppressed.contains(&global_start);
+            for glyph in raw_cluster.glyphs {
+                if suppressed_cluster {
+                    continue;
+                }
+                layout.glyphs.push(PositionedGlyph {
+                    id: glyph.id,
+                    cluster: cluster_index,
+                    line: line_index,
+                    x: x + glyph.x,
+                    y: baseline - glyph.y,
+                    advance: glyph.advance,
+                });
+                if glyph.id == 0 {
+                    layout.missing_glyphs += 1;
+                }
+                x += glyph.advance;
             }
-            layout.glyphs.push(PositionedGlyph {
-                id: glyph.id,
-                cluster: cluster_index,
-                line: line_index,
-                x: x + glyph.x,
-                y: baseline - glyph.y,
-                advance: glyph.advance,
+            layout.clusters.push(ShapeCluster {
+                bytes: global_start..global_end,
+                utf16: utf16_offset(&layout.text, global_start)?
+                    ..utf16_offset(&layout.text, global_end)?,
+                glyphs: cluster_glyph_start..layout.glyphs.len(),
+                run: run.key,
             });
-            if glyph.id == 0 {
-                layout.missing_glyphs += 1;
-            }
-            x += glyph.advance;
         }
-        layout.clusters.push(ShapeCluster {
-            bytes: global_start..global_end,
-            utf16: utf16_offset(&layout.text, global_start)?
-                ..utf16_offset(&layout.text, global_end)?,
-            glyphs: cluster_glyph_start..layout.glyphs.len(),
-        });
     }
     let grapheme_start = layout
         .graphemes
@@ -661,11 +860,26 @@ fn apply_alignment(layout: &mut TextLayout, shaping_text: &str, options: TextOpt
 
 fn apply_ellipsis(
     context: &mut ShapeContext,
-    font: &FontFace,
+    runs: &[RichRun],
     layout: &mut TextLayout,
     options: TextOptions,
 ) -> Result<(), TextError> {
-    let ellipsis = shape(context, font, "…", options.font_size)?;
+    // The marker takes the style of the run it replaces text in, so eliding a
+    // bold tail does not draw a regular-weight ellipsis after it.
+    let truncation = layout
+        .lines
+        .iter()
+        .find(|line| line.width > options.max_width)
+        .map_or(0, |line| line.bytes.end.saturating_sub(1));
+    let marker = run_at(runs, truncation);
+    let (marker_font, marker_size) = marker.map_or_else(
+        || (None, options.font_size),
+        |run| (Some(run.font.clone()), run.font_size),
+    );
+    let Some(marker_font) = marker_font else {
+        return Ok(());
+    };
+    let ellipsis = shape(context, &marker_font, "…", marker_size)?;
     let ellipsis_glyphs = ellipsis
         .first()
         .map_or(&[][..], |cluster| cluster.glyphs.as_slice());
@@ -867,16 +1081,16 @@ mod tests {
     /// styled runs existed. Never regenerate these to make a failure go away:
     /// a change here means an existing document renders differently.
     const SINGLE_RUN_GOLDEN_DIGESTS: [u64; 10] = [
-        11132011084540503141,
-        16039510277960932816,
-        2708984718430707376,
-        4025691793016605782,
-        2983939579241494904,
-        15952783547289015062,
-        14354493755076730074,
-        10572384073901225948,
-        8291623544088496449,
-        5071057201210176224,
+        11_132_011_084_540_503_141,
+        16_039_510_277_960_932_816,
+        2_708_984_718_430_707_376,
+        4_025_691_793_016_605_782,
+        2_983_939_579_241_494_904,
+        15_952_783_547_289_015_062,
+        14_354_493_755_076_730_074,
+        10_572_384_073_901_225_948,
+        8_291_623_544_088_496_449,
+        5_071_057_201_210_176_224,
     ];
 
     /// Stable digest of everything a backend can observe about a layout.
@@ -1020,7 +1234,12 @@ mod tests {
                 base,
             ),
             (
-                format!("{}   {}\t{}", glyph_text(&[2]), glyph_text(&[3]), glyph_text(&[2])),
+                format!(
+                    "{}   {}\t{}",
+                    glyph_text(&[2]),
+                    glyph_text(&[3]),
+                    glyph_text(&[2])
+                ),
                 TextOptions {
                     white_space: WhiteSpace::Pre,
                     ..base
@@ -1042,6 +1261,214 @@ mod tests {
             })
             .collect::<Vec<_>>();
         assert_eq!(digests, SINGLE_RUN_GOLDEN_DIGESTS);
+    }
+
+    fn rich_runs(font: &crate::FontFace, spans: &[(usize, usize, f32)]) -> Vec<super::RichRun> {
+        spans
+            .iter()
+            .enumerate()
+            .map(|(index, (start, end, size))| super::RichRun {
+                bytes: *start..*end,
+                font: font.clone(),
+                font_size: *size,
+                key: u32::try_from(index).expect("small run count"),
+            })
+            .collect()
+    }
+
+    #[test]
+    fn a_multi_run_line_matches_laying_each_run_out_on_its_own() {
+        // The naive reference for "one node, several runs" is "several nodes,
+        // placed end to end". Runs shape independently, so the two must agree
+        // glyph for glyph.
+        let font = crate::FontFace::from_bytes(1, 1, 0, crate::conformance_font())
+            .expect("conformance font");
+        let mut context = ShapeContext::new();
+        let options = TextOptions {
+            font_size: 16.0,
+            line_height: 20.0,
+            max_width: f32::INFINITY,
+            white_space: WhiteSpace::Normal,
+            overflow_wrap: OverflowWrap::Normal,
+            text_align: TextAlign::Start,
+            text_overflow: TextOverflow::Clip,
+        };
+        let first = glyph_text(&[3]);
+        let second = glyph_text(&[4]);
+        let whole = format!("{first}{second}");
+        let split = super::layout_runs(
+            &mut context,
+            &rich_runs(
+                &font,
+                &[(0, first.len(), 16.0), (first.len(), whole.len(), 16.0)],
+            ),
+            &whole,
+            options,
+        )
+        .expect("rich layout");
+        let left = layout_text(&mut context, &font, &first, options).expect("left");
+        let right = layout_text(&mut context, &font, &second, options).expect("right");
+
+        let mut expected = left.glyphs.clone();
+        expected.extend(right.glyphs.iter().map(|glyph| super::PositionedGlyph {
+            x: glyph.x + left.width,
+            ..*glyph
+        }));
+        assert_eq!(split.glyphs.len(), expected.len());
+        for (actual, reference) in split.glyphs.iter().zip(&expected) {
+            assert_eq!(actual.id, reference.id);
+            assert!(
+                (actual.x - reference.x).abs() < 1e-4,
+                "{actual:?} {reference:?}"
+            );
+            assert!((actual.y - reference.y).abs() < 1e-4);
+            assert!((actual.advance - reference.advance).abs() < 1e-4);
+        }
+        assert!((split.width - (left.width + right.width)).abs() < 1e-4);
+
+        // One segment per run on the single line, in draw order.
+        assert_eq!(
+            split
+                .segments
+                .iter()
+                .map(|segment| (segment.run, segment.line))
+                .collect::<Vec<_>>(),
+            vec![(0, 0), (1, 0)]
+        );
+        for segment in &split.segments {
+            for glyph in &split.glyphs[segment.glyphs.clone()] {
+                assert_eq!(split.clusters[glyph.cluster].run, segment.run);
+            }
+        }
+    }
+
+    #[test]
+    fn one_run_covering_everything_is_the_single_style_layout() {
+        let font = crate::FontFace::from_bytes(1, 1, 0, crate::conformance_font())
+            .expect("conformance font");
+        let mut context = ShapeContext::new();
+        for (text, options) in single_run_corpus() {
+            let plain = layout_text(&mut context, &font, &text, options).expect("plain");
+            let rich = super::layout_runs(
+                &mut context,
+                &rich_runs(&font, &[(0, text.len(), options.font_size)]),
+                &text,
+                options,
+            )
+            .expect("rich");
+            assert_eq!(layout_digest(&plain), layout_digest(&rich), "{text:?}");
+        }
+    }
+
+    #[test]
+    fn a_boundary_inside_a_grapheme_is_snapped_instead_of_splitting_it() {
+        let font = crate::FontFace::from_bytes(1, 1, 0, crate::conformance_font())
+            .expect("conformance font");
+        // "e" + combining acute is one grapheme; a boundary between them would
+        // shape the mark on its own and draw a stray accent.
+        let text = "xe\u{301}y";
+        let runs = rich_runs(&font, &[(0, 2, 16.0), (2, text.len(), 16.0)]);
+        let snapped = super::snap_runs_to_graphemes(&runs, text);
+        // The cluster starts at byte 1, inside the first run, so the whole
+        // grapheme goes there rather than being cut at byte 2.
+        assert_eq!(
+            snapped
+                .iter()
+                .map(|run| (run.bytes.clone(), run.key))
+                .collect::<Vec<_>>(),
+            vec![(0..4, 0), (4..text.len(), 1)]
+        );
+        for run in &snapped {
+            assert!(text.is_char_boundary(run.bytes.start));
+            assert!(text.is_char_boundary(run.bytes.end));
+        }
+        // Snapping is what layout_rich applies, so the split never reaches the
+        // shaper.
+        let mut engine = crate::TextEngine::default();
+        let layout = engine
+            .layout_rich(
+                &runs,
+                text,
+                TextOptions {
+                    font_size: 16.0,
+                    line_height: 20.0,
+                    max_width: f32::INFINITY,
+                    white_space: WhiteSpace::Normal,
+                    overflow_wrap: OverflowWrap::Normal,
+                    text_align: TextAlign::Start,
+                    text_overflow: TextOverflow::Clip,
+                },
+            )
+            .expect("rich layout");
+        for cluster in &layout.clusters {
+            assert!(text.is_char_boundary(cluster.bytes.start));
+            assert!(text.is_char_boundary(cluster.bytes.end));
+        }
+        assert!(
+            layout
+                .clusters
+                .iter()
+                .any(|cluster| &text[cluster.bytes.clone()] == "e\u{301}")
+                || layout
+                    .clusters
+                    .iter()
+                    .all(|cluster| cluster.bytes.len() <= 3)
+        );
+    }
+
+    #[test]
+    fn the_tallest_run_on_a_line_owns_its_baseline() {
+        let font = crate::FontFace::from_bytes(1, 1, 0, crate::conformance_font())
+            .expect("conformance font");
+        let mut context = ShapeContext::new();
+        let text = glyph_text(&[3, 3]);
+        let boundary = text.find(' ').expect("space") + 1;
+        let layout = super::layout_runs(
+            &mut context,
+            &rich_runs(&font, &[(0, boundary, 16.0), (boundary, text.len(), 28.0)]),
+            &text,
+            TextOptions {
+                font_size: 16.0,
+                line_height: 40.0,
+                max_width: f32::INFINITY,
+                white_space: WhiteSpace::Normal,
+                overflow_wrap: OverflowWrap::Normal,
+                text_align: TextAlign::Start,
+                text_overflow: TextOverflow::Clip,
+            },
+        )
+        .expect("rich layout");
+        assert_eq!(layout.lines.len(), 1);
+        assert!((layout.lines[0].baseline - 28.0).abs() < f32::EPSILON);
+    }
+
+    #[test]
+    fn rejects_run_tables_that_do_not_tile_the_value() {
+        let font = crate::FontFace::from_bytes(1, 1, 0, crate::conformance_font())
+            .expect("conformance font");
+        let mut context = ShapeContext::new();
+        let options = TextOptions {
+            font_size: 16.0,
+            line_height: 20.0,
+            max_width: f32::INFINITY,
+            white_space: WhiteSpace::Normal,
+            overflow_wrap: OverflowWrap::Normal,
+            text_align: TextAlign::Start,
+            text_overflow: TextOverflow::Clip,
+        };
+        let text = glyph_text(&[4]);
+        for spans in [
+            vec![(0_usize, 3_usize, 16.0_f32)],
+            vec![(1, text.len(), 16.0)],
+            vec![(0, 3, 16.0), (6, text.len(), 16.0)],
+            vec![(0, text.len(), 0.0)],
+        ] {
+            assert_eq!(
+                super::layout_runs(&mut context, &rich_runs(&font, &spans), &text, options),
+                Err(TextError::InvalidOptions),
+                "{spans:?}"
+            );
+        }
     }
 
     #[test]

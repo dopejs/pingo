@@ -13,9 +13,9 @@ pub use cache::{DEFAULT_CACHE_BYTES, TextCacheMetrics, TextEngine};
 pub use error::TextError;
 pub use font::{FontFace, MAX_FONT_BYTES};
 pub use layout::{
-    CaretStop, Grapheme, MAX_TEXT_BYTES, OverflowWrap, PositionedGlyph, ShapeCluster, TextAlign,
-    TextLayout, TextLine, TextOptions, TextOverflow, WhiteSpace, soft_break_offsets,
-    soft_break_offsets_with_mode,
+    CaretStop, Grapheme, LayoutSegment, MAX_TEXT_BYTES, OverflowWrap, PositionedGlyph, RichRun,
+    ShapeCluster, TextAlign, TextLayout, TextLine, TextOptions, TextOverflow, WhiteSpace,
+    snap_runs_to_graphemes, soft_break_offsets, soft_break_offsets_with_mode,
 };
 
 #[cfg(test)]

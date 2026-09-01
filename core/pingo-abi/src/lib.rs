@@ -57,7 +57,6 @@ pub use glyph_resources::{
     GlyphBitmapResource, GlyphPlacementResource, GlyphResourceBatch, GlyphResourceCommand,
     GlyphResourceInstruction, GlyphSpanResource,
 };
-pub use styled_runs::{StyledRun, StyledRunsResource};
 pub use input::{
     CaretDirection, CaretGranularity, EVENT_FLAG_MASK, EVENT_FLAG_PRECISE_WHEEL, InputAffinity,
     InputBatch, InputCommand, InputEventKind, InputFocusOrigin, InputInstruction, InputPointerType,
@@ -87,6 +86,7 @@ pub use style_generated::{
     STYLE_VALUE_U16, StyleAnimationType, StyleCanonicalValue, StyleKeyword, StyleNodeType,
     StyleProperty, StyleValueGrammar,
 };
+pub use styled_runs::{StyledRun, StyledRunsResource};
 pub use system_text_metrics::{
     SystemTextMetric, SystemTextMetricBatch, SystemTextMetricCommand, SystemTextMetricInstruction,
     TextContraction,

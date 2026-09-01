@@ -2,7 +2,10 @@ use std::{collections::HashMap, sync::Arc};
 
 use swash::shape::ShapeContext;
 
-use crate::{FontFace, TextError, TextLayout, TextOptions, layout::layout_text};
+use crate::{
+    FontFace, RichRun, TextError, TextLayout, TextOptions,
+    layout::{layout_runs, layout_text},
+};
 
 /// Default retained Text Shape Cache budget (8 MiB).
 pub const DEFAULT_CACHE_BYTES: usize = 8 * 1024 * 1024;
@@ -37,6 +40,36 @@ struct CacheKey {
     text: Arc<str>,
 }
 
+/// Identity of one styled run inside a cached rich layout.
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+struct RunKey {
+    start: usize,
+    end: usize,
+    font_id: u32,
+    font_revision: u32,
+    font_fingerprint: u64,
+    font_size: u32,
+    key: u32,
+}
+
+/// Cache key for a value whose styling changes along it.
+///
+/// The whole node is one entry because wrapping couples the runs: a change in
+/// the first run can move the last one's line breaks, so a per-run entry would
+/// be a cache of results that are not independently reusable.
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+struct RichCacheKey {
+    line_height: u32,
+    max_width: u32,
+    white_space: crate::WhiteSpace,
+    overflow_wrap: crate::OverflowWrap,
+    text_align: crate::TextAlign,
+    text_overflow: crate::TextOverflow,
+    font_size: u32,
+    runs: Vec<RunKey>,
+    text: Arc<str>,
+}
+
 struct CacheEntry {
     layout: Arc<TextLayout>,
     bytes: usize,
@@ -49,6 +82,7 @@ pub struct TextEngine {
     clock: u64,
     shape_context: ShapeContext,
     entries: HashMap<CacheKey, CacheEntry>,
+    rich_entries: HashMap<RichCacheKey, CacheEntry>,
     metrics: TextCacheMetrics,
 }
 
@@ -67,6 +101,7 @@ impl TextEngine {
             clock: 0,
             shape_context: ShapeContext::new(),
             entries: HashMap::new(),
+            rich_entries: HashMap::new(),
             metrics: TextCacheMetrics::default(),
         }
     }
@@ -116,7 +151,74 @@ impl TextEngine {
                     last_use: self.clock,
                 },
             );
-            self.metrics.entries = self.entries.len();
+            self.metrics.entries = self.entries.len() + self.rich_entries.len();
+        }
+        Ok(layout)
+    }
+
+    /// Shapes and wraps a value whose styling changes along it.
+    ///
+    /// `runs` are snapped to grapheme boundaries first, so a caller cannot
+    /// produce a boundary that splits a cluster.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`TextError`] when the fonts, text, options, run table, or
+    /// shaped offsets are invalid.
+    pub fn layout_rich(
+        &mut self,
+        runs: &[RichRun],
+        text: &str,
+        options: TextOptions,
+    ) -> Result<Arc<TextLayout>, TextError> {
+        options.validate()?;
+        if runs.is_empty() {
+            return Err(TextError::InvalidOptions);
+        }
+        let runs = crate::layout::snap_runs_to_graphemes(runs, text);
+        self.clock = self.clock.wrapping_add(1);
+        let key = RichCacheKey {
+            line_height: options.line_height.to_bits(),
+            max_width: options.max_width.to_bits(),
+            white_space: options.white_space,
+            overflow_wrap: options.overflow_wrap,
+            text_align: options.text_align,
+            text_overflow: options.text_overflow,
+            font_size: options.font_size.to_bits(),
+            runs: runs
+                .iter()
+                .map(|run| RunKey {
+                    start: run.bytes.start,
+                    end: run.bytes.end,
+                    font_id: run.font.id(),
+                    font_revision: run.font.revision(),
+                    font_fingerprint: run.font.fingerprint(),
+                    font_size: run.font_size.to_bits(),
+                    key: run.key,
+                })
+                .collect(),
+            text: Arc::from(text),
+        };
+        if let Some(entry) = self.rich_entries.get_mut(&key) {
+            entry.last_use = self.clock;
+            self.metrics.hits += 1;
+            return Ok(Arc::clone(&entry.layout));
+        }
+        self.metrics.misses += 1;
+        let layout = Arc::new(layout_runs(&mut self.shape_context, &runs, text, options)?);
+        let bytes = key.text.len().saturating_add(layout.estimated_bytes());
+        if bytes <= self.budget_bytes {
+            self.evict_until_fits(bytes);
+            self.metrics.retained_bytes = self.metrics.retained_bytes.saturating_add(bytes);
+            self.rich_entries.insert(
+                key,
+                CacheEntry {
+                    layout: Arc::clone(&layout),
+                    bytes,
+                    last_use: self.clock,
+                },
+            );
+            self.metrics.entries = self.entries.len() + self.rich_entries.len();
         }
         Ok(layout)
     }
@@ -135,7 +237,19 @@ impl TextEngine {
                     self.metrics.retained_bytes.saturating_sub(entry.bytes);
             }
         }
-        self.metrics.entries = self.entries.len();
+        let rich_keys = self
+            .rich_entries
+            .keys()
+            .filter(|key| key.runs.iter().any(|run| run.font_id == font_id))
+            .cloned()
+            .collect::<Vec<_>>();
+        for key in rich_keys {
+            if let Some(entry) = self.rich_entries.remove(&key) {
+                self.metrics.retained_bytes =
+                    self.metrics.retained_bytes.saturating_sub(entry.bytes);
+            }
+        }
+        self.metrics.entries = self.entries.len() + self.rich_entries.len();
     }
 
     /// Current cumulative cache metrics.
@@ -146,21 +260,31 @@ impl TextEngine {
 
     fn evict_until_fits(&mut self, incoming: usize) {
         while self.metrics.retained_bytes.saturating_add(incoming) > self.budget_bytes {
-            let Some(key) = self
+            // Both maps share one budget, so eviction picks the globally oldest
+            // entry rather than starving whichever map happens to be scanned.
+            let plain = self
                 .entries
                 .iter()
                 .min_by_key(|(_, entry)| entry.last_use)
-                .map(|(key, _)| key.clone())
-            else {
-                break;
+                .map(|(key, entry)| (key.clone(), entry.last_use));
+            let rich = self
+                .rich_entries
+                .iter()
+                .min_by_key(|(_, entry)| entry.last_use)
+                .map(|(key, entry)| (key.clone(), entry.last_use));
+            let bytes = match (plain, rich) {
+                (Some((key, plain_age)), Some((_, rich_age))) if plain_age <= rich_age => {
+                    self.entries.remove(&key).map(|entry| entry.bytes)
+                }
+                (Some((key, _)), None) => self.entries.remove(&key).map(|entry| entry.bytes),
+                (_, Some((key, _))) => self.rich_entries.remove(&key).map(|entry| entry.bytes),
+                (None, None) => None,
             };
-            let entry = self
-                .entries
-                .remove(&key)
-                .expect("selected cache entry exists");
-            self.metrics.retained_bytes = self.metrics.retained_bytes.saturating_sub(entry.bytes);
+            let Some(bytes) = bytes else { break };
+            self.metrics.retained_bytes = self.metrics.retained_bytes.saturating_sub(bytes);
             self.metrics.evictions += 1;
         }
+        self.metrics.entries = self.entries.len() + self.rich_entries.len();
     }
 }
 

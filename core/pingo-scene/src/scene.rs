@@ -1490,13 +1490,7 @@ fn validate_non_structural_mutation(
             style_id,
             runs_id,
             ..
-        } => validate_rich_text_binding(
-            scene,
-            staged_resources,
-            *string_id,
-            *style_id,
-            *runs_id,
-        ),
+        } => validate_rich_text_binding(scene, staged_resources, *string_id, *style_id, *runs_id),
         _ => Ok(()),
     }
 }
@@ -1702,32 +1696,32 @@ fn validate_rich_text_binding(
         return Ok(());
     }
     validate_resource_kind(scene, staged_resources, runs_id, ResourceKind::StyledRuns)?;
-    let value = lookup_resource(scene, staged_resources, string_id)
-        .ok_or(SceneError::MissingResource {
+    let value =
+        lookup_resource(scene, staged_resources, string_id).ok_or(SceneError::MissingResource {
             resource_id: string_id,
         })?;
-    let text = std::str::from_utf8(&value.bytes)
-        .map_err(|_| SceneError::InvalidUtf8Resource { resource_id: string_id })?;
-    let table = lookup_resource(scene, staged_resources, runs_id).ok_or(
-        SceneError::MissingResource {
-            resource_id: runs_id,
-        },
-    )?;
-    let runs = pingo_abi::StyledRunsResource::decode(&table.bytes)
-        .map_err(|_| SceneError::InvalidResourceEncoding {
+    let text = std::str::from_utf8(&value.bytes).map_err(|_| SceneError::InvalidUtf8Resource {
+        resource_id: string_id,
+    })?;
+    let table =
+        lookup_resource(scene, staged_resources, runs_id).ok_or(SceneError::MissingResource {
             resource_id: runs_id,
         })?;
+    let runs = pingo_abi::StyledRunsResource::decode(&table.bytes).map_err(|_| {
+        SceneError::InvalidResourceEncoding {
+            resource_id: runs_id,
+        }
+    })?;
     if usize::try_from(runs.covered_bytes()) != Ok(text.len()) {
         return Err(SceneError::InvalidResourceEncoding {
             resource_id: runs_id,
         });
     }
     for run in &runs.runs {
-        let start = usize::try_from(run.utf8_start).map_err(|_| {
-            SceneError::InvalidResourceEncoding {
+        let start =
+            usize::try_from(run.utf8_start).map_err(|_| SceneError::InvalidResourceEncoding {
                 resource_id: runs_id,
-            }
-        })?;
+            })?;
         if !text.is_char_boundary(start) {
             return Err(SceneError::InvalidResourceEncoding {
                 resource_id: runs_id,
@@ -2116,16 +2110,9 @@ fn require_kind(
 }
 
 fn resource_directly_referenced(scene: &Scene, resource_id: u32) -> bool {
-    if scene
-        .text_runs
-        .iter()
-        .flatten()
-        .any(|run| {
-            run.string_id == resource_id
-                || run.style_id == resource_id
-                || run.runs_id == resource_id
-        })
-    {
+    if scene.text_runs.iter().flatten().any(|run| {
+        run.string_id == resource_id || run.style_id == resource_id || run.runs_id == resource_id
+    }) {
         return true;
     }
     scene.props.refs.iter().any(|(prop, lane)| {
@@ -3633,7 +3620,11 @@ mod tests {
                     define(2, ResourceKind::Utf8String, b"hello".to_vec()),
                     define(3, ResourceKind::TextStyle, text_style(1, b"sans")),
                     define(4, ResourceKind::TextStyle, text_style(1, b"serif")),
-                    define(5, ResourceKind::StyledRuns, styled_runs(&[(2, 3, 0), (3, 4, 0)])),
+                    define(
+                        5,
+                        ResourceKind::StyledRuns,
+                        styled_runs(&[(2, 3, 0), (3, 4, 0)]),
+                    ),
                     Mutation::SetRichText {
                         node_id: text.raw(),
                         string_id: 2,
@@ -3659,7 +3650,11 @@ mod tests {
             short.commit(batch(
                 2,
                 vec![
-                    define(6, ResourceKind::StyledRuns, styled_runs(&[(2, 3, 0), (2, 4, 0)])),
+                    define(
+                        6,
+                        ResourceKind::StyledRuns,
+                        styled_runs(&[(2, 3, 0), (2, 4, 0)])
+                    ),
                     Mutation::SetRichText {
                         node_id: text.raw(),
                         string_id: 2,
@@ -3679,7 +3674,11 @@ mod tests {
                 2,
                 vec![
                     define(7, ResourceKind::Utf8String, "日本".as_bytes().to_vec()),
-                    define(8, ResourceKind::StyledRuns, styled_runs(&[(1, 3, 0), (5, 4, 0)])),
+                    define(
+                        8,
+                        ResourceKind::StyledRuns,
+                        styled_runs(&[(1, 3, 0), (5, 4, 0)])
+                    ),
                     Mutation::SetRichText {
                         node_id: text.raw(),
                         string_id: 7,

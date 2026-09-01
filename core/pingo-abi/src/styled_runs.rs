@@ -4,9 +4,9 @@ use crate::{
     AbiError, MAX_RESOURCE_BYTES, MAX_STYLED_RUNS, RESOURCE_ENCODING_VERSION,
     STYLED_RUN_FLAG_ATOMIC, STYLED_RUN_FLAGS_OFFSET, STYLED_RUN_FONT_ID_OFFSET,
     STYLED_RUN_MINIMUM_BYTES, STYLED_RUN_RESERVED_OFFSET, STYLED_RUN_STYLE_ID_OFFSET,
-    STYLED_RUN_UTF8_LENGTH_OFFSET, STYLED_RUN_UTF8_START_OFFSET, STYLED_RUNS_RESOURCE_MINIMUM_BYTES,
-    STYLED_RUNS_RESOURCE_VARIANT, STYLED_RUNS_RUN_COUNT_OFFSET, STYLED_RUNS_RUNS_OFFSET,
-    STYLED_RUNS_VARIANT_OFFSET, STYLED_RUNS_VERSION_OFFSET,
+    STYLED_RUN_UTF8_LENGTH_OFFSET, STYLED_RUN_UTF8_START_OFFSET,
+    STYLED_RUNS_RESOURCE_MINIMUM_BYTES, STYLED_RUNS_RESOURCE_VARIANT, STYLED_RUNS_RUN_COUNT_OFFSET,
+    STYLED_RUNS_RUNS_OFFSET, STYLED_RUNS_VARIANT_OFFSET, STYLED_RUNS_VERSION_OFFSET,
 };
 
 /// One contiguous styled span of a text node's UTF-8 value.
@@ -150,9 +150,9 @@ impl StyledRunsResource {
     /// Returns the exclusive UTF-8 end offset the table claims to cover.
     #[must_use]
     pub fn covered_bytes(&self) -> u32 {
-        self.runs.last().map_or(0, |run| {
-            run.utf8_start.saturating_add(run.utf8_length)
-        })
+        self.runs
+            .last()
+            .map_or(0, |run| run.utf8_start.saturating_add(run.utf8_length))
     }
 }
 
@@ -198,7 +198,10 @@ mod tests {
     #[test]
     fn round_trips_and_reports_coverage() {
         let encoded = table().encode().expect("encode");
-        assert_eq!(encoded.len(), STYLED_RUNS_RUNS_OFFSET + 2 * STYLED_RUN_MINIMUM_BYTES);
+        assert_eq!(
+            encoded.len(),
+            STYLED_RUNS_RUNS_OFFSET + 2 * STYLED_RUN_MINIMUM_BYTES
+        );
         let decoded = StyledRunsResource::decode(&encoded).expect("decode");
         assert_eq!(decoded, table());
         assert_eq!(decoded.covered_bytes(), 8);
@@ -252,11 +255,19 @@ mod tests {
         assert!(StyledRunsResource::decode(&overlapping).is_err());
 
         let mut unstyled = valid.clone();
-        write_u32(&mut unstyled, STYLED_RUNS_RUNS_OFFSET + STYLED_RUN_STYLE_ID_OFFSET, 0);
+        write_u32(
+            &mut unstyled,
+            STYLED_RUNS_RUNS_OFFSET + STYLED_RUN_STYLE_ID_OFFSET,
+            0,
+        );
         assert!(StyledRunsResource::decode(&unstyled).is_err());
 
         let mut reserved_flag = valid.clone();
-        write_u32(&mut reserved_flag, STYLED_RUNS_RUNS_OFFSET + STYLED_RUN_FLAGS_OFFSET, 2);
+        write_u32(
+            &mut reserved_flag,
+            STYLED_RUNS_RUNS_OFFSET + STYLED_RUN_FLAGS_OFFSET,
+            2,
+        );
         assert!(StyledRunsResource::decode(&reserved_flag).is_err());
 
         let mut reserved_word = valid;
