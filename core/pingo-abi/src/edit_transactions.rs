@@ -737,6 +737,8 @@ fn validate_instruction_size(
 
 #[cfg(test)]
 mod tests {
+    use proptest::prelude::*;
+
     use super::*;
 
     #[test]
@@ -1060,5 +1062,57 @@ mod tests {
         let mut bad_flags = bytes;
         bad_flags[65] = 0;
         assert!(EditTransactionBatch::decode(&bad_flags).is_err());
+    }
+
+    proptest! {
+        #[test]
+        fn arbitrary_bytes_never_panic(bytes in prop::collection::vec(any::<u8>(), 0..4096)) {
+            let _ = EditTransactionBatch::decode(&bytes);
+        }
+
+        #[test]
+        fn every_reverse_record_kind_round_trips_together(
+            transactions in 0_usize..4,
+            structure in 0_usize..4,
+            selections in 0_usize..4,
+        ) {
+            let batch = EditTransactionBatch {
+                records: (0..transactions)
+                    .map(|index| EditTransactionRecord {
+                        node_id: u32::try_from(index).expect("small") + 1,
+                        base_revision: index as u64,
+                        revision: index as u64 + 1,
+                        delta: None,
+                        selection: [0, 0],
+                        affinities: [WireAffinity::Downstream; 2],
+                        composition: None,
+                        kind: EditTransactionKind::Edit,
+                        marks: None,
+                        map: Vec::new(),
+                    })
+                    .collect(),
+                structure: (0..structure)
+                    .map(|index| StructureRequestRecord {
+                        node_id: 9,
+                        sequence: u32::try_from(index).expect("small") + 1,
+                        kind: StructureKind::Remove,
+                        target: 0,
+                        source: 0,
+                        offset: 0,
+                        keys: vec![u32::try_from(index).expect("small") + 1],
+                    })
+                    .collect(),
+                selections: (0..selections)
+                    .map(|index| DocumentSelectionRecord {
+                        node_id: 9,
+                        selection: WireDocumentSelection::Gap {
+                            index: u32::try_from(index).expect("small"),
+                        },
+                    })
+                    .collect(),
+            };
+            let encoded = batch.encode().expect("valid batch encodes");
+            prop_assert_eq!(EditTransactionBatch::decode(&encoded), Ok(batch));
+        }
     }
 }

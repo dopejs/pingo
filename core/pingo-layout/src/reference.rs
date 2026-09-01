@@ -154,20 +154,18 @@ fn layout_node(
     let mut out_of_flow = Vec::new();
     let mut child = scene.first_child(node);
     let has_children = child.is_some();
+    // Children are laid out in document order whether or not they are in flow.
+    // An out-of-flow child's constraints come from the container's padding box,
+    // which `child_item` already resolved, so deferring its layout would change
+    // nothing except which child a rejected style is blamed on -- and the
+    // engine, which walks the tree in one pass, blames the first one.
     while let Some(current) = child {
         child = scene.next_sibling(current);
         if scene.display_none(current) {
             zero(scene, current, out);
             continue;
         }
-        if scene.out_of_flow(current) {
-            out_of_flow.push(child_item(scene, &container, current)?);
-            continue;
-        }
-        items.push(child_item(scene, &container, current)?);
-    }
-
-    for item in &mut items {
+        let mut item = child_item(scene, &container, current)?;
         (item.size, item.content_min) = layout_node(
             scene,
             item.node,
@@ -180,6 +178,11 @@ fn layout_node(
             measurer,
             out,
         )?;
+        if scene.out_of_flow(current) {
+            out_of_flow.push(item);
+        } else {
+            items.push(item);
+        }
     }
 
     let intrinsic = if has_children {
@@ -219,19 +222,7 @@ fn layout_node(
     arrange(&container, &items, size, out);
     // Out of flow: laid out against the container's padding box and placed
     // there, never touching the flow totals.
-    for item in &mut out_of_flow {
-        (item.size, item.content_min) = layout_node(
-            scene,
-            item.node,
-            item.constraints,
-            item.basis,
-            ParentAxes {
-                flex_row: Some(container.row),
-                cross_pin: item.cross_pin,
-            },
-            measurer,
-            out,
-        )?;
+    for item in &out_of_flow {
         // The container's own size, not the constraint it was measured under:
         // a column relaxes its block axis to infinity, so a slider 20px tall
         // placed its children against infinity. See `engine::arrange_children`.

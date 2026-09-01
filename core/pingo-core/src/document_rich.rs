@@ -139,10 +139,15 @@ impl DocumentController {
     pub(crate) fn display_overrides(&self) -> std::collections::HashMap<NodeId, EditDisplay> {
         let mut result = std::collections::HashMap::new();
         for active in self.documents.values() {
-            for block in active.document.blocks() {
-                let Some(node) = active.nodes.get(&block.key()) else {
+            // Iterate the materialized blocks, not the document: a five
+            // thousand block document has sixty of them, and walking the rest
+            // to skip them is work proportional to the document rather than to
+            // the screen.
+            for (key, node) in active.nodes.iter() {
+                let Some(index) = active.document.index_of(*key) else {
                     continue;
                 };
+                let block = &active.document.blocks()[index];
                 result.insert(
                     *node,
                     EditDisplay {

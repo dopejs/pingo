@@ -89,13 +89,36 @@ impl BlockProjection {
     }
 }
 
+/// One block's text, its offset table, and its marks.
+///
+/// Shared behind a pointer so cloning a document is a refcount bump per block
+/// rather than a copy of every block's text and offset table. A five-thousand
+/// block document is cloned once per keystroke -- input is applied to a
+/// candidate that is only installed when the whole batch succeeds -- and
+/// copying it there is what makes editing cost what the document costs.
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct BlockText {
+    text: String,
+    index: TextIndex,
+    marks: MarkRuns,
+}
+
+impl BlockText {
+    /// The payload every unmaterialized block shares.
+    fn empty() -> Result<Self, EditError> {
+        Ok(Self {
+            text: String::new(),
+            index: TextIndex::new("")?,
+            marks: MarkRuns::default(),
+        })
+    }
+}
+
 /// One block's Core-owned state.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct DocumentBlock {
     key: BlockKey,
-    text: String,
-    index: TextIndex,
-    marks: MarkRuns,
+    content: std::sync::Arc<BlockText>,
     atomic: bool,
     /// Declared length, which is all Core knows about an unmaterialized block.
     len_utf16: u32,
@@ -112,13 +135,18 @@ impl DocumentBlock {
     /// Returns the block's UTF-8 value.
     #[must_use]
     pub fn text(&self) -> &str {
-        &self.text
+        &self.content.text
     }
 
     /// Returns the block's mark table.
     #[must_use]
-    pub const fn marks(&self) -> &MarkRuns {
-        &self.marks
+    pub fn marks(&self) -> &MarkRuns {
+        &self.content.marks
+    }
+
+    /// Returns the block's grapheme-safe offset table.
+    fn index(&self) -> &TextIndex {
+        &self.content.index
     }
 
     /// Returns whether the caret may not enter the block.
@@ -275,6 +303,7 @@ impl Document {
     pub fn reproject(&mut self, projection: Vec<BlockProjection>) -> Result<(), EditError> {
         let mut blocks = Vec::with_capacity(projection.len());
         let mut seen = std::collections::BTreeSet::new();
+        let empty = std::sync::Arc::new(BlockText::empty()?);
         for block in projection {
             if !seen.insert(block.key) {
                 return Err(EditError::DuplicateBlockKey { key: block.key });
@@ -295,18 +324,16 @@ impl Document {
                     DocumentBlock {
                         key: block.key,
                         len_utf16: index.utf16_len(),
-                        text,
-                        index,
-                        marks,
+                        content: std::sync::Arc::new(BlockText { text, index, marks }),
                         atomic: block.atomic,
                         materialized: true,
                     }
                 }
+                // Every placeholder shares one empty payload, so declaring a
+                // five-thousand-block document allocates nothing per block.
                 BlockContent::Placeholder { len_utf16 } => DocumentBlock {
                     key: block.key,
-                    text: String::new(),
-                    index: TextIndex::new("")?,
-                    marks: MarkRuns::default(),
+                    content: std::sync::Arc::clone(&empty),
                     atomic: block.atomic,
                     len_utf16,
                     materialized: false,
@@ -367,6 +394,10 @@ impl Document {
     }
 
     /// Returns the index of the block with `key`.
+    ///
+    /// A scan, not a map: a map would have to be rebuilt on every edit, and
+    /// rebuilding an index of five thousand keys costs more than scanning
+    /// them the handful of times one command asks.
     #[must_use]
     pub fn index_of(&self, key: BlockKey) -> Option<usize> {
         self.blocks.iter().position(|block| block.key == key)
@@ -535,8 +566,20 @@ impl Document {
     ) -> Result<Vec<(usize, Utf16Range)>, EditError> {
         let (start, end) = self.flat_range(selection)?;
         let mut covered = Vec::new();
-        for (index, block) in self.blocks.iter().enumerate() {
+        // Start at the first block whose span can reach `start`, and stop at
+        // the first one that begins past `end`: a selection touches a few
+        // blocks, and scanning the document to find them is what makes editing
+        // cost what the document costs.
+        let first = self
+            .starts
+            .partition_point(|position| *position < start)
+            .saturating_sub(1);
+        for index in first..self.blocks.len() {
+            let block = &self.blocks[index];
             let open = self.starts[index];
+            if open > end {
+                break;
+            }
             let close = self.gap_position(index + 1);
             if open >= start && close <= end {
                 // The block's own boundaries are inside the selection, so the
@@ -637,10 +680,10 @@ impl Document {
             let start = self.starts[index] + 1;
             let offset = from - start;
             let next = match (direction, granularity) {
-                (Direction::Backward, Granularity::Character) => block.index.previous(offset)?,
-                (Direction::Forward, Granularity::Character) => block.index.next(offset)?,
+                (Direction::Backward, Granularity::Character) => block.index().previous(offset)?,
+                (Direction::Forward, Granularity::Character) => block.index().next(offset)?,
                 (direction, Granularity::Word) => word_boundary_utf16(
-                    &block.text,
+                    block.text(),
                     offset,
                     matches!(direction, Direction::Forward),
                 )?,
@@ -745,10 +788,10 @@ impl Document {
             Affinity::Downstream => OffsetBias::Forward,
         };
         let clamped = position.offset.min(block.len_utf16());
-        let byte = block.index.utf16_to_utf8(clamped, bias)?;
+        let byte = block.index().utf16_to_utf8(clamped, bias)?;
         Ok(Some(DocumentPosition {
             key: position.key,
-            offset: block.index.utf8_to_utf16(byte)?,
+            offset: block.index().utf8_to_utf16(byte)?,
             affinity: position.affinity,
         }))
     }
@@ -932,9 +975,9 @@ impl Document {
                 let range = match direction {
                     Direction::Backward => {
                         let end = block.len_utf16();
-                        Utf16Range::new(block.index.previous(end)?, end)
+                        Utf16Range::new(block.index().previous(end)?, end)
                     }
-                    Direction::Forward => Utf16Range::new(0, block.index.next(0)?),
+                    Direction::Forward => Utf16Range::new(0, block.index().next(0)?),
                 };
                 Ok(self.single_block_edit(index, range, String::new()))
             }
@@ -951,10 +994,10 @@ impl Document {
                 if !at_edge {
                     let range = match direction {
                         Direction::Backward => {
-                            Utf16Range::new(block.index.previous(focus.offset)?, focus.offset)
+                            Utf16Range::new(block.index().previous(focus.offset)?, focus.offset)
                         }
                         Direction::Forward => {
-                            Utf16Range::new(focus.offset, block.index.next(focus.offset)?)
+                            Utf16Range::new(focus.offset, block.index().next(focus.offset)?)
                         }
                     };
                     return Ok(self.single_block_edit(index, range, String::new()));
@@ -1058,20 +1101,23 @@ impl Document {
                 .index_of(replacement.key)
                 .ok_or(EditError::UnknownBlock)?;
             let block = &mut self.blocks[index];
-            let range = block.index.normalize_range(replacement.range)?;
-            let start = block
+            let content = std::sync::Arc::make_mut(&mut block.content);
+            let range = content.index.normalize_range(replacement.range)?;
+            let start = content
                 .index
                 .utf16_to_utf8(range.start, OffsetBias::Backward)?;
-            let end = block.index.utf16_to_utf8(range.end, OffsetBias::Forward)?;
+            let end = content
+                .index
+                .utf16_to_utf8(range.end, OffsetBias::Forward)?;
             let mut next =
-                String::with_capacity(block.text.len() - (end - start) + replacement.text.len());
-            next.push_str(&block.text[..start]);
+                String::with_capacity(content.text.len() - (end - start) + replacement.text.len());
+            next.push_str(&content.text[..start]);
             next.push_str(&replacement.text);
-            next.push_str(&block.text[end..]);
-            block.marks = block.marks.replace(range, &replacement.marks)?;
-            block.index = TextIndex::new(&next)?;
-            block.len_utf16 = block.index.utf16_len();
-            block.text = next;
+            next.push_str(&content.text[end..]);
+            content.marks = content.marks.replace(range, &replacement.marks)?;
+            content.index = TextIndex::new(&next)?;
+            content.text = next;
+            block.len_utf16 = content.index.utf16_len();
         }
         for request in &edit.structure {
             match request {
@@ -1083,17 +1129,19 @@ impl Document {
                         continue;
                     };
                     let moved = self.blocks.remove(source_index);
+                    let moved_marks = moved.marks().clone();
                     let Some(target_index) = self.index_of(*target) else {
                         continue;
                     };
                     let block = &mut self.blocks[target_index];
-                    let at = block.index.utf16_len();
-                    block.marks = block
+                    let content = std::sync::Arc::make_mut(&mut block.content);
+                    let at = content.index.utf16_len();
+                    content.marks = content
                         .marks
-                        .replace(Utf16Range::collapsed(at), &moved.marks)?;
-                    block.text.push_str(&moved.text);
-                    block.index = TextIndex::new(&block.text)?;
-                    block.len_utf16 = block.index.utf16_len();
+                        .replace(Utf16Range::collapsed(at), &moved_marks)?;
+                    content.text.push_str(moved.text());
+                    content.index = TextIndex::new(&content.text)?;
+                    block.len_utf16 = content.index.utf16_len();
                 }
             }
         }

@@ -1206,7 +1206,12 @@ impl CoreEngine {
         &self,
         commands: &[InputCommand],
     ) -> Result<(crate::document::DocumentController, Vec<NodeId>), CoreError> {
+        // The clone is what makes the batch transactional; a batch with no
+        // document commands does not need one.
         let mut candidate = self.documents.clone();
+        if commands.is_empty() {
+            return Ok((candidate, Vec::new()));
+        }
         let mut changed = Vec::new();
         for command in commands {
             changed.extend(candidate.apply_command(command)?);
