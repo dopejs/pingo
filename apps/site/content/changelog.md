@@ -4,11 +4,19 @@ title: 变更日志
 
 # Changelog
 
-版本口径见 `docs/release.md`：14 个包同版本原子发布，npm semver 与二进制
+版本口径见 `docs/release.md`：15 个包同版本原子发布，npm semver 与二进制
 ABI 版本独立管理。
 
 ## 0.4.0 - 2026-09-01
 
+- 新增 `@dopejs/pingo/editor`：写文档编辑器要用的 schema、命令、输入规则，以及 HTML 和
+  markdown 的双向转换。`**粗体**` 收尾时标记消失、范围加粗；段首 `## ` 变成二级标题；
+  Tab 缩进列表项，空列表项上回车跳出列表；从网页粘贴保留标题、列表与加粗。
+- 编辑器现在是文档，不再只是输入框：一个选区可以跨块，一张图片可以整块被选中并删除，
+  caret 可以停在两张相邻图片之间打字，五千块的文档编辑起来不比五百块慢。中文输入法在
+  加粗边界和块边界上组合正确。
+- 撤销按一次输入突发算，不按一个字符算，自动格式化是单独的一步。
+- 富文本是可选模块：默认产物不含它以守住体积上限，需要时用 `PINGO_RICH_TEXT=1` 构建。
 - 新增 `@dopejs/pingo/react`：`PingoContainer` 让你在 React 应用里挂载一块 pingo canvas，
   不必自己写创建、异步竞态与清理。它自己创建 canvas——root 对 canvas 的转移是永久的，
   React StrictMode 在开发期挂载两次，交给它 React 渲染的 canvas 会失败。

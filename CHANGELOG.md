@@ -1,12 +1,29 @@
 # Changelog
 
-版本口径见 `docs/release.md`：14 个包同版本原子发布，npm semver 与二进制
+版本口径见 `docs/release.md`：15 个包同版本原子发布，npm semver 与二进制
 ABI 版本独立管理。本文、面向用户的 `apps/site/content/changelog.md` 及其九份翻译必须
 覆盖同一组已发布版本，由 `scripts/check-changelog-sync.test.mjs` 强制；各份详略与读者
 不同，但不得缺少其他份已经记录的版本。
 
 ## 0.4.0 - 2026-09-01
 
+- 新增 `@dopejs/pingo/editor`：文档 schema、命令、输入规则与 HTML/markdown 双向序列化。
+  它拿的是文档编辑器里放不进 Core 的那一半——「Tab 缩进这个列表项」「空列表项上回车跳出
+  列表」是应用决定，Core 只拥有 caret 在哪。发布集因此由 14 个包变为 15 个。
+- Core 获得文档模型：多 styled run 渲染、mark 编辑、跨块的扁平位置空间与 Text/Node/Gap
+  三种选区、结构编辑的乐观往返，以及未物化块也参与选区与 caret 的块虚拟化。ABI 22 → 26。
+  **富文本是可选模块**：编译进来超出 M9 体积门禁 13,518 gzip bytes，所以默认发布产物不含
+  它，`PINGO_RICH_TEXT=1 pnpm core:wasm` 产出含它的产物。归因见
+  `docs/wasm-size-attribution.md`。
+- 撤销现在按输入突发分组：相邻同类的输入或删除合成一步，而类别变化、caret 移动、换行、
+  输入法组合与显式 `Replace` 都封口。一次自动格式化因此是它自己那一步，不会和它前面的
+  打字一起被撤销。`EditConfig::group_undo` 是回滚开关。
+- 每个编辑事务带一份位置映射表，Shell 查表搬运链接范围、评论锚点与远端光标。这是全仓库
+  唯一一份范围变换逻辑。
+- 修复带显式字体的可编辑节点每帧回落到系统字体测量：`measure` 与 `prepare_resources`
+  用两种方式推导同一个内容哈希，于是每帧都判定为陈旧。
+- 修复布局差分 oracle 的一处分歧：参考实现把脱离文档流的子节点排在流内之后布局，而引擎
+  按文档顺序走，两者对同时含矛盾样式的场景会归咎不同节点。
 - 新增 `@dopejs/pingo/react`：`PingoContainer` 在 React 树里挂载一个 pingo canvas root。
   它自己创建 canvas 而不是接收 React 渲染的那个——root 对 canvas 的 OffscreenCanvas
   转移是永久的，React StrictMode 的开发期双挂载会把同一个元素交给第二个 root 并失败。

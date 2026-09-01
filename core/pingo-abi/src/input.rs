@@ -2446,6 +2446,202 @@ mod tests {
         assert_eq!(bytes.len() % 4, 0);
     }
 
+    /// Encodes one command and hands back its bytes for a targeted corruption.
+    fn one(command: InputCommand) -> Vec<u8> {
+        InputBatch {
+            frame_seq: 1,
+            instructions: vec![instruction(command)],
+        }
+        .encode()
+        .expect("command bytes")
+    }
+
+    /// Offset of a command's first payload word, past the stream and
+    /// instruction headers.
+    const PAYLOAD: usize = 20;
+
+    fn corrupt(bytes: &[u8], offset: usize, value: u8) -> Vec<u8> {
+        let mut copy = bytes.to_vec();
+        copy[offset] = value;
+        copy
+    }
+
+    #[test]
+    fn document_selection_rejects_every_kind_that_carries_the_wrong_payload() {
+        let text = one(InputCommand::SetDocumentSelection {
+            node_id: 4,
+            base_revision: 0,
+            selection: WireDocumentSelection::Text {
+                anchor_key: 1,
+                anchor_offset: 2,
+                focus_key: 3,
+                focus_offset: 4,
+            },
+        });
+        assert!(InputBatch::decode(&text).is_ok());
+        // The kind byte sits after the eight-byte revision that follows the id.
+        let kind_at = PAYLOAD + 12;
+        // Reading the text selection as a node or a gap must fail, because
+        // each kind owns exactly the fields it needs.
+        assert!(InputBatch::decode(&corrupt(&text, kind_at, 2)).is_err());
+        assert!(InputBatch::decode(&corrupt(&text, kind_at, 3)).is_err());
+        assert!(InputBatch::decode(&corrupt(&text, kind_at, 0)).is_err());
+        assert!(InputBatch::decode(&corrupt(&text, kind_at, 9)).is_err());
+        // Reserved padding after the kind byte must be zero.
+        assert!(InputBatch::decode(&corrupt(&text, kind_at + 1, 1)).is_err());
+
+        for selection in [
+            WireDocumentSelection::Node { key: 7 },
+            WireDocumentSelection::Gap { index: 3 },
+        ] {
+            let bytes = one(InputCommand::SetDocumentSelection {
+                node_id: 4,
+                base_revision: 0,
+                selection,
+            });
+            assert_eq!(
+                InputBatch::decode(&bytes).expect("round trip").instructions[0].command,
+                InputCommand::SetDocumentSelection {
+                    node_id: 4,
+                    base_revision: 0,
+                    selection,
+                }
+            );
+        }
+        // A gap's index is a payload the other two kinds have no field for, so
+        // relabelling it fails in both directions.
+        let gap = one(InputCommand::SetDocumentSelection {
+            node_id: 4,
+            base_revision: 0,
+            selection: WireDocumentSelection::Gap { index: 3 },
+        });
+        assert!(InputBatch::decode(&corrupt(&gap, kind_at, 1)).is_err());
+        assert!(InputBatch::decode(&corrupt(&gap, kind_at, 2)).is_err());
+    }
+
+    #[test]
+    fn document_caret_and_edit_commands_reject_unknown_enumerations() {
+        let caret = one(InputCommand::MoveDocumentCaret {
+            node_id: 4,
+            direction: CaretDirection::Forward,
+            granularity: CaretGranularity::Word,
+            extend: true,
+        });
+        assert!(InputBatch::decode(&caret).is_ok());
+        assert!(InputBatch::decode(&corrupt(&caret, PAYLOAD + 4, 99)).is_err());
+        assert!(InputBatch::decode(&corrupt(&caret, PAYLOAD + 5, 99)).is_err());
+        assert!(InputBatch::decode(&corrupt(&caret, PAYLOAD + 6, 2)).is_err());
+        assert!(InputBatch::decode(&corrupt(&caret, PAYLOAD + 7, 1)).is_err());
+
+        let insert = one(InputCommand::EditDocument {
+            node_id: 4,
+            base_revision: 0,
+            operation: DocumentOperation::Insert,
+            style: 5,
+            font: 6,
+            text: "x".to_owned(),
+        });
+        assert!(InputBatch::decode(&insert).is_ok());
+        // Only an insertion carries text, so relabelling it as a deletion
+        // leaves a payload the operation cannot explain.
+        assert!(InputBatch::decode(&corrupt(&insert, PAYLOAD + 12, 1)).is_err());
+        assert!(InputBatch::decode(&corrupt(&insert, PAYLOAD + 12, 0)).is_err());
+        assert!(InputBatch::decode(&corrupt(&insert, PAYLOAD + 13, 1)).is_err());
+        assert!(
+            InputBatch {
+                frame_seq: 1,
+                instructions: vec![instruction(InputCommand::EditDocument {
+                    node_id: 4,
+                    base_revision: 0,
+                    operation: DocumentOperation::Split,
+                    style: 0,
+                    font: 0,
+                    text: "no".to_owned(),
+                })],
+            }
+            .encode()
+            .is_err()
+        );
+        for operation in [
+            DocumentOperation::DeleteBackward,
+            DocumentOperation::DeleteForward,
+            DocumentOperation::Split,
+        ] {
+            let bytes = one(InputCommand::EditDocument {
+                node_id: 4,
+                base_revision: 0,
+                operation,
+                style: 0,
+                font: 0,
+                text: String::new(),
+            });
+            assert!(InputBatch::decode(&bytes).is_ok());
+        }
+    }
+
+    #[test]
+    fn mark_commands_reject_reversed_ranges_and_incoherent_presence() {
+        assert!(
+            InputBatch {
+                frame_seq: 1,
+                instructions: vec![instruction(InputCommand::SetMarks {
+                    node_id: 4,
+                    base_revision: 0,
+                    start: 5,
+                    end: 2,
+                    style: 1,
+                    font: 0,
+                })],
+            }
+            .encode()
+            .is_err()
+        );
+        let marks = one(InputCommand::SetMarks {
+            node_id: 4,
+            base_revision: 0,
+            start: 2,
+            end: 5,
+            style: 1,
+            font: 0,
+        });
+        // Swap the range's start past its end.
+        assert!(InputBatch::decode(&corrupt(&marks, PAYLOAD + 12, 9)).is_err());
+
+        let armed = one(InputCommand::SetPendingMark {
+            node_id: 4,
+            base_revision: 0,
+            mark: Some((7, 8)),
+        });
+        assert!(InputBatch::decode(&armed).is_ok());
+        // Presence zero with a style still set is not a canonical absence.
+        assert!(InputBatch::decode(&corrupt(&armed, PAYLOAD + 20, 0)).is_err());
+        assert!(InputBatch::decode(&corrupt(&armed, PAYLOAD + 20, 2)).is_err());
+        assert!(InputBatch::decode(&corrupt(&armed, PAYLOAD + 21, 1)).is_err());
+        let disarmed = one(InputCommand::SetPendingMark {
+            node_id: 4,
+            base_revision: 0,
+            mark: None,
+        });
+        assert_eq!(
+            InputBatch::decode(&disarmed)
+                .expect("round trip")
+                .instructions[0]
+                .command,
+            InputCommand::SetPendingMark {
+                node_id: 4,
+                base_revision: 0,
+                mark: None,
+            }
+        );
+        assert!(
+            InputBatch::decode(&one(InputCommand::BreakUndoGroup {
+                node_id: 4,
+                base_revision: 9,
+            }))
+            .is_ok()
+        );
+    }
+
     #[test]
     fn rejects_unknown_flags_opcodes_affinities_presence_and_utf8() {
         let flagged = InputBatch {

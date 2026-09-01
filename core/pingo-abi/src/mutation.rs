@@ -989,6 +989,89 @@ mod tests {
         }
     }
 
+    fn document(blocks: Vec<DocumentBlockRecord>) -> MutationBatch {
+        MutationBatch {
+            frame_seq: 1,
+            instructions: vec![MutationInstruction {
+                flags: 0,
+                mutation: Mutation::ConfigureDocument {
+                    node_id: 7,
+                    revision: 0x0000_0001_0000_0002,
+                    flags: 0,
+                    blocks,
+                },
+            }],
+        }
+    }
+
+    fn block(key: u32, node_id: u32, len_utf16: u32, atomic: bool) -> DocumentBlockRecord {
+        DocumentBlockRecord {
+            key,
+            node_id,
+            len_utf16,
+            atomic,
+        }
+    }
+
+    #[test]
+    fn a_document_projection_round_trips_and_rejects_an_unusable_block_list() {
+        let batch = document(vec![
+            block(1, 7, 12, false),
+            block(2, NULL_NODE_ID, 400, false),
+            block(3, 9, 0, true),
+        ]);
+        let bytes = batch.encode().expect("projection encodes");
+        assert_eq!(MutationBatch::decode(&bytes), Ok(batch));
+        // An empty projection is a document with no blocks, which is legal.
+        assert!(document(Vec::new()).encode().is_ok());
+
+        // Key zero is reserved for "no block" and a repeat makes two positions
+        // indistinguishable, so neither survives encode or decode.
+        for blocks in [
+            vec![block(0, 7, 1, false)],
+            vec![block(1, 7, 1, false), block(1, 8, 1, false)],
+            // An atomic block has no text, so a length on it is a contradiction.
+            vec![block(1, 7, 5, true)],
+        ] {
+            assert!(document(blocks).encode().is_err());
+        }
+
+        let mut reserved_flags = bytes.clone();
+        // The document's own flags word follows the id and the revision.
+        reserved_flags[20 + 12] = 1;
+        assert!(MutationBatch::decode(&reserved_flags).is_err());
+
+        let mut block_flags = bytes.clone();
+        // The first block's flags word is the fourth of its four.
+        block_flags[20 + 20 + 12] = 0b10;
+        assert!(MutationBatch::decode(&block_flags).is_err());
+
+        let mut duplicate_key = bytes;
+        // Make the second block claim the first one's key.
+        duplicate_key[20 + 20 + 16] = 1;
+        assert!(MutationBatch::decode(&duplicate_key).is_err());
+    }
+
+    #[test]
+    fn a_document_flag_that_is_not_defined_is_refused_on_the_way_out() {
+        assert!(
+            MutationBatch {
+                frame_seq: 1,
+                instructions: vec![MutationInstruction {
+                    flags: 0,
+                    mutation: Mutation::ConfigureDocument {
+                        node_id: 7,
+                        revision: 1,
+                        flags: 0b100,
+                        blocks: Vec::new(),
+                    },
+                }],
+            }
+            .encode()
+            .is_err()
+        );
+    }
+
     #[test]
     fn canonical_round_trip() {
         let batch = sample_batch();

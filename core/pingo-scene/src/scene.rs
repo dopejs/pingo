@@ -3792,6 +3792,376 @@ mod tests {
     }
 
     #[test]
+    fn a_run_table_keeps_its_styles_and_fonts_reachable() {
+        let root = id(0, 1);
+        let text = id(1, 1);
+        let mut scene = Scene::default();
+        scene
+            .commit(batch(
+                1,
+                vec![
+                    create(root, NodeKind::Root, None),
+                    create(text, NodeKind::Text, Some(root)),
+                    define(1, ResourceKind::Paint, paint(0, 0, 0, 255)),
+                    define(2, ResourceKind::Utf8String, b"hello".to_vec()),
+                    define(3, ResourceKind::TextStyle, text_style(1, b"sans")),
+                ],
+            ))
+            .expect("resources");
+
+        // A run naming something that is not a text style, or a font that is
+        // not a font, is rejected where the table is defined -- not later at
+        // draw time, when the frame has already been accepted.
+        let mut wrong_style = scene.clone();
+        assert_eq!(
+            wrong_style.commit(batch(
+                2,
+                vec![define(
+                    4,
+                    ResourceKind::StyledRuns,
+                    styled_runs(&[(5, 1, 0)]),
+                )],
+            )),
+            Err(SceneError::WrongResourceKind {
+                resource_id: 1,
+                expected: ResourceKind::TextStyle,
+                actual: ResourceKind::Paint,
+            })
+        );
+        let mut wrong_font = scene.clone();
+        assert_eq!(
+            wrong_font.commit(batch(
+                2,
+                vec![define(
+                    4,
+                    ResourceKind::StyledRuns,
+                    styled_runs(&[(5, 3, 2)]),
+                )],
+            )),
+            Err(SceneError::WrongResourceKind {
+                resource_id: 2,
+                expected: ResourceKind::Font,
+                actual: ResourceKind::Utf8String,
+            })
+        );
+        let mut missing = scene.clone();
+        assert_eq!(
+            missing.commit(batch(
+                2,
+                vec![define(
+                    4,
+                    ResourceKind::StyledRuns,
+                    styled_runs(&[(5, 99, 0)]),
+                )],
+            )),
+            Err(SceneError::MissingResource { resource_id: 99 })
+        );
+
+        // A malformed table never reaches a decoder downstream.
+        let mut malformed = scene.clone();
+        assert_eq!(
+            malformed.commit(batch(
+                2,
+                vec![define(4, ResourceKind::StyledRuns, vec![0, 0, 0, 0])],
+            )),
+            Err(SceneError::InvalidResourceEncoding { resource_id: 4 })
+        );
+
+        // And a binding whose string is missing fails rather than binding half.
+        let mut absent_string = scene;
+        assert_eq!(
+            absent_string.commit(batch(
+                2,
+                vec![
+                    define(4, ResourceKind::StyledRuns, styled_runs(&[(5, 3, 0)])),
+                    Mutation::SetRichText {
+                        node_id: text.raw(),
+                        string_id: 88,
+                        style_id: 3,
+                        runs_id: 4,
+                    },
+                ],
+            )),
+            Err(SceneError::MissingResource { resource_id: 88 })
+        );
+    }
+
+    #[test]
+    fn a_rich_binding_with_no_run_table_is_the_single_style_contract() {
+        let root = id(0, 1);
+        let text = id(1, 1);
+        let other = id(2, 1);
+        let mut scene = Scene::default();
+        scene
+            .commit(batch(
+                1,
+                vec![
+                    create(root, NodeKind::Root, None),
+                    create(text, NodeKind::Text, Some(root)),
+                    create(other, NodeKind::Container, Some(root)),
+                    define(1, ResourceKind::Paint, paint(0, 0, 0, 255)),
+                    define(2, ResourceKind::Utf8String, b"hello".to_vec()),
+                    define(3, ResourceKind::TextStyle, text_style(1, b"sans")),
+                    // A zero runs_id is the single-style binding, not a fallback.
+                    Mutation::SetRichText {
+                        node_id: text.raw(),
+                        string_id: 2,
+                        style_id: 3,
+                        runs_id: 0,
+                    },
+                ],
+            ))
+            .expect("plain rich binding");
+        assert_eq!(
+            scene.text_run(text),
+            Some(TextRun {
+                string_id: 2,
+                style_id: 3,
+                runs_id: 0,
+            })
+        );
+
+        // Only a text node can carry one.
+        let mut wrong_kind = scene.clone();
+        assert_eq!(
+            wrong_kind.commit(batch(
+                2,
+                vec![Mutation::SetRichText {
+                    node_id: other.raw(),
+                    string_id: 2,
+                    style_id: 3,
+                    runs_id: 0,
+                }],
+            )),
+            Err(SceneError::UnsupportedNodeOperation {
+                node: other,
+                kind: NodeKind::Container,
+                operation: "SetRichText",
+            })
+        );
+
+        // The same instruction works in a structural commit, against a node and
+        // resources the very same batch created.
+        let mut structural = scene.clone();
+        let added = id(3, 1);
+        structural
+            .commit(batch(
+                2,
+                vec![
+                    create(added, NodeKind::Text, Some(root)),
+                    define(4, ResourceKind::Utf8String, b"ab".to_vec()),
+                    define(
+                        5,
+                        ResourceKind::StyledRuns,
+                        styled_runs(&[(1, 3, 0), (1, 3, 0)]),
+                    ),
+                    Mutation::SetRichText {
+                        node_id: added.raw(),
+                        string_id: 4,
+                        style_id: 3,
+                        runs_id: 5,
+                    },
+                ],
+            ))
+            .expect("structural rich binding");
+        assert_eq!(structural.text_run(added).expect("run").runs_id, 5);
+        // A structural commit rejects a table that does not cover the value.
+        let mut short = scene;
+        assert_eq!(
+            short.commit(batch(
+                2,
+                vec![
+                    create(added, NodeKind::Text, Some(root)),
+                    define(4, ResourceKind::Utf8String, b"abc".to_vec()),
+                    define(5, ResourceKind::StyledRuns, styled_runs(&[(1, 3, 0)])),
+                    Mutation::SetRichText {
+                        node_id: added.raw(),
+                        string_id: 4,
+                        style_id: 3,
+                        runs_id: 5,
+                    },
+                ],
+            )),
+            Err(SceneError::InvalidResourceEncoding { resource_id: 5 })
+        );
+    }
+
+    #[test]
+    fn a_projection_that_did_not_change_does_not_dirty_the_document() {
+        let root = id(0, 1);
+        let container = id(1, 1);
+        let mut scene = Scene::default();
+        scene
+            .commit(batch(
+                1,
+                vec![
+                    create(root, NodeKind::Root, None),
+                    create(container, NodeKind::Container, Some(root)),
+                    Mutation::ConfigureDocument {
+                        node_id: container.raw(),
+                        revision: 3,
+                        flags: 0,
+                        blocks: Vec::new(),
+                    },
+                ],
+            ))
+            .expect("document commit");
+        scene.clear_dirty();
+        scene
+            .commit(batch(
+                2,
+                vec![Mutation::ConfigureDocument {
+                    node_id: container.raw(),
+                    revision: 3,
+                    flags: 0,
+                    blocks: Vec::new(),
+                }],
+            ))
+            .expect("identical projection");
+        assert!(
+            scene
+                .dirty(DirtyDomain::Semantics)
+                .iter_ones()
+                .next()
+                .is_none()
+        );
+
+        // A different revision is a semantics change: the block sequence a
+        // screen reader walks is exactly this list.
+        scene
+            .commit(batch(
+                3,
+                vec![Mutation::ConfigureDocument {
+                    node_id: container.raw(),
+                    revision: 4,
+                    flags: 0,
+                    blocks: Vec::new(),
+                }],
+            ))
+            .expect("new projection");
+        assert_eq!(
+            scene
+                .dirty(DirtyDomain::Semantics)
+                .iter_ones()
+                .collect::<Vec<_>>(),
+            vec![scene.resolve(container).expect("container index")]
+        );
+    }
+
+    #[test]
+    fn a_document_projection_is_stored_and_only_on_a_container() {
+        let root = id(0, 1);
+        let container = id(1, 1);
+        let text = id(2, 1);
+        let blocks = vec![
+            pingo_abi::DocumentBlockRecord {
+                key: 10,
+                node_id: text.raw(),
+                len_utf16: 5,
+                atomic: false,
+            },
+            pingo_abi::DocumentBlockRecord {
+                key: 11,
+                node_id: NULL_NODE_ID,
+                len_utf16: 400,
+                atomic: false,
+            },
+        ];
+        let mut scene = Scene::default();
+        scene
+            .commit(batch(
+                1,
+                vec![
+                    create(root, NodeKind::Root, None),
+                    create(container, NodeKind::Container, Some(root)),
+                    create(text, NodeKind::Text, Some(container)),
+                    Mutation::ConfigureDocument {
+                        node_id: container.raw(),
+                        revision: 7,
+                        flags: 0,
+                        blocks: blocks.clone(),
+                    },
+                ],
+            ))
+            .expect("document commit");
+        let projection = scene.document(container).expect("projection");
+        assert_eq!(projection.revision, 7);
+        assert_eq!(projection.blocks.as_ref(), blocks.as_slice());
+        assert!(scene.document(text).is_none());
+
+        // A text node is a block, not a document.
+        let mut wrong_kind = scene.clone();
+        assert_eq!(
+            wrong_kind.commit(batch(
+                2,
+                vec![Mutation::ConfigureDocument {
+                    node_id: text.raw(),
+                    revision: 8,
+                    flags: 0,
+                    blocks: Vec::new(),
+                }],
+            )),
+            Err(SceneError::UnsupportedNodeOperation {
+                node: text,
+                kind: NodeKind::Text,
+                operation: "ConfigureDocument",
+            })
+        );
+
+        // Reserved policy bits are refused rather than ignored.
+        let mut reserved = scene.clone();
+        assert!(
+            reserved
+                .commit(batch(
+                    2,
+                    vec![Mutation::ConfigureDocument {
+                        node_id: container.raw(),
+                        revision: 8,
+                        flags: 1,
+                        blocks: Vec::new(),
+                    }],
+                ))
+                .is_err()
+        );
+
+        // The same instruction works in a structural commit, where the node it
+        // names may be created by the very same batch.
+        let mut structural = scene;
+        let extra = id(3, 1);
+        structural
+            .commit(batch(
+                2,
+                vec![
+                    create(extra, NodeKind::Scroll, Some(root)),
+                    Mutation::ConfigureDocument {
+                        node_id: extra.raw(),
+                        revision: 1,
+                        flags: 0,
+                        blocks: Vec::new(),
+                    },
+                ],
+            ))
+            .expect("structural document commit");
+        assert_eq!(structural.document(extra).expect("projection").revision, 1);
+        assert!(
+            structural
+                .commit(batch(
+                    3,
+                    vec![
+                        create(id(4, 1), NodeKind::Text, Some(root)),
+                        Mutation::ConfigureDocument {
+                            node_id: id(4, 1).raw(),
+                            revision: 1,
+                            flags: 0,
+                            blocks: Vec::new(),
+                        },
+                    ],
+                ))
+                .is_err()
+        );
+    }
+
+    #[test]
     fn public_queries_and_every_non_structural_lane_are_observable() {
         let root = id(0, 1);
         let scroll = id(1, 1);
