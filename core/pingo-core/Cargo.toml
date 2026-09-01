@@ -47,8 +47,11 @@ pedantic = "deny"
 [package.metadata.wasm-pack.profile.release]
 # Keep the rustc `opt-level=z` layout, which compresses better than Binaryen's
 # full -Oz pipeline for this module, then remove byte-identical functions and
-# dead local structure only. wasm-pack owns the pinned Binaryen download.
+# dead local structure only. `--converge` repeats exactly this list until it
+# stops changing the module: each pass exposes work for the others, and one
+# sweep leaves that on the table. wasm-pack owns the pinned Binaryen download.
 wasm-opt = [
+  "--converge",
   "--duplicate-function-elimination",
   "--vacuum",
   "--dae-optimizing",

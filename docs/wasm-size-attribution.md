@@ -229,12 +229,9 @@ E14 的设计（[`e14-painted-text-probe-design.md`](e14-painted-text-probe-desi
 
 - `pingo-core` 的 `rich-text` feature 默认开启，`cargo test --workspace` 因此测的是
   完整能力；
-- `pnpm core:wasm` 默认传 `--no-default-features`，发布产物 **不含** 该模块，落在
-  392,103，工程门禁下仅余 **1,113 bytes**；
+- `pnpm core:wasm` 默认传 `--no-default-features`，发布产物 **不含** 该模块；
 - `PINGO_RICH_TEXT=1 pnpm core:wasm` 产出含该模块的产物，此时按产品上限计量，manifest
-  的 `richText: true` 记录了产物是哪一种。**这一产物当前 410,959，超出产品上限 1,359
-  bytes**：产物会先写出（开发与端到端构建可以用），随后构建失败——它说的是这份产物在
-  Core 把字节还回来之前不能发布。
+  的 `richText: true` 记录了产物是哪一种。
 
 **13,435 的常驻增量**（feature 关掉也在）来自不能按能力摘除的部分：ABI 新增的
 `StyledRuns` 资源、`SetRichText`、编辑事务上的 mark/映射负载、三条文档输入指令、
@@ -243,27 +240,90 @@ E14 的设计（[`e14-painted-text-probe-design.md`](e14-painted-text-probe-desi
 方言**——同一个 ABI 版本号，两套可接受的指令集——这是信任边界上不该引入的歧义，所以没有
 做。
 
-由此工程余量从 14,625 降到 **1,113**。**下一次 Rust 能力新增必须先回收再动手**：常驻
-路径已经没有空间了，任何新增都会直接顶破工程门禁。可回收的部分按代价排序：
+由此工程余量一度降到 **1,113**，富文本产物则差 1,359 bytes 才能发布。下一节是把这
+1,359 bytes 找回来的过程。
 
-1. 把 ABI 的文档指令与 `Structure`/`DocumentSelection` 记录一并 feature 化（约 4–6 KiB，
-   但引入双方言）；
-2. 把 `EditSession` 的 mark 表与 `PositionMap` 拆到 feature 后（约 3–4 KiB，需要把
-   undo 历史里的 marks 一起拆开）；
-3. 重新审视 `pingo-text` 的多 run 机器（约 1–2 KiB）。
+## 2026-09-01：把富文本产物压回产品上限内
 
-**富文本产物要发布，还差 1,359 bytes。** 试过的两项：
+回收后的三个数（同一 `pnpm core:wasm` 口径）：
+
+| 构建                   | raw bytes | gzip bytes | 门禁             | 余量      |
+| ---------------------- | --------- | ---------- | ---------------- | --------- |
+| 默认（无 `rich-text`） | 1,052,574 | 389,313    | 384 KiB 工程门禁 | **3,903** |
+| `PINGO_RICH_TEXT=1`    | 1,101,587 | 407,703    | 400 KiB 产品上限 | **1,897** |
+
+**富文本产物现在可以发布。** 三项改动，按贡献排序：
+
+### `--converge`：−2,395 bytes
+
+`[package.metadata.wasm-pack.profile.release]` 的 pass 列表本来就是按 gzip 而不是按 raw
+选的——上面那条注释写着「保留 rustc 的 `opt-level=z` 布局」。这次复核发现列表少一个
+flag：Binaryen 默认把 pass 列表**跑一遍**就结束，而这四个 pass 互相喂料
+（`--dae-optimizing` 去掉参数后会暴露新的等价函数体给
+`--duplicate-function-elimination`，后者合并后又给 `--vacuum` 留下新的死结构）。
+`--converge` 让它跑到不动点为止。没有引入任何新 pass，语义面与复核过的那四个完全一致。
+
+同一轮里量过、被否掉的两个：
+
+| 变体               | gzip bytes | 结论                                  |
+| ------------------ | ---------- | ------------------------------------- |
+| 基线（四个 pass）  | 410,098    | —                                     |
+| `+ -Oz`            | 434,470    | raw 少 80 KB，gzip **多 24 KB**，否掉 |
+| `+ --code-folding` | 410,153    | 比基线还差 55 bytes，否掉             |
+| `+ --converge`     | 407,703    | 采纳                                  |
+
+`-Oz` 这一格是本轮最有用的一课：**门禁量的是 gzip，而 `-Oz` 用打散重复模式换 raw 体积**。
+所有「去重复代码」的直觉在这个口径下都要重新称一遍——下面两条就是被它推翻的。
+
+### 合并两张 Text Shape Cache：−809 bytes
+
+`TextEngine` 原来有 `entries` 和 `rich_entries` 两张表、两个 key 类型、一套要同时扫两张
+表挑最旧条目的淘汰逻辑。但 `layout_text` 本来就是「一个 run 覆盖全文」再走 `layout_runs`
+——单样式布局**就是**单 run 的富文本布局。两张表在缓存同一种东西，同一份文字在两条入口
+下会各存一份。
+
+现在一张表、一个 key。淘汰与 `invalidate_font` 各自从两遍扫描回到一遍，`layout_text`
+退化成只有测试（金样字节摘要）在用的入口。代价是单样式查找的 key 里多了一个单元素
+`Vec<RunKey>`；这条路径本来每次查找就要 `Arc::from(text)` 拷贝整串文字，多一个 28 字节
+的分配不改变量级。
+
+### `take_structure` 换成不稳定排序：−171 bytes
+
+`document_rich.rs` 的 `result.sort_by_key(...)` 是整个 wasm 产物里**唯一**一处非测试的
+稳定排序（`pingo-scene` 的 z-index 排序必须稳定，那处保留；其余三处都在
+`#[cfg(test)]` 之后）。`(node_id, sequence)` 两两不等，稳定性没有可保留的东西，而稳定
+排序会把第二套排序算法链进模块。不稳定排序对给定输入同样确定，帧契约要的是这个。
+
+### 保留但没省到字节的一项
+
+`WireDocumentSelection` 的解码在 `input.rs` 与 `edit_transactions.rs` 里逐字重复了一遍
+——同一段 kind + 3 字节填充 + 5 个 u32，连「哪些字段对哪个 kind 必须为零」的校验都一样。
+抽成一份共享 codec 后 gzip **涨了 119 bytes**（重复代码对 gzip 近乎免费，而独立函数打断了
+内联特化）。**仍然保留**：这是信任边界上的校验，两份就是两处会各自漂移的规则，119 bytes
+买这个是划算的。
+
+### 试过、无效、不必再试
 
 - 把 `pingo-core::text` 里解析 Scene run 表与解析会话 mark 表的两份实现合成一份，省
-  **79 bytes**（已保留——它本来就该是一份，两份就是两个地方可以让同一段文字在已提交帧
-  和正在编辑的帧里解析出不同的样式）；
+  **79 bytes**（已保留——同理，它本来就该是一份）；
 - 把 `pingo-edit::document` 的 `Debug` derive 在 release 下摘掉，省 **1 byte**——那些
-  impl 早已被死代码消除，这条**无效**，不必再试。
+  impl 早已被死代码消除；
+- 把 `CoreTextSystem` 里六张按 `NodeId` 索引的编辑态 `HashMap`/`HashSet` 换成
+  `OrderedMap`/`OrderedSet`，gzip **涨 214 bytes**。`--duplicate-function-elimination`
+  本来就把 hashbrown 的同构实例合并掉了，换过去等于用新代码换已经免费的东西；
+- 九个 `Display for XError` 里的 `{self:?}` 全部换成静态串（想摘掉 `flt2dec` 的
+  11,145 bytes 浮点格式化），code section 只少 **127 bytes**——浮点格式化不是错误
+  Display 拉进来的。那 11 KB 仍在模块里，来源未定位，留给下一次压缩。
 
-`design.md` §17 风险表对「WASM 仅贴线通过产品上限」给的处置有三条，前两条（工程余量门禁、
-size attribution）已经在做，第三条是**可选模块延迟加载**——把 rich-text 拆成独立加载的
-第二个 wasm 模块。那是真正能让这份产物发布的路，也是一次单独的架构改动，不在 E15 范围
-内。在它落地之前，富文本能力完整可测，但承载它的产物不能发布。
+### 仍可回收的方向
+
+1. 定位并摘掉 `flt2dec`/`dragon` 的 11,145 bytes（来源未知，需要先找到构造
+   `format_args!` 浮点参数的那处）；
+2. 把 ABI 的文档指令与 `Structure`/`DocumentSelection` 记录一并 feature 化（约 4–6 KiB，
+   但引入双方言，只对默认产物有效）；
+3. 字体栈目前是两套——`fontdue`（经 `ttf-parser`）光栅、`swash`（经
+   `read-fonts`/`skrifa`）整形，重叠的字体解析约 13 KiB。合并成一套会改光栅输出，
+   所有像素金样要重取，是一次单独的改动。
 
 ## 2026-09-01：探针基线对构建机路径敏感
 

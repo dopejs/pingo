@@ -2,6 +2,7 @@ use crate::codec::{
     Reader, Writer, checked_padding, finish_instruction, read_header, read_instruction_header,
     validate_encode_instruction_count,
 };
+use crate::input::{read_document_selection, write_document_selection};
 use crate::{
     AbiError, EDIT_MAP_SEGMENT_FLAG_KEPT, EDIT_TRANSACTIONS_MAGIC, EditTransactionOpcode,
     MAX_DOCUMENT_BLOCK_KEYS, MAX_EDIT_MAP_SEGMENTS, MAX_EDIT_MARK_RUNS,
@@ -401,25 +402,7 @@ impl EditTransactionBatch {
         for record in &self.selections {
             writer.instruction(EditTransactionOpcode::DocumentSelection as u8, 0);
             writer.u32(record.node_id);
-            let (kind, anchor_key, anchor_offset, focus_key, focus_offset, gap_index) =
-                match record.selection {
-                    WireDocumentSelection::Text {
-                        anchor_key,
-                        anchor_offset,
-                        focus_key,
-                        focus_offset,
-                    } => (1, anchor_key, anchor_offset, focus_key, focus_offset, 0),
-                    WireDocumentSelection::Node { key } => (2, key, 0, 0, 0, 0),
-                    WireDocumentSelection::Gap { index } => (3, 0, 0, 0, 0, index),
-                };
-            writer.u8(kind);
-            writer.u8(0);
-            writer.u16(0);
-            writer.u32(anchor_key);
-            writer.u32(anchor_offset);
-            writer.u32(focus_key);
-            writer.u32(focus_offset);
-            writer.u32(gap_index);
+            write_document_selection(&mut writer, record.selection);
         }
         writer.finish(MAX_EDIT_TRANSACTIONS_BYTES)
     }
@@ -427,50 +410,7 @@ impl EditTransactionBatch {
 
 fn decode_document_selection(reader: &mut Reader<'_>) -> Result<DocumentSelectionRecord, AbiError> {
     let node_id = reader.read_u32()?;
-    let kind = reader.read_u8()?;
-    reader.read_zeroes(3)?;
-    let anchor_key = reader.read_u32()?;
-    let anchor_offset = reader.read_u32()?;
-    let focus_key = reader.read_u32()?;
-    let focus_offset = reader.read_u32()?;
-    let gap_index = reader.read_u32()?;
-    let selection = match kind {
-        1 => {
-            if gap_index != 0 {
-                return Err(AbiError::InvalidValue(
-                    "text document selection has a gap index",
-                ));
-            }
-            WireDocumentSelection::Text {
-                anchor_key,
-                anchor_offset,
-                focus_key,
-                focus_offset,
-            }
-        }
-        2 => {
-            if anchor_offset != 0 || focus_key != 0 || focus_offset != 0 || gap_index != 0 {
-                return Err(AbiError::InvalidValue(
-                    "node document selection has a non-zero payload",
-                ));
-            }
-            WireDocumentSelection::Node { key: anchor_key }
-        }
-        3 => {
-            if anchor_key != 0 || anchor_offset != 0 || focus_key != 0 || focus_offset != 0 {
-                return Err(AbiError::InvalidValue(
-                    "gap document selection has a non-zero payload",
-                ));
-            }
-            WireDocumentSelection::Gap { index: gap_index }
-        }
-        _ => {
-            return Err(AbiError::UnknownIdentifier {
-                category: "document selection kind",
-                value: u32::from(kind),
-            });
-        }
-    };
+    let selection = read_document_selection(reader)?;
     Ok(DocumentSelectionRecord { node_id, selection })
 }
 

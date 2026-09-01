@@ -375,7 +375,12 @@ impl DocumentController {
         for active in self.documents.values_mut() {
             result.append(&mut active.pending);
         }
-        result.sort_by_key(|record| (record.node_id, record.sequence));
+        // `sequence` is per-document and monotonic, so no two records compare
+        // equal and stability has nothing to preserve. An unstable sort is
+        // still deterministic for a given input, which is what the frame
+        // contract requires; a stable one would link a second sort algorithm
+        // into the module for no observable difference.
+        result.sort_unstable_by_key(|record| (record.node_id, record.sequence));
         result
     }
 

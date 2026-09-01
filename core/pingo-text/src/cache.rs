@@ -2,10 +2,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use swash::shape::ShapeContext;
 
-use crate::{
-    FontFace, RichRun, TextError, TextLayout, TextOptions,
-    layout::{layout_runs, layout_text},
-};
+use crate::{FontFace, RichRun, TextError, TextLayout, TextOptions, layout::layout_runs};
 
 /// Default retained Text Shape Cache budget (8 MiB).
 pub const DEFAULT_CACHE_BYTES: usize = 8 * 1024 * 1024;
@@ -25,22 +22,7 @@ pub struct TextCacheMetrics {
     pub retained_bytes: usize,
 }
 
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
-struct CacheKey {
-    font_id: u32,
-    font_revision: u32,
-    font_fingerprint: u64,
-    font_size: u32,
-    line_height: u32,
-    max_width: u32,
-    white_space: crate::WhiteSpace,
-    overflow_wrap: crate::OverflowWrap,
-    text_align: crate::TextAlign,
-    text_overflow: crate::TextOverflow,
-    text: Arc<str>,
-}
-
-/// Identity of one styled run inside a cached rich layout.
+/// Identity of one styled run inside a cached layout.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 struct RunKey {
     start: usize,
@@ -52,13 +34,17 @@ struct RunKey {
     key: u32,
 }
 
-/// Cache key for a value whose styling changes along it.
+/// Cache key for one laid-out value.
+///
+/// Single-style text is one run covering everything, which is what
+/// [`layout_runs`] already receives for it, so both arrive here under the same
+/// identity instead of under two that would cache the same layout twice.
 ///
 /// The whole node is one entry because wrapping couples the runs: a change in
 /// the first run can move the last one's line breaks, so a per-run entry would
 /// be a cache of results that are not independently reusable.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-struct RichCacheKey {
+struct CacheKey {
     line_height: u32,
     max_width: u32,
     white_space: crate::WhiteSpace,
@@ -68,6 +54,33 @@ struct RichCacheKey {
     font_size: u32,
     runs: Vec<RunKey>,
     text: Arc<str>,
+}
+
+impl CacheKey {
+    fn new(runs: &[RichRun], text: &str, options: TextOptions) -> Self {
+        Self {
+            line_height: options.line_height.to_bits(),
+            max_width: options.max_width.to_bits(),
+            white_space: options.white_space,
+            overflow_wrap: options.overflow_wrap,
+            text_align: options.text_align,
+            text_overflow: options.text_overflow,
+            font_size: options.font_size.to_bits(),
+            runs: runs
+                .iter()
+                .map(|run| RunKey {
+                    start: run.bytes.start,
+                    end: run.bytes.end,
+                    font_id: run.font.id(),
+                    font_revision: run.font.revision(),
+                    font_fingerprint: run.font.fingerprint(),
+                    font_size: run.font_size.to_bits(),
+                    key: run.key,
+                })
+                .collect(),
+            text: Arc::from(text),
+        }
+    }
 }
 
 struct CacheEntry {
@@ -82,7 +95,6 @@ pub struct TextEngine {
     clock: u64,
     shape_context: ShapeContext,
     entries: HashMap<CacheKey, CacheEntry>,
-    rich_entries: HashMap<RichCacheKey, CacheEntry>,
     metrics: TextCacheMetrics,
 }
 
@@ -101,7 +113,6 @@ impl TextEngine {
             clock: 0,
             shape_context: ShapeContext::new(),
             entries: HashMap::new(),
-            rich_entries: HashMap::new(),
             metrics: TextCacheMetrics::default(),
         }
     }
@@ -118,42 +129,16 @@ impl TextEngine {
         options: TextOptions,
     ) -> Result<Arc<TextLayout>, TextError> {
         options.validate()?;
-        self.clock = self.clock.wrapping_add(1);
-        let key = CacheKey {
-            font_id: font.id(),
-            font_revision: font.revision(),
-            font_fingerprint: font.fingerprint(),
-            font_size: options.font_size.to_bits(),
-            line_height: options.line_height.to_bits(),
-            max_width: options.max_width.to_bits(),
-            white_space: options.white_space,
-            overflow_wrap: options.overflow_wrap,
-            text_align: options.text_align,
-            text_overflow: options.text_overflow,
-            text: Arc::from(text),
-        };
-        if let Some(entry) = self.entries.get_mut(&key) {
-            entry.last_use = self.clock;
-            self.metrics.hits += 1;
-            return Ok(Arc::clone(&entry.layout));
-        }
-        self.metrics.misses += 1;
-        let layout = Arc::new(layout_text(&mut self.shape_context, font, text, options)?);
-        let bytes = key.text.len().saturating_add(layout.estimated_bytes());
-        if bytes <= self.budget_bytes {
-            self.evict_until_fits(bytes);
-            self.metrics.retained_bytes = self.metrics.retained_bytes.saturating_add(bytes);
-            self.entries.insert(
-                key,
-                CacheEntry {
-                    layout: Arc::clone(&layout),
-                    bytes,
-                    last_use: self.clock,
-                },
-            );
-            self.metrics.entries = self.entries.len() + self.rich_entries.len();
-        }
-        Ok(layout)
+        // A run covering the whole value has its boundaries at 0 and `len`,
+        // which are grapheme boundaries by construction, so this one skips the
+        // snapping scan that a caller-supplied table needs.
+        let runs = [RichRun {
+            bytes: 0..text.len(),
+            font: font.clone(),
+            font_size: options.font_size,
+            key: 0,
+        }];
+        self.layout_cached(&runs, text, options)
     }
 
     /// Shapes and wraps a value whose styling changes along it.
@@ -176,41 +161,29 @@ impl TextEngine {
             return Err(TextError::InvalidOptions);
         }
         let runs = crate::layout::snap_runs_to_graphemes(runs, text);
+        self.layout_cached(&runs, text, options)
+    }
+
+    fn layout_cached(
+        &mut self,
+        runs: &[RichRun],
+        text: &str,
+        options: TextOptions,
+    ) -> Result<Arc<TextLayout>, TextError> {
         self.clock = self.clock.wrapping_add(1);
-        let key = RichCacheKey {
-            line_height: options.line_height.to_bits(),
-            max_width: options.max_width.to_bits(),
-            white_space: options.white_space,
-            overflow_wrap: options.overflow_wrap,
-            text_align: options.text_align,
-            text_overflow: options.text_overflow,
-            font_size: options.font_size.to_bits(),
-            runs: runs
-                .iter()
-                .map(|run| RunKey {
-                    start: run.bytes.start,
-                    end: run.bytes.end,
-                    font_id: run.font.id(),
-                    font_revision: run.font.revision(),
-                    font_fingerprint: run.font.fingerprint(),
-                    font_size: run.font_size.to_bits(),
-                    key: run.key,
-                })
-                .collect(),
-            text: Arc::from(text),
-        };
-        if let Some(entry) = self.rich_entries.get_mut(&key) {
+        let key = CacheKey::new(runs, text, options);
+        if let Some(entry) = self.entries.get_mut(&key) {
             entry.last_use = self.clock;
             self.metrics.hits += 1;
             return Ok(Arc::clone(&entry.layout));
         }
         self.metrics.misses += 1;
-        let layout = Arc::new(layout_runs(&mut self.shape_context, &runs, text, options)?);
+        let layout = Arc::new(layout_runs(&mut self.shape_context, runs, text, options)?);
         let bytes = key.text.len().saturating_add(layout.estimated_bytes());
         if bytes <= self.budget_bytes {
             self.evict_until_fits(bytes);
             self.metrics.retained_bytes = self.metrics.retained_bytes.saturating_add(bytes);
-            self.rich_entries.insert(
+            self.entries.insert(
                 key,
                 CacheEntry {
                     layout: Arc::clone(&layout),
@@ -218,7 +191,7 @@ impl TextEngine {
                     last_use: self.clock,
                 },
             );
-            self.metrics.entries = self.entries.len() + self.rich_entries.len();
+            self.metrics.entries = self.entries.len();
         }
         Ok(layout)
     }
@@ -228,7 +201,7 @@ impl TextEngine {
         let keys = self
             .entries
             .keys()
-            .filter(|key| key.font_id == font_id)
+            .filter(|key| key.runs.iter().any(|run| run.font_id == font_id))
             .cloned()
             .collect::<Vec<_>>();
         for key in keys {
@@ -237,19 +210,7 @@ impl TextEngine {
                     self.metrics.retained_bytes.saturating_sub(entry.bytes);
             }
         }
-        let rich_keys = self
-            .rich_entries
-            .keys()
-            .filter(|key| key.runs.iter().any(|run| run.font_id == font_id))
-            .cloned()
-            .collect::<Vec<_>>();
-        for key in rich_keys {
-            if let Some(entry) = self.rich_entries.remove(&key) {
-                self.metrics.retained_bytes =
-                    self.metrics.retained_bytes.saturating_sub(entry.bytes);
-            }
-        }
-        self.metrics.entries = self.entries.len() + self.rich_entries.len();
+        self.metrics.entries = self.entries.len();
     }
 
     /// Current cumulative cache metrics.
@@ -260,31 +221,18 @@ impl TextEngine {
 
     fn evict_until_fits(&mut self, incoming: usize) {
         while self.metrics.retained_bytes.saturating_add(incoming) > self.budget_bytes {
-            // Both maps share one budget, so eviction picks the globally oldest
-            // entry rather than starving whichever map happens to be scanned.
-            let plain = self
+            let oldest = self
                 .entries
                 .iter()
                 .min_by_key(|(_, entry)| entry.last_use)
-                .map(|(key, entry)| (key.clone(), entry.last_use));
-            let rich = self
-                .rich_entries
-                .iter()
-                .min_by_key(|(_, entry)| entry.last_use)
-                .map(|(key, entry)| (key.clone(), entry.last_use));
-            let bytes = match (plain, rich) {
-                (Some((key, plain_age)), Some((_, rich_age))) if plain_age <= rich_age => {
-                    self.entries.remove(&key).map(|entry| entry.bytes)
-                }
-                (Some((key, _)), None) => self.entries.remove(&key).map(|entry| entry.bytes),
-                (_, Some((key, _))) => self.rich_entries.remove(&key).map(|entry| entry.bytes),
-                (None, None) => None,
+                .map(|(key, _)| key.clone());
+            let Some(bytes) = oldest.and_then(|key| self.entries.remove(&key)) else {
+                break;
             };
-            let Some(bytes) = bytes else { break };
-            self.metrics.retained_bytes = self.metrics.retained_bytes.saturating_sub(bytes);
+            self.metrics.retained_bytes = self.metrics.retained_bytes.saturating_sub(bytes.bytes);
             self.metrics.evictions += 1;
         }
-        self.metrics.entries = self.entries.len() + self.rich_entries.len();
+        self.metrics.entries = self.entries.len();
     }
 }
 

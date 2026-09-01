@@ -133,7 +133,7 @@ pub struct ShapeCluster {
     /// Identity of the styled run this cluster was shaped with.
     ///
     /// Single-style text has one run whose key is zero, so this is `0` for
-    /// every cluster produced by [`layout_text`].
+    /// every cluster produced by [`layout_runs`].
     pub run: u32,
 }
 
@@ -279,6 +279,11 @@ impl TextLayout {
     }
 }
 
+/// Lays out single-style text.
+///
+/// The engine's cache builds this run table itself, so this is the tests'
+/// entry point for the single-run case that the golden digests pin.
+#[cfg(test)]
 pub(crate) fn layout_text(
     context: &mut ShapeContext,
     font: &FontFace,

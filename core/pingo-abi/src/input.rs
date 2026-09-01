@@ -317,6 +317,80 @@ pub enum WireDocumentSelection {
     },
 }
 
+/// Reads the wire form of a document selection: kind, padding, five payload words.
+///
+/// Both the input stream and the edit-transaction stream carry a selection in
+/// exactly this shape. One decoder means one set of payload rules, so a field
+/// that must be zero for a kind cannot become optional in one direction only.
+pub(crate) fn read_document_selection(
+    reader: &mut Reader<'_>,
+) -> Result<WireDocumentSelection, AbiError> {
+    let kind = reader.read_u8()?;
+    reader.read_zeroes(3)?;
+    let anchor_key = reader.read_u32()?;
+    let anchor_offset = reader.read_u32()?;
+    let focus_key = reader.read_u32()?;
+    let focus_offset = reader.read_u32()?;
+    let gap_index = reader.read_u32()?;
+    match kind {
+        1 => {
+            if gap_index != 0 {
+                return Err(AbiError::InvalidValue(
+                    "text document selection has a gap index",
+                ));
+            }
+            Ok(WireDocumentSelection::Text {
+                anchor_key,
+                anchor_offset,
+                focus_key,
+                focus_offset,
+            })
+        }
+        2 => {
+            if anchor_offset != 0 || focus_key != 0 || focus_offset != 0 || gap_index != 0 {
+                return Err(AbiError::InvalidValue(
+                    "node document selection has a non-zero payload",
+                ));
+            }
+            Ok(WireDocumentSelection::Node { key: anchor_key })
+        }
+        3 => {
+            if anchor_key != 0 || anchor_offset != 0 || focus_key != 0 || focus_offset != 0 {
+                return Err(AbiError::InvalidValue(
+                    "gap document selection has a non-zero payload",
+                ));
+            }
+            Ok(WireDocumentSelection::Gap { index: gap_index })
+        }
+        _ => Err(AbiError::UnknownIdentifier {
+            category: "document selection kind",
+            value: u32::from(kind),
+        }),
+    }
+}
+
+/// Writes the wire form read back by [`read_document_selection`].
+pub(crate) fn write_document_selection(writer: &mut Writer, selection: WireDocumentSelection) {
+    let (kind, anchor_key, anchor_offset, focus_key, focus_offset, gap_index) = match selection {
+        WireDocumentSelection::Text {
+            anchor_key,
+            anchor_offset,
+            focus_key,
+            focus_offset,
+        } => (1, anchor_key, anchor_offset, focus_key, focus_offset, 0),
+        WireDocumentSelection::Node { key } => (2, key, 0, 0, 0, 0),
+        WireDocumentSelection::Gap { index } => (3, 0, 0, 0, 0, index),
+    };
+    writer.u8(kind);
+    writer.u8(0);
+    writer.u16(0);
+    writer.u32(anchor_key);
+    writer.u32(anchor_offset);
+    writer.u32(focus_key);
+    writer.u32(focus_offset);
+    writer.u32(gap_index);
+}
+
 /// One document-level edit operation.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[repr(u8)]
@@ -961,51 +1035,7 @@ fn decode_command(opcode: InputOpcode, reader: &mut Reader<'_>) -> Result<InputC
         }
         InputOpcode::SetDocumentSelection => {
             let (node_id, base_revision) = read_target(reader)?;
-            let kind = reader.read_u8()?;
-            reader.read_zeroes(3)?;
-            let anchor_key = reader.read_u32()?;
-            let anchor_offset = reader.read_u32()?;
-            let focus_key = reader.read_u32()?;
-            let focus_offset = reader.read_u32()?;
-            let gap_index = reader.read_u32()?;
-            let selection = match kind {
-                1 => {
-                    if gap_index != 0 {
-                        return Err(AbiError::InvalidValue(
-                            "text document selection has a gap index",
-                        ));
-                    }
-                    WireDocumentSelection::Text {
-                        anchor_key,
-                        anchor_offset,
-                        focus_key,
-                        focus_offset,
-                    }
-                }
-                2 => {
-                    if anchor_offset != 0 || focus_key != 0 || focus_offset != 0 || gap_index != 0 {
-                        return Err(AbiError::InvalidValue(
-                            "node document selection has a non-zero payload",
-                        ));
-                    }
-                    WireDocumentSelection::Node { key: anchor_key }
-                }
-                3 => {
-                    if anchor_key != 0 || anchor_offset != 0 || focus_key != 0 || focus_offset != 0
-                    {
-                        return Err(AbiError::InvalidValue(
-                            "gap document selection has a non-zero payload",
-                        ));
-                    }
-                    WireDocumentSelection::Gap { index: gap_index }
-                }
-                _ => {
-                    return Err(AbiError::UnknownIdentifier {
-                        category: "document selection kind",
-                        value: u32::from(kind),
-                    });
-                }
-            };
+            let selection = read_document_selection(reader)?;
             InputCommand::SetDocumentSelection {
                 node_id,
                 base_revision,
@@ -1447,25 +1477,7 @@ fn encode_command(writer: &mut Writer, instruction: &InputInstruction) -> Result
             selection,
         } => {
             write_target(writer, *node_id, *base_revision);
-            let (kind, anchor_key, anchor_offset, focus_key, focus_offset, gap_index) =
-                match *selection {
-                    WireDocumentSelection::Text {
-                        anchor_key,
-                        anchor_offset,
-                        focus_key,
-                        focus_offset,
-                    } => (1, anchor_key, anchor_offset, focus_key, focus_offset, 0),
-                    WireDocumentSelection::Node { key } => (2, key, 0, 0, 0, 0),
-                    WireDocumentSelection::Gap { index } => (3, 0, 0, 0, 0, index),
-                };
-            writer.u8(kind);
-            writer.u8(0);
-            writer.u16(0);
-            writer.u32(anchor_key);
-            writer.u32(anchor_offset);
-            writer.u32(focus_key);
-            writer.u32(focus_offset);
-            writer.u32(gap_index);
+            write_document_selection(writer, *selection);
         }
         InputCommand::MoveDocumentCaret {
             node_id,
