@@ -110,6 +110,9 @@ duplicate-function-elimination、vacuum、DAE 和 instruction optimization。没
 377,967/148,458 raw/gzip bytes 变为 377,807/148,428（分别减少 160/30 bytes）；
 `docs/evidence/wasm-budget.v2.json` 已显式重审这一 host baseline，300 KiB 探针上限不变。
 
+> **2026-09-01 更正**：这 160 bytes 不是依赖清理省下来的，是构建机路径长度的差异。
+> 见下文《探针基线对构建机路径敏感》。300 KiB 探针上限的结论不受影响。
+
 ## 2026-08-22：E8 布局回读通路
 
 | 阶段                                                | gzip bytes | 增量   |
@@ -261,6 +264,46 @@ E14 的设计（[`e14-painted-text-probe-design.md`](e14-painted-text-probe-desi
 size attribution）已经在做，第三条是**可选模块延迟加载**——把 rich-text 拆成独立加载的
 第二个 wasm 模块。那是真正能让这份产物发布的路，也是一次单独的架构改动，不在 E15 范围
 内。在它落地之前，富文本能力完整可测，但承载它的产物不能发布。
+
+## 2026-09-01：探针基线对构建机路径敏感
+
+`pnpm wasm:build` 在本机报告 `aarch64-apple-darwin` 基线不符：期望
+377,807/148,428，实测 377,967/148,464。逐条排查后确认**与仓库内容无关**：
+
+- 在记录该基线的提交 `6629f82` 上、用干净 target 目录、`--locked` 重建探针，得到的是
+  377,967 —— 和当前 HEAD 逐字节相同。`6629f82..HEAD` 之间只有 `30d33e8` 碰过
+  `Cargo.lock`，加的是 `pingo-collections`，不在探针的依赖图里；
+- `measure-wasm-budget.mjs` 不过 wasm-opt，产物只由 源码 + `Cargo.lock` + release
+  profile + rustc 1.96.0 + wasm32 std 决定，没有 `RUSTFLAGS`、没有 `.cargo/config.toml`。
+
+真正的变量是**嵌进产物里的绝对源码路径**。panic location 会把
+`$CARGO_HOME/registry/src/index.crates.io-<hash>/<crate>/src/...` 原样写进 data
+section，实测：
+
+| 构建                                          | raw bytes | 相对本机 |
+| --------------------------------------------- | --------- | -------- |
+| 本机（registry 前缀 64 字符）                 | 377,967   | —        |
+| `--remap-path-prefix` 到 2 字符               | 376,727   | −1,240   |
+| `--remap-path-prefix` 到 56 字符（短 8 字符） | 377,791   | −176     |
+
+即前缀每短 1 个字符，产物少约 22 bytes——探针里有 22 处这样的路径。记录下来的
+377,807 恰好对应一台 registry 前缀比本机短约 7 个字符的机器。上一节那条「依赖清理省下
+160 bytes」是同一现象的误判：清理确实落地了（探针的 `Cargo.toml` 现在没有
+`ttf-parser`），但前后两次测量不在同一台机器上，160 bytes 是路径差，不是代码差。
+
+**处置**：只重录 `aarch64-apple-darwin` 一条为 377,967/148,464。`x86_64-unknown-linux-gnu`
+不动——CI 在 ubuntu runner 上按它把关，本机没有 Linux 环境可以重测，改测量口径会作废一条
+我无法验证的基线。
+
+**遗留**：这个门禁按字节严格比对，所以它同时在量代码和量文件系统。换机器、换用户名、换
+`CARGO_HOME` 都会让它失败，且失败信息看不出是哪一种。彻底的修法是给
+`measure-wasm-budget.mjs` 固定 `--remap-path-prefix`（registry 根 + workspace 根都映射到
+定长 token），产物随之与路径无关、大概率也与 host 无关，两条 baseline 可以合并成一条。
+代价是**两个 host 的基线都要在新口径下重测一次**，其中 Linux 那次必须在 CI 上做。这项没有
+在本次一并做掉，就是因为无法在本机验证 Linux 侧的新值。
+
+再次出现同类不符时的判定顺序：先在记录基线的提交上重建，若与 HEAD 一致即为环境差异；
+再用上表的 22 bytes/字符 估一下路径长度差是否对得上；两者都成立才重录，并在此追加一节。
 
 ## 失败模式与回滚
 
