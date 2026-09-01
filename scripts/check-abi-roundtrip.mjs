@@ -83,6 +83,7 @@ async function checkAbiRoundtrip() {
         bytes: new TextEncoder().encode("hello"),
       },
       { type: "setTextRun", nodeId: 7, stringId: 9, styleId: 10 },
+      { type: "setRichText", nodeId: 7, stringId: 9, styleId: 10, runsId: 11 },
       { type: "observeGeometry", nodeId: 7, flags: 1 },
       { type: "observeGeometry", nodeId: 7, flags: 0 },
     ],

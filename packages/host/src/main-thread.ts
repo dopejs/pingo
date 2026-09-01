@@ -1180,7 +1180,7 @@ export class CanvasFrameSink implements MutationSink {
         if (previousParent !== undefined) removeChild(children, previousParent, mutation.nodeId);
         nextParents.set(mutation.nodeId, mutation.newParent);
         addChild(children, mutation.newParent, mutation.nodeId);
-      } else if (mutation.type === "setTextRun") {
+      } else if (mutation.type === "setTextRun" || mutation.type === "setRichText") {
         nextTextPairs.set(
           mutation.nodeId,
           Object.freeze({ stringId: mutation.stringId, styleId: mutation.styleId }),

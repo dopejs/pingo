@@ -28,6 +28,7 @@ const GOLDEN_BATCH: MutationBatch = {
       bytes: new TextEncoder().encode("hello"),
     },
     { type: "setTextRun", nodeId: 7, stringId: 9, styleId: 10 },
+    { type: "setRichText", nodeId: 7, stringId: 9, styleId: 10, runsId: 11 },
   ],
 };
 
@@ -67,7 +68,7 @@ describe("Mutation Stream", () => {
     const bytes = encodeMutationBatch(GOLDEN_BATCH);
     expect(decodeMutationBatch(bytes)).toEqual(GOLDEN_BATCH);
     expect(toHex(bytes)).toBe(
-      "444f504d160010006400000005000000010005000700000003000000ffffffffffffffff1000040007000000010000000040a0433000060009000000010000000500000068656c6c6f0000002000040007000000090000000a000000f00002002a000000",
+      "444f504d170010007800000006000000010005000700000003000000ffffffffffffffff1000040007000000010000000040a0433000060009000000010000000500000068656c6c6f0000002000040007000000090000000a0000002100050007000000090000000a0000000b000000f00002002a000000",
     );
   });
 

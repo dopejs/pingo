@@ -71,6 +71,18 @@ export type Mutation =
       readonly styleId: number;
     }
   | {
+      /**
+       * Binds a value, its base style, and a styled-run table in one
+       * instruction. A zero `runsId` is the single-style contract and behaves
+       * exactly like `setTextRun`.
+       */
+      readonly type: "setRichText";
+      readonly nodeId: number;
+      readonly stringId: number;
+      readonly styleId: number;
+      readonly runsId: number;
+    }
+  | {
       readonly type: "defineResource";
       readonly resourceId: number;
       readonly kind: ResourceKind;
@@ -326,6 +338,17 @@ function encodeMutation(writer: ByteWriter, mutation: Mutation): void {
       writer.u32(mutation.stringId);
       writer.u32(mutation.styleId);
       return;
+    case "setRichText":
+      assertU32(mutation.nodeId, "nodeId");
+      assertU32(mutation.stringId, "stringId");
+      assertU32(mutation.styleId, "styleId");
+      assertU32(mutation.runsId, "runsId");
+      writer.instruction(MutationOpcode.SetRichText);
+      writer.u32(mutation.nodeId);
+      writer.u32(mutation.stringId);
+      writer.u32(mutation.styleId);
+      writer.u32(mutation.runsId);
+      return;
     case "defineResource":
       assertU32(mutation.resourceId, "resourceId");
       assertEnum(ResourceKind, mutation.kind, "resource kind");
@@ -469,6 +492,14 @@ function decodeMutation(reader: ByteReader, opcode: MutationOpcode): Mutation {
         nodeId: reader.u32(),
         stringId: reader.u32(),
         styleId: reader.u32(),
+      };
+    case MutationOpcode.SetRichText:
+      return {
+        type: "setRichText",
+        nodeId: reader.u32(),
+        stringId: reader.u32(),
+        styleId: reader.u32(),
+        runsId: reader.u32(),
       };
     case MutationOpcode.DefineResource: {
       const resourceId = reader.u32();

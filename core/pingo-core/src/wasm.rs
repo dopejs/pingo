@@ -134,6 +134,20 @@ impl WasmCore {
             .map_err(js_error)
     }
 
+    /// Enables or disables styled runs, degrading rich text to its base style.
+    pub fn set_rich_text_enabled(&mut self, enabled: bool) -> Result<Option<Vec<u8>>, JsValue> {
+        let output = self
+            .inner
+            .set_rich_text_enabled(enabled)
+            .map_err(js_error)?;
+        if let Some(output) = output {
+            self.last_diagnostics = Some(output.diagnostics);
+            Ok(Some(output.display_list.to_vec()))
+        } else {
+            Ok(None)
+        }
+    }
+
     /// Returns a pending immutable Picture transaction without acknowledging it.
     pub fn take_picture_resources(&self) -> Vec<u8> {
         self.inner.take_picture_resources()

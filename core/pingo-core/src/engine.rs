@@ -2012,6 +2012,73 @@ impl CoreEngine {
         self.text.take_glyph_resources()
     }
 
+    /// Enables or disables styled runs for every text node.
+    ///
+    /// Turning it off makes each node lay out with its base style alone, which
+    /// is the rollback path for rich text: a document degrades to plain text
+    /// rather than failing to render. Nodes carrying a run table are remeasured
+    /// immediately, so the switch does not wait for the next edit.
+    ///
+    /// # Errors
+    ///
+    /// Fails when the engine is poisoned or a glyph-resource transaction is
+    /// still awaiting the backend.
+    pub fn set_rich_text_enabled(
+        &mut self,
+        enabled: bool,
+    ) -> Result<Option<FrameOutput>, CoreError> {
+        if self.poisoned {
+            return Err(CoreError::Poisoned);
+        }
+        if self.text.has_pending_resources() {
+            return Err(CoreError::GlyphResourcesNotDrained);
+        }
+        if !self.text.set_rich_text_enabled(enabled) {
+            return Ok(None);
+        }
+        let styled = self
+            .scene
+            .ids()
+            .iter()
+            .copied()
+            .filter(|node| {
+                self.scene
+                    .text_run(*node)
+                    .is_some_and(|run| run.runs_id != 0)
+            })
+            .collect::<Vec<_>>();
+        let Some(frame_seq) = self.last_frame_seq else {
+            return Ok(None);
+        };
+        if styled.is_empty() {
+            return Ok(None);
+        }
+        self.layout.mark_text_measurements_changed(&styled);
+        self.text.begin_frame();
+        let mut geometry = match self.layout.layout_with_virtual(
+            &self.scene,
+            self.constraints,
+            &mut self.text,
+            &self.scroll,
+        ) {
+            Ok(outcome) => outcome,
+            Err(error) => return self.poison(CoreError::Layout(error)),
+        };
+        let fallback_nodes = self.text.prepare_resources(&self.scene);
+        self.relayout_text_fallbacks(
+            &fallback_nodes,
+            &mut geometry.changed,
+            &mut geometry.visited,
+        )?;
+        let text_changed = self.text.has_staged_changes();
+        let output =
+            self.paint_frame(frame_seq, &geometry.changed, geometry.visited, text_changed)?;
+        if let Err(error) = self.text.commit_frame() {
+            return self.poison(CoreError::GlyphResources(error));
+        }
+        Ok(Some(output))
+    }
+
     /// Selects incremental Picture resources or the inline rollback builder.
     ///
     /// # Errors
@@ -6308,6 +6375,234 @@ mod tests {
             DisplayCommand::DrawTextInlineFallback { text, .. }
                 if *text == mask && !text.contains("secret")
         )));
+    }
+
+    fn rich_text_resources() -> Vec<Mutation> {
+        let font_bytes = test_font_bytes();
+        let font = sfnt_font_resource(&font_bytes);
+        let style = |paint_id: u32, font_size: f32| {
+            TextStyleResource {
+                paint_id,
+                font_size,
+                line_height: 24.0,
+                weight: 400,
+                family: "sans-serif".to_owned(),
+                font_style: StyleKeyword::Normal,
+                text_align: StyleKeyword::Start,
+                white_space: StyleKeyword::PreWrap,
+                overflow_wrap: StyleKeyword::Anywhere,
+                text_overflow: StyleKeyword::Clip,
+            }
+            .encode()
+            .expect("text style")
+        };
+        vec![
+            Mutation::DefineResource {
+                resource_id: 1,
+                kind: ResourceKind::Paint,
+                bytes: SolidPaint {
+                    red: 12,
+                    green: 34,
+                    blue: 56,
+                    alpha: 255,
+                }
+                .encode()
+                .to_vec(),
+            },
+            Mutation::DefineResource {
+                resource_id: 5,
+                kind: ResourceKind::Paint,
+                bytes: SolidPaint {
+                    red: 200,
+                    green: 0,
+                    blue: 0,
+                    alpha: 255,
+                }
+                .encode()
+                .to_vec(),
+            },
+            Mutation::DefineResource {
+                resource_id: 2,
+                kind: ResourceKind::TextStyle,
+                bytes: style(1, 18.0),
+            },
+            Mutation::DefineResource {
+                resource_id: 6,
+                kind: ResourceKind::TextStyle,
+                bytes: style(5, 18.0),
+            },
+            Mutation::DefineResource {
+                resource_id: 4,
+                kind: ResourceKind::Font,
+                bytes: font,
+            },
+        ]
+    }
+
+    fn rich_text_tree() -> Vec<u8> {
+        let value = "\u{ea60}\u{ea61}\u{ea62}\u{ea63}";
+        let first = "\u{ea60}\u{ea61}".len();
+        let mut mutations = vec![
+            Mutation::CreateNode {
+                node_id: id(0),
+                kind: NodeKind::Root,
+                parent: NULL_NODE_ID,
+                before_sibling: NULL_NODE_ID,
+            },
+            Mutation::CreateNode {
+                node_id: id(1),
+                kind: NodeKind::Text,
+                parent: id(0),
+                before_sibling: NULL_NODE_ID,
+            },
+        ];
+        mutations.extend(rich_text_resources());
+        mutations.extend([
+            Mutation::DefineResource {
+                resource_id: 3,
+                kind: ResourceKind::Utf8String,
+                bytes: value.as_bytes().to_vec(),
+            },
+            Mutation::DefineResource {
+                resource_id: 7,
+                kind: ResourceKind::StyledRuns,
+                bytes: pingo_abi::StyledRunsResource {
+                    runs: vec![
+                        pingo_abi::StyledRun {
+                            utf8_start: 0,
+                            utf8_length: u32::try_from(first).expect("small"),
+                            style_id: 2,
+                            font_id: 0,
+                            flags: 0,
+                        },
+                        pingo_abi::StyledRun {
+                            utf8_start: u32::try_from(first).expect("small"),
+                            utf8_length: u32::try_from(value.len() - first).expect("small"),
+                            style_id: 6,
+                            font_id: 0,
+                            flags: 0,
+                        },
+                    ],
+                }
+                .encode()
+                .expect("styled runs"),
+            },
+            Mutation::SetRef {
+                node_id: id(1),
+                prop: Prop::Font,
+                resource_id: 4,
+            },
+            Mutation::SetRichText {
+                node_id: id(1),
+                string_id: 3,
+                style_id: 2,
+                runs_id: 7,
+            },
+        ]);
+        frame(1, mutations)
+    }
+
+    fn glyph_run_commands(output: &super::FrameOutput) -> Vec<(u32, u32)> {
+        DisplayList::decode(&output.display_list)
+            .expect("DisplayList")
+            .instructions
+            .iter()
+            .filter_map(|instruction| match instruction.command {
+                DisplayCommand::DrawGlyphRun {
+                    font_id,
+                    glyph_span_id,
+                    ..
+                } => Some((font_id, glyph_span_id)),
+                _ => None,
+            })
+            .collect()
+    }
+
+    #[test]
+    fn a_styled_run_table_draws_one_colored_span_per_run() {
+        let mut engine = CoreEngine::new(320.0, 240.0).expect("Core");
+        let output = engine.commit(&rich_text_tree()).expect("rich text frame");
+        let draws = glyph_run_commands(&output);
+        assert_eq!(draws.len(), 2, "one draw per run");
+        assert_eq!(draws[0].0, 4);
+        assert_eq!(draws[1].0, 4);
+        assert_ne!(draws[0].1, draws[1].1, "runs must not share a glyph span");
+
+        let resources =
+            GlyphResourceBatch::decode(&engine.take_glyph_resources()).expect("glyph resources");
+        let spans = resources
+            .instructions
+            .iter()
+            .filter_map(|instruction| match &instruction.command {
+                GlyphResourceCommand::Define(span) => Some(span),
+                GlyphResourceCommand::Release { .. } => None,
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(spans.len(), 2);
+        // Each run carries its own paint: that is the whole point of the table.
+        assert_eq!(spans[0].paint_id, 1);
+        assert_eq!(spans[1].paint_id, 5);
+        assert_eq!(spans[0].placements.len(), 2);
+        assert_eq!(spans[1].placements.len(), 2);
+        // The second run continues after the first rather than restarting.
+        let first_end = spans[0]
+            .placements
+            .iter()
+            .map(|placement| placement.x)
+            .fold(f32::NEG_INFINITY, f32::max);
+        assert!(
+            spans[1]
+                .placements
+                .iter()
+                .all(|placement| placement.x > first_end),
+            "second run must be laid out after the first"
+        );
+    }
+
+    #[test]
+    fn disabling_rich_text_degrades_a_styled_node_to_its_base_style() {
+        let mut engine = CoreEngine::new(320.0, 240.0).expect("Core");
+        engine.commit(&rich_text_tree()).expect("rich text frame");
+        let _ = engine.take_glyph_resources();
+        let output = engine
+            .set_rich_text_enabled(false)
+            .expect("kill switch")
+            .expect("repaint");
+        let draws = glyph_run_commands(&output);
+        assert_eq!(draws.len(), 1, "one span for the whole value");
+        let resources =
+            GlyphResourceBatch::decode(&engine.take_glyph_resources()).expect("glyph resources");
+        let spans = resources
+            .instructions
+            .iter()
+            .filter_map(|instruction| match &instruction.command {
+                GlyphResourceCommand::Define(span) => Some(span),
+                GlyphResourceCommand::Release { .. } => None,
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(spans.len(), 1);
+        assert_eq!(spans[0].paint_id, 1, "the base style paints everything");
+        assert_eq!(spans[0].placements.len(), 4);
+        // Both of the previous spans are released, so nothing leaks in the
+        // backend when the switch is thrown.
+        assert_eq!(
+            resources
+                .instructions
+                .iter()
+                .filter(|instruction| matches!(
+                    instruction.command,
+                    GlyphResourceCommand::Release { .. }
+                ))
+                .count(),
+            2
+        );
+
+        // Turning it back on restores the two runs.
+        let restored = engine
+            .set_rich_text_enabled(true)
+            .expect("kill switch")
+            .expect("repaint");
+        assert_eq!(glyph_run_commands(&restored).len(), 2);
     }
 
     #[test]

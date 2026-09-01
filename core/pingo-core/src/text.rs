@@ -14,8 +14,8 @@ use pingo_layout::{BoxConstraints, IntrinsicMeasurer, Size};
 use pingo_paint::{EditorDecoration, ShapedGlyphRun, TextPaintResolver, TextStyleResource};
 use pingo_scene::{NodeId, Scene, TextRun};
 use pingo_text::{
-    CaretStop, FontFace, GlyphAtlas, GlyphBitmap, OverflowWrap, TextAlign, TextEngine, TextLayout,
-    TextOptions, TextOverflow, WhiteSpace, soft_break_offsets_with_mode,
+    CaretStop, FontFace, GlyphAtlas, GlyphBitmap, OverflowWrap, RichRun, TextAlign, TextEngine,
+    TextLayout, TextOptions, TextOverflow, WhiteSpace, soft_break_offsets_with_mode,
 };
 
 use crate::editing::ActiveEditorVisual;
@@ -41,20 +41,38 @@ pub struct CoreTextMetrics {
     pub spans_released: u64,
 }
 
+/// One styled run of a prepared node, and the glyph span that draws it.
+///
+/// Single-style text has exactly one of these, so the shape of the resource
+/// lifecycle is the same whether or not a node carries a run table.
+#[derive(Clone)]
+struct PreparedSpan {
+    /// Run identity inside the node; zero for single-style text.
+    key: u32,
+    font_id: u32,
+    font: FontFace,
+    font_size: f32,
+    paint_id: u32,
+    font_style: StyleKeyword,
+    span_id: u32,
+    /// Contiguous glyph ranges of `PreparedRun::layout` drawn by this span.
+    glyphs: Vec<std::ops::Range<usize>>,
+}
+
 #[derive(Clone)]
 struct PreparedRun {
     string_id: u32,
     style_id: u32,
+    /// Styled-run table resource, or zero for single-style text.
+    runs_id: u32,
+    /// Node-level font resource, which runs without their own font inherit.
     font_id: u32,
-    font_size: f32,
-    max_width_bits: u32,
-    paint_id: u32,
-    font_style: StyleKeyword,
     layout: Arc<TextLayout>,
-    span_id: u32,
     device_pixel_ratio_bits: u32,
-    font: FontFace,
     content_hash: u64,
+    spans: Vec<PreparedSpan>,
+    /// Draw commands in run order, refreshed once spans have identifiers.
+    draws: Vec<ShapedGlyphRun>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -99,6 +117,9 @@ pub(crate) struct CoreTextSystem {
     pending_batch: Vec<u8>,
     next_span_id: u64,
     device_pixel_ratio: f32,
+    /// Kill switch for styled runs. When off, every node lays out with its base
+    /// style alone, which is exactly the pre-rich-text behavior.
+    rich_text_enabled: bool,
     metrics: CoreTextMetrics,
 }
 
@@ -121,6 +142,7 @@ impl Default for CoreTextSystem {
             pending_batch: Vec::new(),
             next_span_id: 1,
             device_pixel_ratio: 1.0,
+            rich_text_enabled: true,
             metrics: CoreTextMetrics::default(),
         }
     }
@@ -281,19 +303,23 @@ impl CoreTextSystem {
         candidate.retain(|node, run| {
             scene.resolve(*node).is_some()
                 && scene.text_run(*node).is_some_and(|text| {
-                    text.string_id == run.string_id && text.style_id == run.style_id
+                    text.string_id == run.string_id
+                        && text.style_id == run.style_id
+                        && text.runs_id == run.runs_id
                 })
                 && scene.ref_prop(*node, pingo_abi::Prop::Font) == Some(run.font_id)
                 && text_content_hash(scene, edit_overrides, *node) == Some(run.content_hash)
         });
 
+        let device_pixel_ratio_bits = self.device_pixel_ratio.to_bits();
         let removed_releases = self
             .active
             .iter()
-            .filter(|(node, active)| {
+            .flat_map(|(node, active)| active.spans.iter().map(move |span| (*node, span.span_id)))
+            .filter(|(node, span_id)| {
                 candidate.get(node).is_none_or(|next| {
-                    next.span_id != active.span_id
-                        || next.device_pixel_ratio_bits != self.device_pixel_ratio.to_bits()
+                    !next.spans.iter().any(|span| span.span_id == *span_id)
+                        || next.device_pixel_ratio_bits != device_pixel_ratio_bits
                 })
             })
             .count();
@@ -301,69 +327,90 @@ impl CoreTextSystem {
         let nodes = candidate.keys().copied().collect::<Vec<_>>();
         let mut definitions = Vec::new();
         let mut fallback_nodes = Vec::new();
-        for node in nodes {
+        'node: for node in nodes {
             let Some(run) = candidate.get(&node).cloned() else {
                 continue;
             };
-            if run.span_id != 0 && run.device_pixel_ratio_bits == self.device_pixel_ratio.to_bits()
+            if run.device_pixel_ratio_bits == device_pixel_ratio_bits
+                && run.spans.iter().all(|span| span.span_id != 0)
             {
                 continue;
             }
-            let Some(span_id) = self.allocate_span_id() else {
-                self.force_fallback(node, &run);
-                fallback_nodes.push(node);
-                candidate.remove(&node);
-                self.metrics.fallback_runs = self.metrics.fallback_runs.saturating_add(1);
-                continue;
-            };
-            let Ok(span) = self.build_span(span_id, &run) else {
-                self.force_fallback(node, &run);
-                fallback_nodes.push(node);
-                candidate.remove(&node);
-                self.metrics.fallback_runs = self.metrics.fallback_runs.saturating_add(1);
-                continue;
-            };
-            let Some(next_bytes) = projected_bytes.checked_add(span_wire_bytes(&span)) else {
-                self.force_fallback(node, &run);
-                fallback_nodes.push(node);
-                candidate.remove(&node);
-                self.metrics.fallback_runs = self.metrics.fallback_runs.saturating_add(1);
-                continue;
-            };
-            if next_bytes > MAX_GLYPH_RESOURCES_BYTES {
-                self.force_fallback(node, &run);
-                fallback_nodes.push(node);
-                candidate.remove(&node);
-                self.metrics.fallback_runs = self.metrics.fallback_runs.saturating_add(1);
-                continue;
+            // A node's spans are all-or-nothing: a run table that raster-fails
+            // halfway would otherwise paint some of its runs and drop the rest.
+            let mut assigned = Vec::with_capacity(run.spans.len());
+            let mut node_bytes = projected_bytes;
+            for span in &run.spans {
+                let Some(span_id) = self.allocate_span_id() else {
+                    self.reject_prepared(&mut candidate, &mut fallback_nodes, node, &run);
+                    continue 'node;
+                };
+                let Ok(built) = self.build_span(span_id, &run, span) else {
+                    self.reject_prepared(&mut candidate, &mut fallback_nodes, node, &run);
+                    continue 'node;
+                };
+                let Some(next_bytes) = node_bytes.checked_add(span_wire_bytes(&built)) else {
+                    self.reject_prepared(&mut candidate, &mut fallback_nodes, node, &run);
+                    continue 'node;
+                };
+                if next_bytes > MAX_GLYPH_RESOURCES_BYTES {
+                    self.reject_prepared(&mut candidate, &mut fallback_nodes, node, &run);
+                    continue 'node;
+                }
+                node_bytes = next_bytes;
+                assigned.push((span_id, built));
             }
-            projected_bytes = next_bytes;
+            projected_bytes = node_bytes;
             if let Some(next) = candidate.get_mut(&node) {
-                next.span_id = span_id;
-                next.device_pixel_ratio_bits = self.device_pixel_ratio.to_bits();
+                for (span, (span_id, _)) in next.spans.iter_mut().zip(&assigned) {
+                    span.span_id = *span_id;
+                }
+                next.device_pixel_ratio_bits = device_pixel_ratio_bits;
+                next.refresh_draws();
             }
-            definitions.push(GlyphResourceInstruction {
-                flags: 0,
-                command: GlyphResourceCommand::Define(span),
-            });
+            definitions.extend(
+                assigned
+                    .into_iter()
+                    .map(|(_, span)| GlyphResourceInstruction {
+                        flags: 0,
+                        command: GlyphResourceCommand::Define(span),
+                    }),
+            );
         }
 
         for (node, active) in &self.active {
-            if candidate
-                .get(node)
-                .is_none_or(|next| next.span_id != active.span_id)
-            {
-                self.staged.push(GlyphResourceInstruction {
-                    flags: 0,
-                    command: GlyphResourceCommand::Release {
-                        span_id: active.span_id,
-                    },
-                });
+            for span in &active.spans {
+                if candidate
+                    .get(node)
+                    .is_none_or(|next| !next.spans.iter().any(|next| next.span_id == span.span_id))
+                {
+                    self.staged.push(GlyphResourceInstruction {
+                        flags: 0,
+                        command: GlyphResourceCommand::Release {
+                            span_id: span.span_id,
+                        },
+                    });
+                }
             }
         }
         self.staged.extend(definitions);
         self.candidate = Some(candidate);
         fallback_nodes
+    }
+
+    /// Drops a node from the shaped path and records why, so the next frame
+    /// does not retry the same failing raster.
+    fn reject_prepared(
+        &mut self,
+        candidate: &mut HashMap<NodeId, PreparedRun>,
+        fallback_nodes: &mut Vec<NodeId>,
+        node: NodeId,
+        run: &PreparedRun,
+    ) {
+        self.force_fallback(node, run);
+        fallback_nodes.push(node);
+        candidate.remove(&node);
+        self.metrics.fallback_runs = self.metrics.fallback_runs.saturating_add(1);
     }
 
     pub(crate) fn commit_frame(&mut self) -> Result<bool, AbiError> {
@@ -405,6 +452,15 @@ impl CoreTextSystem {
         self.metrics
     }
 
+    /// Enables or disables styled runs, returning whether the value changed.
+    pub(crate) fn set_rich_text_enabled(&mut self, enabled: bool) -> bool {
+        if self.rich_text_enabled == enabled {
+            return false;
+        }
+        self.rich_text_enabled = enabled;
+        true
+    }
+
     pub(crate) fn set_device_pixel_ratio(&mut self, value: f32) -> bool {
         if self.device_pixel_ratio.to_bits() == value.to_bits() {
             return false;
@@ -426,47 +482,59 @@ impl CoreTextSystem {
     }
 
     #[allow(clippy::cast_precision_loss)]
-    fn build_span(&mut self, span_id: u32, run: &PreparedRun) -> Result<GlyphSpanResource, ()> {
+    fn build_span(
+        &mut self,
+        span_id: u32,
+        run: &PreparedRun,
+        span: &PreparedSpan,
+    ) -> Result<GlyphSpanResource, ()> {
         let mut bitmap_indices = HashMap::<u16, u32>::new();
         let mut bitmaps = Vec::new();
         let mut placements = Vec::new();
-        for glyph in &run.layout.glyphs {
-            let bitmap = self
-                .atlas
-                .rasterize(&run.font, run.font_size, self.device_pixel_ratio, glyph.id)
-                .map_err(|_| ())?;
-            if bitmap.data.is_empty() {
-                continue;
-            }
-            let bitmap_index = if let Some(index) = bitmap_indices.get(&glyph.id).copied() {
-                index
-            } else {
-                let index = u32::try_from(bitmaps.len()).map_err(|_| ())?;
-                bitmap_indices.insert(glyph.id, index);
-                bitmaps.push(if run.font_style == StyleKeyword::Italic {
-                    synthesize_italic_bitmap(&bitmap)?
+        for range in &span.glyphs {
+            for glyph in &run.layout.glyphs[range.clone()] {
+                let bitmap = self
+                    .atlas
+                    .rasterize(
+                        &span.font,
+                        span.font_size,
+                        self.device_pixel_ratio,
+                        glyph.id,
+                    )
+                    .map_err(|_| ())?;
+                if bitmap.data.is_empty() {
+                    continue;
+                }
+                let bitmap_index = if let Some(index) = bitmap_indices.get(&glyph.id).copied() {
+                    index
                 } else {
-                    GlyphBitmapResource {
-                        glyph_id: bitmap.glyph_id,
-                        left: bitmap.left as f32,
-                        top: bitmap.top as f32,
-                        width: bitmap.width,
-                        height: bitmap.height,
-                        device_pixel_ratio: bitmap.device_pixel_ratio(),
-                        data: Arc::clone(&bitmap.data),
-                    }
+                    let index = u32::try_from(bitmaps.len()).map_err(|_| ())?;
+                    bitmap_indices.insert(glyph.id, index);
+                    bitmaps.push(if span.font_style == StyleKeyword::Italic {
+                        synthesize_italic_bitmap(&bitmap)?
+                    } else {
+                        GlyphBitmapResource {
+                            glyph_id: bitmap.glyph_id,
+                            left: bitmap.left as f32,
+                            top: bitmap.top as f32,
+                            width: bitmap.width,
+                            height: bitmap.height,
+                            device_pixel_ratio: bitmap.device_pixel_ratio(),
+                            data: Arc::clone(&bitmap.data),
+                        }
+                    });
+                    index
+                };
+                placements.push(GlyphPlacementResource {
+                    bitmap_index,
+                    x: glyph.x,
+                    y: glyph.y,
                 });
-                index
-            };
-            placements.push(GlyphPlacementResource {
-                bitmap_index,
-                x: glyph.x,
-                y: glyph.y,
-            });
+            }
         }
         Ok(GlyphSpanResource {
             span_id,
-            paint_id: run.paint_id,
+            paint_id: span.paint_id,
             bitmaps,
             placements,
         })
@@ -476,6 +544,35 @@ impl CoreTextSystem {
         let result = u32::try_from(self.next_span_id).ok()?;
         self.next_span_id = self.next_span_id.saturating_add(1);
         Some(result)
+    }
+}
+
+impl PreparedSpan {
+    /// Returns whether two spans would rasterize to identical resources.
+    fn same_source(&self, other: &Self) -> bool {
+        self.key == other.key
+            && self.font_id == other.font_id
+            && self.font_size.to_bits() == other.font_size.to_bits()
+            && self.paint_id == other.paint_id
+            && self.font_style == other.font_style
+            && self.glyphs == other.glyphs
+    }
+}
+
+impl PreparedRun {
+    /// Rebuilds the draw list from spans that now have identifiers.
+    fn refresh_draws(&mut self) {
+        self.draws.clear();
+        self.draws.extend(
+            self.spans
+                .iter()
+                .filter(|span| span.span_id != 0)
+                .map(|span| ShapedGlyphRun {
+                    font_id: span.font_id,
+                    font_size: span.font_size,
+                    span_id: span.span_id,
+                }),
+        );
     }
 }
 
@@ -516,7 +613,116 @@ impl IntrinsicMeasurer for CoreTextSystem {
             return self.measure_system_fallback(scene, node, constraints);
         };
         let max_width = constraints.max_width.max(f32::EPSILON);
-        let options = TextOptions {
+        // The run table only applies to the Scene's own value. An active editing
+        // session replaces that value wholesale, and the offsets in the table
+        // describe the committed string, not the one being typed.
+        let Some((layout, span_styles)) = self.shape_value(
+            scene, node, text_run, font_id, &font, &string, &style, max_width,
+        ) else {
+            self.candidate_mut().remove(&node);
+            return self.measure_system_fallback(scene, node, constraints);
+        };
+        let mut spans = span_styles
+            .into_iter()
+            .map(|style| PreparedSpan {
+                span_id: 0,
+                glyphs: layout
+                    .segments
+                    .iter()
+                    .filter(|segment| segment.run == style.key)
+                    .map(|segment| segment.glyphs.clone())
+                    .collect(),
+                key: style.key,
+                font_id: style.font_id,
+                font: style.font,
+                font_size: style.font_size,
+                paint_id: style.paint_id,
+                font_style: style.font_style,
+            })
+            .collect::<Vec<_>>();
+        // A span identifier may only be carried over when the bitmaps and
+        // placements behind it are the same. Anything weaker republishes the
+        // identifier without redefining it, and the backend keeps drawing the
+        // previous frame's glyphs -- which is exactly what happens when rich
+        // text is switched off and the base run inherits run zero's identifier.
+        if let Some(previous) = self
+            .candidate_mut()
+            .get(&node)
+            .filter(|previous| Arc::ptr_eq(&previous.layout, &layout))
+        {
+            for span in &mut spans {
+                if let Some(reused) = previous
+                    .spans
+                    .iter()
+                    .find(|candidate| candidate.same_source(span))
+                {
+                    span.span_id = reused.span_id;
+                }
+            }
+        }
+        let device_pixel_ratio_bits = self.device_pixel_ratio.to_bits();
+        let mut prepared = PreparedRun {
+            string_id: text_run.string_id,
+            style_id: text_run.style_id,
+            runs_id: text_run.runs_id,
+            font_id,
+            layout: Arc::clone(&layout),
+            device_pixel_ratio_bits,
+            content_hash,
+            spans,
+            draws: Vec::new(),
+        };
+        prepared.refresh_draws();
+        self.candidate_mut().insert(node, prepared);
+        self.metrics.shaped_runs = self.metrics.shaped_runs.saturating_add(1);
+        constraints.constrain(Size::new(layout.width, layout.height))
+    }
+}
+
+/// Per-run style resolved from a node's styled-run table.
+struct SpanStyle {
+    key: u32,
+    font_id: u32,
+    font: FontFace,
+    font_size: f32,
+    paint_id: u32,
+    font_style: StyleKeyword,
+}
+
+/// A node's run table resolved into shaping inputs and per-run paint state.
+struct ResolvedRuns {
+    runs: Vec<RichRun>,
+    spans: Vec<SpanStyle>,
+    line_heights: Vec<f32>,
+}
+
+impl CoreTextSystem {
+    /// Shapes one node's value, preferring its styled-run table.
+    ///
+    /// Returns `None` only when even the single-style path cannot produce a
+    /// complete glyph run, which is what routes the node to system-font
+    /// measurement.
+    #[allow(clippy::too_many_arguments)]
+    fn shape_value(
+        &mut self,
+        scene: &Scene,
+        node: NodeId,
+        text_run: TextRun,
+        font_id: u32,
+        font: &FontFace,
+        string: &str,
+        style: &TextStyleResource,
+        max_width: f32,
+    ) -> Option<(Arc<TextLayout>, Vec<SpanStyle>)> {
+        // The run table only applies to the Scene's own value. An active editing
+        // session replaces that value wholesale, and the offsets in the table
+        // describe the committed string, not the one being typed.
+        let styled = (self.rich_text_enabled
+            && text_run.runs_id != 0
+            && !self.edit_overrides.contains_key(&node))
+        .then(|| self.resolve_runs(scene, text_run, font_id, font, string))
+        .flatten();
+        let mut options = TextOptions {
             font_size: style.font_size,
             line_height: style.line_height,
             max_width,
@@ -529,57 +735,110 @@ impl IntrinsicMeasurer for CoreTextSystem {
                 TextOverflow::Clip
             },
         };
-        let Ok(layout) = self.engine.layout(&font, &string, options) else {
-            self.candidate_mut().remove(&node);
-            return self.measure_system_fallback(scene, node, constraints);
-        };
-        if layout.missing_glyphs != 0 {
-            self.candidate_mut().remove(&node);
-            return self.measure_system_fallback(scene, node, constraints);
+        if let Some(styled) = styled {
+            // A taller run must not be clipped by the base line box.
+            options.line_height = styled
+                .line_heights
+                .iter()
+                .copied()
+                .fold(style.line_height, f32::max);
+            if let Some(layout) = self
+                .engine
+                .layout_rich(&styled.runs, string, options)
+                .ok()
+                .filter(|layout| layout.missing_glyphs == 0)
+            {
+                return Some((layout, styled.spans));
+            }
+            options.line_height = style.line_height;
         }
-        let previous_span = self
-            .candidate_mut()
-            .get(&node)
-            .filter(|previous| {
-                previous.string_id == text_run.string_id
-                    && previous.style_id == text_run.style_id
-                    && previous.font_id == font_id
-                    && previous.max_width_bits == max_width.to_bits()
-                    && previous.content_hash == content_hash
-            })
-            .map_or(0, |previous| previous.span_id);
-        let device_pixel_ratio_bits = self.device_pixel_ratio.to_bits();
-        self.candidate_mut().insert(
-            node,
-            PreparedRun {
-                string_id: text_run.string_id,
-                style_id: text_run.style_id,
+        let layout = self
+            .engine
+            .layout(font, string, options)
+            .ok()
+            .filter(|layout| layout.missing_glyphs == 0)?;
+        Some((
+            layout,
+            vec![SpanStyle {
+                key: 0,
                 font_id,
+                font: font.clone(),
                 font_size: style.font_size,
-                max_width_bits: max_width.to_bits(),
                 paint_id: style.paint_id,
                 font_style: style.font_style,
-                layout: Arc::clone(&layout),
-                span_id: previous_span,
-                device_pixel_ratio_bits,
+            }],
+        ))
+    }
+
+    /// Resolves a styled-run table into faces, sizes, and paints.
+    ///
+    /// Returns `None` when anything is missing or inconsistent; the caller then
+    /// uses the single-style path, which is the same behavior the kill switch
+    /// produces.
+    fn resolve_runs(
+        &mut self,
+        scene: &Scene,
+        text_run: TextRun,
+        node_font_id: u32,
+        node_font: &FontFace,
+        value: &str,
+    ) -> Option<ResolvedRuns> {
+        let resource = scene
+            .resource(text_run.runs_id)
+            .filter(|resource| resource.kind == ResourceKind::StyledRuns)?;
+        let table = pingo_abi::StyledRunsResource::decode(&resource.bytes).ok()?;
+        if usize::try_from(table.covered_bytes()) != Ok(value.len()) {
+            // The Scene rejects this at commit, so reaching it means the value
+            // is an override the table was never written for.
+            return None;
+        }
+        let mut runs = Vec::with_capacity(table.runs.len());
+        let mut spans = Vec::with_capacity(table.runs.len());
+        let mut line_heights = Vec::with_capacity(table.runs.len());
+        for (index, run) in table.runs.iter().enumerate() {
+            let key = u32::try_from(index).ok()?;
+            let style = scene
+                .resource(run.style_id)
+                .filter(|resource| resource.kind == ResourceKind::TextStyle)
+                .and_then(|resource| TextStyleResource::decode(run.style_id, resource).ok())?;
+            let (font_id, font) = if run.font_id == 0 {
+                (node_font_id, node_font.clone())
+            } else {
+                (run.font_id, self.font(scene, run.font_id)?)
+            };
+            let start = usize::try_from(run.utf8_start).ok()?;
+            let end = usize::try_from(run.utf8_end().ok()?).ok()?;
+            if end > value.len() || !value.is_char_boundary(start) || !value.is_char_boundary(end) {
+                return None;
+            }
+            runs.push(RichRun {
+                bytes: start..end,
+                font: font.clone(),
+                font_size: style.font_size,
+                key,
+            });
+            line_heights.push(style.line_height);
+            spans.push(SpanStyle {
+                key,
+                font_id,
                 font,
-                content_hash,
-            },
-        );
-        self.metrics.shaped_runs = self.metrics.shaped_runs.saturating_add(1);
-        constraints.constrain(Size::new(layout.width, layout.height))
+                font_size: style.font_size,
+                paint_id: style.paint_id,
+                font_style: style.font_style,
+            });
+        }
+        Some(ResolvedRuns {
+            runs,
+            spans,
+            line_heights,
+        })
     }
 }
 
 impl TextPaintResolver for CoreTextSystem {
-    fn glyph_run(&self, node: NodeId) -> Option<ShapedGlyphRun> {
+    fn glyph_runs(&self, node: NodeId) -> &[ShapedGlyphRun] {
         let source = self.candidate.as_ref().unwrap_or(&self.active);
-        let run = source.get(&node)?;
-        (run.span_id != 0).then_some(ShapedGlyphRun {
-            font_id: run.font_id,
-            font_size: run.font_size,
-            span_id: run.span_id,
-        })
+        source.get(&node).map_or(&[], |run| run.draws.as_slice())
     }
 
     fn inline_fallback(&self, node: NodeId) -> Option<&str> {

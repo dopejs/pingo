@@ -29,7 +29,7 @@ interface SnapshotNode {
   parent: number;
   readonly refs: Map<Prop, number>;
   scroll: { behavior: number; x: number; y: number } | undefined;
-  textRun: { stringId: number; styleId: number } | undefined;
+  textRun: { stringId: number; styleId: number; runsId: number } | undefined;
   readonly vec4: Map<Prop, readonly [number, number, number, number]>;
   virtualItemIndex: number | undefined;
   virtualList:
@@ -162,7 +162,9 @@ export class MutationSceneSnapshot {
         mutations.push({ clear: 0, nodeId, set: node.flags, type: "setFlags" });
       }
       if (node.textRun !== undefined) {
-        mutations.push({ nodeId, type: "setTextRun", ...node.textRun });
+        // Replayed as the rich form unconditionally: a zero runsId encodes the
+        // same single-style binding, so one branch cannot drift from the other.
+        mutations.push({ nodeId, type: "setRichText", ...node.textRun });
       }
       if (node.scroll !== undefined) {
         mutations.push({ nodeId, type: "scrollTo", ...node.scroll });
@@ -273,6 +275,14 @@ export class MutationSceneSnapshot {
         touchNode(mutation.nodeId).textRun = {
           stringId: mutation.stringId,
           styleId: mutation.styleId,
+          runsId: 0,
+        };
+        return;
+      case "setRichText":
+        touchNode(mutation.nodeId).textRun = {
+          stringId: mutation.stringId,
+          styleId: mutation.styleId,
+          runsId: mutation.runsId,
         };
         return;
       case "scrollTo":

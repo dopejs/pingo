@@ -102,8 +102,11 @@ pub struct EditorDecoration {
 
 /// Read-only bridge from the text subsystem into paint.
 pub trait TextPaintResolver {
-    /// Returns a complete shaped run, or `None` to use the whole-run fallback.
-    fn glyph_run(&self, node: NodeId) -> Option<ShapedGlyphRun>;
+    /// Returns the node's shaped runs in draw order, empty to use the fallback.
+    ///
+    /// Single-style text returns exactly one, so a node that carries no run
+    /// table produces the same single draw command it always has.
+    fn glyph_runs(&self, node: NodeId) -> &[ShapedGlyphRun];
     /// Returns a Core-owned fallback string that has not become a Scene resource.
     fn inline_fallback(&self, node: NodeId) -> Option<&str>;
     /// Returns transient selection, composition, and caret overlays for one active editor.
@@ -152,8 +155,8 @@ impl VirtualPaintResolver for NoPlaceholders {
 struct FallbackTextPaint;
 
 impl TextPaintResolver for FallbackTextPaint {
-    fn glyph_run(&self, _node: NodeId) -> Option<ShapedGlyphRun> {
-        None
+    fn glyph_runs(&self, _node: NodeId) -> &[ShapedGlyphRun] {
+        &[]
     }
 
     fn inline_fallback(&self, _node: NodeId) -> Option<&str> {
@@ -1195,16 +1198,19 @@ fn build_node(
                 StyleKeyword::Center => content_width * 0.5,
                 _ => 0.0,
             };
-        if let Some(glyph_run) = text.glyph_run(node) {
-            push(
-                &mut instructions,
-                DisplayCommand::DrawGlyphRun {
-                    font_id: glyph_run.font_id,
-                    size: glyph_run.font_size,
-                    origin: [inset_left, inset_top],
-                    glyph_span_id: glyph_run.span_id,
-                },
-            );
+        let glyph_runs = text.glyph_runs(node);
+        if !glyph_runs.is_empty() {
+            for glyph_run in glyph_runs {
+                push(
+                    &mut instructions,
+                    DisplayCommand::DrawGlyphRun {
+                        font_id: glyph_run.font_id,
+                        size: glyph_run.font_size,
+                        origin: [inset_left, inset_top],
+                        glyph_span_id: glyph_run.span_id,
+                    },
+                );
+            }
         } else if let Some(inline) = text.inline_fallback(node) {
             push(
                 &mut instructions,
@@ -2667,7 +2673,7 @@ mod tests {
     // --- painted-text probe -------------------------------------------------
 
     struct ProbeText {
-        glyph_runs: HashMap<NodeId, ShapedGlyphRun>,
+        glyph_runs: HashMap<NodeId, Vec<ShapedGlyphRun>>,
         inline: HashMap<NodeId, String>,
     }
 
@@ -2680,14 +2686,14 @@ mod tests {
         }
 
         fn with_glyph_run(mut self, node: NodeId, span_id: u32) -> Self {
-            self.glyph_runs.insert(
-                node,
-                ShapedGlyphRun {
+            self.glyph_runs
+                .entry(node)
+                .or_default()
+                .push(ShapedGlyphRun {
                     font_id: 1,
                     font_size: 16.0,
                     span_id,
-                },
-            );
+                });
             self
         }
 
@@ -2698,8 +2704,8 @@ mod tests {
     }
 
     impl TextPaintResolver for ProbeText {
-        fn glyph_run(&self, node: NodeId) -> Option<ShapedGlyphRun> {
-            self.glyph_runs.get(&node).copied()
+        fn glyph_runs(&self, node: NodeId) -> &[ShapedGlyphRun] {
+            self.glyph_runs.get(&node).map_or(&[], Vec::as_slice)
         }
 
         fn inline_fallback(&self, node: NodeId) -> Option<&str> {

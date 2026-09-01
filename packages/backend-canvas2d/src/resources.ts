@@ -386,6 +386,7 @@ export class Canvas2DResourceRegistry implements Canvas2DResources {
             break;
           case ResourceKind.ComputedStyle:
           case ResourceKind.Animation:
+          case ResourceKind.StyledRuns:
             // Core validated and consumed this immutable resource before the
             // Host transaction is installed. Canvas never reads its payload,
             // but the registry must retain its kind so a later release stays
@@ -429,6 +430,7 @@ export class Canvas2DResourceRegistry implements Canvas2DResources {
             case ResourceKind.Affine:
             case ResourceKind.ComputedStyle:
             case ResourceKind.Animation:
+            case ResourceKind.StyledRuns:
               return true;
             default:
               return false;
