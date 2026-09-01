@@ -220,25 +220,27 @@ E14 的设计（[`e14-painted-text-probe-design.md`](e14-painted-text-probe-desi
 | E15，`--no-default-features`（默认） | 1,064,138 | 390,732    | +12,064  |
 | E15，`PINGO_RICH_TEXT=1`             | 1,108,059 | 406,734    | +28,066  |
 
-带上 `rich-text` 的构建 **超出 384 KiB 工程门禁 13,518 bytes**，距 400 KiB 产品上限
-只剩 2,866 bytes。这正是 E15 设计 §10 风险表里写好的那一行——"WASM 体积吃掉 M9 余量
+带上 `rich-text` 的构建 **超出 384 KiB 工程门禁 17,822 bytes，也超出 400 KiB 产品硬上限
+1,438 bytes**。这正是 E15 设计 §10 风险表里写好的那一行——"WASM 体积吃掉 M9 余量
 → 富文本作为可选模块"——所以按它处置：
 
 - `pingo-core` 的 `rich-text` feature 默认开启，`cargo test --workspace` 因此测的是
   完整能力；
 - `pnpm core:wasm` 默认传 `--no-default-features`，发布产物 **不含** 该模块，落在
-  392,071，工程门禁下仅余 **1,145 bytes**；
+  392,104，工程门禁下仅余 **1,112 bytes**；
 - `PINGO_RICH_TEXT=1 pnpm core:wasm` 产出含该模块的产物，此时按产品上限计量，manifest
-  的 `richText: true` 记录了产物是哪一种。
+  的 `richText: true` 记录了产物是哪一种。**这一产物当前 411,038，超出产品上限 1,438
+  bytes**：产物会先写出（开发与端到端构建可以用），随后构建失败——它说的是这份产物在
+  Core 把字节还回来之前不能发布。
 
-**13,403 的常驻增量**（feature 关掉也在）来自不能按能力摘除的部分：ABI 新增的
+**13,436 的常驻增量**（feature 关掉也在）来自不能按能力摘除的部分：ABI 新增的
 `StyledRuns` 资源、`SetRichText`、编辑事务上的 mark/映射负载、三条文档输入指令、
 `ConfigureDocument` 的块列表，以及 `Structure`/`DocumentSelection` 反向记录；Scene 的
 `documents` lane 与 run 表校验；`EditSession` 里织进去的 mark 表与位置映射。把这些也做成 feature 会让**解码器出现两种
 方言**——同一个 ABI 版本号，两套可接受的指令集——这是信任边界上不该引入的歧义，所以没有
 做。
 
-由此工程余量从 14,625 降到 **1,145**。**下一次 Rust 能力新增必须先回收再动手**：常驻
+由此工程余量从 14,625 降到 **1,112**。**下一次 Rust 能力新增必须先回收再动手**：常驻
 路径已经没有空间了，任何新增都会直接顶破工程门禁。可回收的部分按代价排序：
 
 1. 把 ABI 的文档指令与 `Structure`/`DocumentSelection` 记录一并 feature 化（约 4–6 KiB，
@@ -246,6 +248,11 @@ E14 的设计（[`e14-painted-text-probe-design.md`](e14-painted-text-probe-desi
 2. 把 `EditSession` 的 mark 表与 `PositionMap` 拆到 feature 后（约 3–4 KiB，需要把
    undo 历史里的 marks 一起拆开）；
 3. 重新审视 `pingo-text` 的多 run 机器（约 1–2 KiB）。
+
+**富文本产物要发布，还差 1,438 bytes。** 已经试过并**无效**的一项：把
+`pingo-edit::document` 的 `Debug` derive 在 release 下摘掉只省 1 byte——那些 impl 早已被
+死代码消除掉了。有效的方向只剩上面那三条中 rich 侧的部分，或者由产品决定抬高 400 KiB
+上限；后者不是工程侧能单方面做的决定。
 
 ## 失败模式与回滚
 

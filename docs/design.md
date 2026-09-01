@@ -2625,8 +2625,10 @@ mark/映射负载、`ConfigureDocument` 的声明式块列表、`Structure` 与 
 反向记录。
 
 **包体。** 富文本是 `pingo-core` 的 `rich-text` feature，默认开启（`cargo test` 测完整
-能力），但**不在默认发布产物里**——编译进来要 16,002 gzip bytes，超出 M9 工程门禁。
-`PINGO_RICH_TEXT=1 pnpm core:wasm` 产出含它的产物。归因见
+能力），但**不在默认发布产物里**——编译进来要 18,934 gzip bytes，落在 411,038，既超出
+M9 工程门禁，也超出 400 KiB 产品硬上限 1,438 bytes。默认产物落在 392,104。
+`PINGO_RICH_TEXT=1 pnpm core:wasm` 写出含它的产物供开发使用，随后以超出产品上限失败：
+**这份产物在 Core 还回 1,438 bytes 之前不能发布。** 归因见
 [`wasm-size-attribution.md`](wasm-size-attribution.md)。
 
 **门禁。** `pnpm e15:perf` 是新增的验收口径：同一按键序列跑 500 块与 5,000 块两遍，断言

@@ -223,11 +223,13 @@ P0–P2 之后是一个**行内富文本输入框**（可用，但不是文档�
 | **P5** | ABI 26 的声明式块列表；未物化块与物化请求                                                |
 | **E**  | `@dopejs/pingo-editor`，经 `@dopejs/pingo/editor` 子路径发布                             |
 
-**富文本是可选模块。** 编译进来要 16,002 gzip bytes，落在 406,734，超出 M9 工程门禁
-13,518。§10 风险表写好的处置就是这一条，所以 `pingo-core` 的 `rich-text` feature 默认
-开启（`cargo test` 测的是完整能力），而发布产物默认不含它，落在 392,071；
-`PINGO_RICH_TEXT=1 pnpm core:wasm` 产出含它的产物。剩下 13,403 的常驻增量拆不掉的原因
-与后续可回收项见 [`wasm-size-attribution.md`](wasm-size-attribution.md)。
+**富文本是可选模块，且这份产物目前发不出去。** 编译进来要 18,934 gzip bytes，落在
+411,038——超出 M9 工程门禁 17,822，也超出 400 KiB 产品硬上限 1,438。§10 风险表写好的
+处置是「富文本作为可选模块」，所以 `pingo-core` 的 `rich-text` feature 默认开启
+（`cargo test` 测的是完整能力），而发布产物默认不含它，落在 392,104，工程门禁下仅余
+1,112 bytes。`PINGO_RICH_TEXT=1 pnpm core:wasm` 会写出含它的产物供开发与端到端使用，
+然后以超出产品上限失败——**要发布这份产物，还差 1,438 bytes**。归因、已试过无效的一项
+与仍可回收的方向见 [`wasm-size-attribution.md`](wasm-size-attribution.md)。
 
 **没有做的：** §7 列的浮动工具栏、斜杠菜单、块拖拽。它们是 UI 面，不在 §1 的十一条验收
 里，也不阻塞任何一刀的出口；`@dopejs/pingo-editor` 给了它们要用的全部命令与查询

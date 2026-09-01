@@ -36,11 +36,16 @@ const verifyReproducible = process.argv.includes("--verify-reproducible");
 /**
  * Rich text is an optional Core module.
  *
- * Compiling it in costs 16,002 gzip bytes, which does not fit under the M9
+ * Compiling it in costs 18,934 gzip bytes, which does not fit under the M9
  * engineering budget alongside everything else the Core already carries. The
  * E15 design named this outcome and its answer: ship rich text as a module a
- * build opts into. `PINGO_RICH_TEXT=1 pnpm core:wasm` produces the artifact
- * that has it, and the budget is then reported against the product limit.
+ * build opts into.
+ *
+ * `PINGO_RICH_TEXT=1 pnpm core:wasm` produces that artifact and measures it
+ * against the product limit, which it currently exceeds by 1,438 bytes. The
+ * artifact is written before the check fails, so a development or end-to-end
+ * build can use it; what the failure says is that it cannot ship until the
+ * Core gives the bytes back. See docs/wasm-size-attribution.md.
  */
 const richText = process.env.PINGO_RICH_TEXT === "1";
 let cleanRoots = [];
