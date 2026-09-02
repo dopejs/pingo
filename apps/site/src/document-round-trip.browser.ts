@@ -90,6 +90,7 @@ describe.skipIf(!rich)("document round trip", () => {
     readonly blockNodeIds: () => readonly number[];
     readonly hostErrors: readonly Error[];
     readonly streamed: readonly EditTransaction[];
+    readonly rects: readonly { left: number; top: number; width: number; height: number }[];
     rewrite(key: number, text: string): void;
     send(commands: Parameters<typeof encodeInputBatch>[0]["commands"]): void;
   }
@@ -102,6 +103,7 @@ describe.skipIf(!rich)("document round trip", () => {
     const transactions: EditTransaction[] = [];
     const hostErrors: Error[] = [];
     const streamed: EditTransaction[] = [];
+    const rects: { left: number; top: number; width: number; height: number }[] = [];
     const structure: StructureRequest[] = [];
     const selections: DocumentSelectionReport[] = [];
     let documentNodeId = 0;
@@ -131,6 +133,14 @@ describe.skipIf(!rich)("document round trip", () => {
             blocks: blocks.map((block) => ({ key: block.key, lenUtf16: block.text.length })),
             onEditStream: (stream: { readonly transactions: readonly EditTransaction[] }) => {
               streamed.push(...stream.transactions);
+            },
+            onSelectionGeometry: (rect: {
+              readonly left: number;
+              readonly top: number;
+              readonly width: number;
+              readonly height: number;
+            }) => {
+              rects.push(rect);
             },
           },
           children: blocks.map((block, index) =>
@@ -164,6 +174,7 @@ describe.skipIf(!rich)("document round trip", () => {
       blockNodeIds: () => blockNodeIds,
       hostErrors,
       streamed,
+      rects,
       send: (commands) => {
         root.dispatchInput(encodeInputBatch({ frameSeq: sequence, commands }));
         sequence += 1;
@@ -583,6 +594,31 @@ describe.skipIf(!rich)("document round trip", () => {
     // It reached the document that declared the block, which is what lets a
     // document be a component rather than root-level wiring.
     expect(harness.streamed.length).toBeGreaterThan(0);
+  });
+
+  it("reports where it drew the selection, which is what a toolbar anchors to", async () => {
+    const harness = await mount();
+    const nodeId = harness.documentNodeId();
+
+    harness.send([
+      {
+        type: "setDocumentSelection",
+        nodeId,
+        baseRevision: 0n,
+        selection: { kind: "text", anchorKey: 1, anchorOffset: 0, focusKey: 1, focusOffset: 5 },
+      },
+    ]);
+    await waitUntil(() => harness.rects.some((rect) => rect.width > 0));
+
+    // A five-character selection has width and sits inside the canvas. Only the
+    // Core can say where, because it owns the text layout.
+    const rect = harness.rects.filter((entry) => entry.width > 0).at(-1);
+    expect(rect).toBeDefined();
+    expect(rect?.width).toBeGreaterThan(0);
+    expect(rect?.height).toBeGreaterThan(0);
+    expect(rect?.left).toBeGreaterThanOrEqual(0);
+    expect(rect?.top).toBeGreaterThanOrEqual(0);
+    expect(harness.hostErrors.map((error) => error.message)).toEqual([]);
   });
 
   it("asks the Shell to split rather than splitting a document it does not own", async () => {

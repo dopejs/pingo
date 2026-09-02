@@ -147,16 +147,32 @@ export const richTextDemo: Demo = {
     const hint = document.createElement("p");
     hint.style.margin = "0";
     hint.textContent = context.messages.richTextHint;
+
+    // The toolbar floats over the canvas rather than sitting in the panel: it
+    // anchors to where the Core drew the selection, which is the only side that
+    // knows where a range of characters ended up.
     const markRow = document.createElement("div");
+    markRow.style.position = "absolute";
     markRow.style.display = "flex";
-    markRow.style.flexWrap = "wrap";
-    markRow.style.gap = "6px";
+    markRow.style.gap = "4px";
+    markRow.style.padding = "4px";
+    markRow.style.borderRadius = "6px";
+    markRow.style.background = "#1f2329";
+    markRow.style.boxShadow = "0 2px 8px rgba(0,0,0,.25)";
+    markRow.style.visibility = "hidden";
+    markRow.style.pointerEvents = "auto";
+    markRow.style.zIndex = "2";
+    const stage = canvas.parentElement ?? canvas;
+    if (stage instanceof HTMLElement && getComputedStyle(stage).position === "static") {
+      stage.style.position = "relative";
+    }
+    stage.append(markRow);
     const source = document.createElement("pre");
     source.style.margin = "0";
     source.style.whiteSpace = "pre-wrap";
     source.style.fontSize = "12px";
     source.style.lineHeight = "1.5";
-    panel.append(hint, markRow, source);
+    panel.append(hint, source);
     context.controls.append(panel);
 
     const buttons = new Map<MarkName, HTMLButtonElement>();
@@ -164,6 +180,12 @@ export const richTextDemo: Demo = {
       const element = document.createElement("button");
       element.type = "button";
       element.textContent = context.messages.markLabel(mark);
+      element.style.border = "0";
+      element.style.borderRadius = "4px";
+      element.style.padding = "2px 8px";
+      element.style.background = "transparent";
+      element.style.color = "#ffffff";
+      element.style.cursor = "pointer";
       element.addEventListener("mousedown", (event) => {
         // The press must not take focus off the canvas: the OS input surface
         // lives there, and losing it mid-selection ends the editing session.
@@ -175,11 +197,22 @@ export const richTextDemo: Demo = {
     }
 
     const refresh = (): void => {
+      // Shown only over a selection that has something to mark: a toolbar over
+      // a bare caret offers four buttons that would all do nothing.
+      const rect = editor.selectionRect;
+      const visible = editor.hasSelection && rect !== undefined && rect.width > 0;
+      markRow.style.visibility = visible ? "visible" : "hidden";
+      if (visible && rect !== undefined) {
+        const height = markRow.offsetHeight || 28;
+        markRow.style.left = `${String(Math.max(0, rect.left + rect.width / 2 - markRow.offsetWidth / 2))}px`;
+        // Above the selection, or below it when there is no room above.
+        const above = rect.top - height - 6;
+        markRow.style.top = `${String(above >= 0 ? above : rect.top + rect.height + 6)}px`;
+      }
       for (const [mark, element] of buttons) {
         const on = editor.markIsActive(mark);
         element.setAttribute("aria-pressed", on ? "true" : "false");
-        element.style.fontWeight = on ? "700" : "400";
-        element.disabled = !on && editor.selection?.kind !== "text";
+        element.style.background = on ? "#3d63dd" : "transparent";
       }
       const selection = editor.selection;
       context.setMetric(
@@ -213,6 +246,7 @@ export const richTextDemo: Demo = {
     void loadFaces().then(refresh);
 
     return () => {
+      markRow.remove();
       canvas.removeEventListener("keydown", onKeyDown);
       canvas.removeEventListener("pointerdown", onPointerDown);
       editor.onInvalidate = undefined;

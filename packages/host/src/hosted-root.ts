@@ -2127,6 +2127,15 @@ class HostedCanvasRootController implements HostedCanvasRoot {
   private handleEditingGeometry(frame: EditingGeometryFrame): void {
     this.#editingGeometry = frame;
     this.flushPendingWordSelection();
+    // Delivered whether or not the OS surface is over this node: a document's
+    // toolbar anchors to the selection even when the surface has not been
+    // activated yet, and the bridge check below is about the surface, not the
+    // geometry.
+    try {
+      this.#root?.applyDocumentGeometry(frame.nodeId, frame.selectionBounds);
+    } catch (cause) {
+      this.#options.onHostError?.(toError(cause, "document selection geometry handler failed"));
+    }
     if (this.#inputBridge.activeNodeId !== frame.nodeId) return;
     const toDomRect = (rect: EditingGeometryRect): DOMRect =>
       new DOMRect(rect.left, rect.top, rect.width, rect.height);

@@ -410,6 +410,21 @@ export interface DocumentProps {
    * was asked to decide, and the selection it moved all arrive here.
    */
   readonly onEditStream?: (stream: DocumentEditStream) => void;
+  /**
+   * Where the selection is on screen, in canvas coordinates.
+   *
+   * The Core owns the text layout, so it is the only side that can say where a
+   * range of characters ended up. A floating toolbar anchors to this.
+   */
+  readonly onSelectionGeometry?: (rect: DocumentSelectionRect) => void;
+}
+
+/** A document selection's box on the canvas, in device-independent pixels. */
+export interface DocumentSelectionRect {
+  readonly left: number;
+  readonly top: number;
+  readonly width: number;
+  readonly height: number;
 }
 
 /** Explicit single-axis data window attached to a View. */

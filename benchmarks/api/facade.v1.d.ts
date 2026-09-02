@@ -65,6 +65,7 @@ export {
   type ContainerProps,
   type DocumentBlockProps,
   type DocumentEditStream,
+  type DocumentSelectionRect,
   type DocumentProps,
   type PingoElement,
   type PingoImageOptions,

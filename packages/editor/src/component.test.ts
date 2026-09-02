@@ -145,4 +145,58 @@ describe("DocumentEditorController", () => {
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(onChange.mock.calls[0]?.[0]).toBe(instance.document);
   });
+
+  it("keeps the selection box and re-renders only the view when it moves", () => {
+    const onChange = vi.fn();
+    const { instance } = controller({ onChange });
+    let renders = 0;
+    instance.onInvalidate = () => {
+      renders += 1;
+    };
+
+    expect(instance.selectionRect).toBeUndefined();
+    instance.applySelectionGeometry({ left: 10, top: 20, width: 30, height: 18 });
+    expect(instance.selectionRect).toEqual({ left: 10, top: 20, width: 30, height: 18 });
+    expect(renders).toBe(1);
+    // The document did not change, so the owner must not be told it did: a
+    // caret move would otherwise look like an edit.
+    expect(onChange).not.toHaveBeenCalled();
+
+    // The same box again is not a reason to lay the toolbar out again.
+    instance.applySelectionGeometry({ left: 10, top: 20, width: 30, height: 18 });
+    expect(renders).toBe(1);
+    instance.applySelectionGeometry({ left: 11, top: 20, width: 30, height: 18 });
+    expect(renders).toBe(2);
+  });
+
+  it("reports whether there is anything for a toolbar to act on", () => {
+    const { instance } = controller();
+    expect(instance.hasSelection).toBe(false);
+
+    instance.applyEditStream({
+      transactions: [],
+      structure: [],
+      selections: [
+        {
+          nodeId: 1,
+          selection: { kind: "text", anchorKey: 1, anchorOffset: 3, focusKey: 1, focusOffset: 3 },
+        },
+      ],
+    });
+    // A bare caret selects nothing, so a toolbar over it would offer buttons
+    // that all do nothing.
+    expect(instance.hasSelection).toBe(false);
+
+    instance.applyEditStream({
+      transactions: [],
+      structure: [],
+      selections: [
+        {
+          nodeId: 1,
+          selection: { kind: "text", anchorKey: 1, anchorOffset: 3, focusKey: 1, focusOffset: 7 },
+        },
+      ],
+    });
+    expect(instance.hasSelection).toBe(true);
+  });
 });

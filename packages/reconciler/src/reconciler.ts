@@ -16,6 +16,7 @@ import {
   type DocumentBlockProps,
   type DocumentEditStream,
   type DocumentProps,
+  type DocumentSelectionRect,
   type TextProps,
   type TextRunProps,
   type FunctionComponent,
@@ -193,6 +194,7 @@ export interface CoreDrivenPingoRoot extends PingoRoot {
   refillVirtualRanges(requests: readonly VirtualRangeRequest[]): void;
   applyEditTransaction(transaction: EditTransaction): void;
   applyDocumentStructure(request: StructureRequest): void;
+  applyDocumentGeometry(nodeId: number, rect: DocumentSelectionRect): void;
   applyDocumentSelection(report: DocumentSelectionReport): void;
   applyEventTransaction(transaction: EventTransaction): void;
   editableState(nodeId: number): EditableStateSnapshot | undefined;
@@ -309,6 +311,7 @@ interface NormalizedDocument {
   readonly revision: bigint;
   /** Receives everything Core sends back about this document. */
   readonly onEditStream: ((stream: DocumentEditStream) => void) | undefined;
+  readonly onSelectionGeometry: ((rect: DocumentSelectionRect) => void) | undefined;
   readonly blocks: readonly {
     readonly key: number;
     readonly lenUtf16: number;
@@ -711,6 +714,20 @@ class ReconcilerRoot implements CoreDrivenPingoRoot {
     const callback = this.#callbacksById.get(callbackId)?.callback;
     if (callback === undefined) throw new Error(`unknown callback ${String(callbackId)}`);
     callback();
+  }
+
+  /**
+   * Hands the selection's screen box to the document whose block it is in.
+   *
+   * A toolbar cannot place itself: the Core owns the text layout, so where a
+   * range of characters landed is only knowable there.
+   */
+  public applyDocumentGeometry(nodeId: number, rect: DocumentSelectionRect): void {
+    this.assertUsable();
+    const instance = this.#hostsByNodeId.get(nodeId);
+    if (instance === undefined || !instance.mounted) return;
+    const owner = instance.document === undefined ? this.#documentOfBlock.get(instance) : instance;
+    owner?.document?.onSelectionGeometry?.(rect);
   }
 
   /** Hands Core's structure request to the document it names. */
@@ -2846,6 +2863,8 @@ function normalizeHostProps(
     documentProjection = {
       revision: BigInt(declared.revision),
       onEditStream: normalizeDocumentCallback(declared.onEditStream),
+      onSelectionGeometry: normalizeDocumentCallback(declared.onSelectionGeometry) as
+        ((rect: DocumentSelectionRect) => void) | undefined,
       blocks,
     };
   }

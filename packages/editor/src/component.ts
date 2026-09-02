@@ -1,5 +1,6 @@
 import {
   createElement,
+  type DocumentSelectionRect,
   type PingoEvent,
   type PingoNode,
   type TextRunProps,
@@ -62,6 +63,7 @@ export class DocumentEditorController {
   #documentNodeId = 0;
   #nodeToKey = new Map<number, number>();
   #onInvalidate: (() => void) | undefined;
+  #selectionRect: DocumentSelectionRect | undefined;
 
   public constructor(props: {
     readonly document: DocumentModel;
@@ -76,6 +78,22 @@ export class DocumentEditorController {
   /** The document as the Shell currently holds it. */
   public get document(): DocumentModel {
     return this.#editor.document;
+  }
+
+  /**
+   * Where the selection is on the canvas, once the Core has reported it.
+   *
+   * `undefined` until then, and while the selection is collapsed to a caret
+   * the box is zero-width -- a toolbar anchors to it either way, but has
+   * nothing to act on.
+   */
+  public get selectionRect(): DocumentSelectionRect | undefined {
+    return this.#selectionRect;
+  }
+
+  /** Whether the selection covers characters a mark could apply to. */
+  public get hasSelection(): boolean {
+    return this.#selectionRanges().length > 0;
   }
 
   /** Where the Core last reported the caret. */
@@ -138,6 +156,24 @@ export class DocumentEditorController {
     }
     this.#invalidate();
     this.#refocus();
+  }
+
+  /** Records where the Core drew the selection. */
+  public applySelectionGeometry(rect: DocumentSelectionRect): void {
+    const previous = this.#selectionRect;
+    if (
+      previous !== undefined &&
+      previous.left === rect.left &&
+      previous.top === rect.top &&
+      previous.width === rect.width &&
+      previous.height === rect.height
+    ) {
+      return;
+    }
+    this.#selectionRect = rect;
+    // Only the view has to react: the document did not change, so re-notifying
+    // the owner would make a caret move look like an edit.
+    this.#onInvalidate?.();
   }
 
   /** Serializes the selection for a copy, or nothing when there is none. */
@@ -227,6 +263,7 @@ export class DocumentEditorController {
           readonly structure: readonly StructureRequest[];
           readonly selections: readonly DocumentSelectionReport[];
         }) => this.applyEditStream(stream),
+        onSelectionGeometry: (rect: DocumentSelectionRect) => this.applySelectionGeometry(rect),
       },
       children: blocks.map((block) =>
         createElement("text", {
