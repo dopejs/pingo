@@ -48,6 +48,18 @@ impl DocumentController {
         false
     }
 
+    pub(crate) const fn text_anchor(&self, _root: NodeId) -> Option<(u64, u32)> {
+        None
+    }
+
+    pub(crate) const fn locate(&self, _node: NodeId) -> Option<(NodeId, u64)> {
+        None
+    }
+
+    pub(crate) const fn block_text(&self, _root: NodeId, _key: u64) -> Option<std::sync::Arc<str>> {
+        None
+    }
+
     pub(crate) const fn metrics(&self) -> DocumentMetrics {
         DocumentMetrics {
             structure_requests: 0,

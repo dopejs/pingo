@@ -54,6 +54,7 @@ describe.skipIf(!rich)("document round trip", () => {
     readonly structure: StructureRequest[];
     readonly selections: DocumentSelectionReport[];
     readonly documentNodeId: () => number;
+    readonly blockNodeIds: () => readonly number[];
     send(commands: Parameters<typeof encodeInputBatch>[0]["commands"]): void;
   }
 
@@ -66,6 +67,7 @@ describe.skipIf(!rich)("document round trip", () => {
     const structure: StructureRequest[] = [];
     const selections: DocumentSelectionReport[] = [];
     let documentNodeId = 0;
+    const blockNodeIds: number[] = [];
     let sequence = 1;
     const root = await createHostedCanvasRoot(canvas, {
       onEditTransaction: (transaction) => transactions.push(transaction),
@@ -86,10 +88,13 @@ describe.skipIf(!rich)("document round trip", () => {
           revision: 1n,
           blocks: BLOCKS.map((block) => ({ key: block.key, lenUtf16: block.text.length })),
         },
-        children: BLOCKS.map((block) =>
+        children: BLOCKS.map((block, index) =>
           createElement("text", {
             key: block.key,
             blockKey: block.key,
+            ref: (handle: { readonly nodeId: number } | null) => {
+              if (handle !== null) blockNodeIds[index] = handle.nodeId;
+            },
             value: block.text,
             fontSize: 14,
             lineHeight: 22,
@@ -104,6 +109,7 @@ describe.skipIf(!rich)("document round trip", () => {
       structure,
       selections,
       documentNodeId: () => documentNodeId,
+      blockNodeIds: () => blockNodeIds,
       send: (commands) => {
         root.dispatchInput(encodeInputBatch({ frameSeq: sequence, commands }));
         sequence += 1;
@@ -268,6 +274,74 @@ describe.skipIf(!rich)("document round trip", () => {
     // diverge on the first keystroke and every later offset is wrong.
     expect(editor.document.blocks[1]?.text).toBe("second!! block");
     expect(editor.document.blocks[0]?.text).toBe(BLOCKS[0]!.text);
+  });
+
+  it("places the caret where the press landed, in whichever block it landed in", async () => {
+    const harness = await mount();
+    // A press carries the node it hit. The blocks render in declaration order,
+    // so the second block's node is the one the second transaction reports --
+    // but nothing has been typed yet, so ask the Core instead by pressing and
+    // reading back where the caret went.
+    const nodes = harness.blockNodeIds();
+    expect(nodes).toHaveLength(2);
+
+    // Well inside the second block, past its first characters.
+    harness.send([
+      { type: "placeCaret", nodeId: nodes[1]!, x: 60, y: 8, extend: false, word: false },
+    ]);
+    await waitUntil(() => harness.selections.length > 0);
+    const placed = harness.selections.at(-1)?.selection;
+    expect(placed?.kind).toBe("text");
+    if (placed?.kind !== "text") throw new Error("expected a text selection");
+    // The block the press was in, not the document's first block, and an
+    // offset the press chose rather than zero.
+    expect(placed.focusKey).toBe(2);
+    expect(placed.anchorKey).toBe(2);
+    expect(placed.focusOffset).toBeGreaterThan(0);
+    expect(placed.focusOffset).toBeLessThanOrEqual(BLOCKS[1]!.text.length);
+    expect(placed.anchorOffset).toBe(placed.focusOffset);
+
+    // A press at the very start of the first block collapses to offset zero
+    // there, which is the other end of the same resolution.
+    harness.send([
+      { type: "placeCaret", nodeId: nodes[0]!, x: 0, y: 4, extend: false, word: false },
+    ]);
+    await waitUntil(
+      () =>
+        (harness.selections.at(-1)?.selection as { focusKey?: number } | undefined)?.focusKey === 1,
+    );
+    const start = harness.selections.at(-1)?.selection;
+    if (start?.kind !== "text") throw new Error("expected a text selection");
+    expect(start.focusKey).toBe(1);
+    expect(start.focusOffset).toBe(0);
+  });
+
+  it("extends the existing selection when a press asks to, across blocks", async () => {
+    const harness = await mount();
+    const nodes = harness.blockNodeIds();
+
+    harness.send([
+      { type: "placeCaret", nodeId: nodes[0]!, x: 20, y: 8, extend: false, word: false },
+    ]);
+    await waitUntil(() => harness.selections.length > 0);
+    const first = harness.selections.at(-1)?.selection;
+    if (first?.kind !== "text") throw new Error("expected a text selection");
+    const anchorOffset = first.anchorOffset;
+
+    // Shift-press in the other block: the anchor stays where the Core already
+    // had it, which is what makes a selection span two blocks at all.
+    harness.send([
+      { type: "placeCaret", nodeId: nodes[1]!, x: 40, y: 8, extend: true, word: false },
+    ]);
+    await waitUntil(
+      () =>
+        (harness.selections.at(-1)?.selection as { focusKey?: number } | undefined)?.focusKey === 2,
+    );
+    const extended = harness.selections.at(-1)?.selection;
+    if (extended?.kind !== "text") throw new Error("expected a text selection");
+    expect(extended.anchorKey).toBe(1);
+    expect(extended.anchorOffset).toBe(anchorOffset);
+    expect(extended.focusKey).toBe(2);
   });
 
   it("asks the Shell to split rather than splitting a document it does not own", async () => {

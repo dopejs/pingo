@@ -1284,6 +1284,13 @@ impl CoreEngine {
         boundaries: &HashMap<NodeId, Vec<u32>>,
     ) -> Result<InputCommand, CoreError> {
         let node = NodeId::from_raw(node_id)?;
+        // A press lands on whichever node painted the text. That node is either
+        // an editable with its own session, or a block of a document whose
+        // caret lives in the document's position space; the point resolves the
+        // same way and only the selection it becomes differs.
+        if let Some((root, key)) = self.documents.locate(node) {
+            return self.resolve_document_place_caret(root, key, node, position, flags);
+        }
         let session = self
             .editing
             .session(node)
@@ -1338,6 +1345,71 @@ impl CoreEngine {
                     offset: focus,
                     affinity: InputAffinity::Downstream,
                 },
+            },
+        })
+    }
+
+    /// Resolves a press inside a document block into a document selection.
+    ///
+    /// The offset comes from the same caret stops an editable uses, because a
+    /// block is an ordinary text node until the document says otherwise. What
+    /// differs is the answer: a position in the Shell's block keys, against the
+    /// document root, so it can cross into another block on a later press.
+    fn resolve_document_place_caret(
+        &self,
+        root: NodeId,
+        key: u64,
+        node: NodeId,
+        position: [f32; 2],
+        flags: u32,
+    ) -> Result<InputCommand, CoreError> {
+        let geometry = self
+            .hit
+            .geometry(node)
+            .ok_or(CoreError::InvalidEditableTarget { node })?;
+        let carets = self
+            .text
+            .editor_caret_stops(&self.scene, node, self.node_box_width(node))
+            .filter(|carets| !carets.is_empty())
+            .ok_or(CoreError::InvalidEditableTarget { node })?;
+        let local = geometry
+            .to_local(HitPoint {
+                x: position[0],
+                y: position[1],
+            })
+            .ok_or(CoreError::InvalidEditableTarget { node })?;
+        let offset = nearest_caret_offset(&carets, local);
+        // A double press selects the word under it, and a shift press keeps the
+        // anchor where the Core already had it -- including in another block,
+        // which is what makes a drag across blocks one selection.
+        let (anchor, focus) = if flags & 0x02 != 0 {
+            let text = self
+                .documents
+                .block_text(root, key)
+                .ok_or(CoreError::InvalidEditableTarget { node })?;
+            let (start, end) =
+                pingo_edit::word_range_utf16(&text, offset).map_err(CoreError::Edit)?;
+            ((key, start), (key, end))
+        } else if flags & 0x01 != 0 {
+            self.documents
+                .text_anchor(root)
+                .map_or(((key, offset), (key, offset)), |anchor| {
+                    (anchor, (key, offset))
+                })
+        } else {
+            ((key, offset), (key, offset))
+        };
+        Ok(InputCommand::SetDocumentSelection {
+            node_id: root.raw(),
+            base_revision: 0,
+            selection: pingo_abi::WireDocumentSelection::Text {
+                // A key wider than the wire cannot address a block Core is
+                // holding, so it saturates rather than wrapping onto another
+                // block's identity.
+                anchor_key: u32::try_from(anchor.0).unwrap_or(u32::MAX),
+                anchor_offset: anchor.1,
+                focus_key: u32::try_from(focus.0).unwrap_or(u32::MAX),
+                focus_offset: focus.1,
             },
         })
     }

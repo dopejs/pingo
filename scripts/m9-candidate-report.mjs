@@ -33,8 +33,23 @@ if (dirty.length > 0) throw new Error(`candidate checkout is dirty: ${dirty.join
 if (wasm.version !== 2 || wasm.reproducibleCleanBuilds !== 2) {
   throw new Error("candidate WASM was not produced by two clean reproducible builds");
 }
-if (wasm.gzipBytes > 384 * 1024 || wasm.gzipBytes >= wasm.productMaximumGzipBytes) {
-  throw new Error("candidate WASM violates its engineering or product budget");
+// The budget belongs to the profile the artifact was built for, so it is read
+// back from the manifest rather than restated here. A second copy is how a
+// candidate comes to be checked against a budget its build never used.
+if (
+  typeof wasm.engineeringMaximumGzipBytes !== "number" ||
+  typeof wasm.productMaximumGzipBytes !== "number" ||
+  typeof wasm.profile !== "string"
+) {
+  throw new Error("candidate WASM manifest does not state which profile budget it was built for");
+}
+if (
+  wasm.gzipBytes > wasm.engineeringMaximumGzipBytes ||
+  wasm.gzipBytes >= wasm.productMaximumGzipBytes
+) {
+  throw new Error(
+    `candidate WASM violates the ${wasm.profile} profile's engineering or product budget`,
+  );
 }
 if (qualification.status !== "pass") throw new Error("candidate qualification audit failed");
 assertQualifiedEvidenceBuild(qualification, { commit, digest: wasm.sha256 });

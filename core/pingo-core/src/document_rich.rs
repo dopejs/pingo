@@ -204,6 +204,40 @@ impl DocumentController {
             .any(|active| active.nodes.values().any(|owned| *owned == node))
     }
 
+    /// The document root and block key a Scene node draws, if any.
+    ///
+    /// A press lands on the node that painted the block, but a document
+    /// selection is stated in the Shell's block keys against the document root,
+    /// so the caret cannot be placed without translating one into the other.
+    pub(crate) fn locate(&self, node: NodeId) -> Option<(NodeId, BlockKey)> {
+        self.documents.iter().find_map(|(root, active)| {
+            active
+                .nodes
+                .iter()
+                .find(|(_, owned)| **owned == node)
+                .map(|(key, _)| (*root, *key))
+        })
+    }
+
+    /// The anchor a shift-press extends from, in block key and UTF-16 offset.
+    ///
+    /// Plain integers rather than the selection type: the caller only needs the
+    /// edge that stays put, and the document types do not exist in a build
+    /// without the capability.
+    pub(crate) fn text_anchor(&self, root: NodeId) -> Option<(BlockKey, u32)> {
+        match self.documents.get(&root)?.document.selection() {
+            DocumentSelection::Text { anchor, .. } => Some((anchor.key, anchor.offset)),
+            DocumentSelection::Node { .. } | DocumentSelection::Gap { .. } => None,
+        }
+    }
+
+    /// The block's current text, for word selection at a press.
+    pub(crate) fn block_text(&self, root: NodeId, key: BlockKey) -> Option<Arc<str>> {
+        let active = self.documents.get(&root)?;
+        let index = active.document.index_of(key)?;
+        Some(Arc::from(active.document.blocks()[index].text()))
+    }
+
     /// Returns the observable round-trip counters.
     pub(crate) const fn metrics(&self) -> DocumentMetrics {
         self.metrics

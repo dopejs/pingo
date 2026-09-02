@@ -7,6 +7,7 @@ import {
   type DocumentSelectionReport,
   type EditTransaction,
   type InputCommand,
+  type PingoEvent,
   type PingoFont,
   type StructureRequest,
   type TextRunProps,
@@ -175,6 +176,21 @@ function scene(context: DemoContext) {
               color: "#1f2329ff",
               ref: (handle: { readonly nodeId: number } | null) => {
                 if (handle !== null) session.nodeToKey.set(handle.nodeId, block.key);
+              },
+              onPointerDown: (event: PingoEvent) => {
+                session.dispatch?.([
+                  {
+                    type: "placeCaret",
+                    nodeId: event.target.nodeId,
+                    x: event.x,
+                    y: event.y,
+                    extend: event.shiftKey,
+                    // No click count on the event yet, so a press is always a
+                    // caret. Word selection is reachable from the Core the same
+                    // way once the event carries one.
+                    word: false,
+                  },
+                ]);
               },
               ...(runs === undefined ? {} : { runs }),
             });
@@ -345,26 +361,11 @@ export const richTextDemo: Demo = {
       event.preventDefault();
     };
 
+    // Focus follows the press, but where the caret lands is the Core's answer:
+    // it owns the text layout, so it is the only side that can turn a point
+    // into an offset.
     const onPointerDown = (): void => {
       canvas.focus();
-      const first = session.editor.document.blocks[0];
-      if (first === undefined || session.editor.selection !== undefined) return;
-      // No caret placement from a point yet, so the first press starts at the
-      // top of the document rather than where the pointer landed.
-      send([
-        {
-          type: "setDocumentSelection",
-          nodeId: nodeId(),
-          baseRevision: 0n,
-          selection: {
-            kind: "text",
-            anchorKey: first.key,
-            anchorOffset: 0,
-            focusKey: first.key,
-            focusOffset: 0,
-          },
-        },
-      ]);
     };
 
     canvas.addEventListener("keydown", onKeyDown);
