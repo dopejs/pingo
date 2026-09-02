@@ -88,6 +88,7 @@ describe.skipIf(!rich)("document round trip", () => {
     readonly selections: DocumentSelectionReport[];
     readonly documentNodeId: () => number;
     readonly blockNodeIds: () => readonly number[];
+    rewrite(key: number, text: string): void;
     send(commands: Parameters<typeof encodeInputBatch>[0]["commands"]): void;
   }
 
@@ -102,42 +103,52 @@ describe.skipIf(!rich)("document round trip", () => {
     let documentNodeId = 0;
     const blockNodeIds: number[] = [];
     let sequence = 1;
+    let revision = 1n;
+    let blocks = BLOCKS.map((block) => ({ ...block }));
     const root = await createHostedCanvasRoot(canvas, {
       onEditTransaction: (transaction) => transactions.push(transaction),
       onStructureRequest: (request) => structure.push(request),
       onDocumentSelection: (report) => selections.push(report),
     });
     roots.push(root);
-    root.render(
-      createElement("container", {
-        width: 400,
-        height: 200,
-        backgroundColor: "#ffffffff",
-        padding: 8,
-        ref: (handle: { readonly nodeId: number } | null) => {
-          if (handle !== null) documentNodeId = handle.nodeId;
-        },
-        document: {
-          revision: 1n,
-          blocks: BLOCKS.map((block) => ({ key: block.key, lenUtf16: block.text.length })),
-        },
-        children: BLOCKS.map((block, index) =>
-          createElement("text", {
-            key: block.key,
-            blockKey: block.key,
-            ref: (handle: { readonly nodeId: number } | null) => {
-              if (handle !== null) blockNodeIds[index] = handle.nodeId;
-            },
-            value: block.text,
-            fontSize: 14,
-            lineHeight: 22,
-            color: "#000000ff",
-          }),
-        ),
-      }),
-    );
+    const draw = (): void =>
+      root.render(
+        createElement("container", {
+          width: 400,
+          height: 200,
+          backgroundColor: "#ffffffff",
+          padding: 8,
+          ref: (handle: { readonly nodeId: number } | null) => {
+            if (handle !== null) documentNodeId = handle.nodeId;
+          },
+          document: {
+            revision,
+            blocks: blocks.map((block) => ({ key: block.key, lenUtf16: block.text.length })),
+          },
+          children: blocks.map((block, index) =>
+            createElement("text", {
+              key: block.key,
+              blockKey: block.key,
+              ref: (handle: { readonly nodeId: number } | null) => {
+                if (handle !== null) blockNodeIds[index] = handle.nodeId;
+              },
+              value: block.text,
+              fontSize: 14,
+              lineHeight: 22,
+              color: "#000000ff",
+            }),
+          ),
+        }),
+      );
+    draw();
     return {
       root,
+      /** Changes a block's text the way a Shell-side rule or paste would. */
+      rewrite: (key: number, text: string) => {
+        blocks = blocks.map((block) => (block.key === key ? { ...block, text } : block));
+        revision += 1n;
+        draw();
+      },
       transactions,
       structure,
       selections,
@@ -506,6 +517,37 @@ describe.skipIf(!rich)("document round trip", () => {
       nodeToKey,
     );
     expect(redone.document.blocks[0]?.text).toBe("firsttyped block");
+  });
+
+  it("works from the Shell's new text after the Shell changes a block", async () => {
+    const harness = await mount();
+    const nodeId = harness.documentNodeId();
+
+    // What an input rule or a paste does: the Shell rewrites the block and
+    // re-declares the projection under a new revision.
+    harness.rewrite(1, "rewritten first block");
+    harness.send([
+      {
+        type: "setDocumentSelection",
+        nodeId,
+        baseRevision: 0n,
+        selection: { kind: "text", anchorKey: 1, anchorOffset: 21, focusKey: 1, focusOffset: 21 },
+      },
+    ]);
+    await waitForSelection(
+      harness,
+      (selection) => selection.kind === "text" && selection.focusOffset === 21,
+    );
+
+    harness.send([{ type: "insert", nodeId, baseRevision: 0n, text: "!" }]);
+    await waitUntil(() => harness.transactions.length > 0);
+
+    // Offset 21 is the end of the rewritten text and past the end of the
+    // original. A Core still holding the old text would have refused the
+    // selection or inserted somewhere else.
+    const delta = harness.transactions.at(-1)?.delta;
+    expect(delta?.range).toEqual({ start: 21, end: 21 });
+    expect(delta?.text).toBe("!");
   });
 
   it("asks the Shell to split rather than splitting a document it does not own", async () => {

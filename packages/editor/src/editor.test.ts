@@ -185,4 +185,40 @@ describe("paste normalization", () => {
     expect(html).toBe("<p>&lt;script&gt;&amp;&quot;</p>");
     expect(fromHtml(html, new BlockKeyAllocator()).blocks[0]?.text).toBe('<script>&"');
   });
+
+  it("turns a block prefix into its block type and reports where the caret lands", () => {
+    const editor = new Editor({
+      document: {
+        blocks: [{ key: 1, type: "paragraph", attributes: {}, text: "# ", marks: [] }],
+      },
+    });
+    const before = editor.projection().revision;
+
+    // The caret sits after the prefix, which is what a rule matches on.
+    const moved = editor.runInputRules(1, 2);
+
+    expect(editor.document.blocks[0]?.type).toBe("heading");
+    expect(editor.document.blocks[0]?.attributes).toEqual({ level: 1 });
+    // The prefix is consumed, so the caret comes back at the start of what is
+    // now the heading's text rather than where the two characters used to be.
+    expect(editor.document.blocks[0]?.text).toBe("");
+    expect(moved).toBe(0);
+    // A new revision is what makes the Core reproject and pick the rewrite up.
+    expect(editor.projection().revision).toBeGreaterThan(before);
+  });
+
+  it("leaves a caret that matches no rule exactly where it was", () => {
+    const editor = new Editor({
+      document: {
+        blocks: [{ key: 1, type: "paragraph", attributes: {}, text: "plain text", marks: [] }],
+      },
+    });
+    const before = editor.projection().revision;
+
+    expect(editor.runInputRules(1, 5)).toBe(5);
+    expect(editor.document.blocks[0]?.type).toBe("paragraph");
+    // No change means no revision bump, so an unmatched keystroke does not make
+    // the Core reproject the whole document.
+    expect(editor.projection().revision).toBe(before);
+  });
 });

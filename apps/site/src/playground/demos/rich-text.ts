@@ -134,6 +134,31 @@ function consume(part: {
     },
     session.nodeToKey,
   );
+  // Auto-formatting is the Shell's: "# " means a heading because the schema
+  // says so, and the Core has no schema. Run the rules where the caret ended
+  // up, then let the next projection carry the result back -- Core reads a
+  // block's text from the Scene, so the rewrite reaches it as an ordinary
+  // re-render under a new revision.
+  const caret = session.editor.selection;
+  if (caret?.kind === "text" && caret.anchorKey === caret.focusKey) {
+    const moved = session.editor.runInputRules(caret.focusKey, caret.focusOffset);
+    if (moved !== caret.focusOffset) {
+      session.dispatch?.([
+        {
+          type: "setDocumentSelection",
+          nodeId: session.documentNodeId,
+          baseRevision: 0n,
+          selection: {
+            kind: "text",
+            anchorKey: caret.focusKey,
+            anchorOffset: moved,
+            focusKey: caret.focusKey,
+            focusOffset: moved,
+          },
+        },
+      ]);
+    }
+  }
   session.redraw?.();
   session.refocus?.();
 }
@@ -183,8 +208,11 @@ function scene(context: DemoContext) {
     ref: (handle: { readonly nodeId: number } | null) => {
       if (handle !== null) session.documentNodeId = handle.nodeId;
     },
+    // The Editor's own revision, not a constant: Core skips reprojection when
+    // the revision it already accepted comes back, so a fixed one would leave
+    // it working from the text as it was before the Shell last changed it.
     document: {
-      revision: 1n,
+      revision: session.editor.projection().revision,
       blocks: blocks.map((block) => ({ key: block.key, lenUtf16: block.text.length })),
     },
     children:
