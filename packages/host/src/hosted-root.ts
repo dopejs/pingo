@@ -629,8 +629,8 @@ class HostedCanvasRootController implements HostedCanvasRoot {
         : { onFrame: (report: FrameReport) => this.handleFrameReport(report) }),
       onVirtualRefills: (requests) => this.deferVirtualRefills(requests),
       onEditTransaction: (transaction) => this.handleEditTransaction(transaction),
-      onStructureRequest: (request) => this.#options.onStructureRequest?.(request),
-      onDocumentSelection: (report) => this.#options.onDocumentSelection?.(report),
+      onStructureRequest: (request) => this.handleStructureRequest(request),
+      onDocumentSelection: (report) => this.handleDocumentSelection(report),
       onEventTransaction: (transaction) => this.handleEventTransaction(transaction),
       onNonPassiveRegions: (regions) => this.handleNonPassiveRegions(regions),
       onEditingGeometry: (frame) => this.handleEditingGeometry(frame),
@@ -1607,8 +1607,8 @@ class HostedCanvasRootController implements HostedCanvasRoot {
       this.#options.incrementalPicturesEnabled ?? true,
       (frame) => this.handleLayoutGeometry(frame),
       (snapshot) => this.handlePaintedText(snapshot),
-      (request) => this.#options.onStructureRequest?.(request),
-      (report) => this.#options.onDocumentSelection?.(report),
+      (request) => this.handleStructureRequest(request),
+      (report) => this.handleDocumentSelection(report),
     );
     this.#frameSink = sink;
     this.#recoverableSink.install(sink);
@@ -1617,6 +1617,43 @@ class HostedCanvasRootController implements HostedCanvasRoot {
     this.startMainThreadClock(sink);
     this.setPaintedTextActive(this.#options.onPaintedText !== undefined);
     this.#options.onModeChange?.(this.#mode, this.#decision);
+  }
+
+  /**
+   * Routes a structure request to the document that was asked.
+   *
+   * Delivered to the mounted document first and to the root observer second,
+   * the way an edit transaction is: a document is a component someone can
+   * mount twice, so the root cannot be the only place that hears about it.
+   */
+  private handleStructureRequest(request: StructureRequest): void {
+    const errors: Error[] = [];
+    try {
+      this.#root?.applyDocumentStructure(request);
+    } catch (cause) {
+      errors.push(toError(cause, "Shell structure request handler failed"));
+    }
+    try {
+      this.#options.onStructureRequest?.(request);
+    } catch (cause) {
+      errors.push(toError(cause, "host structure request observer failed"));
+    }
+    for (const error of errors) this.#options.onHostError?.(error);
+  }
+
+  private handleDocumentSelection(report: DocumentSelectionReport): void {
+    const errors: Error[] = [];
+    try {
+      this.#root?.applyDocumentSelection(report);
+    } catch (cause) {
+      errors.push(toError(cause, "Shell document selection handler failed"));
+    }
+    try {
+      this.#options.onDocumentSelection?.(report);
+    } catch (cause) {
+      errors.push(toError(cause, "host document selection observer failed"));
+    }
+    for (const error of errors) this.#options.onHostError?.(error);
   }
 
   private handleEditTransaction(transaction: EditTransaction): void {

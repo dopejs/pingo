@@ -88,6 +88,8 @@ describe.skipIf(!rich)("document round trip", () => {
     readonly selections: DocumentSelectionReport[];
     readonly documentNodeId: () => number;
     readonly blockNodeIds: () => readonly number[];
+    readonly hostErrors: readonly Error[];
+    readonly streamed: readonly EditTransaction[];
     rewrite(key: number, text: string): void;
     send(commands: Parameters<typeof encodeInputBatch>[0]["commands"]): void;
   }
@@ -98,6 +100,8 @@ describe.skipIf(!rich)("document round trip", () => {
     canvas.height = 200;
     document.body.append(canvas);
     const transactions: EditTransaction[] = [];
+    const hostErrors: Error[] = [];
+    const streamed: EditTransaction[] = [];
     const structure: StructureRequest[] = [];
     const selections: DocumentSelectionReport[] = [];
     let documentNodeId = 0;
@@ -106,6 +110,7 @@ describe.skipIf(!rich)("document round trip", () => {
     let revision = 1n;
     let blocks = BLOCKS.map((block) => ({ ...block }));
     const root = await createHostedCanvasRoot(canvas, {
+      onHostError: (error) => hostErrors.push(error),
       onEditTransaction: (transaction) => transactions.push(transaction),
       onStructureRequest: (request) => structure.push(request),
       onDocumentSelection: (report) => selections.push(report),
@@ -124,6 +129,9 @@ describe.skipIf(!rich)("document round trip", () => {
           document: {
             revision,
             blocks: blocks.map((block) => ({ key: block.key, lenUtf16: block.text.length })),
+            onEditStream: (stream: { readonly transactions: readonly EditTransaction[] }) => {
+              streamed.push(...stream.transactions);
+            },
           },
           children: blocks.map((block, index) =>
             createElement("text", {
@@ -154,6 +162,8 @@ describe.skipIf(!rich)("document round trip", () => {
       selections,
       documentNodeId: () => documentNodeId,
       blockNodeIds: () => blockNodeIds,
+      hostErrors,
+      streamed,
       send: (commands) => {
         root.dispatchInput(encodeInputBatch({ frameSeq: sequence, commands }));
         sequence += 1;
@@ -548,6 +558,31 @@ describe.skipIf(!rich)("document round trip", () => {
     const delta = harness.transactions.at(-1)?.delta;
     expect(delta?.range).toEqual({ start: 21, end: 21 });
     expect(delta?.text).toBe("!");
+  });
+
+  it("reports no host error while a document is edited", async () => {
+    const harness = await mount();
+    const nodeId = harness.documentNodeId();
+    harness.send([
+      {
+        type: "setDocumentSelection",
+        nodeId,
+        baseRevision: 0n,
+        selection: { kind: "text", anchorKey: 1, anchorOffset: 5, focusKey: 1, focusOffset: 5 },
+      },
+    ]);
+    await waitForSelection(harness, (selection) => selection.kind === "text");
+    harness.send([{ type: "insert", nodeId, baseRevision: 0n, text: "z" }]);
+    await waitUntil(() => harness.transactions.length > 0);
+
+    // A document's text transaction is addressed to the block's node, which is
+    // a text node rather than an editable. Routing it as if it were an
+    // editable's throws, and the host swallows that into an error observer, so
+    // the only thing that catches it is asking whether one arrived.
+    expect(harness.hostErrors.map((error) => error.message)).toEqual([]);
+    // It reached the document that declared the block, which is what lets a
+    // document be a component rather than root-level wiring.
+    expect(harness.streamed.length).toBeGreaterThan(0);
   });
 
   it("asks the Shell to split rather than splitting a document it does not own", async () => {

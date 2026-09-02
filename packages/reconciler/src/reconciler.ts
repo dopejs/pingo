@@ -14,6 +14,7 @@ import {
   type PingoEventHandler,
   type EditableTextProps,
   type DocumentBlockProps,
+  type DocumentEditStream,
   type DocumentProps,
   type TextProps,
   type TextRunProps,
@@ -45,7 +46,13 @@ import {
   type AnyPingoContext,
   type Signal,
 } from "@dopejs/pingo-runtime";
-import type { EditTransaction, EventTransaction, InputEventKind } from "@dopejs/pingo-editing";
+import type {
+  DocumentSelectionReport,
+  EditTransaction,
+  EventTransaction,
+  InputEventKind,
+  StructureRequest,
+} from "@dopejs/pingo-editing";
 import {
   STYLE_KEYWORD_IDS,
   resolveInteractionStyles,
@@ -185,6 +192,8 @@ export interface StyleRuntimeMetrics {
 export interface CoreDrivenPingoRoot extends PingoRoot {
   refillVirtualRanges(requests: readonly VirtualRangeRequest[]): void;
   applyEditTransaction(transaction: EditTransaction): void;
+  applyDocumentStructure(request: StructureRequest): void;
+  applyDocumentSelection(report: DocumentSelectionReport): void;
   applyEventTransaction(transaction: EventTransaction): void;
   editableState(nodeId: number): EditableStateSnapshot | undefined;
   submitEditable(nodeId: number): void;
@@ -298,6 +307,8 @@ type ChildDescriptor = AnyPingoElement | string;
 /** A validated document projection, keys resolved to nodes at commit time. */
 interface NormalizedDocument {
   readonly revision: bigint;
+  /** Receives everything Core sends back about this document. */
+  readonly onEditStream: ((stream: DocumentEditStream) => void) | undefined;
   readonly blocks: readonly {
     readonly key: number;
     readonly lenUtf16: number;
@@ -590,6 +601,8 @@ class ReconcilerRoot implements CoreDrivenPingoRoot {
   readonly #renderedScopes = new Set<ComponentScope>();
   /** Mounted nodes carrying a document projection, in mount order. */
   readonly #documentNodes = new Set<HostInstance>();
+  /** The document that declared each block node, recorded as it is declared. */
+  readonly #documentOfBlock = new WeakMap<HostInstance, HostInstance>();
   readonly #scopesPendingDisposal = new Set<ComponentScope>();
   readonly #postCommitCleanups: Array<() => void> = [];
   readonly #postCommitAttachments: Array<() => void> = [];
@@ -700,6 +713,41 @@ class ReconcilerRoot implements CoreDrivenPingoRoot {
     callback();
   }
 
+  /** Hands Core's structure request to the document it names. */
+  public applyDocumentStructure(request: StructureRequest): void {
+    this.assertUsable();
+    const instance = this.#hostsByNodeId.get(request.nodeId);
+    if (instance === undefined || !instance.mounted) return;
+    this.deliverToDocument(instance, { structure: [request] });
+  }
+
+  /** Hands Core's selection report to the document it names. */
+  public applyDocumentSelection(report: DocumentSelectionReport): void {
+    this.assertUsable();
+    const instance = this.#hostsByNodeId.get(report.nodeId);
+    if (instance === undefined || !instance.mounted) return;
+    this.deliverToDocument(instance, { selections: [report] });
+  }
+
+  /**
+   * Walks up to the document that owns `instance` and delivers to it.
+   *
+   * Blocks are addressed by their own node, so the callback lives on an
+   * ancestor; a document nested in another stops the walk, because the inner
+   * one owns its blocks.
+   */
+  private deliverToDocument(instance: HostInstance, part: Partial<DocumentEditStream>): void {
+    // Ownership is recorded when the projection is declared, not walked up the
+    // tree: an instance's parent is whoever rendered it, which is not the node
+    // it sits under.
+    const owner = instance.document === undefined ? this.#documentOfBlock.get(instance) : instance;
+    owner?.document?.onEditStream?.({
+      transactions: part.transactions ?? [],
+      structure: part.structure ?? [],
+      selections: part.selections ?? [],
+    });
+  }
+
   public refillVirtualRanges(requests: readonly VirtualRangeRequest[]): void {
     this.assertUsable();
     const candidates: readonly VirtualRangeRequest[] = requests;
@@ -752,6 +800,13 @@ class ReconcilerRoot implements CoreDrivenPingoRoot {
     assertU32(transaction.nodeId, "edit transaction nodeId");
     const instance = this.#hostsByNodeId.get(transaction.nodeId);
     if (instance === undefined || !instance.mounted) return;
+    // A document's text transaction is addressed to the block's node, which is
+    // an ordinary text node. It belongs to whichever document declared that
+    // block, not to an editing session the node does not have.
+    if (instance.blockKey !== undefined) {
+      this.deliverToDocument(instance, { transactions: [transaction] });
+      return;
+    }
     if (instance.type !== "editableText" || instance.editable === undefined) {
       throw new Error(`edit transaction targeted non-editable node ${String(transaction.nodeId)}`);
     }
@@ -2337,7 +2392,9 @@ class ReconcilerRoot implements CoreDrivenPingoRoot {
         continue;
       }
       const nodes = new Map<number, number>();
-      collectBlockNodes(instance, nodes);
+      const claimants = new Map<number, HostInstance>();
+      collectBlockNodes(instance, nodes, claimants);
+      for (const claimant of claimants.values()) this.#documentOfBlock.set(claimant, instance);
       const blocks = projection.blocks.map((block) => ({
         key: block.key,
         // A block no child claims is one the Shell has not materialized. Its
@@ -2384,6 +2441,16 @@ class ReconcilerRoot implements CoreDrivenPingoRoot {
  * value -- so the node keeps the single-style path rather than carrying a
  * one-run table that says the same thing.
  */
+function normalizeDocumentCallback(
+  value: unknown,
+): ((stream: DocumentEditStream) => void) | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value !== "function") {
+    throw new TypeError("document onEditStream must be a function");
+  }
+  return value as (stream: DocumentEditStream) => void;
+}
+
 function normalizeTextRuns(
   runs: readonly TextRunProps[] | undefined,
   value: string,
@@ -2475,30 +2542,40 @@ function utf8PrefixLengths(value: string): readonly (number | undefined)[] {
  * Stops at a nested document: an inner projection owns its own blocks, and
  * letting the outer one adopt them would put one node in two position spaces.
  */
-function collectBlockNodes(instance: HostInstance, out: Map<number, number>): void {
+function collectBlockNodes(
+  instance: HostInstance,
+  out: Map<number, number>,
+  claimants: Map<number, HostInstance>,
+): void {
   for (const child of instance.children) {
     if (child.kind !== "host") {
-      collectComponentBlockNodes(child, out);
+      collectComponentBlockNodes(child, out, claimants);
       continue;
     }
     if (child.blockKey !== undefined && !out.has(child.blockKey)) {
       out.set(child.blockKey, child.nodeId);
+      claimants.set(child.blockKey, child);
     }
-    if (child.document === undefined) collectBlockNodes(child, out);
+    if (child.document === undefined) collectBlockNodes(child, out, claimants);
   }
 }
 
 /** Walks past component and fragment instances to the host nodes underneath. */
-function collectComponentBlockNodes(instance: Instance, out: Map<number, number>): void {
+function collectComponentBlockNodes(
+  instance: Instance,
+  out: Map<number, number>,
+  claimants: Map<number, HostInstance>,
+): void {
   for (const child of instance.children) {
     if (child.kind === "host") {
       if (child.blockKey !== undefined && !out.has(child.blockKey)) {
         out.set(child.blockKey, child.nodeId);
+        claimants.set(child.blockKey, child);
       }
-      if (child.document === undefined) collectBlockNodes(child, out);
+      if (child.document === undefined) collectBlockNodes(child, out, claimants);
       continue;
     }
-    collectComponentBlockNodes(child, out);
+    collectComponentBlockNodes(child, out, claimants);
   }
 }
 
@@ -2766,7 +2843,11 @@ function normalizeHostProps(
       }
       return { key, lenUtf16, atomic };
     });
-    documentProjection = { revision: BigInt(declared.revision), blocks };
+    documentProjection = {
+      revision: BigInt(declared.revision),
+      onEditStream: normalizeDocumentCallback(declared.onEditStream),
+      blocks,
+    };
   }
 
   let blockKey: number | undefined;

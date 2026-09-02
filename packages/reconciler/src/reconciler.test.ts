@@ -458,6 +458,49 @@ describe("reconciler", () => {
     ).toThrow(/surrogate pair/u);
   });
 
+  it("delivers a block's transaction to the document that declared it", () => {
+    const sink = new RecordingSink();
+    const streams: unknown[] = [];
+    const root = createRoot(sink);
+    root.render(
+      createElement(View, {
+        width: 300,
+        document: {
+          revision: 1n,
+          blocks: [{ key: 11, lenUtf16: 5 }],
+          onEditStream: (stream: unknown) => streams.push(stream),
+        },
+        // An array child, the way a document renders its blocks: the fragment
+        // between the container and the block is what a tree walk would trip on.
+        children: [{ key: 11, text: "hello" }].map((block) =>
+          createElement(Text, { key: block.key, blockKey: block.key, value: block.text }),
+        ),
+      }),
+    );
+    const configure = mutationsOfType(sink.batches[0], "configureDocument")[0];
+    const blockNode = configure?.blocks[0]?.nodeId ?? 0;
+    expect(blockNode).not.toBe(0);
+
+    // A document's text transaction is addressed to the block's own node, which
+    // is a text node with no editing session. It belongs to the document that
+    // declared the block.
+    root.applyEditTransaction({
+      nodeId: blockNode,
+      baseRevision: 0n,
+      revision: 1n,
+      delta: { range: { start: 0, end: 0 }, text: "z" },
+      selection: {
+        anchor: 1,
+        focus: 1,
+        anchorAffinity: "downstream",
+        focusAffinity: "downstream",
+      },
+      kind: "edit",
+      map: [],
+    });
+    expect(streams).toHaveLength(1);
+  });
+
   it("declares a document projection with its block keys resolved to Scene nodes", () => {
     const sink = new RecordingSink();
     const document = {

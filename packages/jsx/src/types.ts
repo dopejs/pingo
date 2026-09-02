@@ -2,7 +2,12 @@ import type { PingoFont } from "./font";
 import type { PingoImage } from "./image";
 import type { PingoSvg } from "./svg";
 import type { MemoComponent } from "./memo";
-import type { EditTransaction, TextEditingController } from "@dopejs/pingo-editing";
+import type {
+  DocumentSelectionReport,
+  EditTransaction,
+  StructureRequest,
+  TextEditingController,
+} from "@dopejs/pingo-editing";
 import type { AnyContextProvider } from "@dopejs/pingo-runtime";
 import type { PingoStyle } from "@dopejs/pingo-style";
 
@@ -380,6 +385,13 @@ export interface DocumentBlockProps {
  * Shell has not materialized -- declaring its length is what lets a virtualized
  * document keep one position space.
  */
+/** Everything Core sends back about one document in a frame. */
+export interface DocumentEditStream {
+  readonly transactions: readonly EditTransaction[];
+  readonly structure: readonly StructureRequest[];
+  readonly selections: readonly DocumentSelectionReport[];
+}
+
 export interface DocumentProps {
   /**
    * The Shell's revision of the projection.
@@ -390,6 +402,14 @@ export interface DocumentProps {
   readonly revision: number | bigint;
   /** Blocks in document order. */
   readonly blocks: readonly DocumentBlockProps[];
+  /**
+   * Receives everything Core sends back about this document.
+   *
+   * On the projection rather than on the root, so a document is a component
+   * someone can mount twice: the transactions for its blocks, the structure it
+   * was asked to decide, and the selection it moved all arrive here.
+   */
+  readonly onEditStream?: (stream: DocumentEditStream) => void;
 }
 
 /** Explicit single-axis data window attached to a View. */
