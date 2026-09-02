@@ -19,7 +19,10 @@ import {
   type StyleRuntimeMetrics,
 } from "@dopejs/pingo-reconciler";
 import {
-  decodeEditTransactionBatch,
+  decodeEditStream,
+  type DocumentSelectionReport,
+  type EditStream,
+  type StructureRequest,
   decodeEventTransactionBatch,
   decodeInputBatch,
   type EditTransaction,
@@ -262,12 +265,21 @@ export interface SemanticNode {
 }
 
 /** One text instruction a committed frame's paint emitted. */
+/** Nothing happened this frame; shared so the common path allocates nothing. */
+const EMPTY_EDIT_STREAM: EditStream = { transactions: [], structure: [], selections: [] };
+
 export interface PaintedTextRecord {
   /** Generation-bearing Core node identifier. */
   readonly nodeId: number;
   /** Which of paint's text instructions drew it. */
   readonly channel: "shapedRun" | "systemFallback" | "inlineFallback";
-  /** The string that was drawn, empty when Core could not attribute one. */
+  /**
+   * The node's text, empty when Core could not attribute one.
+   *
+   * Not the record's own span: a styled node draws one shaped run per span, and
+   * the DisplayList carries no source range for a run, so every record of that
+   * node reports the same whole value. Count the records to see the spans.
+   */
   readonly text: string;
   /**
    * The instruction's own origin in device space.
@@ -411,6 +423,16 @@ export interface CanvasRootOptions extends RootOptions {
   readonly incrementalPicturesEnabled?: boolean;
   readonly onFrame?: (report: FrameReport) => void;
   readonly onEditTransaction?: (transaction: EditTransaction) => void;
+  /**
+   * Core predicted a structural edit and is asking the Shell to decide it.
+   *
+   * The Shell owns the schema, so splitting, merging and removing blocks are
+   * its answers to give; Core moved the caret optimistically and counts the
+   * divergence when the answer differs.
+   */
+  readonly onStructureRequest?: (request: StructureRequest) => void;
+  /** Core moved a document selection and is reporting where it landed. */
+  readonly onDocumentSelection?: (report: DocumentSelectionReport) => void;
   readonly onEventTransaction?: (transaction: EventTransaction) => void;
   readonly onNonPassiveRegions?: (regions: readonly NonPassiveRegion[]) => void;
   readonly onEditingGeometry?: (frame: EditingGeometryFrame) => void;
@@ -527,6 +549,8 @@ export class CanvasFrameSink implements MutationSink {
   readonly #rasterCache: RasterTileCache<ReplayStats> | undefined;
   readonly #onAsyncError: ((error: Error) => void) | undefined;
   readonly #onEditTransaction: ((transaction: EditTransaction) => void) | undefined;
+  readonly #onStructureRequest: ((request: StructureRequest) => void) | undefined;
+  readonly #onDocumentSelection: ((report: DocumentSelectionReport) => void) | undefined;
   readonly #onEventTransaction: ((transaction: EventTransaction) => void) | undefined;
   readonly #onNonPassiveRegions: ((regions: readonly NonPassiveRegion[]) => void) | undefined;
   readonly #onEditingGeometry: ((frame: EditingGeometryFrame) => void) | undefined;
@@ -559,6 +583,8 @@ export class CanvasFrameSink implements MutationSink {
     // positional, so inserting there would silently shift every later argument.
     onLayoutGeometry?: (frame: LayoutGeometryFrame) => void,
     onPaintedText?: (snapshot: PaintedTextSnapshot) => void,
+    onStructureRequest?: (request: StructureRequest) => void,
+    onDocumentSelection?: (report: DocumentSelectionReport) => void,
   ) {
     this.#context = context;
     this.#core = core;
@@ -567,6 +593,8 @@ export class CanvasFrameSink implements MutationSink {
     this.#onVirtualRefills = onVirtualRefills;
     this.#onAsyncError = onAsyncError;
     this.#onEditTransaction = onEditTransaction;
+    this.#onStructureRequest = onStructureRequest;
+    this.#onDocumentSelection = onDocumentSelection;
     this.#onEventTransaction = onEventTransaction;
     this.#onNonPassiveRegions = onNonPassiveRegions;
     this.#onEditingGeometry = onEditingGeometry;
@@ -1311,17 +1339,24 @@ export class CanvasFrameSink implements MutationSink {
     this.#rasterCache?.clear();
   }
 
-  private takeEditTransactions(): readonly EditTransaction[] {
-    if (this.#core.take_edit_transactions === undefined) return [];
+  private takeEditTransactions(): EditStream {
+    if (this.#core.take_edit_transactions === undefined) return EMPTY_EDIT_STREAM;
     const bytes = this.#core.take_edit_transactions();
     if (!(bytes instanceof Uint8Array)) {
       throw new TypeError("Core edit transactions must be Uint8Array bytes");
     }
-    return bytes.byteLength === 0 ? [] : decodeEditTransactionBatch(bytes);
+    // The whole stream, not just its transactions: Core reports the structural
+    // edits it predicted and the selections it moved on the same batch, and a
+    // Shell that decoded only the transactions would be deciding schema
+    // questions it was never asked and drawing a toolbar for a caret it could
+    // not see.
+    return bytes.byteLength === 0 ? EMPTY_EDIT_STREAM : decodeEditStream(bytes);
   }
 
-  private emitEditTransactions(transactions: readonly EditTransaction[]): void {
-    for (const transaction of transactions) this.#onEditTransaction?.(transaction);
+  private emitEditTransactions(stream: EditStream): void {
+    for (const transaction of stream.transactions) this.#onEditTransaction?.(transaction);
+    for (const request of stream.structure) this.#onStructureRequest?.(request);
+    for (const report of stream.selections) this.#onDocumentSelection?.(report);
   }
 
   private takeEventTransactions(): readonly EventTransaction[] {
@@ -1948,6 +1983,8 @@ export function createCanvasRoot(
     // only the hosted root wires up, so this raw root has nothing to export.
     undefined,
     options.onPaintedText,
+    options.onStructureRequest,
+    options.onDocumentSelection,
   );
   // The probe is inert until something wants it; asking for the callback is
   // the ask.

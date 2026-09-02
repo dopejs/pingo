@@ -63,6 +63,8 @@ export {
   type AnimationKeyframe,
   type CommonProps,
   type ContainerProps,
+  type DocumentBlockProps,
+  type DocumentProps,
   type PingoElement,
   type PingoImageOptions,
   type ImageProps,
@@ -94,6 +96,7 @@ export {
   type Ref,
   type ScrollProps,
   type TextProps,
+  type TextRunProps,
   type TextAreaProps as UnstyledTextAreaProps,
   type PathProps,
   type SvgProps,
@@ -103,13 +106,27 @@ export {
 } from "@dopejs/pingo-jsx";
 export { type PingoRoot, type StyleRuntimeMetrics } from "@dopejs/pingo-reconciler";
 export type {
+  CaretMoveDirection,
+  CaretMoveGranularity,
+  DocumentOperation,
+  DocumentSelection,
+  DocumentSelectionReport,
+  DocumentSelectionState,
   EditTransaction,
   EventTransaction,
   EditingGeometry,
   EditingSelection,
   NativeTextInputMode,
+  StructureRequest,
+  StructureRequestKind,
 } from "@dopejs/pingo-editing";
-export { TextEditingController, type TextEditingControllerOptions } from "@dopejs/pingo-editing";
+export {
+  TextEditingController,
+  encodeInputBatch,
+  type InputBatch,
+  type InputCommand,
+  type TextEditingControllerOptions,
+} from "@dopejs/pingo-editing";
 export {
   Button,
   Pressable,

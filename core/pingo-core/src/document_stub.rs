@@ -2,7 +2,9 @@
 
 use std::collections::HashMap;
 
-use pingo_abi::{DocumentSelectionRecord, InputCommand, StructureRequestRecord};
+use pingo_abi::{
+    DocumentSelectionRecord, EditTransactionRecord, InputCommand, StructureRequestRecord,
+};
 use pingo_scene::{NodeId, Scene};
 
 use crate::CoreError;
@@ -69,6 +71,10 @@ impl DocumentController {
     }
 
     pub(crate) const fn take_structure(&mut self) -> Vec<StructureRequestRecord> {
+        Vec::new()
+    }
+
+    pub(crate) const fn take_transactions(&mut self) -> Vec<EditTransactionRecord> {
         Vec::new()
     }
 

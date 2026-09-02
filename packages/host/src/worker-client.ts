@@ -10,7 +10,12 @@ import type {
 } from "./main-thread";
 import type { HostTransportMode } from "./capabilities";
 import type { RenderClockMetrics } from "./render-clock";
-import type { EditTransaction, EventTransaction } from "@dopejs/pingo-editing";
+import type {
+  DocumentSelectionReport,
+  EditTransaction,
+  EventTransaction,
+  StructureRequest,
+} from "@dopejs/pingo-editing";
 import {
   WORKER_PROTOCOL_VERSION,
   isRenderWorkerOutboundEnvelope,
@@ -50,6 +55,8 @@ export interface RenderWorkerClientOptions {
   readonly onFrame?: (report: FrameReport) => void;
   readonly onVirtualRefills?: (requests: readonly VirtualRefillRange[]) => void;
   readonly onEditTransaction?: (transaction: EditTransaction) => void;
+  readonly onStructureRequest?: (request: StructureRequest) => void;
+  readonly onDocumentSelection?: (report: DocumentSelectionReport) => void;
   readonly onEventTransaction?: (transaction: EventTransaction) => void;
   readonly onNonPassiveRegions?: (regions: readonly NonPassiveRegion[]) => void;
   readonly onEditingGeometry?: (frame: EditingGeometryFrame) => void;
@@ -82,6 +89,8 @@ export class RenderWorkerClient {
   readonly #onFrame: ((report: FrameReport) => void) | undefined;
   readonly #onVirtualRefills: ((requests: readonly VirtualRefillRange[]) => void) | undefined;
   readonly #onEditTransaction: ((transaction: EditTransaction) => void) | undefined;
+  readonly #onStructureRequest: ((request: StructureRequest) => void) | undefined;
+  readonly #onDocumentSelection: ((report: DocumentSelectionReport) => void) | undefined;
   readonly #onEventTransaction: ((transaction: EventTransaction) => void) | undefined;
   readonly #onNonPassiveRegions: ((regions: readonly NonPassiveRegion[]) => void) | undefined;
   readonly #onEditingGeometry: ((frame: EditingGeometryFrame) => void) | undefined;
@@ -112,6 +121,8 @@ export class RenderWorkerClient {
     this.#onFrame = options.onFrame;
     this.#onVirtualRefills = options.onVirtualRefills;
     this.#onEditTransaction = options.onEditTransaction;
+    this.#onStructureRequest = options.onStructureRequest;
+    this.#onDocumentSelection = options.onDocumentSelection;
     this.#onEventTransaction = options.onEventTransaction;
     this.#onNonPassiveRegions = options.onNonPassiveRegions;
     this.#onEditingGeometry = options.onEditingGeometry;
@@ -379,6 +390,12 @@ export class RenderWorkerClient {
         return;
       case "pingo:edit-transaction":
         if (this.#state === "ready") this.#onEditTransaction?.(message.transaction);
+        return;
+      case "pingo:structure-request":
+        if (this.#state === "ready") this.#onStructureRequest?.(message.request);
+        return;
+      case "pingo:document-selection":
+        if (this.#state === "ready") this.#onDocumentSelection?.(message.report);
         return;
       case "pingo:event-transaction":
         if (this.#state === "ready") this.#onEventTransaction?.(message.transaction);

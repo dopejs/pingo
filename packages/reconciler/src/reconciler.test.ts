@@ -43,11 +43,23 @@ import {
   TEXT_STYLE_V2_TEXT_ALIGN_OFFSET,
   TEXT_STYLE_V2_TEXT_OVERFLOW_OFFSET,
   TEXT_STYLE_V2_VARIANT_OFFSET,
+  STYLED_RUN_FONT_ID_OFFSET,
+  STYLED_RUN_MINIMUM_BYTES,
+  STYLED_RUN_STYLE_ID_OFFSET,
+  STYLED_RUN_UTF8_LENGTH_OFFSET,
+  STYLED_RUN_UTF8_START_OFFSET,
+  STYLED_RUNS_RUN_COUNT_OFFSET,
+  STYLED_RUNS_RUNS_OFFSET,
   TEXT_STYLE_V2_WHITE_SPACE_OFFSET,
   VirtualAxis,
 } from "./generated";
 import { MAX_OBSERVED_GEOMETRY_NODES } from "./generated";
-import { decodeMutationBatch, type Mutation, type MutationBatch } from "./mutation-stream";
+import {
+  NULL_NODE_ID,
+  decodeMutationBatch,
+  type Mutation,
+  type MutationBatch,
+} from "./mutation-stream";
 import { createRoot, type MutationSink } from "./reconciler";
 
 class RecordingSink implements MutationSink {
@@ -366,6 +378,269 @@ describe("reconciler", () => {
       (mutation) => mutation.resourceId === paintId,
     );
     expect(paint?.bytes[SOLID_PAINT_RED_OFFSET]).toBe(0x12);
+  });
+
+  it("tiles a sparse run table over the whole value and styles only the named spans", () => {
+    const sink = new RecordingSink();
+    createRoot(sink).render(
+      createElement(Text, {
+        value: "abcdefg",
+        color: "#111111",
+        fontSize: 16,
+        runs: [{ start: 2, end: 5, color: "#ff0000", fontWeight: 700 }],
+      }),
+    );
+
+    const batch = sink.batches[0];
+    const rich = mutationsOfType(batch, "setRichText")[0];
+    expect(rich).toBeDefined();
+    expect(mutationsOfType(batch, "setTextRun")).toHaveLength(0);
+    const table = mutationsOfType(batch, "defineResource").find(
+      (mutation) => mutation.resourceId === rich?.runsId,
+    );
+    expect(table?.kind).toBe(ResourceKind.StyledRuns);
+    const bytes = table?.bytes ?? new Uint8Array();
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    // The caller named one span; the table covers the value with three, so the
+    // Core never sees a gap it would have to guess a style for.
+    expect(view.getUint32(STYLED_RUNS_RUN_COUNT_OFFSET, true)).toBe(3);
+    const spans = [0, 1, 2].map((index) => {
+      const offset = STYLED_RUNS_RUNS_OFFSET + index * STYLED_RUN_MINIMUM_BYTES;
+      return {
+        start: view.getUint32(offset + STYLED_RUN_UTF8_START_OFFSET, true),
+        length: view.getUint32(offset + STYLED_RUN_UTF8_LENGTH_OFFSET, true),
+        styleId: view.getUint32(offset + STYLED_RUN_STYLE_ID_OFFSET, true),
+      };
+    });
+    expect(spans.map(({ start, length }) => [start, length])).toEqual([
+      [0, 2],
+      [2, 3],
+      [5, 2],
+    ]);
+    // The two unstyled spans resolve to one interned style, and it is the
+    // node's own: stating a difference must not disturb what surrounds it.
+    expect(spans[0]?.styleId).toBe(spans[2]?.styleId);
+    expect(spans[1]?.styleId).not.toBe(spans[0]?.styleId);
+    const styled = mutationsOfType(batch, "defineResource").find(
+      (mutation) => mutation.resourceId === spans[1]?.styleId,
+    );
+    const styleBytes = styled?.bytes ?? new Uint8Array();
+    const styleView = new DataView(styleBytes.buffer, styleBytes.byteOffset, styleBytes.byteLength);
+    expect(styleView.getUint16(TEXT_STYLE_WEIGHT_OFFSET, true)).toBe(700);
+  });
+
+  it("measures run boundaries in UTF-8 after the caller states them in UTF-16", () => {
+    const sink = new RecordingSink();
+    // "日本" is three UTF-8 bytes per character and one UTF-16 unit each, so a
+    // table that echoed the caller's offsets would style the wrong bytes.
+    createRoot(sink).render(
+      createElement(Text, { value: "日本ab", runs: [{ start: 2, end: 3, color: "#00ff00" }] }),
+    );
+
+    const batch = sink.batches[0];
+    const rich = mutationsOfType(batch, "setRichText")[0];
+    const table = mutationsOfType(batch, "defineResource").find(
+      (mutation) => mutation.resourceId === rich?.runsId,
+    );
+    const bytes = table?.bytes ?? new Uint8Array();
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    const second = STYLED_RUNS_RUNS_OFFSET + STYLED_RUN_MINIMUM_BYTES;
+    expect(view.getUint32(second + STYLED_RUN_UTF8_START_OFFSET, true)).toBe(6);
+    expect(view.getUint32(second + STYLED_RUN_UTF8_LENGTH_OFFSET, true)).toBe(1);
+  });
+
+  it("refuses a boundary inside a surrogate pair instead of styling a different span", () => {
+    const sink = new RecordingSink();
+    expect(() =>
+      createRoot(sink).render(
+        createElement(Text, { value: "a\u{1f469}b", runs: [{ start: 2, end: 3 }] }),
+      ),
+    ).toThrow(/surrogate pair/u);
+  });
+
+  it("declares a document projection with its block keys resolved to Scene nodes", () => {
+    const sink = new RecordingSink();
+    const document = {
+      revision: 7n,
+      blocks: [
+        { key: 11, lenUtf16: 5 },
+        { key: 12, lenUtf16: 0, atomic: true },
+        // Declared but not materialized: no child claims key 13.
+        { key: 13, lenUtf16: 40 },
+      ],
+    };
+    createRoot(sink).render(
+      createElement(View, {
+        width: 300,
+        document,
+        children: [
+          createElement(Text, { blockKey: 11, value: "hello" }),
+          createElement(View, { blockKey: 12, width: 40, height: 40 }),
+        ],
+      }),
+    );
+
+    const configure = mutationsOfType(sink.batches[0], "configureDocument")[0];
+    expect(configure).toBeDefined();
+    expect(configure?.revision).toBe(7n);
+    expect(configure?.blocks.map((block) => block.key)).toEqual([11, 12, 13]);
+    expect(configure?.blocks.map((block) => block.lenUtf16)).toEqual([5, 0, 40]);
+    expect(configure?.blocks.map((block) => block.atomic)).toEqual([false, true, false]);
+    const created = mutationsOfType(sink.batches[0], "createNode").map(({ nodeId }) => nodeId);
+    expect(created).toContain(configure?.blocks[0]?.nodeId);
+    expect(created).toContain(configure?.blocks[1]?.nodeId);
+    // The unmaterialized block still holds its place in the position space.
+    expect(configure?.blocks[2]?.nodeId).toBe(NULL_NODE_ID);
+  });
+
+  it("re-declares a projection only when it changed", () => {
+    const sink = new RecordingSink();
+    const root = createRoot(sink);
+    const tree = (revision: bigint, text: string) =>
+      createElement(View, {
+        width: 300,
+        document: { revision, blocks: [{ key: 11, lenUtf16: text.length }] },
+        children: createElement(Text, { blockKey: 11, value: text }),
+      });
+
+    root.render(tree(1n, "hello"));
+    root.render(tree(1n, "hello"));
+    // Core treats a projection as authoritative, so re-sending an identical one
+    // would cost a document-sized instruction on every frame.
+    expect(mutationsOfType(sink.batches[1], "configureDocument")).toHaveLength(0);
+
+    root.render(tree(2n, "hello there"));
+    const updated = mutationsOfType(sink.batches[sink.batches.length - 1], "configureDocument")[0];
+    expect(updated?.revision).toBe(2n);
+    expect(updated?.blocks[0]?.lenUtf16).toBe(11);
+  });
+
+  it("refuses a projection whose keys repeat or are not positive", () => {
+    const sink = new RecordingSink();
+    expect(() =>
+      createRoot(sink).render(
+        createElement(View, {
+          width: 300,
+          document: {
+            revision: 1n,
+            blocks: [
+              { key: 5, lenUtf16: 1 },
+              { key: 5, lenUtf16: 1 },
+            ],
+          },
+          children: createElement(Text, { blockKey: 5, value: "a" }),
+        }),
+      ),
+    ).toThrow(/repeated/u);
+
+    expect(() =>
+      createRoot(new RecordingSink()).render(
+        createElement(View, {
+          width: 300,
+          document: { revision: 1n, blocks: [{ key: 0, lenUtf16: 1 }] },
+        }),
+      ),
+    ).toThrow(/positive 32-bit integer/u);
+
+    expect(() =>
+      createRoot(new RecordingSink()).render(
+        createElement(View, {
+          width: 300,
+          document: { revision: 1n, blocks: [{ key: 5, lenUtf16: 3, atomic: true }] },
+        }),
+      ),
+    ).toThrow(/atomic document block has no text length/u);
+  });
+
+  it("re-emits no text binding when a re-render changes nothing about the text", () => {
+    const sink = new RecordingSink();
+    const root = createRoot(sink);
+    const tree = () =>
+      createElement(View, {
+        width: 100,
+        children: createElement(Text, { value: "steady", fontSize: 14 }),
+      });
+    root.render(tree());
+    root.render(tree());
+
+    // "No run table" and "run table zero" are the same state. Reading an absent
+    // binding as undefined made them differ, and every frame re-bound the value
+    // it had already bound.
+    expect(mutationsOfType(sink.batches[1], "setTextRun")).toHaveLength(0);
+    expect(mutationsOfType(sink.batches[1], "setRichText")).toHaveLength(0);
+  });
+
+  it("gives a span its own font resource, which is how a weight becomes a face", () => {
+    const sink = new RecordingSink();
+    const bold = createFont(Uint8Array.of(0x4f, 0x54, 0x54, 0x4f, 0, 0, 0, 0), {
+      fallbackFamily: "Fixture",
+    });
+    createRoot(sink).render(
+      createElement(Text, {
+        value: "abcdef",
+        runs: [{ start: 2, end: 4, font: bold }],
+      }),
+    );
+
+    const batch = sink.batches[0];
+    const rich = mutationsOfType(batch, "setRichText")[0];
+    const table = mutationsOfType(batch, "defineResource").find(
+      (mutation) => mutation.resourceId === rich?.runsId,
+    );
+    const bytes = table?.bytes ?? new Uint8Array();
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    const fontIds = [0, 1, 2].map((index) =>
+      view.getUint32(
+        STYLED_RUNS_RUNS_OFFSET + index * STYLED_RUN_MINIMUM_BYTES + STYLED_RUN_FONT_ID_OFFSET,
+        true,
+      ),
+    );
+    // Zero means "the node's font", so only the named span carries one.
+    expect(fontIds[0]).toBe(0);
+    expect(fontIds[2]).toBe(0);
+    expect(fontIds[1]).not.toBe(0);
+    const fontResource = mutationsOfType(batch, "defineResource").find(
+      (mutation) => mutation.resourceId === fontIds[1],
+    );
+    expect(fontResource?.kind).toBe(ResourceKind.Font);
+  });
+
+  it("releases the spans a shrinking table left behind", () => {
+    const sink = new RecordingSink();
+    const root = createRoot(sink);
+    root.render(
+      createElement(Text, {
+        value: "abcdef",
+        runs: [
+          { start: 0, end: 2, color: "#ff0000" },
+          { start: 4, end: 6, color: "#0000ff" },
+        ],
+      }),
+    );
+    const before = mutationsOfType(sink.batches[0], "setRichText")[0];
+    root.render(createElement(Text, { value: "abcdef" }));
+
+    const update = sink.batches[1];
+    // Back to single-style text: the table and every span resource it interned
+    // are released, and the narrower instruction comes back.
+    expect(mutationsOfType(update, "setTextRun")).toHaveLength(1);
+    expect(mutationsOfType(update, "setRichText")).toHaveLength(0);
+    const released = mutationsOfType(update, "releaseResource").map(({ resourceId }) => resourceId);
+    expect(released).toContain(before?.runsId);
+    expect(released.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it("refuses a static run table on an editable, whose session owns its styling", () => {
+    const sink = new RecordingSink();
+    expect(() =>
+      createRoot(sink).render(
+        createElement(Input, {
+          value: "abc",
+          revision: 1n,
+          runs: [{ start: 0, end: 1, color: "#ff0000" }],
+        } as never),
+      ),
+    ).toThrow(/unknown editableText prop runs/u);
   });
 
   it("encodes M6 text semantics into the validated TextStyle v2 resource", () => {

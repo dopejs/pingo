@@ -156,6 +156,8 @@ async function activate(message: WorkerActivateMessage): Promise<void> {
     message.incrementalPicturesEnabled,
     (frame) => post({ kind: "pingo:layout-geometry", frame, sessionId }),
     (snapshot) => post({ kind: "pingo:painted-text", snapshot, sessionId }),
+    (request) => post({ kind: "pingo:structure-request", request, sessionId }),
+    (report) => post({ kind: "pingo:document-selection", report, sessionId }),
   );
   // A worker cannot read devicePixelRatio, so the main thread supplies it;
   // without this the replay scale and glyph raster stay at 1x on HiDPI.

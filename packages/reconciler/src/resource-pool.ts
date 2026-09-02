@@ -12,6 +12,7 @@ import {
   AFFINE_VARIANT_OFFSET,
   AFFINE_VERSION_OFFSET,
   MAX_RESOURCE_BYTES,
+  MAX_STYLED_RUNS,
   RESOURCE_ENCODING_VERSION,
   SFNT_FONT_DATA_BYTES_OFFSET,
   SFNT_FONT_DATA_OFFSET,
@@ -28,6 +29,18 @@ import {
   SOLID_PAINT_RESOURCE_VARIANT,
   SOLID_PAINT_VARIANT_OFFSET,
   SOLID_PAINT_VERSION_OFFSET,
+  STYLED_RUN_FLAGS_OFFSET,
+  STYLED_RUN_FLAG_ATOMIC,
+  STYLED_RUN_FONT_ID_OFFSET,
+  STYLED_RUN_MINIMUM_BYTES,
+  STYLED_RUN_STYLE_ID_OFFSET,
+  STYLED_RUN_UTF8_LENGTH_OFFSET,
+  STYLED_RUN_UTF8_START_OFFSET,
+  STYLED_RUNS_RESOURCE_VARIANT,
+  STYLED_RUNS_RUN_COUNT_OFFSET,
+  STYLED_RUNS_RUNS_OFFSET,
+  STYLED_RUNS_VARIANT_OFFSET,
+  STYLED_RUNS_VERSION_OFFSET,
   TEXT_STYLE_FAMILY_BYTES_OFFSET,
   TEXT_STYLE_FAMILY_OFFSET,
   TEXT_STYLE_FONT_SIZE_OFFSET,
@@ -202,6 +215,63 @@ export function encodeAffine(
     const value = matrix[index];
     if (offset === undefined || value === undefined) throw new Error("affine schema is incomplete");
     view.setFloat32(offset, value, true);
+  }
+  return bytes;
+}
+
+/** One contiguous styled span of a text node's UTF-8 value. */
+export interface StyledRunRecord {
+  /** UTF-8 byte offset where the run starts. */
+  readonly utf8Start: number;
+  /** UTF-8 byte length of the run. */
+  readonly utf8Length: number;
+  /** Text style resource for this run; zero is not a valid style. */
+  readonly styleId: number;
+  /** Font resource, or zero to inherit the node's font. */
+  readonly fontId: number;
+  /** Whether the caret steps over this run as one object. */
+  readonly atomic: boolean;
+}
+
+/**
+ * Encodes a run table describing how one text node's value is styled.
+ *
+ * The Core rejects a table that is empty, gapped, overlapping, out of order, or
+ * missing a style, so this rejects the same shapes rather than handing the
+ * trust boundary something it will refuse. Offsets are UTF-8 because that is
+ * what the Core stores; callers holding UTF-16 offsets convert first.
+ */
+export function encodeStyledRuns(runs: readonly StyledRunRecord[]): Uint8Array {
+  if (runs.length === 0) throw new RangeError("a styled run table must have at least one run");
+  if (runs.length > MAX_STYLED_RUNS) {
+    throw new RangeError(`a styled run table may not exceed ${String(MAX_STYLED_RUNS)} runs`);
+  }
+  const bytes = new Uint8Array(STYLED_RUNS_RUNS_OFFSET + runs.length * STYLED_RUN_MINIMUM_BYTES);
+  const view = new DataView(bytes.buffer);
+  bytes[STYLED_RUNS_VERSION_OFFSET] = RESOURCE_ENCODING_VERSION;
+  bytes[STYLED_RUNS_VARIANT_OFFSET] = STYLED_RUNS_RESOURCE_VARIANT;
+  view.setUint32(STYLED_RUNS_RUN_COUNT_OFFSET, runs.length, true);
+  let cursor = 0;
+  for (const [index, run] of runs.entries()) {
+    assertU32(run.utf8Start, "styled run utf8Start");
+    assertU32(run.utf8Length, "styled run utf8Length");
+    assertU32(run.styleId, "styled run styleId");
+    assertU32(run.fontId, "styled run fontId");
+    if (run.utf8Start !== cursor) {
+      throw new RangeError("styled runs must start at zero and be contiguous");
+    }
+    if (run.utf8Length === 0) throw new RangeError("a styled run must cover at least one byte");
+    if (run.styleId === 0) throw new RangeError("a styled run must carry a text style");
+    const offset = STYLED_RUNS_RUNS_OFFSET + index * STYLED_RUN_MINIMUM_BYTES;
+    view.setUint32(offset + STYLED_RUN_UTF8_START_OFFSET, run.utf8Start, true);
+    view.setUint32(offset + STYLED_RUN_UTF8_LENGTH_OFFSET, run.utf8Length, true);
+    view.setUint32(offset + STYLED_RUN_STYLE_ID_OFFSET, run.styleId, true);
+    view.setUint32(offset + STYLED_RUN_FONT_ID_OFFSET, run.fontId, true);
+    view.setUint32(offset + STYLED_RUN_FLAGS_OFFSET, run.atomic ? STYLED_RUN_FLAG_ATOMIC : 0, true);
+    cursor = run.utf8Start + run.utf8Length;
+  }
+  if (bytes.byteLength > MAX_RESOURCE_BYTES) {
+    throw new RangeError("styled run table exceeds the resource budget");
   }
   return bytes;
 }

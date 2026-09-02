@@ -17,6 +17,7 @@ export {
   type MutationBatch,
 } from "./mutation-stream";
 export { NodeIdAllocator, NodeIdError, decodeNodeId, type DecodedNodeId } from "./node-id";
+export { encodeStyledRuns, type StyledRunRecord } from "./resource-pool";
 export {
   createRoot,
   type CoreDrivenPingoRoot,

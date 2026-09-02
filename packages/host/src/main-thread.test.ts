@@ -423,6 +423,54 @@ describe("CanvasFrameSink", () => {
     expect(onEditTransaction).toHaveBeenCalledTimes(3);
   });
 
+  it("delivers the structure requests and selections that ride the same batch", () => {
+    const onEditTransaction = vi.fn();
+    const onStructureRequest = vi.fn();
+    const onDocumentSelection = vi.fn();
+    const sink = new CanvasFrameSink(
+      fakeContext([], []),
+      {
+        commit: () => emptyDisplayList(),
+        input: () => undefined,
+        take_edit_transactions: () => documentFeedbackStream(),
+      },
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      onEditTransaction,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      onStructureRequest,
+      onDocumentSelection,
+    );
+
+    expect(sink.input(Uint8Array.of(1, 2, 3, 4))).toBeNull();
+    // Decoding only the transactions dropped these on the floor: the Shell owns
+    // the schema, so a split it is never told about is a split that never
+    // happens, and a toolbar that never hears where the caret went cannot say
+    // whether bold is on.
+    expect(onStructureRequest).toHaveBeenCalledWith({
+      nodeId: 4,
+      sequence: 1,
+      kind: "split",
+      target: 5,
+      source: 0,
+      offset: 12,
+      keys: [],
+    });
+    expect(onDocumentSelection).toHaveBeenCalledWith({
+      nodeId: 4,
+      selection: { kind: "gap", index: 6 },
+    });
+    expect(onEditTransaction).not.toHaveBeenCalled();
+  });
+
   it("drains validated edit transactions even when selection input does not repaint", () => {
     const onEditTransaction = vi.fn();
     const sink = new CanvasFrameSink(
@@ -1266,6 +1314,33 @@ function textStyle(
 
 function emptyDisplayList(): Uint8Array {
   return displayList([]);
+}
+
+/** One structure request and one document selection, no transactions. */
+function documentFeedbackStream(): Uint8Array {
+  const structure = documentInstruction(2, [4, 1, 3, 5, 0, 12, 0]);
+  const selection = documentInstruction(3, [4, 3, 0, 0, 0, 0, 6]);
+  const total = 16 + structure.byteLength + selection.byteLength;
+  const bytes = new Uint8Array(total);
+  const view = new DataView(bytes.buffer);
+  view.setUint32(0, EDIT_TRANSACTIONS_MAGIC, true);
+  view.setUint16(4, ABI_VERSION, true);
+  view.setUint16(6, STREAM_HEADER_BYTES, true);
+  view.setUint32(8, total, true);
+  view.setUint32(12, 2, true);
+  bytes.set(structure, 16);
+  bytes.set(selection, 16 + structure.byteLength);
+  return bytes;
+}
+
+/** One instruction body: opcode, word length, then its u32 payload. */
+function documentInstruction(opcode: number, words: readonly number[]): Uint8Array {
+  const bytes = new Uint8Array(4 + words.length * 4);
+  const view = new DataView(bytes.buffer);
+  bytes[0] = opcode;
+  view.setUint16(2, bytes.byteLength / 4, true);
+  words.forEach((word, index) => view.setUint32(4 + index * 4, word, true));
+  return bytes;
 }
 
 function selectionTransactionStream(): Uint8Array {

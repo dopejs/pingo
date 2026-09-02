@@ -2,6 +2,7 @@ import { createElement } from "./element";
 import type {
   AnyPingoElement,
   ContainerProps,
+  DocumentProps,
   EditableTextProps,
   ImageProps,
   PathProps,
@@ -22,6 +23,8 @@ export type ViewProps = Omit<ContainerProps, "ref"> & {
   readonly ref?: Ref<ViewHandle>;
   /** Explicit single-axis virtualization contract; never inferred from overflow. */
   readonly virtual?: VirtualViewProps;
+  /** Ordered block sequence the Core maintains one position space over. */
+  readonly document?: DocumentProps;
   readonly scrollX?: number;
   readonly scrollY?: number;
 };

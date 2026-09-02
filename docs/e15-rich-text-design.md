@@ -230,10 +230,36 @@ P0–P2 之后是一个**行内富文本输入框**（可用，但不是文档�
 把关——工程余量正是这个模块要花的——落在 **407,703，产品上限下余 1,897 bytes**。
 归因与回收过程见 [`wasm-size-attribution.md`](wasm-size-attribution.md)。
 
-**没有做的：** §7 列的浮动工具栏、斜杠菜单、块拖拽。它们是 UI 面，不在 §1 的十一条验收
-里，也不阻塞任何一刀的出口；`@dopejs/pingo-editor` 给了它们要用的全部命令与查询
-（`toggleMark`、`markIsActive`、`setBlockType`、`splitBlock`），弹层与命中测试在 M6
-已 Adopt。
+**Shell 侧接入（2026-09-02）。** 上面这些落地时，Core 与 `@dopejs/pingo-editor` 各自完整
+但**没有接上**。现在接上了，往返在真 WASM 上有端到端断言
+（`apps/site/src/document-round-trip.browser.ts`）：
+
+- **投影**：`container` 的 `document` prop 声明有序块列表（与 `virtual` 同构），子节点用
+  `blockKey` 认领自己画的块。reconciler 在提交收尾解析 key → Scene 节点——那时子节点才存
+  在——并且只在投影变化时重发；未物化的块保留 `NULL_NODE_ID`，位置空间不随滚动重编号。
+- **反向通道**：`main-thread.ts` 原来用 `decodeEditTransactionBatch`，它把 `structure` 与
+  `selections` 丢掉了。改用 `decodeEditStream`，新增 `onStructureRequest` 与
+  `onDocumentSelection`；worker 协议两端补了对应消息与校验器，两条传输路径行为一致。
+- **文本事务**：`commit_edit` 原来只改 Core 自己的副本并重绘，**不发 `EditTransaction`**。
+  而 `Editor.applyEditStream` 正是靠事务的 delta 同步 Shell 的文档，所以打第一个字两边就
+  分叉。现在每个文本改变的块发一条事务，带 delta、mark 表与位置映射。这个缺口是端到端
+  测试挖出来的：Rust 测试只验 Core 内部状态，TS 测试只验模型，没有测试把两半放在一起。
+- **多样式渲染**：`TextRunProps` 让调用方只声明「哪一段跟节点自己的样式不同」，reconciler
+  摊成 Core 要求的连续覆盖表（UTF-16 → UTF-8），每段自带 paint/style/font 资源。
+  `encodeStyledRuns` 有金样字节与 TS↔Rust 往返。
+
+**三条已知边界。** 一，run 表**要求显式字体**：没有 `font` 时 Core 无从整形，值走宿主的
+系统字体回退路径，那条路径按 `(string_id, style_id)` 向宿主要整串度量，会整体忽略 run 表。
+让它支持逐段样式要动宿主度量协议、DisplayList 的回退指令、换行与 caret。二，painted-text
+探针对 shaped run 只报节点整串，因为 DisplayList 不携带 run 的源字节范围。三，`encodeInputBatch`
+暂时是公开的：宿主还不拥有文档焦点与按键路由，应用要驱动文档只能自己编码指令再
+`dispatchInput`。这是**过渡面**，等宿主接管后应当收回。
+
+**仍然没有做的：** IME 与点击定位光标。宿主的 `NativeTextInputBridge` 只认单值 editable，
+文档要走它得给 EditContext 一个文本缓冲；点击定位需要 Core 侧的文档版 `placeCaret`。这两条
+是「输入法能用」的门槛。撤销重做的键位、§7 列的浮动工具栏、斜杠菜单、块拖拽同样没做——
+它们不在 §1 的十一条验收里；`@dopejs/pingo-editor` 给了它们要用的全部命令与查询，弹层与
+命中测试在 M6 已 Adopt。
 
 ## 14. 本文不做的事
 

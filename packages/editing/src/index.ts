@@ -9,6 +9,8 @@ export {
   encodeInputBatch,
   type CaretMoveDirection,
   type CaretMoveGranularity,
+  type DocumentOperation,
+  type DocumentSelection,
   type InputBatch,
   type InputCommand,
   type InputEventKind,

@@ -176,6 +176,14 @@ export interface CommonProps {
   readonly key?: Key;
   readonly ref?: Ref<NodeHandle>;
   readonly children?: PingoNode;
+  /**
+   * Identifies this node as the one drawing a document block.
+   *
+   * Set it on whatever node holds the block's text, wrapped in list chrome or
+   * not: the projection names blocks by key, and the reconciler resolves the
+   * Scene node from whichever descendant claims that key.
+   */
+  readonly blockKey?: number;
   /** Registered same-node class selectors, separated by ASCII whitespace. */
   readonly className?: string;
   /** Typed inline declarations resolved by the Shell before entering Core. */
@@ -346,6 +354,44 @@ export interface VirtualListProps extends Omit<CommonProps, "children"> {
   readonly scrollY?: number;
 }
 
+/**
+ * One block of a document projection.
+ *
+ * The Core does not know why blocks nest or what they mean; it maintains
+ * positions, selection, composition and undo over this sequence. `key` is the
+ * Shell's stable identity for the block -- splitting makes a new one, merging
+ * keeps the first -- and the Core only ever compares keys.
+ */
+export interface DocumentBlockProps {
+  /** Stable Shell-assigned identity; never zero. */
+  readonly key: number;
+  /** UTF-16 length of the block's text; zero for an atomic block. */
+  readonly lenUtf16: number;
+  /** Whether the caret may not enter the block. */
+  readonly atomic?: boolean;
+}
+
+/**
+ * A document projection attached to a View.
+ *
+ * Declared on every commit, the way the component tree is: the Shell owns the
+ * document tree and states the ordered block sequence, and the Core owns the
+ * flat position space over it. A block whose key no child claims is one the
+ * Shell has not materialized -- declaring its length is what lets a virtualized
+ * document keep one position space.
+ */
+export interface DocumentProps {
+  /**
+   * The Shell's revision of the projection.
+   *
+   * Core echoes it on the transactions it sends back, so a stale
+   * acknowledgement cannot overwrite newer input.
+   */
+  readonly revision: number | bigint;
+  /** Blocks in document order. */
+  readonly blocks: readonly DocumentBlockProps[];
+}
+
 /** Explicit single-axis data window attached to a View. */
 export interface VirtualViewProps {
   readonly axis?: "x" | "y";
@@ -359,6 +405,36 @@ export interface VirtualViewProps {
 }
 
 /** Minimal M1 text fallback properties. */
+/**
+ * One styled span of a text value, in UTF-16 offsets.
+ *
+ * Offsets are UTF-16 because that is what a JavaScript string index is; the
+ * reconciler converts to the UTF-8 offsets the Core stores. A span may not
+ * split a surrogate pair, and spans must be ascending and non-overlapping.
+ * Anything a span leaves uncovered renders with the node's own style, so a
+ * caller states only the differences.
+ */
+export interface TextRunProps {
+  /** UTF-16 offset where the span starts. */
+  readonly start: number;
+  /** UTF-16 offset where the span ends, exclusive. */
+  readonly end: number;
+  readonly color?: Color;
+  /**
+   * Explicit font for this span, or the node's font when absent.
+   *
+   * A weight is a different face, not a number the shaper can interpolate, so
+   * this is how a bold span gets drawn bold rather than merely labelled.
+   */
+  readonly font?: PingoFont;
+  readonly fontFamily?: string;
+  readonly fontSize?: number;
+  readonly fontWeight?: number;
+  readonly lineHeight?: number;
+  /** Whether the caret steps over the span as one object. */
+  readonly atomic?: boolean;
+}
+
 export interface TextProps extends Omit<CommonProps, "children"> {
   readonly value?: string;
   readonly children?: string | number;
@@ -369,6 +445,18 @@ export interface TextProps extends Omit<CommonProps, "children"> {
   readonly fontSize?: number;
   readonly fontWeight?: number;
   readonly lineHeight?: number;
+  /**
+   * Spans of the value that differ from the node's own style.
+   *
+   * Wrapping couples the spans, so the node is laid out once with the whole
+   * table rather than per span. An empty value ignores the table: there is
+   * nothing to style.
+   *
+   * Requires `font`. Without one the Core cannot shape the value and draws it
+   * through the host's system-font fallback, which measures and paints the
+   * whole node in one style and ignores the table entirely.
+   */
+  readonly runs?: readonly TextRunProps[];
 }
 
 /** Soft-keyboard hint forwarded to the host input surface. */

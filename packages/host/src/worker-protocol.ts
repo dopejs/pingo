@@ -13,7 +13,12 @@ import type {
 } from "./main-thread";
 import type { HostTransportMode } from "./capabilities";
 import type { RenderClockMetrics } from "./render-clock";
-import type { EditTransaction, EventTransaction } from "@dopejs/pingo-editing";
+import type {
+  DocumentSelectionReport,
+  EditTransaction,
+  EventTransaction,
+  StructureRequest,
+} from "@dopejs/pingo-editing";
 import type { MediaFramePath } from "./media";
 
 export const WORKER_PROTOCOL_VERSION = 14 as const;
@@ -163,6 +168,24 @@ export interface WorkerEditTransactionMessage {
   readonly transaction: EditTransaction;
 }
 
+/**
+ * Core predicted a structural edit and is asking the Shell to decide it.
+ *
+ * Carried beside the transactions rather than inside them because the Shell
+ * answers it with a schema decision, not with a value.
+ */
+export interface WorkerStructureRequestMessage {
+  readonly kind: "pingo:structure-request";
+  readonly sessionId: number;
+  readonly request: StructureRequest;
+}
+
+export interface WorkerDocumentSelectionMessage {
+  readonly kind: "pingo:document-selection";
+  readonly sessionId: number;
+  readonly report: DocumentSelectionReport;
+}
+
 export interface WorkerEventTransactionMessage {
   readonly kind: "pingo:event-transaction";
   readonly sessionId: number;
@@ -213,6 +236,8 @@ export interface WorkerShutdownCompleteMessage {
 export type RenderWorkerOutboundMessage =
   | WorkerClockMetricsMessage
   | WorkerEditTransactionMessage
+  | WorkerStructureRequestMessage
+  | WorkerDocumentSelectionMessage
   | WorkerEventTransactionMessage
   | WorkerNonPassiveRegionsMessage
   | WorkerEditingGeometryMessage
@@ -312,6 +337,10 @@ export function isRenderWorkerOutboundMessage(
       return Array.isArray(value.requests) && value.requests.every(isVirtualRefillRange);
     case "pingo:edit-transaction":
       return isEditTransaction(value.transaction);
+    case "pingo:structure-request":
+      return isStructureRequest(value.request);
+    case "pingo:document-selection":
+      return isDocumentSelectionReport(value.report);
     case "pingo:event-transaction":
       return isEventTransaction(value.transaction);
     case "pingo:non-passive-regions":
@@ -548,6 +577,35 @@ function isInputEventKind(value: unknown): boolean {
     value === "click" ||
     value === "wheel"
   );
+}
+
+function isStructureRequest(value: unknown): value is StructureRequest {
+  return (
+    isRecord(value) &&
+    isU32(value.nodeId) &&
+    isU32(value.sequence) &&
+    (value.kind === "merge" || value.kind === "remove" || value.kind === "split") &&
+    isU32(value.target) &&
+    isU32(value.source) &&
+    isU32(value.offset) &&
+    Array.isArray(value.keys) &&
+    value.keys.every((key) => isU32(key))
+  );
+}
+
+function isDocumentSelectionReport(value: unknown): value is DocumentSelectionReport {
+  if (!isRecord(value) || !isU32(value.nodeId) || !isRecord(value.selection)) return false;
+  const selection = value.selection;
+  if (selection.kind === "text") {
+    return (
+      isU32(selection.anchorKey) &&
+      isU32(selection.anchorOffset) &&
+      isU32(selection.focusKey) &&
+      isU32(selection.focusOffset)
+    );
+  }
+  if (selection.kind === "node") return isU32(selection.key);
+  return selection.kind === "gap" && isU32(selection.index);
 }
 
 function isEditTransaction(value: unknown): value is EditTransaction {

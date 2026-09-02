@@ -2236,6 +2236,10 @@ impl CoreEngine {
         // are drained after the frame, never inside it: the Core frame loop
         // must not call into the Shell.
         let mut batch = self.editing.take_transactions();
+        // Document text transactions join the single-value ones in the same
+        // batch: to the Shell a block that changed is a node that changed, and
+        // one reverse stream per frame is the contract.
+        batch.records.extend(self.documents.take_transactions());
         batch.structure = self.documents.take_structure();
         batch.selections = self.documents.take_selections();
         let bytes = batch.encode().map_err(CoreError::EditTransactions)?;

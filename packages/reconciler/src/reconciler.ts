@@ -13,6 +13,10 @@ import {
   type PingoEvent,
   type PingoEventHandler,
   type EditableTextProps,
+  type DocumentBlockProps,
+  type DocumentProps,
+  type TextProps,
+  type TextRunProps,
   type FunctionComponent,
   PingoImage,
   type PingoMediaError,
@@ -77,8 +81,10 @@ import {
   encodeVideoFrameDescriptor,
   encodeSfntFont,
   encodeSolidPaint,
+  encodeStyledRuns,
   encodeTextStyle,
   encodeUtf8,
+  type StyledRunRecord,
 } from "./resource-pool";
 import { encodePathData } from "./path-data";
 
@@ -237,6 +243,8 @@ interface HostInstance extends BaseInstance {
   scalars: Map<Prop, number>;
   vectors: Map<Prop, readonly [number, number, number, number]>;
   resources: Map<string, number>;
+  /** Spans the last committed run table interned resources for. */
+  styledRunCount: number;
   computedStyle: ComputedStyle | undefined;
   computedStyleBytes: Uint8Array | undefined;
   onTapId: number | undefined;
@@ -249,6 +257,12 @@ interface HostInstance extends BaseInstance {
   virtualWrappers: Map<number, PingoNode>;
   virtualList: NormalizedVirtualList | undefined;
   virtualRange: readonly [number, number] | undefined;
+  /** Document projection declared on this node, if any. */
+  document: NormalizedDocument | undefined;
+  /** Block key this node draws, if any. */
+  blockKey: number | undefined;
+  /** Last projection sent to Core, so an unchanged one is not re-sent. */
+  documentSent: string | undefined;
   editable: NormalizedEditable | undefined;
   editableSelection: { anchor: number; focus: number } | undefined;
   onEditTransaction: ((transaction: EditTransaction) => void) | undefined;
@@ -274,6 +288,35 @@ type Instance = HostInstance | ComponentInstance;
 type Owner = RootOwner | HostInstance | ComponentInstance;
 type ChildDescriptor = AnyPingoElement | string;
 
+/**
+ * One span of a text value after the base style has filled its gaps.
+ *
+ * The Core requires a table that starts at zero, is contiguous, and covers the
+ * value exactly, so normalization turns the caller's differences into a full
+ * tiling rather than leaving the trust boundary to reject a sparse one.
+ */
+/** A validated document projection, keys resolved to nodes at commit time. */
+interface NormalizedDocument {
+  readonly revision: bigint;
+  readonly blocks: readonly {
+    readonly key: number;
+    readonly lenUtf16: number;
+    readonly atomic: boolean;
+  }[];
+}
+
+interface NormalizedTextRun {
+  readonly utf8Start: number;
+  readonly utf8Length: number;
+  readonly paint: Uint8Array;
+  readonly font: Uint8Array | undefined;
+  readonly fontFamily: string;
+  readonly fontSize: number;
+  readonly lineHeight: number;
+  readonly fontWeight: number;
+  readonly atomic: boolean;
+}
+
 interface NormalizedHostProps {
   readonly children: PingoNode;
   readonly ref: Ref<NodeHandle> | undefined;
@@ -297,6 +340,7 @@ interface NormalizedHostProps {
         readonly whiteSpace: "normal" | "nowrap" | "pre" | "pre-line" | "pre-wrap";
         readonly overflowWrap: "normal" | "break-word" | "anywhere";
         readonly textOverflow: "clip" | "ellipsis";
+        readonly runs: readonly NormalizedTextRun[] | undefined;
       }
     | undefined;
   readonly image: Uint8Array | undefined;
@@ -305,6 +349,8 @@ interface NormalizedHostProps {
   readonly scrollPosition: readonly [number, number] | undefined;
   readonly virtualItemIndex: number | undefined;
   readonly virtualList: NormalizedVirtualList | undefined;
+  readonly document: NormalizedDocument | undefined;
+  readonly blockKey: number | undefined;
   readonly editable: NormalizedEditable | undefined;
   readonly eventHandlers: Map<EventHandlerKey, PingoEventHandler>;
   readonly computedStyle: ComputedStyle | undefined;
@@ -363,6 +409,7 @@ interface CallbackEntry {
 const COMMON_KEYS = new Set([
   "backgroundColor",
   "animation",
+  "blockKey",
   "children",
   "className",
   "direction",
@@ -431,10 +478,15 @@ const TEXT_KEYS = new Set([
   "fontSize",
   "fontWeight",
   "lineHeight",
+  "runs",
   "value",
 ]);
+// An editing session owns its value's styling, so a node cannot also carry a
+// static run table: the two would be separate sources of truth for the same
+// spans, and the table's UTF-8 offsets would point into text the first
+// keystroke replaced.
 const EDITABLE_KEYS = new Set([
-  ...TEXT_KEYS,
+  ...[...TEXT_KEYS].filter((key) => key !== "runs"),
   "controller",
   "disabled",
   "inputMode",
@@ -447,7 +499,7 @@ const EDITABLE_KEYS = new Set([
   "revision",
 ]);
 const SCROLL_KEYS = new Set([...COMMON_KEYS, "scrollX", "scrollY"]);
-const CONTAINER_KEYS = new Set([...SCROLL_KEYS, "virtual"]);
+const CONTAINER_KEYS = new Set([...SCROLL_KEYS, "virtual", "document"]);
 const IMAGE_KEYS = new Set([...[...COMMON_KEYS].filter((key) => key !== "children"), "source"]);
 const PATH_KEYS = new Set([
   ...[...COMMON_KEYS].filter((key) => key !== "children"),
@@ -536,6 +588,8 @@ class ReconcilerRoot implements CoreDrivenPingoRoot {
   readonly #liveScopes = new Set<ComponentScope>();
   readonly #hostsByNodeId = new Map<number, HostInstance>();
   readonly #renderedScopes = new Set<ComponentScope>();
+  /** Mounted nodes carrying a document projection, in mount order. */
+  readonly #documentNodes = new Set<HostInstance>();
   readonly #scopesPendingDisposal = new Set<ComponentScope>();
   readonly #postCommitCleanups: Array<() => void> = [];
   readonly #postCommitAttachments: Array<() => void> = [];
@@ -909,6 +963,10 @@ class ReconcilerRoot implements CoreDrivenPingoRoot {
     this.#postCommitAttachments.length = 0;
     try {
       operation();
+      // After the tree settled and before the batch is sealed: block keys
+      // resolve to Scene nodes only once this commit's children exist, and the
+      // projection has to ride the same frame as the nodes it names.
+      this.emitDocumentProjections();
       const mutations = this.mutations();
       if (mutations.length > 0) {
         const bytes = encodeMutationBatch({
@@ -1183,6 +1241,7 @@ class ReconcilerRoot implements CoreDrivenPingoRoot {
       scalars: new Map(),
       vectors: new Map(),
       resources: new Map(),
+      styledRunCount: 0,
       computedStyle: undefined,
       computedStyleBytes: undefined,
       onTapId: undefined,
@@ -1194,6 +1253,9 @@ class ReconcilerRoot implements CoreDrivenPingoRoot {
       virtualWrappers: new Map(),
       virtualList: undefined,
       virtualRange: undefined,
+      document: undefined,
+      blockKey: undefined,
+      documentSent: undefined,
       editable: undefined,
       editableSelection: undefined,
       onEditTransaction: undefined,
@@ -1339,6 +1401,17 @@ class ReconcilerRoot implements CoreDrivenPingoRoot {
   }
 
   private applyHostProps(instance: HostInstance, next: NormalizedHostProps): void {
+    instance.blockKey = next.blockKey;
+    if (next.document === undefined) {
+      if (instance.document !== undefined) {
+        this.#documentNodes.delete(instance);
+        instance.document = undefined;
+        instance.documentSent = undefined;
+      }
+    } else {
+      instance.document = next.document;
+      this.#documentNodes.add(instance);
+    }
     if (instance.media?.binding.src !== next.media?.binding.src) {
       instance.mediaNaturalSize = undefined;
     }
@@ -1702,14 +1775,108 @@ class ReconcilerRoot implements CoreDrivenPingoRoot {
       this.mutations(),
     );
     instance.resources.set("text:string", stringId);
-    if (styleId !== previousStyle || stringId !== previousString) {
-      this.mutations().push({
-        type: "setTextRun",
-        nodeId: instance.nodeId,
-        stringId,
+    // Zero and "no table" are the same state, so they have to compare equal:
+    // an absent binding reading as `undefined` made every update look like a
+    // change and re-emitted the binding on frames that changed nothing.
+    const previousRuns = instance.resources.get("text:runs") ?? 0;
+    const runsId = this.replaceStyledRuns(instance, text.runs);
+    if (styleId !== previousStyle || stringId !== previousString || runsId !== previousRuns) {
+      // Single-style text keeps the narrower instruction. `setRichText` with a
+      // zero table would mean the same thing, but it is four bytes wider on a
+      // binding every text node re-emits, and the scrolling path pays that per
+      // node per frame for text that has nothing to say about styling.
+      this.mutations().push(
+        runsId === 0
+          ? { type: "setTextRun", nodeId: instance.nodeId, stringId, styleId }
+          : { type: "setRichText", nodeId: instance.nodeId, stringId, styleId, runsId },
+      );
+    }
+  }
+
+  /**
+   * Interns each span's style and the table that indexes them.
+   *
+   * Every span carries a full style rather than a delta, because the Core reads
+   * a run's style without consulting the node's: a partial one would render the
+   * unstated half as whatever the resource happened to default to.
+   */
+  private replaceStyledRuns(
+    instance: HostInstance,
+    runs: readonly NormalizedTextRun[] | undefined,
+  ): number {
+    const previousCount = instance.styledRunCount;
+    const count = runs?.length ?? 0;
+    // Release the tail first: a table that shrank must not leave its former
+    // spans holding resources no binding refers to any more.
+    for (let index = count; index < previousCount; index += 1) {
+      for (const part of ["paint", "style", "font"] as const) {
+        const binding = `text:run:${String(index)}:${part}`;
+        const id = instance.resources.get(binding);
+        if (id === undefined) continue;
+        this.#resources.release(id, this.mutations());
+        instance.resources.delete(binding);
+      }
+    }
+    instance.styledRunCount = count;
+    if (runs === undefined) {
+      const previousTable = instance.resources.get("text:runs");
+      if (previousTable !== undefined) {
+        this.#resources.release(previousTable, this.mutations());
+        instance.resources.delete("text:runs");
+      }
+      return 0;
+    }
+    const records: StyledRunRecord[] = [];
+    for (const [index, run] of runs.entries()) {
+      const paintBinding = `text:run:${String(index)}:paint`;
+      const styleBinding = `text:run:${String(index)}:style`;
+      const paintId = this.#resources.replace(
+        instance.resources.get(paintBinding),
+        ResourceKind.Paint,
+        run.paint,
+        this.mutations(),
+      );
+      instance.resources.set(paintBinding, paintId);
+      const styleId = this.#resources.replace(
+        instance.resources.get(styleBinding),
+        ResourceKind.TextStyle,
+        encodeTextStyle(paintId, run.fontSize, run.lineHeight, run.fontWeight, run.fontFamily),
+        this.mutations(),
+      );
+      instance.resources.set(styleBinding, styleId);
+      const fontBinding = `text:run:${String(index)}:font`;
+      const previousFont = instance.resources.get(fontBinding);
+      let fontId = 0;
+      if (run.font === undefined) {
+        if (previousFont !== undefined) {
+          this.#resources.release(previousFont, this.mutations());
+          instance.resources.delete(fontBinding);
+        }
+      } else {
+        fontId = this.#resources.replace(
+          previousFont,
+          ResourceKind.Font,
+          run.font,
+          this.mutations(),
+        );
+        instance.resources.set(fontBinding, fontId);
+      }
+      records.push({
+        utf8Start: run.utf8Start,
+        utf8Length: run.utf8Length,
         styleId,
+        fontId,
+        atomic: run.atomic,
       });
     }
+    const tableId = this.#resources.replace(
+      instance.resources.get("text:runs"),
+      ResourceKind.StyledRuns,
+      encodeStyledRuns(records),
+      this.mutations(),
+    );
+    instance.resources.set("text:runs", tableId);
+    return tableId;
   }
 
   private replaceCallback(instance: HostInstance, callback: (() => void) | undefined): void {
@@ -2155,6 +2322,49 @@ class ReconcilerRoot implements CoreDrivenPingoRoot {
     this.#pendingObservations.clear();
   }
 
+  /**
+   * Declares every mounted document's block sequence to the Core.
+   *
+   * The projection is re-sent only when it changed. Core treats a projection as
+   * authoritative, so re-declaring an identical one every frame would be a
+   * per-frame cost proportional to the document rather than to the edit.
+   */
+  private emitDocumentProjections(): void {
+    for (const instance of this.#documentNodes) {
+      const projection = instance.document;
+      if (projection === undefined || !instance.mounted) {
+        this.#documentNodes.delete(instance);
+        continue;
+      }
+      const nodes = new Map<number, number>();
+      collectBlockNodes(instance, nodes);
+      const blocks = projection.blocks.map((block) => ({
+        key: block.key,
+        // A block no child claims is one the Shell has not materialized. Its
+        // declared length still holds a place in the position space, which is
+        // what keeps a virtualized document from renumbering as it scrolls.
+        nodeId: nodes.get(block.key) ?? NULL_NODE_ID,
+        lenUtf16: block.lenUtf16,
+        atomic: block.atomic,
+      }));
+      const signature = `${String(projection.revision)}|${blocks
+        .map(
+          (block) =>
+            `${String(block.key)}:${String(block.nodeId)}:${String(block.lenUtf16)}:${block.atomic ? "1" : "0"}`,
+        )
+        .join(",")}`;
+      if (signature === instance.documentSent) continue;
+      instance.documentSent = signature;
+      this.mutations().push({
+        type: "configureDocument",
+        nodeId: instance.nodeId,
+        revision: projection.revision,
+        flags: 0,
+        blocks,
+      });
+    }
+  }
+
   private mutations(): Mutation[] {
     if (this.#mutations === undefined) throw new Error("mutation emitted outside a commit");
     return this.#mutations;
@@ -2164,6 +2374,131 @@ class ReconcilerRoot implements CoreDrivenPingoRoot {
     if (this.#failed)
       throw new Error("reconciler root requires remount after a fatal commit error");
     if (this.#unmounted) throw new Error("reconciler root is unmounted");
+  }
+}
+
+/**
+ * Turns the caller's differences into the full tiling the Core requires.
+ *
+ * Returns `undefined` when there is nothing to style -- no spans, or an empty
+ * value -- so the node keeps the single-style path rather than carrying a
+ * one-run table that says the same thing.
+ */
+function normalizeTextRuns(
+  runs: readonly TextRunProps[] | undefined,
+  value: string,
+  base: {
+    readonly paint: Uint8Array;
+    readonly fontFamily: string;
+    readonly fontSize: number;
+    readonly lineHeight: number;
+    readonly fontWeight: number;
+  },
+): readonly NormalizedTextRun[] | undefined {
+  if (runs === undefined || runs.length === 0 || value.length === 0) return undefined;
+  // One prefix scan converts every UTF-16 boundary the caller named, so the
+  // cost is the value's length rather than the value's length per span.
+  const utf8Prefix = utf8PrefixLengths(value);
+  const tiled: NormalizedTextRun[] = [];
+  let cursor = 0;
+  const push = (startUtf16: number, endUtf16: number, run: TextRunProps | undefined): void => {
+    const utf8Start = utf8Prefix[startUtf16];
+    const utf8End = utf8Prefix[endUtf16];
+    if (utf8Start === undefined || utf8End === undefined) {
+      throw new RangeError("text run boundary splits a surrogate pair");
+    }
+    if (utf8End === utf8Start) return;
+    if (run?.font !== undefined && !(run.font instanceof PingoFont)) {
+      throw new TypeError("a text run font must be created by createFont");
+    }
+    tiled.push({
+      utf8Start,
+      utf8Length: utf8End - utf8Start,
+      paint: run?.color === undefined ? base.paint : encodeSolidPaint(run.color),
+      font: run?.font === undefined ? undefined : encodeSfntFont(run.font),
+      fontFamily:
+        run?.fontFamily === undefined
+          ? base.fontFamily
+          : requireNonEmptyString(run.fontFamily, "text run fontFamily"),
+      fontSize: optionalPositive(run?.fontSize, base.fontSize, "text run fontSize"),
+      lineHeight: optionalPositive(run?.lineHeight, base.lineHeight, "text run lineHeight"),
+      fontWeight: run?.fontWeight === undefined ? base.fontWeight : optionalWeight(run.fontWeight),
+      atomic: run?.atomic === true,
+    });
+  };
+  for (const run of runs) {
+    if (!Number.isInteger(run.start) || !Number.isInteger(run.end)) {
+      throw new TypeError("text run offsets must be integers");
+    }
+    if (run.start < cursor) throw new RangeError("text runs must ascend and not overlap");
+    if (run.end <= run.start) throw new RangeError("a text run must cover at least one unit");
+    if (run.end > value.length) throw new RangeError("a text run runs past the value");
+    push(cursor, run.start, undefined);
+    push(run.start, run.end, run);
+    cursor = run.end;
+  }
+  push(cursor, value.length, undefined);
+  return tiled.length === 0 ? undefined : tiled;
+}
+
+/**
+ * UTF-8 byte offset for every UTF-16 index, `undefined` inside a surrogate pair.
+ *
+ * A boundary that lands between a pair's halves is a caller error rather than a
+ * value to round, because rounding it would silently style a different span.
+ */
+function utf8PrefixLengths(value: string): readonly (number | undefined)[] {
+  const prefix: (number | undefined)[] = new Array<number | undefined>(value.length + 1);
+  let bytes = 0;
+  let index = 0;
+  while (index <= value.length) {
+    prefix[index] = bytes;
+    if (index === value.length) break;
+    const point = value.codePointAt(index);
+    if (point === undefined) throw new RangeError("text value is not well-formed");
+    if (point <= 0x7f) bytes += 1;
+    else if (point <= 0x7ff) bytes += 2;
+    else if (point <= 0xffff) bytes += 3;
+    else {
+      bytes += 4;
+      prefix[index + 1] = undefined;
+      index += 1;
+    }
+    index += 1;
+  }
+  return prefix;
+}
+
+/**
+ * Maps every block key claimed in this subtree to the node that claims it.
+ *
+ * Stops at a nested document: an inner projection owns its own blocks, and
+ * letting the outer one adopt them would put one node in two position spaces.
+ */
+function collectBlockNodes(instance: HostInstance, out: Map<number, number>): void {
+  for (const child of instance.children) {
+    if (child.kind !== "host") {
+      collectComponentBlockNodes(child, out);
+      continue;
+    }
+    if (child.blockKey !== undefined && !out.has(child.blockKey)) {
+      out.set(child.blockKey, child.nodeId);
+    }
+    if (child.document === undefined) collectBlockNodes(child, out);
+  }
+}
+
+/** Walks past component and fragment instances to the host nodes underneath. */
+function collectComponentBlockNodes(instance: Instance, out: Map<number, number>): void {
+  for (const child of instance.children) {
+    if (child.kind === "host") {
+      if (child.blockKey !== undefined && !out.has(child.blockKey)) {
+        out.set(child.blockKey, child.nodeId);
+      }
+      if (child.document === undefined) collectBlockNodes(child, out);
+      continue;
+    }
+    collectComponentBlockNodes(child, out);
   }
 }
 
@@ -2257,6 +2592,13 @@ function normalizeHostProps(
       whiteSpace: "pre-wrap",
       overflowWrap: "anywhere",
       textOverflow: "clip",
+      runs: normalizeTextRuns((props as TextProps).runs, value, {
+        paint: encodeSolidPaint(color),
+        fontFamily,
+        fontSize,
+        lineHeight,
+        fontWeight,
+      }),
     };
   }
 
@@ -2392,6 +2734,50 @@ function normalizeHostProps(
     };
   }
 
+  let documentProjection: NormalizedDocument | undefined;
+  if (type === "container" && props.document !== undefined) {
+    const declared = props.document as DocumentProps;
+    // Read back through the declared type rather than through `Array.isArray`,
+    // which widens a `readonly T[]` to `any[]` and takes every field with it.
+    const declaredBlocks: readonly DocumentBlockProps[] = Array.isArray(declared.blocks)
+      ? declared.blocks
+      : [];
+    if (declaredBlocks.length === 0) {
+      throw new TypeError("a document projection must declare at least one block");
+    }
+    const seen = new Set<number>();
+    const blocks = declaredBlocks.map((block) => {
+      const key = block.key;
+      if (!Number.isInteger(key) || key <= 0 || key > 0xffff_ffff) {
+        throw new RangeError("a document block key must be a positive 32-bit integer");
+      }
+      // Key zero means "no block" on the wire, and a repeated key would make
+      // two positions indistinguishable, so both are refused here rather than
+      // at the decoder.
+      if (seen.has(key)) throw new RangeError(`document block key ${String(key)} is repeated`);
+      seen.add(key);
+      const atomic = block.atomic === true;
+      const lenUtf16 = block.lenUtf16;
+      if (!Number.isInteger(lenUtf16) || lenUtf16 < 0 || lenUtf16 > 0xffff_ffff) {
+        throw new RangeError("a document block length must be a 32-bit integer");
+      }
+      if (atomic && lenUtf16 !== 0) {
+        throw new RangeError("an atomic document block has no text length");
+      }
+      return { key, lenUtf16, atomic };
+    });
+    documentProjection = { revision: BigInt(declared.revision), blocks };
+  }
+
+  let blockKey: number | undefined;
+  if (props.blockKey !== undefined) {
+    const value = props.blockKey;
+    if (typeof value !== "number" || !Number.isInteger(value) || value <= 0) {
+      throw new RangeError("blockKey must be a positive integer");
+    }
+    blockKey = value;
+  }
+
   let virtualList: NormalizedVirtualList | undefined;
   if (type === "virtualList" || (type === "container" && props.virtual !== undefined)) {
     let itemCountValue: unknown;
@@ -2523,6 +2909,8 @@ function normalizeHostProps(
     scrollPosition,
     virtualItemIndex,
     virtualList,
+    document: documentProjection,
+    blockKey,
     editable,
     eventHandlers,
     computedStyle: styleResolution?.style,

@@ -9,13 +9,14 @@ use std::sync::Arc;
 
 use pingo_abi::{
     CaretDirection, CaretGranularity, DocumentBlockRecord, DocumentOperation,
-    DocumentSelectionRecord, InputCommand, NodeKind, StructureKind, StructureRequestRecord,
-    WireDocumentSelection,
+    DocumentSelectionRecord, EditTransactionKind, EditTransactionRecord, InputCommand, NodeKind,
+    StructureKind, StructureRequestRecord, WireAffinity, WireDocumentSelection, WireMapSegment,
+    WireMarkRun, WireRange,
 };
 use pingo_collections::OrderedMap;
 use pingo_edit::{
-    BlockKey, BlockProjection, Direction, Document, DocumentBlock, DocumentEdit, DocumentPosition,
-    DocumentSelection, Granularity, MarkRuns, StructureRequest,
+    BlockKey, BlockProjection, BlockReplacement, Direction, Document, DocumentBlock, DocumentEdit,
+    DocumentPosition, DocumentSelection, Granularity, MarkRuns, PositionMap, StructureRequest,
 };
 use pingo_scene::{NodeId, Scene};
 
@@ -45,11 +46,82 @@ struct ActiveDocument {
     pending: Vec<StructureRequestRecord>,
     /// Selection last reported to the Shell, so only changes are sent.
     reported: Option<DocumentSelection>,
+    /// Core's revision of this document's text.
+    ///
+    /// One counter for the document rather than one per block: a transaction
+    /// carries the revision the Shell must not overwrite with anything older,
+    /// and an edit that touches two blocks is one edit.
+    revision: u64,
+    /// Text transactions produced since the last drain.
+    transactions: Vec<EditTransactionRecord>,
     /// Scene node holding each materialized block's text.
     ///
     /// Keys are the Shell's, not node identifiers: a block the Shell has not
     /// materialized has no node at all, so the two cannot be the same number.
     nodes: OrderedMap<BlockKey, NodeId>,
+}
+
+impl ActiveDocument {
+    /// Records one transaction per block whose text this edit changed.
+    ///
+    /// Without them the Shell repaints what Core drew but never learns what was
+    /// typed, so its own document diverges on the first keystroke.
+    fn record_text_transactions(
+        &mut self,
+        edit: &DocumentEdit,
+        base_revision: u64,
+        previous_lengths: &[Option<u32>],
+    ) {
+        for (replacement, previous_length) in edit.replacements.iter().zip(previous_lengths) {
+            // An unmaterialized block has no node to report against; the
+            // Shell's next projection is what reconciles it.
+            let Some(node) = self.nodes.get(&replacement.key).copied() else {
+                continue;
+            };
+            let Some(index) = self.document.index_of(replacement.key) else {
+                continue;
+            };
+            let block = &self.document.blocks()[index];
+            let caret =
+                block_selection(self.document.selection(), replacement.key).unwrap_or_else(|| {
+                    let end = replacement
+                        .range
+                        .start
+                        .saturating_add(utf16_len(&replacement.text));
+                    [end, end]
+                });
+            self.transactions.push(EditTransactionRecord {
+                node_id: node.raw(),
+                base_revision,
+                revision: self.revision,
+                delta: Some((
+                    WireRange {
+                        start: replacement.range.start,
+                        end: replacement.range.end,
+                    },
+                    replacement.text.clone(),
+                )),
+                selection: caret,
+                affinities: [WireAffinity::Downstream, WireAffinity::Downstream],
+                composition: None,
+                kind: EditTransactionKind::Edit,
+                marks: Some(
+                    block
+                        .marks()
+                        .runs()
+                        .iter()
+                        .map(|run| WireMarkRun {
+                            length: run.length,
+                            style: run.style,
+                            font: run.font,
+                        })
+                        .collect(),
+                ),
+                map: previous_length
+                    .map_or_else(Vec::new, |length| replacement_map(replacement, length)),
+            });
+        }
+    }
 }
 
 /// Core-owned document position spaces, one per configured document root.
@@ -114,6 +186,8 @@ impl DocumentController {
                     shell_revision: revision,
                     predicted: None,
                     next_sequence: 1,
+                    revision: 1,
+                    transactions: Vec::new(),
                     pending: Vec::new(),
                     reported: None,
                     nodes,
@@ -295,7 +369,24 @@ impl DocumentController {
             .iter()
             .filter_map(|replacement| active.nodes.get(&replacement.key).copied())
             .collect::<Vec<_>>();
+        let base_revision = active.revision;
+        if !edit.replacements.is_empty() {
+            active.revision = active.revision.saturating_add(1);
+        }
+        // The block lengths the map is written against are the ones before the
+        // edit, so they are read before it is applied.
+        let previous_lengths = edit
+            .replacements
+            .iter()
+            .map(|replacement| {
+                active
+                    .document
+                    .index_of(replacement.key)
+                    .map(|index| active.document.blocks()[index].len_utf16())
+            })
+            .collect::<Vec<_>>();
         active.document.apply_edit(edit).map_err(CoreError::Edit)?;
+        active.record_text_transactions(edit, base_revision, &previous_lengths);
         for request in &edit.structure {
             let sequence = active.next_sequence;
             active.next_sequence = active.next_sequence.saturating_add(1);
@@ -345,8 +436,19 @@ impl DocumentController {
     /// Returns whether anything is waiting for the Shell on the reverse channel.
     pub(crate) fn has_pending_structure(&self) -> bool {
         self.documents.values().any(|active| {
-            !active.pending.is_empty() || active.reported != Some(active.document.selection())
+            !active.pending.is_empty()
+                || !active.transactions.is_empty()
+                || active.reported != Some(active.document.selection())
         })
+    }
+
+    /// Drains the text transactions produced since the last drain.
+    pub(crate) fn take_transactions(&mut self) -> Vec<EditTransactionRecord> {
+        let mut result = Vec::new();
+        for active in self.documents.values_mut() {
+            result.append(&mut active.transactions);
+        }
+        result
     }
 
     /// Drains the document selections that changed since the last drain.
@@ -572,4 +674,50 @@ fn document_selection(selection: WireDocumentSelection) -> DocumentSelection {
             before: usize::try_from(index).unwrap_or(usize::MAX),
         },
     }
+}
+
+/// UTF-16 length of a string, saturating at the offset space.
+fn utf16_len(value: &str) -> u32 {
+    u32::try_from(value.encode_utf16().count()).unwrap_or(u32::MAX)
+}
+
+/// The block-local selection offsets, when the caret is inside that block.
+///
+/// A selection that ends somewhere else leaves the block's own transaction
+/// reporting the edit's end instead, because the record's offsets are the
+/// block's and there is nothing else to say about a block the caret left.
+fn block_selection(selection: DocumentSelection, key: BlockKey) -> Option<[u32; 2]> {
+    match selection {
+        DocumentSelection::Text { anchor, focus } if anchor.key == key && focus.key == key => {
+            Some([anchor.offset, focus.offset])
+        }
+        _ => None,
+    }
+}
+
+/// How offsets in the block's previous revision move into this one.
+fn replacement_map(replacement: &BlockReplacement, previous_length: u32) -> Vec<WireMapSegment> {
+    let Ok(map) = PositionMap::from_replacement(
+        replacement.range,
+        utf16_len(&replacement.text),
+        previous_length,
+    ) else {
+        // The replacement was validated against this block before it was
+        // applied, so an out-of-range one cannot reach here; the identity is
+        // the honest answer rather than a panic on a diagnostic path.
+        return Vec::new();
+    };
+    if map.is_identity() {
+        return Vec::new();
+    }
+    map.segments()
+        .iter()
+        .map(|segment| WireMapSegment {
+            old_start: segment.old_start,
+            old_end: segment.old_end,
+            new_start: segment.new_start,
+            new_end: segment.new_end,
+            kept: segment.kept,
+        })
+        .collect()
 }

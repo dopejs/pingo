@@ -57,6 +57,7 @@ async function checkAbiRoundtrip() {
   const inputGolden = await readGolden("input-stream.v1.json");
   const displayGolden = await readGolden("display-list.v1.json");
   const glyphGolden = await readGolden("glyph-resources.v1.json");
+  const styledRunsGolden = await readGolden("styled-runs.v1.json");
   const pictureGolden = await readGolden("picture-resources.v1.json");
   const textMetricsGolden = await readGolden("system-text-metrics.v1.json");
   const recordingGolden = await readGolden("replay-recording.v1.json");
@@ -363,6 +364,23 @@ async function checkAbiRoundtrip() {
     roundTripInRust("pictures", pictureHex),
     pictureHex,
     "TypeScript to Rust Picture resource round trip",
+  );
+
+  // A run table is authored by the Shell and read by the Core on the same
+  // frame that binds it to a node, so it gets the same treatment as the other
+  // Shell-authored resources: pinned bytes, then decoded and re-encoded in
+  // Rust to prove both sides agree on the layout and not merely on the fields.
+  const styledRunsBytes = reconciler.encodeStyledRuns([
+    { utf8Start: 0, utf8Length: 5, styleId: 7, fontId: 0, atomic: false },
+    { utf8Start: 5, utf8Length: 3, styleId: 9, fontId: 4, atomic: false },
+    { utf8Start: 8, utf8Length: 1, styleId: 11, fontId: 0, atomic: true },
+  ]);
+  const styledRunsHex = encodeHex(styledRunsBytes);
+  assertEqual(styledRunsHex, styledRunsGolden, "TypeScript styled run encoder vs golden");
+  assertEqual(
+    roundTripInRust("styled-runs", styledRunsHex),
+    styledRunsHex,
+    "TypeScript to Rust styled run round trip",
   );
 
   console.log("ABI cross-language round trips passed");

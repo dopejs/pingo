@@ -15,10 +15,12 @@ import {
   EVENT_FLAG_PRECISE_WHEEL,
   KEY_FLAG_REPEAT,
   NativeTextInputBridge,
+  type DocumentSelectionReport,
   type EditTransaction,
   type EditingGeometry,
   type EventTransaction,
   type InputCommand,
+  type StructureRequest,
 } from "@dopejs/pingo-editing";
 
 import {
@@ -128,6 +130,16 @@ export interface HostedCanvasRootOptions extends RootOptions {
   readonly onModeChange?: (mode: HostTransportMode, decision: HostTransportDecision) => void;
   readonly onVirtualRefills?: (requests: readonly VirtualRefillRange[]) => void;
   readonly onEditTransaction?: (transaction: EditTransaction) => void;
+  /**
+   * Core predicted a structural edit and is asking the Shell to decide it.
+   *
+   * The Shell owns the schema, so whether Enter splits a list item or ends the
+   * list is its answer to give. Core moved the caret optimistically and counts
+   * the divergence when the answer differs.
+   */
+  readonly onStructureRequest?: (request: StructureRequest) => void;
+  /** Core moved a document selection and is reporting where it landed. */
+  readonly onDocumentSelection?: (report: DocumentSelectionReport) => void;
   readonly onEventTransaction?: (transaction: EventTransaction) => void;
   readonly onNonPassiveRegions?: (regions: readonly NonPassiveRegion[]) => void;
   readonly onSemantics?: (nodes: readonly SemanticNode[]) => void;
@@ -552,6 +564,8 @@ class HostedCanvasRootController implements HostedCanvasRoot {
         : { onFrame: (report: FrameReport) => this.handleFrameReport(report) }),
       onVirtualRefills: (requests) => this.deferVirtualRefills(requests),
       onEditTransaction: (transaction) => this.handleEditTransaction(transaction),
+      onStructureRequest: (request) => this.#options.onStructureRequest?.(request),
+      onDocumentSelection: (report) => this.#options.onDocumentSelection?.(report),
       onEventTransaction: (transaction) => this.handleEventTransaction(transaction),
       onNonPassiveRegions: (regions) => this.handleNonPassiveRegions(regions),
       onEditingGeometry: (frame) => this.handleEditingGeometry(frame),
@@ -1528,6 +1542,8 @@ class HostedCanvasRootController implements HostedCanvasRoot {
       this.#options.incrementalPicturesEnabled ?? true,
       (frame) => this.handleLayoutGeometry(frame),
       (snapshot) => this.handlePaintedText(snapshot),
+      (request) => this.#options.onStructureRequest?.(request),
+      (report) => this.#options.onDocumentSelection?.(report),
     );
     this.#frameSink = sink;
     this.#recoverableSink.install(sink);

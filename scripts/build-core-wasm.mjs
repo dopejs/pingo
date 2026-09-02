@@ -13,15 +13,11 @@ const engineeringMaximumGzipBytes = 384 * 1024;
 const productMaximumGzipBytes = 400 * 1024;
 const expectedRustc = "rustc 1.96.0 (ac68faa20 2026-05-25)";
 const expectedWasmOpt = "wasm-opt version 117 (version_117)";
-const optimizationPasses = [
-  "--duplicate-function-elimination",
-  "--vacuum",
-  "--dae-optimizing",
-  "--optimize-instructions",
-  "--enable-bulk-memory",
-  "--enable-nontrapping-float-to-int",
-];
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+// wasm-pack reads the pass list out of the crate manifest, so that is the only
+// place it can be stated. A second copy here is how the recorded manifest ends
+// up reporting passes the build did not run.
+const optimizationPasses = await readOptimizationPasses();
 const buildDirectory = path.join(repositoryRoot, "target/core-wasm-package");
 const packageDirectory = path.join(repositoryRoot, "packages/host/wasm");
 const wasmPackVersion = (await runCapture("wasm-pack", ["--version"])).trim();
@@ -122,6 +118,26 @@ try {
   }
 } finally {
   await Promise.all(cleanRoots.map((root) => rm(root, { force: true, recursive: true })));
+}
+
+async function readOptimizationPasses() {
+  const manifestPath = path.join(repositoryRoot, "core/pingo-core/Cargo.toml");
+  const manifest = await readFile(manifestPath, "utf8");
+  const section = /^\[package\.metadata\.wasm-pack\.profile\.release\]$/mu.exec(manifest);
+  if (section === null) {
+    throw new Error(`${manifestPath} has no [package.metadata.wasm-pack.profile.release] section`);
+  }
+  const array = /^wasm-opt = \[$(?<body>[\s\S]*?)^\]$/mu.exec(manifest.slice(section.index));
+  if (array?.groups === undefined) {
+    throw new Error(`${manifestPath} has no multi-line wasm-opt pass list`);
+  }
+  const passes = [...array.groups.body.matchAll(/"(?<pass>[^"]+)"/gu)].map(
+    (match) => match.groups?.pass ?? "",
+  );
+  if (passes.length === 0) {
+    throw new Error(`${manifestPath} declares an empty wasm-opt pass list`);
+  }
+  return passes;
 }
 
 async function build(outputDirectory, cargoTargetDirectory) {

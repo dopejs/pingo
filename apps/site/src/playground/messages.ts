@@ -30,6 +30,18 @@ export interface PlaygroundMessages {
   readonly shellValue: string;
   readonly inputBridge: string;
   readonly editingHint: string;
+  readonly richTextTitle: string;
+  readonly richTextDescription: string;
+  readonly richTextHint: string;
+  readonly selectedSpan: string;
+  readonly styledSpans: string;
+  readonly markRanges: string;
+  readonly spanEarlier: string;
+  readonly spanLater: string;
+  readonly spanWider: string;
+  readonly spanNarrower: string;
+  readonly nextBlock: string;
+  readonly markLabel: (mark: string) => string;
   readonly eventsTitle: string;
   readonly eventsDescription: string;
   readonly propagationLog: string;
@@ -80,6 +92,28 @@ const MESSAGES: Record<string, PlaygroundMessages> = {
     shellValue: "Shell 值",
     inputBridge: "输入桥",
     editingHint: "先点一下输入框获取焦点，再输入或用输入法。",
+    richTextTitle: "富文本：模型、命令与渲染",
+    richTextDescription:
+      "Shell 拥有文档树、schema 与命令，Core 拥有位置空间、styled runs 与 shaping。按钮改的是文档模型上的 marks；渲染时它被摊成一张覆盖整段的 run 表交给 Core，同一段文字里没被命名的部分不受影响。下方的 Markdown 由同一份模型序列化而来。",
+    richTextHint: "先用上排按钮移动或缩放选中区间，再按下排的标记按钮。",
+    selectedSpan: "选中区间",
+    styledSpans: "run 表跨度",
+    markRanges: "mark 区间",
+    spanEarlier: "← 左移",
+    spanLater: "右移 →",
+    spanWider: "加宽",
+    spanNarrower: "收窄",
+    nextBlock: "下一块",
+    markLabel: (mark) =>
+      (
+        ({
+          bold: "粗体",
+          code: "行内代码",
+          italic: "斜体",
+          link: "链接",
+          strike: "删除线",
+        }) as Record<string, string>
+      )[mark] ?? mark,
     eventsTitle: "命中测试与三阶段事件",
     eventsDescription:
       "命中测试在 Core 内用增量 BVH 完成，事件按 capture → target → bubble 三阶段传播，与 DOM 对齐。点击嵌套区域查看实时传播日志。",
@@ -131,6 +165,28 @@ const MESSAGES: Record<string, PlaygroundMessages> = {
     shellValue: "Shell 值",
     inputBridge: "輸入橋",
     editingHint: "先點一下輸入框取得焦點，再輸入或用輸入法。",
+    richTextTitle: "富文本：模型、命令與繪製",
+    richTextDescription:
+      "Shell 擁有文件樹、schema 與命令，Core 擁有位置空間、styled runs 與 shaping。按鈕改的是文件模型上的 marks；繪製時它被攤成一張覆蓋整段的 run 表交給 Core，同一段文字裡沒被命名的部分不受影響。下方的 Markdown 由同一份模型序列化而來。",
+    richTextHint: "先用上排按鈕移動或縮放選取區間，再按下排的標記按鈕。",
+    selectedSpan: "選取區間",
+    styledSpans: "run 表跨度",
+    markRanges: "mark 區間",
+    spanEarlier: "← 左移",
+    spanLater: "右移 →",
+    spanWider: "加寬",
+    spanNarrower: "收窄",
+    nextBlock: "下一塊",
+    markLabel: (mark) =>
+      (
+        ({
+          bold: "粗體",
+          code: "行內程式碼",
+          italic: "斜體",
+          link: "連結",
+          strike: "刪除線",
+        }) as Record<string, string>
+      )[mark] ?? mark,
     eventsTitle: "命中測試與三階段事件",
     eventsDescription:
       "命中測試在 Core 內用增量 BVH 完成，事件按 capture → target → bubble 三階段傳播，與 DOM 對齊。點擊巢狀區域查看即時傳播記錄。",
@@ -182,6 +238,28 @@ const MESSAGES: Record<string, PlaygroundMessages> = {
     shellValue: "Shell の値",
     inputBridge: "入力ブリッジ",
     editingHint: "まず入力欄をクリックしてフォーカスし、それから入力または IME を使ってください。",
+    richTextTitle: "リッチテキスト：モデル、コマンド、描画",
+    richTextDescription:
+      "Shell が文書ツリー・スキーマ・コマンドを持ち、Core が位置空間・styled runs・シェーピングを持ちます。ボタンが変えるのは文書モデル上の marks です。描画時にはそれが段落全体を覆う run テーブルへ展開されて Core に渡るため、名前を付けられなかった部分は影響を受けません。下の Markdown は同じモデルから直列化したものです。",
+    richTextHint: "まず上段のボタンで範囲を移動・伸縮し、次に下段のマークボタンを押してください。",
+    selectedSpan: "選択範囲",
+    styledSpans: "run の数",
+    markRanges: "mark の数",
+    spanEarlier: "← 前へ",
+    spanLater: "後ろへ →",
+    spanWider: "広げる",
+    spanNarrower: "狭める",
+    nextBlock: "次のブロック",
+    markLabel: (mark) =>
+      (
+        ({
+          bold: "太字",
+          code: "インラインコード",
+          italic: "斜体",
+          link: "リンク",
+          strike: "取り消し線",
+        }) as Record<string, string>
+      )[mark] ?? mark,
     eventsTitle: "ヒットテストと 3 フェーズイベント",
     eventsDescription:
       "ヒットテストは Core 内の差分 BVH で行い、イベントは capture → target → bubble の 3 フェーズで DOM と同じように伝播します。入れ子の領域をクリックすると伝播ログをリアルタイムに確認できます。",
@@ -235,6 +313,28 @@ const MESSAGES: Record<string, PlaygroundMessages> = {
     shellValue: "Shell 값",
     inputBridge: "입력 브리지",
     editingHint: "먼저 입력란을 눌러 포커스한 다음 입력하거나 입력기를 사용하세요.",
+    richTextTitle: "리치 텍스트: 모델, 명령, 렌더링",
+    richTextDescription:
+      "Shell이 문서 트리와 스키마와 명령을, Core가 위치 공간과 styled runs와 셰이핑을 가집니다. 버튼이 바꾸는 것은 문서 모델의 marks이며, 렌더링할 때 그것이 단락 전체를 덮는 run 표로 펼쳐져 Core에 전달되므로 지정되지 않은 부분은 영향을 받지 않습니다. 아래 Markdown은 같은 모델에서 직렬화한 것입니다.",
+    richTextHint: "먼저 위쪽 버튼으로 구간을 옮기거나 늘린 뒤 아래쪽 마크 버튼을 누르세요.",
+    selectedSpan: "선택 구간",
+    styledSpans: "run 개수",
+    markRanges: "mark 개수",
+    spanEarlier: "← 앞으로",
+    spanLater: "뒤로 →",
+    spanWider: "넓히기",
+    spanNarrower: "좁히기",
+    nextBlock: "다음 블록",
+    markLabel: (mark) =>
+      (
+        ({
+          bold: "굵게",
+          code: "인라인 코드",
+          italic: "기울임",
+          link: "링크",
+          strike: "취소선",
+        }) as Record<string, string>
+      )[mark] ?? mark,
     eventsTitle: "히트 테스트와 3단계 이벤트",
     eventsDescription:
       "히트 테스트는 Core 안의 증분 BVH로 수행하고, 이벤트는 capture → target → bubble 3단계로 DOM과 동일하게 전파됩니다. 중첩된 영역을 눌러 실시간 전파 로그를 확인하세요.",
@@ -288,6 +388,28 @@ const MESSAGES: Record<string, PlaygroundMessages> = {
     shellValue: "Valor en la app",
     inputBridge: "Puente de entrada",
     editingHint: "Haz clic en el campo para enfocarlo y luego escribe o usa el IME.",
+    richTextTitle: "Texto enriquecido: modelo, comandos y renderizado",
+    richTextDescription:
+      "El Shell posee el árbol del documento, el esquema y los comandos; el Core posee el espacio de posiciones, los tramos con estilo y el shaping. Los botones cambian las marcas del modelo; al renderizar se despliegan en una tabla de tramos que cubre todo el párrafo, de modo que lo que no se nombró no cambia. El Markdown de abajo se serializa desde ese mismo modelo.",
+    richTextHint: "Mueve o ajusta el tramo con los botones de arriba y luego pulsa una marca.",
+    selectedSpan: "Tramo seleccionado",
+    styledSpans: "Tramos con estilo",
+    markRanges: "Rangos de marca",
+    spanEarlier: "← Antes",
+    spanLater: "Después →",
+    spanWider: "Ampliar",
+    spanNarrower: "Reducir",
+    nextBlock: "Siguiente bloque",
+    markLabel: (mark) =>
+      (
+        ({
+          bold: "Negrita",
+          code: "Código",
+          italic: "Cursiva",
+          link: "Enlace",
+          strike: "Tachado",
+        }) as Record<string, string>
+      )[mark] ?? mark,
     eventsTitle: "Hit testing y eventos en tres fases",
     eventsDescription:
       "El hit testing se hace en el Core con un BVH incremental, y los eventos se propagan en tres fases —captura, objetivo y burbuja— igual que en el DOM. Haz clic en las zonas anidadas para ver el registro de propagación en vivo.",
@@ -343,6 +465,29 @@ const MESSAGES: Record<string, PlaygroundMessages> = {
     inputBridge: "Pont de saisie",
     editingHint:
       "Cliquez d'abord dans le champ pour le focaliser, puis saisissez ou utilisez l'IME.",
+    richTextTitle: "Texte enrichi : modèle, commandes et rendu",
+    richTextDescription:
+      "Le Shell possède l'arbre du document, le schéma et les commandes ; le Core possède l'espace de positions, les segments stylés et le shaping. Les boutons modifient les marques du modèle ; au rendu elles sont étalées en une table de segments couvrant tout le paragraphe, si bien que ce qui n'a pas été nommé ne change pas. Le Markdown ci-dessous est sérialisé depuis ce même modèle.",
+    richTextHint:
+      "Déplacez ou redimensionnez la plage avec les boutons du haut, puis appliquez une marque.",
+    selectedSpan: "Plage sélectionnée",
+    styledSpans: "Segments stylés",
+    markRanges: "Plages de marque",
+    spanEarlier: "← Avant",
+    spanLater: "Après →",
+    spanWider: "Élargir",
+    spanNarrower: "Réduire",
+    nextBlock: "Bloc suivant",
+    markLabel: (mark) =>
+      (
+        ({
+          bold: "Gras",
+          code: "Code",
+          italic: "Italique",
+          link: "Lien",
+          strike: "Barré",
+        }) as Record<string, string>
+      )[mark] ?? mark,
     eventsTitle: "Hit testing et événements en trois phases",
     eventsDescription:
       "Le hit testing se fait dans le Core avec un BVH incrémental, et les événements se propagent en trois phases — capture, cible, bouillonnement — comme dans le DOM. Cliquez sur les zones imbriquées pour voir le journal de propagation en direct.",
@@ -398,6 +543,29 @@ const MESSAGES: Record<string, PlaygroundMessages> = {
     inputBridge: "Eingabebrücke",
     editingHint:
       "Klicken Sie zuerst in das Feld, um es zu fokussieren, und tippen Sie dann oder nutzen Sie die Eingabemethode.",
+    richTextTitle: "Rich Text: Modell, Befehle und Rendering",
+    richTextDescription:
+      "Die Shell besitzt Dokumentbaum, Schema und Befehle, der Core den Positionsraum, die gestylten Abschnitte und das Shaping. Die Schaltflächen ändern die Marken des Modells; beim Rendern werden sie zu einer Abschnittstabelle über den ganzen Absatz ausgebreitet, sodass das Ungenannte unverändert bleibt. Das Markdown unten wird aus demselben Modell serialisiert.",
+    richTextHint:
+      "Verschieben oder ändern Sie den Bereich mit den oberen Schaltflächen, dann setzen Sie eine Marke.",
+    selectedSpan: "Ausgewählter Bereich",
+    styledSpans: "Gestylte Abschnitte",
+    markRanges: "Markenbereiche",
+    spanEarlier: "← Zurück",
+    spanLater: "Vor →",
+    spanWider: "Erweitern",
+    spanNarrower: "Verengen",
+    nextBlock: "Nächster Block",
+    markLabel: (mark) =>
+      (
+        ({
+          bold: "Fett",
+          code: "Code",
+          italic: "Kursiv",
+          link: "Link",
+          strike: "Durchgestrichen",
+        }) as Record<string, string>
+      )[mark] ?? mark,
     eventsTitle: "Hit-Testing und dreiphasige Events",
     eventsDescription:
       "Das Hit-Testing läuft im Core über ein inkrementelles BVH, und Events breiten sich wie im DOM in drei Phasen aus: Capture, Ziel, Bubble. Klicken Sie in die verschachtelten Bereiche, um das Protokoll in Echtzeit zu sehen.",
@@ -453,6 +621,28 @@ const MESSAGES: Record<string, PlaygroundMessages> = {
     inputBridge: "Мост ввода",
     editingHint:
       "Сначала щёлкните по полю, чтобы установить фокус, затем печатайте или используйте IME.",
+    richTextTitle: "Форматированный текст: модель, команды и отрисовка",
+    richTextDescription:
+      "Shell владеет деревом документа, схемой и командами, Core — пространством позиций, стилевыми отрезками и шейпингом. Кнопки меняют пометки в модели; при отрисовке они разворачиваются в таблицу отрезков, покрывающую весь абзац, поэтому неназванное не меняется. Markdown ниже сериализован из той же модели.",
+    richTextHint: "Сдвиньте или измените диапазон верхними кнопками, затем примените пометку.",
+    selectedSpan: "Выбранный диапазон",
+    styledSpans: "Стилевые отрезки",
+    markRanges: "Диапазоны пометок",
+    spanEarlier: "← Назад",
+    spanLater: "Вперёд →",
+    spanWider: "Расширить",
+    spanNarrower: "Сузить",
+    nextBlock: "Следующий блок",
+    markLabel: (mark) =>
+      (
+        ({
+          bold: "Полужирный",
+          code: "Код",
+          italic: "Курсив",
+          link: "Ссылка",
+          strike: "Зачёркнутый",
+        }) as Record<string, string>
+      )[mark] ?? mark,
     eventsTitle: "Hit-тестирование и трёхфазные события",
     eventsDescription:
       "Hit-тестирование выполняется в ядре через инкрементальный BVH, а события распространяются в три фазы — перехват, цель, всплытие — как в DOM. Щёлкайте по вложенным областям, чтобы увидеть журнал распространения в реальном времени.",
@@ -507,6 +697,25 @@ const MESSAGES: Record<string, PlaygroundMessages> = {
     shellValue: "قيمة التطبيق",
     inputBridge: "جسر الإدخال",
     editingHint: "انقر الحقل أوّلًا لتفعيل التركيز، ثمّ اكتب أو استخدم طريقة الإدخال.",
+    richTextTitle: "النص المنسق: النموذج والأوامر والعرض",
+    richTextDescription:
+      "تملك الطبقة Shell شجرة المستند والمخطط والأوامر، ويملك Core فضاء المواضع والمقاطع المنسقة والتشكيل. تغيّر الأزرار علامات النموذج، وعند العرض تُبسط إلى جدول مقاطع يغطي الفقرة كاملة، فلا يتأثر ما لم يُسمَّ. أما Markdown في الأسفل فمُسلسَل من النموذج نفسه.",
+    richTextHint: "حرّك المدى أو غيّر حجمه بالأزرار العلوية، ثم طبّق علامة.",
+    selectedSpan: "المدى المحدد",
+    styledSpans: "المقاطع المنسقة",
+    markRanges: "مديات العلامات",
+    spanEarlier: "← للخلف",
+    spanLater: "للأمام →",
+    spanWider: "توسيع",
+    spanNarrower: "تضييق",
+    nextBlock: "الكتلة التالية",
+    markLabel: (mark) =>
+      (
+        ({ bold: "عريض", code: "شفرة", italic: "مائل", link: "رابط", strike: "مشطوب" }) as Record<
+          string,
+          string
+        >
+      )[mark] ?? mark,
     eventsTitle: "اختبار الإصابة والأحداث الثلاثية",
     eventsDescription:
       "يجري اختبار الإصابة داخل النواة عبر BVH تزايدي، وتنتشر الأحداث في ثلاث مراحل — التقاط ثمّ هدف ثمّ تصاعد — كما في DOM. انقر المناطق المتداخلة لمتابعة سجلّ الانتشار لحظيًا.",
@@ -559,6 +768,28 @@ const MESSAGES: Record<string, PlaygroundMessages> = {
     shellValue: "הערך ביישום",
     inputBridge: "גשר הקלט",
     editingHint: "לחץ תחילה על השדה כדי למקד אותו, ואז הקלד או השתמש בשיטת הקלט.",
+    richTextTitle: "טקסט עשיר: מודל, פקודות ורינדור",
+    richTextDescription:
+      "ה-Shell מחזיק בעץ המסמך, בסכימה ובפקודות, וה-Core מחזיק במרחב המיקומים, במקטעים המעוצבים ובעיצוב הגופן. הכפתורים משנים את הסימונים במודל, ובעת הרינדור הם נפרשים לטבלת מקטעים שמכסה את כל הפסקה, כך שמה שלא צוין אינו משתנה. ה-Markdown שלמטה עובר סריאליזציה מאותו מודל.",
+    richTextHint: "הזיזו או שנו את הטווח בכפתורים העליונים, ואז החילו סימון.",
+    selectedSpan: "הטווח הנבחר",
+    styledSpans: "מקטעים מעוצבים",
+    markRanges: "טווחי סימון",
+    spanEarlier: "← אחורה",
+    spanLater: "קדימה →",
+    spanWider: "הרחבה",
+    spanNarrower: "צמצום",
+    nextBlock: "הבלוק הבא",
+    markLabel: (mark) =>
+      (
+        ({
+          bold: "מודגש",
+          code: "קוד",
+          italic: "נטוי",
+          link: "קישור",
+          strike: "קו חוצה",
+        }) as Record<string, string>
+      )[mark] ?? mark,
     eventsTitle: "בדיקת פגיעה ואירועים בשלושה שלבים",
     eventsDescription:
       "בדיקת הפגיעה מתבצעת בליבה באמצעות BVH מצטבר, והאירועים מתפשטים בשלושה שלבים — לכידה, יעד ובעבוע — בדיוק כמו ב-DOM. לחץ על האזורים המקוננים כדי לראות את יומן ההתפשטות בזמן אמת.",
