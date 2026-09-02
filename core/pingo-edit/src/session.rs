@@ -33,7 +33,7 @@ struct HistoryEntry {
 /// ends the first group. Classifying the whole inserted or removed chunk keeps
 /// a paste of mixed content opaque instead of silently joining a burst.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-enum TextClass {
+pub(crate) enum TextClass {
     /// Alphanumeric content, including CJK and combining marks.
     Word,
     /// Horizontal whitespace.
@@ -72,7 +72,7 @@ enum GroupKind {
 }
 
 /// Classifies a chunk, returning `None` for empty, mixed, or newline content.
-fn text_class(text: &str) -> Option<TextClass> {
+pub(crate) fn text_class(text: &str) -> Option<TextClass> {
     let mut class = None;
     for character in text.chars() {
         if character == '\n' || character == '\r' {

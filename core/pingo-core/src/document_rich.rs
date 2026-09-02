@@ -356,6 +356,27 @@ impl DocumentController {
                 Planned::Split(root) => return self.plan_split(root),
                 Planned::Nothing => return Ok(Vec::new()),
             },
+            // Undo is Core's, over the whole document rather than per block:
+            // one flat position space means one history, so a burst that
+            // crossed a block boundary comes back as one step.
+            InputCommand::Undo { node_id, .. } | InputCommand::Redo { node_id, .. } => {
+                let root = NodeId::from_raw(*node_id)?;
+                let backward = matches!(command, InputCommand::Undo { .. });
+                let active = self
+                    .documents
+                    .get_mut(&root)
+                    .ok_or(CoreError::InvalidEditableTarget { node: root })?;
+                let applied = if backward {
+                    active.document.undo()
+                } else {
+                    active.document.redo()
+                }
+                .map_err(CoreError::Edit)?;
+                let Some(edit) = applied else {
+                    return Ok(Vec::new());
+                };
+                (root, edit)
+            }
             // A composition is a document-level edit like any other: it is
             // addressed to the document root, so the same four commands an
             // editable answers work here without a second opcode.

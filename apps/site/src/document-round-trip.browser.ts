@@ -1,4 +1,5 @@
 import type { DocumentSelectionState } from "@dopejs/pingo";
+import { Editor } from "@dopejs/pingo/editor";
 import {
   createElement,
   createHostedCanvasRoot,
@@ -64,6 +65,21 @@ describe.skipIf(!rich)("document round trip", () => {
     { key: 1, text: "first block" },
     { key: 2, text: "second block" },
   ];
+
+  /** A Shell document seeded from the same projection the Core was given. */
+  function shellDocument(): Editor {
+    return new Editor({
+      document: {
+        blocks: BLOCKS.map((block) => ({
+          key: block.key,
+          type: "paragraph" as const,
+          attributes: {},
+          text: block.text,
+          marks: [],
+        })),
+      },
+    });
+  }
 
   interface Harness {
     readonly root: Awaited<ReturnType<typeof createHostedCanvasRoot>>;
@@ -390,18 +406,7 @@ describe.skipIf(!rich)("document round trip", () => {
 
     // Replay every transaction into a Shell document and read the result: one
     // committed word at the caret, not a trail of candidates.
-    const { Editor } = await import("@dopejs/pingo/editor");
-    const editor = new Editor({
-      document: {
-        blocks: BLOCKS.map((block) => ({
-          key: block.key,
-          type: "paragraph" as const,
-          attributes: {},
-          text: block.text,
-          marks: [],
-        })),
-      },
-    });
+    const editor = shellDocument();
     const nodeToKey = new Map(harness.blockNodeIds().map((node, index) => [node, index + 1]));
     editor.applyEditStream(
       { transactions: harness.transactions, structure: [], selections: harness.selections },
@@ -441,18 +446,7 @@ describe.skipIf(!rich)("document round trip", () => {
       ),
     );
 
-    const { Editor } = await import("@dopejs/pingo/editor");
-    const editor = new Editor({
-      document: {
-        blocks: BLOCKS.map((block) => ({
-          key: block.key,
-          type: "paragraph" as const,
-          attributes: {},
-          text: block.text,
-          marks: [],
-        })),
-      },
-    });
+    const editor = shellDocument();
     const nodeToKey = new Map(harness.blockNodeIds().map((node, index) => [node, index + 1]));
     editor.applyEditStream(
       { transactions: harness.transactions, structure: [], selections: harness.selections },
@@ -461,6 +455,57 @@ describe.skipIf(!rich)("document round trip", () => {
     // Abandoning a candidate must restore the block, not leave the romanisation
     // sitting in the text.
     expect(editor.document.blocks[0]?.text).toBe(BLOCKS[0]!.text);
+  });
+
+  it("undoes a typing burst as one step, not one character", async () => {
+    const harness = await mount();
+    const nodeId = harness.documentNodeId();
+
+    harness.send([
+      {
+        type: "setDocumentSelection",
+        nodeId,
+        baseRevision: 0n,
+        selection: { kind: "text", anchorKey: 1, anchorOffset: 5, focusKey: 1, focusOffset: 5 },
+      },
+    ]);
+    await waitForSelection(harness, (selection) => selection.kind === "text");
+
+    for (const character of "typed") {
+      harness.send([{ type: "insert", nodeId, baseRevision: 0n, text: character }]);
+    }
+    await waitUntil(() => harness.transactions.length >= 5);
+
+    const editor = shellDocument();
+    const nodeToKey = new Map(harness.blockNodeIds().map((node, index) => [node, index + 1]));
+    editor.applyEditStream(
+      { transactions: harness.transactions, structure: [], selections: harness.selections },
+      nodeToKey,
+    );
+    expect(editor.document.blocks[0]?.text).toBe("firsttyped block");
+
+    // One undo takes the whole burst: every keystroke continued the one before
+    // it at the same caret, so they are one step rather than five.
+    const before = harness.transactions.length;
+    harness.send([{ type: "undo", nodeId, baseRevision: 0n }]);
+    await waitUntil(() => harness.transactions.length > before);
+
+    const after = shellDocument();
+    after.applyEditStream(
+      { transactions: harness.transactions, structure: [], selections: harness.selections },
+      nodeToKey,
+    );
+    expect(after.document.blocks[0]?.text).toBe(BLOCKS[0]!.text);
+
+    const undone = harness.transactions.length;
+    harness.send([{ type: "redo", nodeId, baseRevision: 0n }]);
+    await waitUntil(() => harness.transactions.length > undone);
+    const redone = shellDocument();
+    redone.applyEditStream(
+      { transactions: harness.transactions, structure: [], selections: harness.selections },
+      nodeToKey,
+    );
+    expect(redone.document.blocks[0]?.text).toBe("firsttyped block");
   });
 
   it("asks the Shell to split rather than splitting a document it does not own", async () => {

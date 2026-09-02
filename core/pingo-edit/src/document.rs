@@ -1,5 +1,9 @@
+use std::collections::VecDeque;
+
 use crate::{
-    Affinity, EditError, MarkRuns, OffsetBias, TextIndex, Utf16Range, word_boundary_utf16,
+    Affinity, EditError, MarkRuns, OffsetBias, TextIndex, Utf16Range,
+    session::{TextClass, text_class},
+    word_boundary_utf16,
 };
 
 /// A Shell-assigned block identity, stable for the block's lifetime.
@@ -282,7 +286,47 @@ pub struct Document {
     composition: Option<Composition>,
     /// Blocks the caret wanted to be in but the Shell has not sent yet.
     pending_materialization: Vec<BlockKey>,
+    undo: VecDeque<HistoryEntry>,
+    redo: VecDeque<HistoryEntry>,
+    undo_bytes: usize,
+    redo_bytes: usize,
+    /// Shape of the entry on top of `undo`, or `None` when the next edit has to
+    /// start a fresh group.
+    anchor: Option<UndoAnchor>,
+    /// The next `apply_edit` is replaying history and must not record itself.
+    replaying: bool,
 }
+
+/// One undoable step over the document.
+///
+/// Both directions are stored as replacements rather than as a diff to replay,
+/// because undo has to restore the marks the edit removed as well as the text,
+/// and a replacement already carries both.
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct HistoryEntry {
+    forward: Vec<BlockReplacement>,
+    inverse: Vec<BlockReplacement>,
+    before: DocumentSelection,
+    after: DocumentSelection,
+    retained_bytes: usize,
+    /// The edit also asked the Shell to change the block structure.
+    ///
+    /// Core cannot put back a block it never created, so undo stops here rather
+    /// than restoring text into a shape the document no longer has.
+    structural: bool,
+}
+
+/// Where the last entry left the caret, so the next edit can join it.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+struct UndoAnchor {
+    key: BlockKey,
+    /// Caret offset the next insertion has to start at to continue the burst.
+    offset: u32,
+    class: TextClass,
+}
+
+/// Retained bytes of document history, matching the session's budget.
+const UNDO_BUDGET_BYTES: usize = 1 << 20;
 
 /// Text an input method is still composing, inside one block.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -1192,6 +1236,197 @@ impl Document {
     ///
     /// Returns an offset error when a replacement leaves its block.
     pub fn apply_edit(&mut self, edit: &DocumentEdit) -> Result<(), EditError> {
+        if std::mem::take(&mut self.replaying) {
+            return self.apply_edit_inner(edit);
+        }
+        let entry = self.history_entry(edit)?;
+        self.apply_edit_inner(edit)?;
+        self.record(entry);
+        Ok(())
+    }
+
+    /// Builds the entry that would undo `edit`, read before anything moves.
+    fn history_entry(&self, edit: &DocumentEdit) -> Result<HistoryEntry, EditError> {
+        let mut inverse = Vec::with_capacity(edit.replacements.len());
+        let mut retained_bytes = 0;
+        for replacement in &edit.replacements {
+            let index = self
+                .index_of(replacement.key)
+                .ok_or(EditError::UnknownBlock)?;
+            let content = &self.blocks[index].content;
+            let range = content.index.normalize_range(replacement.range)?;
+            let start = content
+                .index
+                .utf16_to_utf8(range.start, OffsetBias::Backward)?;
+            let end = content
+                .index
+                .utf16_to_utf8(range.end, OffsetBias::Forward)?;
+            let removed = content.text[start..end].to_owned();
+            let inserted = u32::try_from(replacement.text.encode_utf16().count())
+                .map_err(|_| EditError::OffsetOverflow)?;
+            retained_bytes += removed.len() + replacement.text.len();
+            inverse.push(BlockReplacement {
+                key: replacement.key,
+                // The inverse covers what the forward edit wrote, which starts
+                // where it started and is as long as what it inserted.
+                range: Utf16Range {
+                    start: range.start,
+                    end: range.start + inserted,
+                },
+                text: removed,
+                marks: content.marks.slice(range)?,
+            });
+        }
+        Ok(HistoryEntry {
+            forward: edit.replacements.clone(),
+            inverse,
+            before: self.selection,
+            after: edit.selection,
+            retained_bytes,
+            structural: !edit.structure.is_empty(),
+        })
+    }
+
+    /// Pushes an entry, joining the burst above it when the caret lines up.
+    fn record(&mut self, entry: HistoryEntry) {
+        self.redo.clear();
+        self.redo_bytes = 0;
+        let next_anchor = self.anchor_for(&entry);
+        if !entry.structural
+            && let Some(anchor) = self.anchor
+            && next_anchor.is_some()
+            && self.merge_into_top(&entry, anchor)
+        {
+            self.anchor = next_anchor;
+            return;
+        }
+        self.undo_bytes += entry.retained_bytes;
+        self.undo.push_back(entry);
+        self.anchor = next_anchor;
+        while self.undo_bytes > UNDO_BUDGET_BYTES {
+            let Some(dropped) = self.undo.pop_front() else {
+                break;
+            };
+            self.undo_bytes = self.undo_bytes.saturating_sub(dropped.retained_bytes);
+        }
+    }
+
+    /// The anchor an entry leaves behind, or `None` when it cannot be joined.
+    fn anchor_for(&self, entry: &HistoryEntry) -> Option<UndoAnchor> {
+        if entry.structural || entry.forward.len() != 1 {
+            return None;
+        }
+        let replacement = entry.forward.first()?;
+        // Only a pure insertion continues a burst. A replacement removed
+        // something, and joining that to the typing before it would undo both
+        // at once.
+        if replacement.range.start != replacement.range.end {
+            return None;
+        }
+        let class = text_class(&replacement.text)?;
+        let inserted = u32::try_from(replacement.text.encode_utf16().count()).ok()?;
+        Some(UndoAnchor {
+            key: replacement.key,
+            offset: replacement.range.start + inserted,
+            class,
+        })
+    }
+
+    /// Extends the entry on top when this one continues it.
+    fn merge_into_top(&mut self, entry: &HistoryEntry, anchor: UndoAnchor) -> bool {
+        let Some(replacement) = entry.forward.first() else {
+            return false;
+        };
+        let Some(class) = text_class(&replacement.text) else {
+            return false;
+        };
+        if replacement.key != anchor.key
+            || replacement.range.start != anchor.offset
+            || class != anchor.class
+        {
+            return false;
+        }
+        let Some(top) = self.undo.back_mut() else {
+            return false;
+        };
+        let (Some(top_forward), Some(top_inverse)) =
+            (top.forward.first_mut(), top.inverse.first_mut())
+        else {
+            return false;
+        };
+        if top_forward.key != replacement.key {
+            return false;
+        }
+        top_forward.text.push_str(&replacement.text);
+        top_inverse.range.end += u32::try_from(replacement.text.encode_utf16().count())
+            .unwrap_or(u32::MAX)
+            .min(u32::MAX - top_inverse.range.end);
+        top.after = entry.after;
+        top.retained_bytes += entry.retained_bytes;
+        self.undo_bytes += entry.retained_bytes;
+        true
+    }
+
+    /// Reverses the last edit, returning what changed.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`EditError::UnknownBlock`] when a block the entry names is gone.
+    pub fn undo(&mut self) -> Result<Option<DocumentEdit>, EditError> {
+        let Some(entry) = self.undo.pop_back() else {
+            return Ok(None);
+        };
+        self.undo_bytes = self.undo_bytes.saturating_sub(entry.retained_bytes);
+        self.anchor = None;
+        let edit = DocumentEdit {
+            replacements: entry.inverse.clone(),
+            structure: Vec::new(),
+            selection: entry.before,
+        };
+        self.redo_bytes += entry.retained_bytes;
+        self.redo.push_back(entry);
+        // The caller applies it, so the map and the transactions are built the
+        // same way they are for any other edit. Replaying must not push the
+        // reversal onto the stack it just came from.
+        self.replaying = true;
+        Ok(Some(edit))
+    }
+
+    /// Reapplies the last undone edit.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`EditError::UnknownBlock`] when a block the entry names is gone.
+    pub fn redo(&mut self) -> Result<Option<DocumentEdit>, EditError> {
+        let Some(entry) = self.redo.pop_back() else {
+            return Ok(None);
+        };
+        self.redo_bytes = self.redo_bytes.saturating_sub(entry.retained_bytes);
+        self.anchor = None;
+        let edit = DocumentEdit {
+            replacements: entry.forward.clone(),
+            structure: Vec::new(),
+            selection: entry.after,
+        };
+        self.undo_bytes += entry.retained_bytes;
+        self.undo.push_back(entry);
+        self.replaying = true;
+        Ok(Some(edit))
+    }
+
+    /// Whether there is anything to undo or redo.
+    #[must_use]
+    pub fn can_undo(&self) -> bool {
+        !self.undo.is_empty()
+    }
+
+    /// Whether there is anything to redo.
+    #[must_use]
+    pub fn can_redo(&self) -> bool {
+        !self.redo.is_empty()
+    }
+
+    fn apply_edit_inner(&mut self, edit: &DocumentEdit) -> Result<(), EditError> {
         for replacement in &edit.replacements {
             let index = self
                 .index_of(replacement.key)
@@ -1365,6 +1600,114 @@ mod tests {
 
     fn document(blocks: Vec<BlockProjection>) -> Document {
         Document::new(blocks).expect("projection")
+    }
+
+    /// Runs undo or redo and applies what it hands back.
+    fn apply_reversal(
+        document: &mut Document,
+        step: fn(&mut Document) -> Result<Option<DocumentEdit>, EditError>,
+    ) {
+        let edit = step(document)
+            .expect("reversal")
+            .expect("something to reverse");
+        document.apply_edit(&edit).expect("apply");
+    }
+
+    /// Types `text` one grapheme at a time at the caret, as a burst would.
+    fn type_burst(document: &mut Document, text: &str) {
+        for character in text.chars() {
+            let edit = document
+                .plan_replace(character.to_string(), MarkRuns::uniform(1, 0, 0))
+                .expect("plan");
+            document.apply_edit(&edit).expect("apply");
+        }
+    }
+
+    #[test]
+    fn undo_takes_back_a_typing_burst_rather_than_one_character() {
+        let mut document = document(vec![text_block(1, "")]);
+        document
+            .set_selection(DocumentSelection::Text {
+                anchor: DocumentPosition::new(1, 0),
+                focus: DocumentPosition::new(1, 0),
+            })
+            .expect("caret");
+        type_burst(&mut document, "hello");
+        assert_eq!(document.blocks()[0].text(), "hello");
+
+        // One undo, not five: the whole burst is one step because every
+        // keystroke continued the one before it at the same caret.
+        apply_reversal(&mut document, Document::undo);
+        assert_eq!(document.blocks()[0].text(), "");
+        assert!(!document.can_undo());
+        apply_reversal(&mut document, Document::redo);
+        assert_eq!(document.blocks()[0].text(), "hello");
+    }
+
+    #[test]
+    fn a_word_boundary_ends_the_burst_so_undo_stops_at_it() {
+        let mut document = document(vec![text_block(1, "")]);
+        document
+            .set_selection(DocumentSelection::Text {
+                anchor: DocumentPosition::new(1, 0),
+                focus: DocumentPosition::new(1, 0),
+            })
+            .expect("caret");
+        type_burst(&mut document, "one two");
+
+        // The space is a different class, so it opened a group: undo takes back
+        // "two", then the space, then "one".
+        apply_reversal(&mut document, Document::undo);
+        assert_eq!(document.blocks()[0].text(), "one ");
+        apply_reversal(&mut document, Document::undo);
+        assert_eq!(document.blocks()[0].text(), "one");
+        apply_reversal(&mut document, Document::undo);
+        assert_eq!(document.blocks()[0].text(), "");
+    }
+
+    #[test]
+    fn undo_restores_the_marks_the_edit_removed() {
+        let mut document = document(vec![BlockProjection::text(
+            1,
+            "abcdef",
+            Some(MarkRuns::uniform(6, 7, 0)),
+        )]);
+        document
+            .set_selection(DocumentSelection::Text {
+                anchor: DocumentPosition::new(1, 2),
+                focus: DocumentPosition::new(1, 5),
+            })
+            .expect("selection");
+        let edit = document
+            .plan_replace("X".to_owned(), MarkRuns::uniform(1, 0, 0))
+            .expect("plan");
+        document.apply_edit(&edit).expect("apply");
+        assert_eq!(document.blocks()[0].text(), "abXf");
+
+        // Undo puts back the text and the styling it was wearing; restoring one
+        // without the other would leave the block looking like a different edit.
+        apply_reversal(&mut document, Document::undo);
+        assert_eq!(document.blocks()[0].text(), "abcdef");
+        assert_eq!(document.blocks()[0].marks(), &MarkRuns::uniform(6, 7, 0));
+    }
+
+    #[test]
+    fn a_new_edit_after_undo_drops_what_was_undone() {
+        let mut document = document(vec![text_block(1, "")]);
+        document
+            .set_selection(DocumentSelection::Text {
+                anchor: DocumentPosition::new(1, 0),
+                focus: DocumentPosition::new(1, 0),
+            })
+            .expect("caret");
+        type_burst(&mut document, "abc");
+        apply_reversal(&mut document, Document::undo);
+        assert!(document.can_redo());
+        type_burst(&mut document, "z");
+        // The redone future is gone: it described a document that no longer
+        // exists.
+        assert!(!document.can_redo());
+        assert_eq!(document.blocks()[0].text(), "z");
     }
 
     #[test]

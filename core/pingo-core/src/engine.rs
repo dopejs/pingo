@@ -2977,7 +2977,9 @@ fn is_document_command(
         | InputCommand::Insert { node_id, .. }
         | InputCommand::DeleteBackward { node_id, .. }
         | InputCommand::DeleteForward { node_id, .. }
-        | InputCommand::MoveCaret { node_id, .. } => {
+        | InputCommand::MoveCaret { node_id, .. }
+        | InputCommand::Undo { node_id, .. }
+        | InputCommand::Redo { node_id, .. } => {
             NodeId::from_raw(*node_id).is_ok_and(|node| documents.is_root(node))
         }
         _ => false,
