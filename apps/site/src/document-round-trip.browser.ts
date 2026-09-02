@@ -621,6 +621,25 @@ describe.skipIf(!rich)("document round trip", () => {
     expect(harness.hostErrors.map((error) => error.message)).toEqual([]);
   });
 
+  it("activates the native input surface over a document without failing the frame", async () => {
+    const harness = await mount();
+    const nodeId = harness.documentNodeId();
+
+    // What the editor component does when the caret lands somewhere: hand the
+    // OS surface the focused block. The document root is a container with no
+    // editing session, so anything that treats it as an editable rejects the
+    // whole input batch and takes the frame down with it.
+    harness.root.focusDocument(nodeId, {
+      text: BLOCKS[0]!.text,
+      anchor: 0,
+      focus: 0,
+      revision: 1n,
+    });
+    await waitUntil(() => harness.hostErrors.length > 0, 400);
+    expect(harness.hostErrors.map((error) => error.message)).toEqual([]);
+    expect(harness.root.failed).toBe(false);
+  });
+
   it("asks the Shell to split rather than splitting a document it does not own", async () => {
     const harness = await mount();
     const nodeId = harness.documentNodeId();

@@ -36,11 +36,6 @@ export interface PlaygroundMessages {
   readonly selectedSpan: string;
   readonly styledSpans: string;
   readonly markRanges: string;
-  readonly spanEarlier: string;
-  readonly spanLater: string;
-  readonly spanWider: string;
-  readonly spanNarrower: string;
-  readonly nextBlock: string;
   readonly markLabel: (mark: string) => string;
   readonly eventsTitle: string;
   readonly eventsDescription: string;
@@ -94,16 +89,11 @@ const MESSAGES: Record<string, PlaygroundMessages> = {
     editingHint: "先点一下输入框获取焦点，再输入或用输入法。",
     richTextTitle: "富文本：模型、命令与渲染",
     richTextDescription:
-      "Shell 拥有文档树、schema 与命令，Core 拥有位置空间、styled runs 与 shaping。按钮改的是文档模型上的 marks；渲染时它被摊成一张覆盖整段的 run 表交给 Core，同一段文字里没被命名的部分不受影响。下方的 Markdown 由同一份模型序列化而来。",
-    richTextHint: "先用上排按钮移动或缩放选中区间，再按下排的标记按钮。",
+      "在 canvas 上打字。点击定位光标,方向键跨块,输入法组合、撤销与选区都在 Core 里;选中文字浮出工具栏,「/」唤出块类型菜单,拖左侧手柄重排。下方 Markdown 由同一份文档序列化而来。",
+    richTextHint: "点进文档开始输入。选中一段文字看工具栏,行首打「/」看菜单,拖左侧手柄换块的顺序。",
     selectedSpan: "选中区间",
     styledSpans: "run 表跨度",
     markRanges: "mark 区间",
-    spanEarlier: "← 左移",
-    spanLater: "右移 →",
-    spanWider: "加宽",
-    spanNarrower: "收窄",
-    nextBlock: "下一块",
     markLabel: (mark) =>
       (
         ({
@@ -167,16 +157,12 @@ const MESSAGES: Record<string, PlaygroundMessages> = {
     editingHint: "先點一下輸入框取得焦點，再輸入或用輸入法。",
     richTextTitle: "富文本：模型、命令與繪製",
     richTextDescription:
-      "Shell 擁有文件樹、schema 與命令，Core 擁有位置空間、styled runs 與 shaping。按鈕改的是文件模型上的 marks；繪製時它被攤成一張覆蓋整段的 run 表交給 Core，同一段文字裡沒被命名的部分不受影響。下方的 Markdown 由同一份模型序列化而來。",
-    richTextHint: "先用上排按鈕移動或縮放選取區間，再按下排的標記按鈕。",
+      "在 canvas 上打字。點擊定位游標,方向鍵跨區塊,輸入法組合、復原與選取範圍都在 Core 裡;選取文字浮出工具列,「/」喚出區塊類型選單,拖左側控制點重新排序。下方 Markdown 由同一份文件序列化而來。",
+    richTextHint:
+      "點進文件開始輸入。選取一段文字看工具列,行首打「/」看選單,拖左側控制點換區塊順序。",
     selectedSpan: "選取區間",
     styledSpans: "run 表跨度",
     markRanges: "mark 區間",
-    spanEarlier: "← 左移",
-    spanLater: "右移 →",
-    spanWider: "加寬",
-    spanNarrower: "收窄",
-    nextBlock: "下一塊",
     markLabel: (mark) =>
       (
         ({
@@ -240,16 +226,12 @@ const MESSAGES: Record<string, PlaygroundMessages> = {
     editingHint: "まず入力欄をクリックしてフォーカスし、それから入力または IME を使ってください。",
     richTextTitle: "リッチテキスト：モデル、コマンド、描画",
     richTextDescription:
-      "Shell が文書ツリー・スキーマ・コマンドを持ち、Core が位置空間・styled runs・シェーピングを持ちます。ボタンが変えるのは文書モデル上の marks です。描画時にはそれが段落全体を覆う run テーブルへ展開されて Core に渡るため、名前を付けられなかった部分は影響を受けません。下の Markdown は同じモデルから直列化したものです。",
-    richTextHint: "まず上段のボタンで範囲を移動・伸縮し、次に下段のマークボタンを押してください。",
+      "canvas 上で入力できます。クリックでキャレットを置き、矢印キーはブロックを越え、IME の変換・取り消し・選択はすべて Core が持ちます。選択するとツールバーが浮かび、「/」でブロック種別メニュー、左のハンドルで並べ替え。下の Markdown は同じ文書を直列化したものです。",
+    richTextHint:
+      "文書をクリックして入力を始めてください。文字を選ぶとツールバー、行頭の「/」でメニュー、左のハンドルで並べ替えです。",
     selectedSpan: "選択範囲",
     styledSpans: "run の数",
     markRanges: "mark の数",
-    spanEarlier: "← 前へ",
-    spanLater: "後ろへ →",
-    spanWider: "広げる",
-    spanNarrower: "狭める",
-    nextBlock: "次のブロック",
     markLabel: (mark) =>
       (
         ({
@@ -315,16 +297,12 @@ const MESSAGES: Record<string, PlaygroundMessages> = {
     editingHint: "먼저 입력란을 눌러 포커스한 다음 입력하거나 입력기를 사용하세요.",
     richTextTitle: "리치 텍스트: 모델, 명령, 렌더링",
     richTextDescription:
-      "Shell이 문서 트리와 스키마와 명령을, Core가 위치 공간과 styled runs와 셰이핑을 가집니다. 버튼이 바꾸는 것은 문서 모델의 marks이며, 렌더링할 때 그것이 단락 전체를 덮는 run 표로 펼쳐져 Core에 전달되므로 지정되지 않은 부분은 영향을 받지 않습니다. 아래 Markdown은 같은 모델에서 직렬화한 것입니다.",
-    richTextHint: "먼저 위쪽 버튼으로 구간을 옮기거나 늘린 뒤 아래쪽 마크 버튼을 누르세요.",
+      "canvas 위에서 입력합니다. 클릭으로 캐럿을 놓고, 화살표는 블록을 넘나들며, 입력기 조합과 실행 취소와 선택은 모두 Core에 있습니다. 문자를 선택하면 툴바가 뜨고, 「/」로 블록 종류 메뉴가 열리며, 왼쪽 핸들로 순서를 바꿉니다. 아래 Markdown은 같은 문서를 직렬화한 것입니다.",
+    richTextHint:
+      "문서를 클릭해 입력을 시작하세요. 문자를 선택하면 툴바가, 줄 앞에서 「/」를 누르면 메뉴가 나옵니다.",
     selectedSpan: "선택 구간",
     styledSpans: "run 개수",
     markRanges: "mark 개수",
-    spanEarlier: "← 앞으로",
-    spanLater: "뒤로 →",
-    spanWider: "넓히기",
-    spanNarrower: "좁히기",
-    nextBlock: "다음 블록",
     markLabel: (mark) =>
       (
         ({
@@ -390,16 +368,12 @@ const MESSAGES: Record<string, PlaygroundMessages> = {
     editingHint: "Haz clic en el campo para enfocarlo y luego escribe o usa el IME.",
     richTextTitle: "Texto enriquecido: modelo, comandos y renderizado",
     richTextDescription:
-      "El Shell posee el árbol del documento, el esquema y los comandos; el Core posee el espacio de posiciones, los tramos con estilo y el shaping. Los botones cambian las marcas del modelo; al renderizar se despliegan en una tabla de tramos que cubre todo el párrafo, de modo que lo que no se nombró no cambia. El Markdown de abajo se serializa desde ese mismo modelo.",
-    richTextHint: "Mueve o ajusta el tramo con los botones de arriba y luego pulsa una marca.",
+      "Escribe en el canvas. El clic coloca el cursor, las flechas cruzan bloques, y la composición del IME, el deshacer y la selección viven en el Core. Seleccionar texto muestra una barra flotante, «/» abre el menú de tipos de bloque y el asa de la izquierda reordena. El Markdown de abajo es el mismo documento serializado.",
+    richTextHint:
+      "Haz clic en el documento para escribir. Selecciona texto para la barra, escribe «/» al principio de una línea para el menú.",
     selectedSpan: "Tramo seleccionado",
     styledSpans: "Tramos con estilo",
     markRanges: "Rangos de marca",
-    spanEarlier: "← Antes",
-    spanLater: "Después →",
-    spanWider: "Ampliar",
-    spanNarrower: "Reducir",
-    nextBlock: "Siguiente bloque",
     markLabel: (mark) =>
       (
         ({
@@ -467,17 +441,12 @@ const MESSAGES: Record<string, PlaygroundMessages> = {
       "Cliquez d'abord dans le champ pour le focaliser, puis saisissez ou utilisez l'IME.",
     richTextTitle: "Texte enrichi : modèle, commandes et rendu",
     richTextDescription:
-      "Le Shell possède l'arbre du document, le schéma et les commandes ; le Core possède l'espace de positions, les segments stylés et le shaping. Les boutons modifient les marques du modèle ; au rendu elles sont étalées en une table de segments couvrant tout le paragraphe, si bien que ce qui n'a pas été nommé ne change pas. Le Markdown ci-dessous est sérialisé depuis ce même modèle.",
+      "Tapez dans le canvas. Le clic place le curseur, les flèches franchissent les blocs, et la composition IME, l'annulation et la sélection vivent dans le Core. Sélectionner du texte fait apparaître une barre flottante, « / » ouvre le menu des types de bloc, et la poignée de gauche réordonne. Le Markdown ci-dessous est le même document sérialisé.",
     richTextHint:
       "Déplacez ou redimensionnez la plage avec les boutons du haut, puis appliquez une marque.",
     selectedSpan: "Plage sélectionnée",
     styledSpans: "Segments stylés",
     markRanges: "Plages de marque",
-    spanEarlier: "← Avant",
-    spanLater: "Après →",
-    spanWider: "Élargir",
-    spanNarrower: "Réduire",
-    nextBlock: "Bloc suivant",
     markLabel: (mark) =>
       (
         ({
@@ -545,17 +514,12 @@ const MESSAGES: Record<string, PlaygroundMessages> = {
       "Klicken Sie zuerst in das Feld, um es zu fokussieren, und tippen Sie dann oder nutzen Sie die Eingabemethode.",
     richTextTitle: "Rich Text: Modell, Befehle und Rendering",
     richTextDescription:
-      "Die Shell besitzt Dokumentbaum, Schema und Befehle, der Core den Positionsraum, die gestylten Abschnitte und das Shaping. Die Schaltflächen ändern die Marken des Modells; beim Rendern werden sie zu einer Abschnittstabelle über den ganzen Absatz ausgebreitet, sodass das Ungenannte unverändert bleibt. Das Markdown unten wird aus demselben Modell serialisiert.",
+      "Tippen Sie im Canvas. Ein Klick setzt die Einfügemarke, Pfeiltasten überschreiten Blockgrenzen, und IME-Komposition, Rückgängig und Auswahl liegen im Core. Eine Auswahl blendet eine schwebende Leiste ein, „/“ öffnet das Blocktyp-Menü, und der Griff links sortiert um. Das Markdown unten ist dasselbe Dokument, serialisiert.",
     richTextHint:
       "Verschieben oder ändern Sie den Bereich mit den oberen Schaltflächen, dann setzen Sie eine Marke.",
     selectedSpan: "Ausgewählter Bereich",
     styledSpans: "Gestylte Abschnitte",
     markRanges: "Markenbereiche",
-    spanEarlier: "← Zurück",
-    spanLater: "Vor →",
-    spanWider: "Erweitern",
-    spanNarrower: "Verengen",
-    nextBlock: "Nächster Block",
     markLabel: (mark) =>
       (
         ({
@@ -623,16 +587,12 @@ const MESSAGES: Record<string, PlaygroundMessages> = {
       "Сначала щёлкните по полю, чтобы установить фокус, затем печатайте или используйте IME.",
     richTextTitle: "Форматированный текст: модель, команды и отрисовка",
     richTextDescription:
-      "Shell владеет деревом документа, схемой и командами, Core — пространством позиций, стилевыми отрезками и шейпингом. Кнопки меняют пометки в модели; при отрисовке они разворачиваются в таблицу отрезков, покрывающую весь абзац, поэтому неназванное не меняется. Markdown ниже сериализован из той же модели.",
-    richTextHint: "Сдвиньте или измените диапазон верхними кнопками, затем примените пометку.",
+      "Печатайте прямо в canvas. Щелчок ставит курсор, стрелки пересекают блоки, а ввод через IME, отмена и выделение живут в Core. Выделение показывает плавающую панель, «/» открывает меню типов блока, а ручка слева меняет порядок. Markdown ниже — тот же документ, сериализованный.",
+    richTextHint:
+      "Щёлкните по документу и начните печатать. Выделите текст для панели, наберите «/» в начале строки для меню.",
     selectedSpan: "Выбранный диапазон",
     styledSpans: "Стилевые отрезки",
     markRanges: "Диапазоны пометок",
-    spanEarlier: "← Назад",
-    spanLater: "Вперёд →",
-    spanWider: "Расширить",
-    spanNarrower: "Сузить",
-    nextBlock: "Следующий блок",
     markLabel: (mark) =>
       (
         ({
@@ -699,16 +659,12 @@ const MESSAGES: Record<string, PlaygroundMessages> = {
     editingHint: "انقر الحقل أوّلًا لتفعيل التركيز، ثمّ اكتب أو استخدم طريقة الإدخال.",
     richTextTitle: "النص المنسق: النموذج والأوامر والعرض",
     richTextDescription:
-      "تملك الطبقة Shell شجرة المستند والمخطط والأوامر، ويملك Core فضاء المواضع والمقاطع المنسقة والتشكيل. تغيّر الأزرار علامات النموذج، وعند العرض تُبسط إلى جدول مقاطع يغطي الفقرة كاملة، فلا يتأثر ما لم يُسمَّ. أما Markdown في الأسفل فمُسلسَل من النموذج نفسه.",
-    richTextHint: "حرّك المدى أو غيّر حجمه بالأزرار العلوية، ثم طبّق علامة.",
+      "اكتب داخل canvas مباشرة. النقر يضع المؤشر، والأسهم تعبر الكتل، وتركيب مدخل النص والتراجع والتحديد كلها في Core. تحديد النص يُظهر شريطًا عائمًا، و«/» يفتح قائمة أنواع الكتل، والمقبض على اليسار يعيد الترتيب. أما Markdown في الأسفل فهو المستند نفسه مُسلسَلًا.",
+    richTextHint:
+      "انقر داخل المستند وابدأ الكتابة. حدّد نصًا لإظهار الشريط، واكتب «/» في بداية السطر لفتح القائمة.",
     selectedSpan: "المدى المحدد",
     styledSpans: "المقاطع المنسقة",
     markRanges: "مديات العلامات",
-    spanEarlier: "← للخلف",
-    spanLater: "للأمام →",
-    spanWider: "توسيع",
-    spanNarrower: "تضييق",
-    nextBlock: "الكتلة التالية",
     markLabel: (mark) =>
       (
         ({ bold: "عريض", code: "شفرة", italic: "مائل", link: "رابط", strike: "مشطوب" }) as Record<
@@ -770,16 +726,11 @@ const MESSAGES: Record<string, PlaygroundMessages> = {
     editingHint: "לחץ תחילה על השדה כדי למקד אותו, ואז הקלד או השתמש בשיטת הקלט.",
     richTextTitle: "טקסט עשיר: מודל, פקודות ורינדור",
     richTextDescription:
-      "ה-Shell מחזיק בעץ המסמך, בסכימה ובפקודות, וה-Core מחזיק במרחב המיקומים, במקטעים המעוצבים ובעיצוב הגופן. הכפתורים משנים את הסימונים במודל, ובעת הרינדור הם נפרשים לטבלת מקטעים שמכסה את כל הפסקה, כך שמה שלא צוין אינו משתנה. ה-Markdown שלמטה עובר סריאליזציה מאותו מודל.",
-    richTextHint: "הזיזו או שנו את הטווח בכפתורים העליונים, ואז החילו סימון.",
+      "הקלידו ישירות ב-canvas. לחיצה ממקמת את הסמן, מקשי החיצים חוצים בלוקים, והקלט מהמעבד, הביטול והבחירה כולם ב-Core. בחירת טקסט מציגה סרגל צף, «/» פותח תפריט סוגי בלוק, והידית משמאל משנה סדר. ה-Markdown שלמטה הוא אותו מסמך, מסודר לטקסט.",
+    richTextHint: "לחצו על המסמך והתחילו להקליד. בחרו טקסט לסרגל, הקלידו «/» בתחילת שורה לתפריט.",
     selectedSpan: "הטווח הנבחר",
     styledSpans: "מקטעים מעוצבים",
     markRanges: "טווחי סימון",
-    spanEarlier: "← אחורה",
-    spanLater: "קדימה →",
-    spanWider: "הרחבה",
-    spanNarrower: "צמצום",
-    nextBlock: "הבלוק הבא",
     markLabel: (mark) =>
       (
         ({

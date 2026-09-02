@@ -382,6 +382,16 @@ impl DocumentController {
                 Planned::Split(root) => return self.plan_split(root),
                 Planned::Nothing => return Ok(Vec::new()),
             },
+            // Focus over a document is the surface's, not a session's: the
+            // caret already lives in the document, so there is nothing to
+            // move -- but the command must be accepted rather than rejected.
+            InputCommand::FocusEditable { node_id } => {
+                let root = NodeId::from_raw(*node_id)?;
+                if !self.documents.contains_key(&root) {
+                    return Err(CoreError::InvalidEditableTarget { node: root });
+                }
+                return Ok(Vec::new());
+            }
             // Undo is Core's, over the whole document rather than per block:
             // one flat position space means one history, so a burst that
             // crossed a block boundary comes back as one step.

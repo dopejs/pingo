@@ -2986,7 +2986,11 @@ fn is_document_command(
         | InputCommand::DeleteForward { node_id, .. }
         | InputCommand::MoveCaret { node_id, .. }
         | InputCommand::Undo { node_id, .. }
-        | InputCommand::Redo { node_id, .. } => {
+        | InputCommand::Redo { node_id, .. }
+        // The host activates its input surface over the document root, which
+        // is a container with no editing session. Treating that as a missing
+        // editable rejects the whole batch and takes the frame down.
+        | InputCommand::FocusEditable { node_id, .. } => {
             NodeId::from_raw(*node_id).is_ok_and(|node| documents.is_root(node))
         }
         _ => false,
