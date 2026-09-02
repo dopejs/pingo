@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "@dopejs/pingo-editing": "workspace:*",
+    "@dopejs/pingo-jsx": "workspace:*",
     "@dopejs/pingo-reconciler": "workspace:*"
   }
 }

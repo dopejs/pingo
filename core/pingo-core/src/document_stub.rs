@@ -48,6 +48,10 @@ impl DocumentController {
         false
     }
 
+    pub(crate) const fn focus_visual(&self) -> Option<(NodeId, [u32; 2])> {
+        None
+    }
+
     pub(crate) const fn is_root(&self, _node: NodeId) -> bool {
         false
     }

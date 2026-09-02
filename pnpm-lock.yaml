@@ -138,6 +138,9 @@ importers:
       '@dopejs/pingo-editing':
         specifier: workspace:*
         version: link:../editing
+      '@dopejs/pingo-jsx':
+        specifier: workspace:*
+        version: link:../jsx
       '@dopejs/pingo-reconciler':
         specifier: workspace:*
         version: link:../reconciler

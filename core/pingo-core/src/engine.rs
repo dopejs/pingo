@@ -2630,25 +2630,32 @@ impl CoreEngine {
     /// Returns the latest active editor, selection, and requested character geometry.
     #[must_use]
     pub fn editing_geometry(&self) -> Vec<u32> {
-        let Some(visual) = self.editing.active_visual() else {
+        // A document has no editing session, so its focused block stands in:
+        // the caret geometry an input method and a selection toolbar need is
+        // the same question either way, asked of whichever node holds the
+        // caret.
+        let (node, selection_span) = match self.editing.active_visual() {
+            Some(visual) => (visual.node, visual.selection),
+            None => match self.documents.focus_visual() {
+                Some(found) => found,
+                None => return empty_editing_geometry(),
+            },
+        };
+        let Some(geometry) = self.hit.geometry(node) else {
             return empty_editing_geometry();
         };
-        let Some(geometry) = self.hit.geometry(visual.node) else {
-            return empty_editing_geometry();
-        };
-        let Some(carets) = self.text.editor_caret_stops(
-            &self.scene,
-            visual.node,
-            self.node_box_width(visual.node),
-        ) else {
+        let Some(carets) =
+            self.text
+                .editor_caret_stops(&self.scene, node, self.node_box_width(node))
+        else {
             return empty_editing_geometry();
         };
         let selection = [
-            visual.selection[0].min(visual.selection[1]),
-            visual.selection[0].max(visual.selection[1]),
+            selection_span[0].min(selection_span[1]),
+            selection_span[0].max(selection_span[1]),
         ];
         let control = geometry.aabb;
-        let scroll = self.editing.scroll_offset(visual.node);
+        let scroll = self.editing.scroll_offset(node);
         let selection_rect =
             editor_range_rect(&carets, selection, geometry, scroll).unwrap_or(WorldRect {
                 left: control.left,
@@ -2658,7 +2665,7 @@ impl CoreEngine {
             });
         let requested = self
             .requested_character_range
-            .filter(|(node, _)| *node == visual.node)
+            .filter(|(candidate, _)| *candidate == node)
             .map_or([0, 0], |(_, range)| range);
         let characters = editor_character_rects(&carets, requested, geometry, scroll);
         let capacity = EDITING_GEOMETRY_HEADER_WORDS
@@ -2671,7 +2678,7 @@ impl CoreEngine {
         let mut words = Vec::with_capacity(capacity);
         words.extend_from_slice(&[
             EDITING_GEOMETRY_VERSION,
-            visual.node.raw(),
+            node.raw(),
             selection[0],
             selection[1],
             u32::try_from(characters.len()).unwrap_or(u32::MAX),

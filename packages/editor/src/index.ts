@@ -1,4 +1,10 @@
 export {
+  DocumentEditorController,
+  type DocumentEditorHost,
+  type DocumentEditorProps,
+  type MarkStyles,
+} from "./component";
+export {
   BlockKeyAllocator,
   liftListItem,
   markIsActive,

@@ -48,4 +48,8 @@ export {
   type MarkRange,
   type RuleContext,
   type RuleOutcome,
+  DocumentEditorController,
+  type DocumentEditorHost,
+  type DocumentEditorProps,
+  type MarkStyles,
 } from "@dopejs/pingo-editor";

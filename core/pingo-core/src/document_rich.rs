@@ -224,6 +224,32 @@ impl DocumentController {
             .any(|active| active.nodes.values().any(|owned| *owned == node))
     }
 
+    /// The block the caret is in and its selection span inside that block.
+    ///
+    /// The focus edge, not the anchor: a selection that crosses blocks is
+    /// reported against the block the caret is actually in, which is where an
+    /// input method's candidate window and a selection toolbar belong.
+    pub(crate) fn focus_visual(&self) -> Option<(NodeId, [u32; 2])> {
+        for active in self.documents.values() {
+            let DocumentSelection::Text { anchor, focus } = active.document.selection() else {
+                continue;
+            };
+            let node = active.nodes.get(&focus.key).copied()?;
+            let span = if anchor.key == focus.key {
+                [
+                    anchor.offset.min(focus.offset),
+                    anchor.offset.max(focus.offset),
+                ]
+            } else {
+                // The other edge is in another block, so this block contributes
+                // from its own edge to the caret.
+                [focus.offset, focus.offset]
+            };
+            return Some((node, span));
+        }
+        None
+    }
+
     /// Whether this node is a document root Core is holding.
     pub(crate) fn is_root(&self, node: NodeId) -> bool {
         self.documents.contains_key(&node)
