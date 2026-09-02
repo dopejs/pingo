@@ -982,6 +982,40 @@ describe("createHostedCanvasRoot", () => {
     await root.close();
   });
 
+  it("activates native text services over a document with the caret's block", async () => {
+    installCanvasGlobal();
+    const canvas = new FakeCanvas();
+    const core = fakeCore();
+    core.editing_geometry = () => editingGeometry(0x0010_0001);
+    const root = await createHostedCanvasRoot(canvas as unknown as HTMLCanvasElement, {
+      capabilities: allCapabilities(),
+      coreFactory: () => Promise.resolve(core),
+      transport: { pageWorkerEnabled: false },
+    });
+    root.render(editableElement());
+    const node = decodeMutationBatch(core.commits.at(-1) ?? new Uint8Array()).mutations.find(
+      (mutation) => mutation.type === "configureEditable",
+    )?.nodeId;
+    expect(node).toBeDefined();
+
+    root.focusDocument(node ?? 0, {
+      text: "second block",
+      anchor: 6,
+      focus: 6,
+      revision: 3n,
+    });
+
+    // The surface is addressed to the document root, not to the block: the
+    // commands it produces come back there, where the Core resolves them
+    // against its own caret rather than against these offsets.
+    const focused = core.inputs
+      .flatMap((bytes) => decodeInputBatch(bytes).commands)
+      .filter((command) => command.type === "focusEditable");
+    expect(focused).toHaveLength(1);
+    expect(focused[0]).toMatchObject({ nodeId: node });
+    await root.close();
+  });
+
   it("falls back before canvas transfer when Worker preparation fails", async () => {
     installCanvasGlobal();
     const canvas = new FakeCanvas();

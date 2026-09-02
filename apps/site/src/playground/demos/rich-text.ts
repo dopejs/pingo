@@ -7,6 +7,7 @@ import {
   type DocumentSelectionReport,
   type EditTransaction,
   type InputCommand,
+  type DocumentFocus,
   type PingoEvent,
   type PingoFont,
   type StructureRequest,
@@ -79,6 +80,7 @@ interface Session {
   /** Scene node per block key, so returning transactions find their block. */
   readonly nodeToKey: Map<number, number>;
   redraw: (() => void) | undefined;
+  refocus: (() => void) | undefined;
   dispatch: ((commands: readonly InputCommand[]) => void) | undefined;
 }
 
@@ -90,8 +92,32 @@ function freshSession(): Session {
     documentNodeId: 0,
     nodeToKey: new Map(),
     redraw: undefined,
+    refocus: undefined,
     dispatch: undefined,
   };
+}
+
+/**
+ * Hands the OS input surface the block the caret is in.
+ *
+ * A document has no single value, so the surface gets the focused block. The
+ * commands it produces come back addressed to the document root, where the
+ * Core resolves them against its own caret.
+ */
+function refocusNativeInput(root: {
+  focusDocument: (target: number, block: DocumentFocus) => void;
+}): void {
+  const selection = session.editor.selection;
+  if (selection?.kind !== "text" || session.documentNodeId === 0) return;
+  const block = session.editor.document.blocks.find((entry) => entry.key === selection.focusKey);
+  if (block === undefined) return;
+  root.focusDocument(session.documentNodeId, {
+    text: block.text,
+    anchor:
+      selection.anchorKey === selection.focusKey ? selection.anchorOffset : selection.focusOffset,
+    focus: selection.focusOffset,
+    revision: 1n,
+  });
 }
 
 /** Feeds one piece of Core's reverse channel into the Shell's document. */
@@ -109,6 +135,7 @@ function consume(part: {
     session.nodeToKey,
   );
   session.redraw?.();
+  session.refocus?.();
 }
 
 /** Turns a block's marks into the run table for its text node. */
@@ -277,6 +304,9 @@ export const richTextDemo: Demo = {
       context.root.render(scene(context));
     };
     session.redraw = refresh;
+    session.refocus = () => {
+      refocusNativeInput(context.root);
+    };
 
     for (const mark of OFFERED) {
       const element = document.createElement("button");
@@ -324,6 +354,10 @@ export const richTextDemo: Demo = {
       ]);
     };
 
+    // Arrows, Backspace, Delete and Enter only. Text and composition come from
+    // the engine's own input surface, which is what makes an input method work
+    // at all -- a keydown handler sees a committed character, never a
+    // candidate.
     const onKeyDown = (event: KeyboardEvent): void => {
       if (event.metaKey || event.ctrlKey || event.altKey) return;
       switch (event.key) {
@@ -342,21 +376,11 @@ export const richTextDemo: Demo = {
           move(direction, "grapheme", event.shiftKey);
           break;
         }
-        case "Backspace":
-          edit("deleteBackward");
-          break;
-        case "Delete":
-          edit("deleteForward");
-          break;
         case "Enter":
           edit("split");
           break;
         default:
-          // Everything the OS reports as a single character is text. Modifier
-          // chords returned above, so this cannot swallow a shortcut.
-          if ([...event.key].length !== 1) return;
-          edit("insert", event.key);
-          break;
+          return;
       }
       event.preventDefault();
     };

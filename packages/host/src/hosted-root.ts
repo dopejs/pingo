@@ -109,6 +109,22 @@ const MAXIMUM_FRAME_MS = 34;
 /** Generation-bearing scroll target accepted from a JSX ref or raw host handle. */
 export type ScrollTarget = number | { readonly nodeId: number };
 
+/**
+ * The block a document's native input surface is activated over.
+ *
+ * Offsets are inside that block, because that is the value the surface holds.
+ */
+export interface DocumentFocus {
+  /** The focused block's text. */
+  readonly text: string;
+  /** Selection anchor inside the block, in UTF-16 offsets. */
+  readonly anchor: number;
+  /** Selection focus inside the block, in UTF-16 offsets. */
+  readonly focus: number;
+  /** The Shell revision this value belongs to. */
+  readonly revision: bigint;
+}
+
 export interface HostedCanvasRootOptions extends RootOptions {
   readonly capabilities?: HostCapabilities;
   readonly capabilityEnvironment?: CapabilityEnvironment;
@@ -203,6 +219,8 @@ export interface HostedCanvasRoot extends PingoRoot {
   cancelScroll(target: ScrollTarget): void;
   setScrollVelocity(target: ScrollTarget, velocityX: number, velocityY: number): void;
   focusEditable(target: ScrollTarget): void;
+  /** Activates native text services over a document, for one focused block. */
+  focusDocument(target: ScrollTarget, block: DocumentFocus): void;
   blurEditable(): void;
   updateEditingGeometry(geometry: EditingGeometry): void;
   inputTransportMetrics(): HostInputTransportMetrics;
@@ -479,6 +497,34 @@ class HostedCanvasRootController implements HostedCanvasRoot {
     this.sendInputCommands([{ type: "focusNode", eventId, nodeId, origin }]);
     this.sendInputCommands([{ type: "focusEditable", nodeId }]);
     this.#inputBridge.activate(state);
+  }
+
+  /**
+   * Activates native text services over a document, for one focused block.
+   *
+   * The OS surface needs a value and a caret, and a document has no single
+   * value. It gets the block the caret is in: that is the context an input
+   * method needs to place its candidate window and to know what surrounds the
+   * composition, and the Core is what tells the Shell which block that is.
+   * Commands come back addressed to the document root, where the Core resolves
+   * them against its own caret rather than against these offsets.
+   */
+  public focusDocument(target: ScrollTarget, block: DocumentFocus): void {
+    const nodeId = scrollNodeId(target);
+    const eventId = this.#eventSequence;
+    this.#eventSequence = nextSequence(eventId);
+    this.sendInputCommands([{ type: "focusNode", eventId, nodeId, origin: "programmatic" }]);
+    this.sendInputCommands([{ type: "focusEditable", nodeId }]);
+    this.#inputBridge.activate({
+      inputMode: "text",
+      multiline: true,
+      nodeId,
+      password: false,
+      readOnly: false,
+      revision: block.revision,
+      selection: { anchor: block.anchor, focus: block.focus },
+      value: block.text,
+    });
   }
 
   /** Ends the active native editing surface without creating per-widget DOM. */

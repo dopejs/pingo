@@ -20,6 +20,16 @@ use pingo_edit::{
     StructureRequest, Utf16Range,
 };
 
+/// What a replacing command turned out to ask for.
+enum Planned {
+    /// Text Core applies itself.
+    Edit(NodeId, DocumentEdit),
+    /// A block boundary only the Shell's schema can decide.
+    Split(NodeId),
+    /// Nothing this controller owns.
+    Nothing,
+}
+
 /// One step of an input method composition.
 #[derive(Clone, Copy)]
 enum Composing<'a> {
@@ -303,7 +313,16 @@ impl DocumentController {
                     .map_err(CoreError::Edit)?;
                 return Ok(Vec::new());
             }
+            // The document command and the single-value one carry the same
+            // fields and mean the same thing here; which one the host sends
+            // depends only on whether it went through the native input surface.
             InputCommand::MoveDocumentCaret {
+                node_id,
+                direction,
+                granularity,
+                extend,
+            }
+            | InputCommand::MoveCaret {
                 node_id,
                 direction,
                 granularity,
@@ -328,6 +347,44 @@ impl DocumentController {
                     .map_err(CoreError::Edit)?;
                 return Ok(Vec::new());
             }
+            // Everything that replaces text, whichever command said so.
+            InputCommand::EditDocument { .. }
+            | InputCommand::Insert { .. }
+            | InputCommand::DeleteBackward { .. }
+            | InputCommand::DeleteForward { .. } => match self.plan_text_command(command)? {
+                Planned::Edit(root, edit) => (root, edit),
+                Planned::Split(root) => return self.plan_split(root),
+                Planned::Nothing => return Ok(Vec::new()),
+            },
+            // A composition is a document-level edit like any other: it is
+            // addressed to the document root, so the same four commands an
+            // editable answers work here without a second opcode.
+            InputCommand::BeginComposition { node_id, .. } => {
+                return self.compose(NodeId::from_raw(*node_id)?, Composing::Begin);
+            }
+            InputCommand::UpdateComposition { node_id, text, .. } => {
+                return self.compose(NodeId::from_raw(*node_id)?, Composing::Update(text));
+            }
+            InputCommand::CommitComposition { node_id, text, .. } => {
+                return self.compose(
+                    NodeId::from_raw(*node_id)?,
+                    Composing::Commit(text.as_deref()),
+                );
+            }
+            InputCommand::CancelComposition { node_id, .. } => {
+                return self.compose(NodeId::from_raw(*node_id)?, Composing::Cancel);
+            }
+            _ => return Ok(Vec::new()),
+        };
+        self.commit_edit(root, &edit)
+    }
+
+    /// Plans the text edit a replacing command asks for.
+    ///
+    /// `None` means the command produced no edit of its own -- a split hands
+    /// the work to the Shell and answers on the reverse channel instead.
+    fn plan_text_command(&mut self, command: &InputCommand) -> Result<Planned, CoreError> {
+        let planned = match command {
             InputCommand::EditDocument {
                 node_id,
                 operation,
@@ -358,32 +415,62 @@ impl DocumentController {
                             .document
                             .plan_replace(text.clone(), MarkRuns::uniform(units, *style, *font))
                     }
-                    DocumentOperation::Split => return self.plan_split(root),
+                    // Enter is the Shell's decision, not a text edit: Core
+                    // moves the caret and asks on the reverse channel.
+                    DocumentOperation::Split => return Ok(Planned::Split(root)),
                 }
                 .map_err(CoreError::Edit)?;
                 (root, edit)
             }
-            // A composition is a document-level edit like any other: it is
-            // addressed to the document root, so the same four commands an
-            // editable answers work here without a second opcode.
-            InputCommand::BeginComposition { node_id, .. } => {
-                return self.compose(NodeId::from_raw(*node_id)?, Composing::Begin);
+            // The host's native input surface speaks the single-value commands,
+            // because to an input method a document is one value with one
+            // caret. Core knows which block that caret is in, so an insertion
+            // needs no offsets and a selection is stated in the block the
+            // surface was activated over.
+            InputCommand::Insert { node_id, text, .. } => {
+                let root = NodeId::from_raw(*node_id)?;
+                let active = self
+                    .documents
+                    .get(&root)
+                    .ok_or(CoreError::InvalidEditableTarget { node: root })?;
+                let units = u32::try_from(text.encode_utf16().count()).map_err(|_| {
+                    CoreError::InvalidEditableConfiguration(
+                        "document insertion exceeds the offset space",
+                    )
+                })?;
+                let edit = active
+                    .document
+                    .plan_replace(text.clone(), MarkRuns::uniform(units, 0, 0))
+                    .map_err(CoreError::Edit)?;
+                (root, edit)
             }
-            InputCommand::UpdateComposition { node_id, text, .. } => {
-                return self.compose(NodeId::from_raw(*node_id)?, Composing::Update(text));
+            InputCommand::DeleteBackward { node_id, .. } => {
+                let root = NodeId::from_raw(*node_id)?;
+                let active = self
+                    .documents
+                    .get(&root)
+                    .ok_or(CoreError::InvalidEditableTarget { node: root })?;
+                let edit = active
+                    .document
+                    .plan_delete(Direction::Backward)
+                    .map_err(CoreError::Edit)?;
+                (root, edit)
             }
-            InputCommand::CommitComposition { node_id, text, .. } => {
-                return self.compose(
-                    NodeId::from_raw(*node_id)?,
-                    Composing::Commit(text.as_deref()),
-                );
+            InputCommand::DeleteForward { node_id, .. } => {
+                let root = NodeId::from_raw(*node_id)?;
+                let active = self
+                    .documents
+                    .get(&root)
+                    .ok_or(CoreError::InvalidEditableTarget { node: root })?;
+                let edit = active
+                    .document
+                    .plan_delete(Direction::Forward)
+                    .map_err(CoreError::Edit)?;
+                (root, edit)
             }
-            InputCommand::CancelComposition { node_id, .. } => {
-                return self.compose(NodeId::from_raw(*node_id)?, Composing::Cancel);
-            }
-            _ => return Ok(Vec::new()),
+            _ => return Ok(Planned::Nothing),
         };
-        self.commit_edit(root, &edit)
+        Ok(Planned::Edit(planned.0, planned.1))
     }
 
     /// Runs one step of an input method composition inside the caret's block.

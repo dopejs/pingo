@@ -2973,7 +2973,11 @@ fn is_document_command(
         InputCommand::BeginComposition { node_id, .. }
         | InputCommand::UpdateComposition { node_id, .. }
         | InputCommand::CommitComposition { node_id, .. }
-        | InputCommand::CancelComposition { node_id, .. } => {
+        | InputCommand::CancelComposition { node_id, .. }
+        | InputCommand::Insert { node_id, .. }
+        | InputCommand::DeleteBackward { node_id, .. }
+        | InputCommand::DeleteForward { node_id, .. }
+        | InputCommand::MoveCaret { node_id, .. } => {
             NodeId::from_raw(*node_id).is_ok_and(|node| documents.is_root(node))
         }
         _ => false,

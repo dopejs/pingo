@@ -199,6 +199,7 @@ export {
   type HostTransportPreference,
   type HostedCanvasRoot,
   type HostedCanvasRootOptions,
+  type DocumentFocus,
   type ScrollTarget,
   type RenderClockMetrics,
   type WasmCoreInput,

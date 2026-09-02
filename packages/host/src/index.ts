@@ -56,6 +56,7 @@ export {
   type HostMutationTransportMetrics,
   type HostedCanvasRoot,
   type HostedCanvasRootOptions,
+  type DocumentFocus,
   type ScrollTarget,
 } from "./hosted-root";
 export {
