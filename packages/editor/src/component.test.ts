@@ -199,4 +199,121 @@ describe("DocumentEditorController", () => {
     });
     expect(instance.hasSelection).toBe(true);
   });
+
+  /** Puts the caret in a block after setting its text. */
+  function caretAt(instance: DocumentEditorController, key: number, offset: number): void {
+    instance.applyEditStream({
+      transactions: [],
+      structure: [],
+      selections: [
+        {
+          nodeId: 1,
+          selection: {
+            kind: "text",
+            anchorKey: key,
+            anchorOffset: offset,
+            focusKey: key,
+            focusOffset: offset,
+          },
+        },
+      ],
+    });
+  }
+
+  it("opens the slash menu where a block could change type, and not elsewhere", () => {
+    const { instance } = controller();
+
+    // Mid-word: a slash after "first" is a slash, not a menu.
+    instance.replaceBlockText(1, "first");
+    caretAt(instance, 1, 5);
+    type(instance, 1, "/");
+    expect(instance.slashMenu).toBeUndefined();
+
+    // At the start of a block.
+    const { instance: fresh } = controller();
+    fresh.replaceBlockText(1, "");
+    type(fresh, 1, "/");
+    expect(fresh.slashMenu?.query).toBe("");
+    expect(fresh.slashMenu?.items.length).toBeGreaterThan(0);
+  });
+
+  /** Types `text` into a block one character at a time, caret following. */
+  function type(instance: DocumentEditorController, key: number, text: string): void {
+    const block = instance.document.blocks.find((entry) => entry.key === key);
+    let value = block?.text ?? "";
+    for (const character of text) {
+      value += character;
+      instance.replaceBlockText(key, value);
+      caretAt(instance, key, value.length);
+    }
+  }
+
+  it("filters by what is typed after the slash and closes on a space", () => {
+    const { instance } = controller();
+    instance.replaceBlockText(1, "");
+    type(instance, 1, "/head");
+    const menu = instance.slashMenu;
+    expect(menu?.query).toBe("head");
+    expect(menu?.items.map((item) => item.label)).toEqual(["Heading 1", "Heading 2", "Heading 3"]);
+
+    // A space ends it: "/ " is someone typing a slash, not choosing a block.
+    const { instance: other } = controller();
+    other.replaceBlockText(1, "");
+    type(other, 1, "/ h");
+    expect(other.slashMenu).toBeUndefined();
+  });
+
+  it("applies an item by removing the query and changing the block type", () => {
+    const { instance, dispatched } = controller();
+    instance.render({
+      document: instance.document,
+      host: { dispatch: () => {}, focusBlock: () => {} },
+    });
+    instance.replaceBlockText(1, "");
+    type(instance, 1, "/head");
+    instance.moveSlashSelection(1);
+    expect(instance.slashMenu?.activeIndex).toBe(1);
+
+    expect(instance.applySlashItem()).toBe(true);
+    // The typed query is gone and the block is the type that was picked; a menu
+    // that left "/head" behind would have turned the trigger into content.
+    expect(instance.document.blocks[0]?.text).toBe("");
+    expect(instance.document.blocks[0]?.type).toBe("heading");
+    expect(instance.document.blocks[0]?.attributes).toEqual({ level: 2 });
+    expect(instance.slashMenu).toBeUndefined();
+    // The caret goes back to where the slash was, which is now the block start.
+    expect(dispatched.at(-1)).toMatchObject({ type: "setDocumentSelection" });
+  });
+
+  it("gives the menu the keys that would otherwise move the caret", () => {
+    const { instance, dispatched } = controller();
+    instance.render({
+      document: instance.document,
+      host: { dispatch: () => {}, focusBlock: () => {} },
+    });
+    instance.replaceBlockText(1, "");
+    type(instance, 1, "/");
+    dispatched.length = 0;
+
+    const key = (name: string): KeyboardEvent =>
+      ({
+        key: name,
+        metaKey: false,
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+      }) as KeyboardEvent;
+    expect(instance.handleKeyDown(key("ArrowDown"))).toBe(true);
+    expect(instance.slashMenu?.activeIndex).toBe(1);
+    // The arrow moved the menu, not the caret: no caret command was sent.
+    expect(
+      dispatched.filter((command) => (command as { type: string }).type === "moveDocumentCaret"),
+    ).toHaveLength(0);
+
+    expect(instance.handleKeyDown(key("Escape"))).toBe(true);
+    expect(instance.slashMenu).toBeUndefined();
+    // With the menu closed the arrow is the caret's again, which needs a
+    // mounted document node; that half is covered end to end, where one exists.
+    expect(instance.slashMenu).toBeUndefined();
+  });
 });

@@ -15,7 +15,44 @@ import type {
 
 import { markIsActive } from "./commands";
 import { Editor } from "./editor";
-import type { Block, DocumentModel, MarkName } from "./schema";
+import type { Block, BlockType, DocumentModel, MarkName } from "./schema";
+
+/** One block type a slash menu offers. */
+export interface SlashMenuItem {
+  /** The block type applying this item produces. */
+  readonly type: BlockType;
+  /** Attributes that go with it, such as a heading's level. */
+  readonly attributes: Record<string, unknown>;
+  /** What the caller shows, and what the query filters on. */
+  readonly label: string;
+}
+
+/** The open slash menu, if there is one. */
+export interface SlashMenuState {
+  /** What has been typed after the slash. */
+  readonly query: string;
+  /** Items matching the query, in offer order. */
+  readonly items: readonly SlashMenuItem[];
+  /** Which item Enter would apply. */
+  readonly activeIndex: number;
+}
+
+/**
+ * The block types offered, in menu order.
+ *
+ * Labels are English because filtering happens on them; a caller that wants
+ * localized labels supplies its own list.
+ */
+const DEFAULT_SLASH_ITEMS: readonly SlashMenuItem[] = [
+  { type: "paragraph", attributes: {}, label: "Text" },
+  { type: "heading", attributes: { level: 1 }, label: "Heading 1" },
+  { type: "heading", attributes: { level: 2 }, label: "Heading 2" },
+  { type: "heading", attributes: { level: 3 }, label: "Heading 3" },
+  { type: "listItem", attributes: { depth: 0, ordered: false }, label: "Bulleted list" },
+  { type: "listItem", attributes: { depth: 0, ordered: true }, label: "Numbered list" },
+  { type: "blockquote", attributes: {}, label: "Quote" },
+  { type: "codeBlock", attributes: {}, label: "Code" },
+];
 
 /** How one mark paints, as differences from the block's own style. */
 export type MarkStyles = Partial<Record<MarkName, Omit<TextRunProps, "start" | "end">>>;
@@ -64,13 +101,18 @@ export class DocumentEditorController {
   #nodeToKey = new Map<number, number>();
   #onInvalidate: (() => void) | undefined;
   #selectionRect: DocumentSelectionRect | undefined;
+  #slash: { readonly key: number; readonly start: number; activeIndex: number } | undefined;
+  readonly #slashItems: readonly SlashMenuItem[];
 
   public constructor(props: {
     readonly document: DocumentModel;
     readonly host: DocumentEditorHost;
     readonly onChange?: (document: DocumentModel) => void;
+    /** Block types the slash menu offers; the built-in list by default. */
+    readonly slashItems?: readonly SlashMenuItem[];
   }) {
     this.#editor = new Editor({ document: props.document });
+    this.#slashItems = props.slashItems ?? DEFAULT_SLASH_ITEMS;
     this.#host = props.host;
     this.#onChange = props.onChange;
   }
@@ -154,8 +196,111 @@ export class DocumentEditorController {
         ]);
       }
     }
+    this.#syncSlashMenu();
     this.#invalidate();
     this.#refocus();
+  }
+
+  /**
+   * The open slash menu, or nothing.
+   *
+   * Opened by typing "/" where a block could change type -- at the start of a
+   * block or after a space -- and filtered by whatever follows it. The caret
+   * rect is the anchor; the caller draws it.
+   */
+  public get slashMenu(): SlashMenuState | undefined {
+    const open = this.#slash;
+    if (open === undefined) return undefined;
+    const query = this.#slashQuery(open.key, open.start);
+    if (query === undefined) return undefined;
+    const items = this.#slashItems.filter((item) =>
+      item.label.toLowerCase().startsWith(query.toLowerCase()),
+    );
+    return { query, items, activeIndex: Math.min(open.activeIndex, Math.max(items.length - 1, 0)) };
+  }
+
+  /** Moves the highlighted item, wrapping at both ends. */
+  public moveSlashSelection(delta: number): void {
+    const menu = this.slashMenu;
+    const open = this.#slash;
+    if (menu === undefined || open === undefined || menu.items.length === 0) return;
+    const count = menu.items.length;
+    open.activeIndex = (((menu.activeIndex + delta) % count) + count) % count;
+    this.#onInvalidate?.();
+  }
+
+  /** Closes the menu without changing anything. */
+  public closeSlashMenu(): void {
+    if (this.#slash === undefined) return;
+    this.#slash = undefined;
+    this.#onInvalidate?.();
+  }
+
+  /**
+   * Applies the highlighted item: the typed query goes, the block changes type.
+   *
+   * Removing the text is a Shell-side change, so the next projection carries it
+   * to the Core along with the new revision.
+   */
+  public applySlashItem(index?: number): boolean {
+    const menu = this.slashMenu;
+    const open = this.#slash;
+    if (menu === undefined || open === undefined) return false;
+    const item = menu.items[index ?? menu.activeIndex];
+    if (item === undefined) return false;
+    const caret = this.#editor.selection;
+    if (caret?.kind !== "text") return false;
+    // From the slash itself, not from after it: leaving the trigger behind
+    // would turn it into content the user never meant to type.
+    const from = open.start - 1;
+    this.#editor.replaceText(open.key, { start: from, end: caret.focusOffset }, "");
+    this.#editor.setBlockType(open.key, item.type, item.attributes);
+    this.#slash = undefined;
+    this.#host.dispatch([
+      {
+        type: "setDocumentSelection",
+        nodeId: this.#documentNodeId,
+        baseRevision: 0n,
+        selection: {
+          kind: "text",
+          anchorKey: open.key,
+          anchorOffset: from,
+          focusKey: open.key,
+          focusOffset: from,
+        },
+      },
+    ]);
+    this.#invalidate();
+    return true;
+  }
+
+  /** The text between the slash and the caret, or nothing when it is gone. */
+  #slashQuery(key: number, start: number): string | undefined {
+    const block = this.#editor.document.blocks.find((entry) => entry.key === key);
+    const caret = this.#editor.selection;
+    if (block === undefined || caret?.kind !== "text" || caret.focusKey !== key) return undefined;
+    if (caret.focusOffset < start || block.text[start - 1] !== "/") return undefined;
+    const query = block.text.slice(start, caret.focusOffset);
+    // A space ends it: "/ " is someone typing a slash, not opening a menu.
+    return query.includes(" ") ? undefined : query;
+  }
+
+  /** Opens or closes the menu for wherever the caret now is. */
+  #syncSlashMenu(): void {
+    if (this.#slash !== undefined) {
+      if (this.#slashQuery(this.#slash.key, this.#slash.start) === undefined)
+        this.#slash = undefined;
+      return;
+    }
+    const caret = this.#editor.selection;
+    if (caret?.kind !== "text" || caret.anchorKey !== caret.focusKey) return;
+    if (caret.anchorOffset !== caret.focusOffset) return;
+    const block = this.#editor.document.blocks.find((entry) => entry.key === caret.focusKey);
+    if (block === undefined || block.text[caret.focusOffset - 1] !== "/") return;
+    // Only where a block could change type: at its start, or after a space.
+    const before = caret.focusOffset - 2;
+    if (before >= 0 && block.text[before] !== " ") return;
+    this.#slash = { key: caret.focusKey, start: caret.focusOffset, activeIndex: 0 };
   }
 
   /** Records where the Core drew the selection. */
@@ -174,6 +319,14 @@ export class DocumentEditorController {
     // Only the view has to react: the document did not change, so re-notifying
     // the owner would make a caret move look like an edit.
     this.#onInvalidate?.();
+  }
+
+  /** Replaces one block's whole text, for tests and for a caller that owns it. */
+  public replaceBlockText(key: number, text: string): void {
+    const block = this.#editor.document.blocks.find((entry) => entry.key === key);
+    if (block === undefined) return;
+    this.#editor.replaceText(key, { start: 0, end: block.text.length }, text);
+    this.#invalidate();
   }
 
   /** Serializes the selection for a copy, or nothing when there is none. */
@@ -198,6 +351,26 @@ export class DocumentEditorController {
    */
   public handleKeyDown(event: KeyboardEvent): boolean {
     if (event.metaKey || event.ctrlKey || event.altKey) return false;
+    // The menu is Shell state: moving its highlight and dismissing it need no
+    // Core, so they are answered before the document node is required.
+    if (this.slashMenu !== undefined) {
+      switch (event.key) {
+        case "ArrowUp":
+          this.moveSlashSelection(-1);
+          return true;
+        case "ArrowDown":
+          this.moveSlashSelection(1);
+          return true;
+        case "Enter":
+        case "Tab":
+          return this.applySlashItem();
+        case "Escape":
+          this.closeSlashMenu();
+          return true;
+        default:
+          break;
+      }
+    }
     const node = this.#documentNodeId;
     if (node === 0) return false;
     const move = (direction: "backward" | "forward" | "up" | "down"): void => {

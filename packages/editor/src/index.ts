@@ -1,5 +1,7 @@
 export {
   DocumentEditorController,
+  type SlashMenuItem,
+  type SlashMenuState,
   type DocumentEditorHost,
   type DocumentEditorProps,
   type MarkStyles,

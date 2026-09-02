@@ -167,6 +167,20 @@ export const richTextDemo: Demo = {
       stage.style.position = "relative";
     }
     stage.append(markRow);
+
+    // The slash menu, anchored to the caret the same way.
+    const slashBox = document.createElement("div");
+    slashBox.style.position = "absolute";
+    slashBox.style.display = "grid";
+    slashBox.style.minWidth = "160px";
+    slashBox.style.padding = "4px";
+    slashBox.style.borderRadius = "6px";
+    slashBox.style.background = "#ffffff";
+    slashBox.style.border = "1px solid #d7dbe0";
+    slashBox.style.boxShadow = "0 4px 12px rgba(0,0,0,.15)";
+    slashBox.style.visibility = "hidden";
+    slashBox.style.zIndex = "3";
+    stage.append(slashBox);
     const source = document.createElement("pre");
     source.style.margin = "0";
     source.style.whiteSpace = "pre-wrap";
@@ -225,6 +239,32 @@ export const richTextDemo: Demo = {
         context.messages.markRanges,
         String(editor.document.blocks.reduce((total, block) => total + block.marks.length, 0)),
       );
+      const menu = editor.slashMenu;
+      const caretRect = editor.selectionRect;
+      if (menu === undefined || caretRect === undefined || menu.items.length === 0) {
+        slashBox.style.visibility = "hidden";
+        slashBox.replaceChildren();
+      } else {
+        slashBox.style.visibility = "visible";
+        slashBox.style.left = `${String(caretRect.left)}px`;
+        slashBox.style.top = `${String(caretRect.top + caretRect.height + 4)}px`;
+        slashBox.replaceChildren(
+          ...menu.items.map((item, index) => {
+            const row = document.createElement("button");
+            row.type = "button";
+            row.textContent = item.label;
+            row.style.border = "0";
+            row.style.borderRadius = "4px";
+            row.style.padding = "4px 8px";
+            row.style.textAlign = "left";
+            row.style.cursor = "pointer";
+            row.style.background = index === menu.activeIndex ? "#eef2ff" : "transparent";
+            row.addEventListener("mousedown", (event) => event.preventDefault());
+            row.addEventListener("click", () => editor.applySlashItem(index));
+            return row;
+          }),
+        );
+      }
       // Markdown from the same document the canvas draws, so what the page
       // shows and what a copy would carry cannot drift apart.
       source.textContent = toMarkdown(editor.document);
@@ -247,6 +287,7 @@ export const richTextDemo: Demo = {
 
     return () => {
       markRow.remove();
+      slashBox.remove();
       canvas.removeEventListener("keydown", onKeyDown);
       canvas.removeEventListener("pointerdown", onPointerDown);
       editor.onInvalidate = undefined;

@@ -19,6 +19,7 @@ import {
   mergeBlocks,
   removeBlocks,
   replaceText,
+  setBlockType,
   splitBlock,
   toggleMark,
 } from "./commands";
@@ -26,6 +27,7 @@ import { applyBlockRule, applyInlineRule } from "./input-rules";
 import { fromHtml, fromMarkdown, toHtml, toMarkdown } from "./serialize";
 import {
   type Block,
+  type BlockType,
   type DocumentModel,
   type MarkName,
   isAtomic,
@@ -196,6 +198,20 @@ export class Editor {
   /** Toggles a mark over a selection expressed in block ranges. */
   public toggleMark(ranges: readonly BlockRange[], mark: MarkName, href?: string): void {
     this.#apply(toggleMark(this.#document, ranges, mark, href));
+  }
+
+  /** Replaces a range of one block's text, moving its marks with it. */
+  public replaceText(key: number, range: { start: number; end: number }, text: string): void {
+    this.#apply(replaceText(this.#document, key, range.start, range.end, text));
+  }
+
+  /** Changes one block's type, normalizing what the new type does not allow. */
+  public setBlockType(
+    key: number,
+    type: BlockType,
+    attributes: Record<string, unknown> = {},
+  ): void {
+    this.#apply(setBlockType(this.#document, key, type, attributes));
   }
 
   /** Runs the input rules for a caret that just moved inside a block. */
