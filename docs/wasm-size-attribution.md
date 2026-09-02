@@ -325,6 +325,41 @@ flag：Binaryen 默认把 pass 列表**跑一遍**就结束，而这四个 pass 
    `read-fonts`/`skrifa`）整形，重叠的字体解析约 13 KiB。合并成一套会改光栅输出，
    所有像素金样要重取，是一次单独的改动。
 
+## 2026-09-02：合并字体栈——测过，否掉
+
+Core 里有两套互不相干的字体栈，各自独立解析 SFNT 表：
+
+```
+fontdue → ttf-parser        （光栅化）
+swash   → skrifa/read-fonts （整形）
+```
+
+按名字保留构建归因：`ttf_parser` **53,758 bytes / 137 个函数**，`fontdue` **9,972 / 21**。
+看上去砍掉 fontdue 这一支、改用 swash 自带的 `scale::ScaleContext` 光栅化，能省下六万多
+字节，而且**惠及每一个构建档位**——不像拆包只是把成本挪个地方。
+
+实测结果相反。给 swash 打开 `render` feature（它连带 `scale` 与 `zeno/eval`）、把
+`GlyphAtlas` 改成持有 `ScaleContext` 并用 `Render::new(&[Source::Outline])` 出图之后：
+
+| 构建                 | gzip bytes | 相对         |
+| -------------------- | ---------- | ------------ |
+| 现状（fontdue 光栅） | 389,340    | —            |
+| 改用 swash 光栅      | 553,828    | **+164,488** |
+
+`render` 不是「一个光栅函数」，它把 zeno 的整条路径光栅器、TrueType hinting 解释器、
+COLR 彩色轮廓与 bitmap strike 处理一起拉进来。Cargo feature 的粒度是 crate 级的，没有
+「只要 outline」这一档，所以拿不到其中的一部分。
+
+**反方向也不成立**：留下 fontdue/ttf-parser、砍掉 swash，等于自己写整形器。
+
+所以两套字体栈的重复是真的，但它**不是可回收的余量**——留着。改动本身已回退，本节是为了
+让下一次压缩不必再花一遍代价重新发现它。
+
+顺带一条：`fontdue::Font::from_bytes` 在做字体校验，摘掉它会让一个只有 SFNT 头、没有任何
+可用表的输入通过 `FontFace::from_bytes`。真要再动这里，等价校验是
+`metrics.units_per_em != 0 && metrics.glyph_count != 0`——`core/pingo-text/src/font.rs`
+的 `rejects_invalid_sfnt_without_panicking` 会抓住它。
+
 ## 2026-09-01：探针基线对构建机路径敏感
 
 `pnpm wasm:build` 在本机报告 `aarch64-apple-darwin` 基线不符：期望
