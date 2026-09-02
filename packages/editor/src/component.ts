@@ -1,5 +1,6 @@
 import {
   createElement,
+  type DocumentBlockRect,
   type DocumentSelectionRect,
   type PingoEvent,
   type PingoNode,
@@ -102,6 +103,8 @@ export class DocumentEditorController {
   #onInvalidate: (() => void) | undefined;
   #selectionRect: DocumentSelectionRect | undefined;
   #slash: { readonly key: number; readonly start: number; activeIndex: number } | undefined;
+  #blockRects: readonly DocumentBlockRect[] = [];
+  #drag: { readonly key: number; beforeKey: number | undefined } | undefined;
   readonly #slashItems: readonly SlashMenuItem[];
 
   public constructor(props: {
@@ -303,6 +306,69 @@ export class DocumentEditorController {
     this.#slash = { key: caret.focusKey, start: caret.focusOffset, activeIndex: 0 };
   }
 
+  /** Where each block ended up on the canvas, once the engine reported it. */
+  public get blockRects(): readonly DocumentBlockRect[] {
+    return this.#blockRects;
+  }
+
+  /** The block being dragged and where it would land, or nothing. */
+  public get blockDrag():
+    { readonly key: number; readonly beforeKey: number | undefined } | undefined {
+    return this.#drag;
+  }
+
+  /** Records where the engine laid the blocks out. */
+  public applyBlockGeometry(blocks: readonly DocumentBlockRect[]): void {
+    this.#blockRects = blocks;
+    if (this.#drag !== undefined) this.#onInvalidate?.();
+  }
+
+  /** Starts dragging a block. */
+  public beginBlockDrag(key: number): void {
+    if (this.#editor.document.blocks.every((block) => block.key !== key)) return;
+    this.#drag = { key, beforeKey: undefined };
+    this.#onInvalidate?.();
+  }
+
+  /**
+   * Points the drag at the gap nearest `y`, in canvas coordinates.
+   *
+   * The gap rather than the block: a drop lands between two blocks, and the
+   * half of a block the pointer is in decides which side of it that is.
+   */
+  public dragBlockTo(y: number): void {
+    const drag = this.#drag;
+    if (drag === undefined) return;
+    const ordered = this.#editor.document.blocks
+      .map((block) => this.#blockRects.find((rect) => rect.key === block.key))
+      .filter((rect): rect is DocumentBlockRect => rect !== undefined);
+    let beforeKey: number | undefined;
+    for (const rect of ordered) {
+      if (y < rect.top + rect.height / 2) {
+        beforeKey = rect.key;
+        break;
+      }
+    }
+    if (drag.beforeKey === beforeKey) return;
+    this.#drag = { key: drag.key, beforeKey };
+    this.#onInvalidate?.();
+  }
+
+  /** Ends the drag, moving the block when it landed somewhere new. */
+  public endBlockDrag(): boolean {
+    const drag = this.#drag;
+    this.#drag = undefined;
+    if (drag === undefined) {
+      return false;
+    }
+    const before = this.#editor.document.blocks.map((block) => block.key);
+    this.#editor.moveBlock(drag.key, drag.beforeKey);
+    const changed = before.join() !== this.#editor.document.blocks.map((block) => block.key).join();
+    if (changed) this.#invalidate();
+    else this.#onInvalidate?.();
+    return changed;
+  }
+
   /** Records where the Core drew the selection. */
   public applySelectionGeometry(rect: DocumentSelectionRect): void {
     const previous = this.#selectionRect;
@@ -437,6 +503,7 @@ export class DocumentEditorController {
           readonly selections: readonly DocumentSelectionReport[];
         }) => this.applyEditStream(stream),
         onSelectionGeometry: (rect: DocumentSelectionRect) => this.applySelectionGeometry(rect),
+        onBlockGeometry: (blocks: readonly DocumentBlockRect[]) => this.applyBlockGeometry(blocks),
       },
       children: blocks.map((block) =>
         createElement("text", {

@@ -316,4 +316,54 @@ describe("DocumentEditorController", () => {
     // mounted document node; that half is covered end to end, where one exists.
     expect(instance.slashMenu).toBeUndefined();
   });
+
+  it("drops a block at the gap the pointer is nearest", () => {
+    const { instance } = controller();
+    instance.applyBlockGeometry([
+      { key: 1, left: 0, top: 0, width: 200, height: 20 },
+      { key: 2, left: 0, top: 20, width: 200, height: 20 },
+    ]);
+
+    instance.beginBlockDrag(2);
+    expect(instance.blockDrag).toEqual({ key: 2, beforeKey: undefined });
+
+    // In the top half of the first block: the drop lands before it.
+    instance.dragBlockTo(4);
+    expect(instance.blockDrag?.beforeKey).toBe(1);
+    expect(instance.endBlockDrag()).toBe(true);
+    expect(instance.document.blocks.map((block) => block.key)).toEqual([2, 1]);
+    expect(instance.blockDrag).toBeUndefined();
+  });
+
+  it("reports no change when a block is dropped where it already was", () => {
+    const onChange = vi.fn();
+    const { instance } = controller({ onChange });
+    instance.applyBlockGeometry([
+      { key: 1, left: 0, top: 0, width: 200, height: 20 },
+      { key: 2, left: 0, top: 20, width: 200, height: 20 },
+    ]);
+    onChange.mockClear();
+
+    instance.beginBlockDrag(1);
+    instance.dragBlockTo(4);
+    // Before the first block is where the first block already is; a gesture
+    // that moved nothing must not push an undo entry or notify the owner.
+    expect(instance.endBlockDrag()).toBe(false);
+    expect(instance.document.blocks.map((block) => block.key)).toEqual([1, 2]);
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("drops past the last block when the pointer is below every one", () => {
+    const { instance } = controller();
+    instance.applyBlockGeometry([
+      { key: 1, left: 0, top: 0, width: 200, height: 20 },
+      { key: 2, left: 0, top: 20, width: 200, height: 20 },
+    ]);
+
+    instance.beginBlockDrag(1);
+    instance.dragBlockTo(200);
+    expect(instance.blockDrag?.beforeKey).toBeUndefined();
+    expect(instance.endBlockDrag()).toBe(true);
+    expect(instance.document.blocks.map((block) => block.key)).toEqual([2, 1]);
+  });
 });

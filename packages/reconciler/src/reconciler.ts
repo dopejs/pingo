@@ -14,6 +14,7 @@ import {
   type PingoEventHandler,
   type EditableTextProps,
   type DocumentBlockProps,
+  type DocumentBlockRect,
   type DocumentEditStream,
   type DocumentProps,
   type DocumentSelectionRect,
@@ -312,6 +313,7 @@ interface NormalizedDocument {
   /** Receives everything Core sends back about this document. */
   readonly onEditStream: ((stream: DocumentEditStream) => void) | undefined;
   readonly onSelectionGeometry: ((rect: DocumentSelectionRect) => void) | undefined;
+  readonly onBlockGeometry: ((blocks: readonly DocumentBlockRect[]) => void) | undefined;
   readonly blocks: readonly {
     readonly key: number;
     readonly lenUtf16: number;
@@ -606,6 +608,10 @@ class ReconcilerRoot implements CoreDrivenPingoRoot {
   readonly #documentNodes = new Set<HostInstance>();
   /** The document that declared each block node, recorded as it is declared. */
   readonly #documentOfBlock = new WeakMap<HostInstance, HostInstance>();
+  /** Block nodes each document already asked the engine to observe. */
+  readonly #observedBlocks = new WeakMap<HostInstance, Set<number>>();
+  /** Node to block key per document, for reporting geometry by key. */
+  readonly #blockKeyOfNode = new WeakMap<HostInstance, Map<number, number>>();
   readonly #scopesPendingDisposal = new Set<ComponentScope>();
   readonly #postCommitCleanups: Array<() => void> = [];
   readonly #postCommitAttachments: Array<() => void> = [];
@@ -722,6 +728,28 @@ class ReconcilerRoot implements CoreDrivenPingoRoot {
    * A toolbar cannot place itself: the Core owns the text layout, so where a
    * range of characters landed is only knowable there.
    */
+  /** Hands each document the boxes of the blocks it declared. */
+  private reportBlockGeometry(records: readonly LayoutGeometryReport[]): void {
+    for (const instance of this.#documentNodes) {
+      const callback = instance.document?.onBlockGeometry;
+      const keys = this.#blockKeyOfNode.get(instance);
+      if (callback === undefined || keys === undefined) continue;
+      const blocks: DocumentBlockRect[] = [];
+      for (const record of records) {
+        const key = keys.get(record.nodeId);
+        if (key === undefined) continue;
+        blocks.push({
+          key,
+          left: record.bounds.left,
+          top: record.bounds.top,
+          width: record.bounds.width,
+          height: record.bounds.height,
+        });
+      }
+      if (blocks.length > 0) callback(blocks);
+    }
+  }
+
   public applyDocumentGeometry(nodeId: number, rect: DocumentSelectionRect): void {
     this.assertUsable();
     const instance = this.#hostsByNodeId.get(nodeId);
@@ -2338,6 +2366,7 @@ class ReconcilerRoot implements CoreDrivenPingoRoot {
       this.#viewport = viewport;
       for (const notify of this.#viewportSubscribers) notify();
     }
+    this.reportBlockGeometry(records);
     const woken = new Set<() => void>();
     const reported = new Set<number>();
     for (const record of records) {
@@ -2412,6 +2441,18 @@ class ReconcilerRoot implements CoreDrivenPingoRoot {
       const claimants = new Map<number, HostInstance>();
       collectBlockNodes(instance, nodes, claimants);
       for (const claimant of claimants.values()) this.#documentOfBlock.set(claimant, instance);
+      // Observation is what a document asks for by wanting block geometry; a
+      // document that does not never spends an observation slot.
+      if (projection.onBlockGeometry !== undefined) {
+        const observed = this.#observedBlocks.get(instance) ?? new Set<number>();
+        for (const nodeId of nodes.values()) {
+          if (nodeId === NULL_NODE_ID || observed.has(nodeId)) continue;
+          observed.add(nodeId);
+          this.observeGeometry(nodeId, true);
+        }
+        this.#observedBlocks.set(instance, observed);
+        this.#blockKeyOfNode.set(instance, new Map([...nodes].map(([key, id]) => [id, key])));
+      }
       const blocks = projection.blocks.map((block) => ({
         key: block.key,
         // A block no child claims is one the Shell has not materialized. Its
@@ -2865,6 +2906,8 @@ function normalizeHostProps(
       onEditStream: normalizeDocumentCallback(declared.onEditStream),
       onSelectionGeometry: normalizeDocumentCallback(declared.onSelectionGeometry) as
         ((rect: DocumentSelectionRect) => void) | undefined,
+      onBlockGeometry: normalizeDocumentCallback(declared.onBlockGeometry) as
+        ((blocks: readonly DocumentBlockRect[]) => void) | undefined,
       blocks,
     };
   }

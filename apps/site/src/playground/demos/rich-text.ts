@@ -181,6 +181,27 @@ export const richTextDemo: Demo = {
     slashBox.style.visibility = "hidden";
     slashBox.style.zIndex = "3";
     stage.append(slashBox);
+
+    // One drag handle per block, in the gutter, and a line showing where a drop
+    // would land. Both are positioned from the block boxes the engine reports.
+    const handleLayer = document.createElement("div");
+    handleLayer.style.position = "absolute";
+    handleLayer.style.inset = "0";
+    handleLayer.style.pointerEvents = "none";
+    handleLayer.style.zIndex = "1";
+    const dropLine = document.createElement("div");
+    dropLine.style.position = "absolute";
+    dropLine.style.height = "2px";
+    dropLine.style.background = "#3d63dd";
+    dropLine.style.visibility = "hidden";
+    handleLayer.append(dropLine);
+    stage.append(handleLayer);
+
+    const stageTop = (): number => {
+      const box = canvas.getBoundingClientRect();
+      const outer = stage.getBoundingClientRect();
+      return box.top - outer.top;
+    };
     const source = document.createElement("pre");
     source.style.margin = "0";
     source.style.whiteSpace = "pre-wrap";
@@ -239,6 +260,50 @@ export const richTextDemo: Demo = {
         context.messages.markRanges,
         String(editor.document.blocks.reduce((total, block) => total + block.marks.length, 0)),
       );
+      // Handles: one per block, only while nothing is being dragged elsewhere.
+      const rects = editor.blockRects;
+      const drag = editor.blockDrag;
+      handleLayer.replaceChildren(dropLine);
+      for (const rect of rects) {
+        const handle = document.createElement("button");
+        handle.type = "button";
+        handle.textContent = "⋮⋮";
+        handle.setAttribute("aria-label", `Move block ${String(rect.key)}`);
+        handle.style.position = "absolute";
+        handle.style.left = `${String(Math.max(0, rect.left - 18))}px`;
+        handle.style.top = `${String(stageTop() + rect.top)}px`;
+        handle.style.height = `${String(Math.min(rect.height, 20))}px`;
+        handle.style.border = "0";
+        handle.style.padding = "0 2px";
+        handle.style.background = "transparent";
+        handle.style.color = "#8a94a3";
+        handle.style.cursor = "grab";
+        handle.style.pointerEvents = "auto";
+        handle.addEventListener("pointerdown", (event) => {
+          event.preventDefault();
+          handle.setPointerCapture(event.pointerId);
+          editor.beginBlockDrag(rect.key);
+        });
+        handle.addEventListener("pointermove", (event) => {
+          if (editor.blockDrag === undefined) return;
+          editor.dragBlockTo(event.clientY - stage.getBoundingClientRect().top - stageTop());
+        });
+        handle.addEventListener("pointerup", () => editor.endBlockDrag());
+        handle.addEventListener("pointercancel", () => editor.endBlockDrag());
+        handleLayer.append(handle);
+      }
+      if (drag === undefined) {
+        dropLine.style.visibility = "hidden";
+      } else {
+        const target = rects.find((entry) => entry.key === drag.beforeKey);
+        const last = rects.at(-1);
+        const y = target?.top ?? (last === undefined ? 0 : last.top + last.height);
+        dropLine.style.visibility = "visible";
+        dropLine.style.left = `${String(target?.left ?? last?.left ?? 0)}px`;
+        dropLine.style.width = `${String(target?.width ?? last?.width ?? 0)}px`;
+        dropLine.style.top = `${String(stageTop() + y - 1)}px`;
+      }
+
       const menu = editor.slashMenu;
       const caretRect = editor.selectionRect;
       if (menu === undefined || caretRect === undefined || menu.items.length === 0) {
@@ -288,6 +353,7 @@ export const richTextDemo: Demo = {
     return () => {
       markRow.remove();
       slashBox.remove();
+      handleLayer.remove();
       canvas.removeEventListener("keydown", onKeyDown);
       canvas.removeEventListener("pointerdown", onPointerDown);
       editor.onInvalidate = undefined;

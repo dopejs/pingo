@@ -101,6 +101,35 @@ export function markIsActive(
 }
 
 /** Changes a block's type and attributes, keeping its text and marks. */
+/**
+ * Moves a block to sit before `beforeKey`, or to the end when it is undefined.
+ *
+ * Reordering is the Shell's alone: the Core maintains a position space over
+ * whatever sequence it is given, so the move is complete once the projection
+ * declares the new order.
+ */
+export function moveBlock(
+  document: DocumentModel,
+  key: number,
+  beforeKey: number | undefined,
+): CommandResult {
+  const from = document.blocks.findIndex((block) => block.key === key);
+  if (from < 0) return unchanged(document);
+  const moved = document.blocks[from];
+  if (moved === undefined) return unchanged(document);
+  const rest = document.blocks.filter((block) => block.key !== key);
+  const at =
+    beforeKey === undefined ? rest.length : rest.findIndex((block) => block.key === beforeKey);
+  if (beforeKey !== undefined && at < 0) return unchanged(document);
+  const target = beforeKey === undefined ? rest.length : at;
+  // Dropping a block where it already is is not a change, and treating it as
+  // one would push an undo entry for a gesture that did nothing.
+  if (document.blocks[target]?.key === key) return unchanged(document);
+  const blocks = [...rest.slice(0, target), moved, ...rest.slice(target)];
+  // No block was created: the sequence is the same set in a different order.
+  return { changed: true, created: [], document: { blocks } };
+}
+
 export function setBlockType(
   document: DocumentModel,
   key: number,

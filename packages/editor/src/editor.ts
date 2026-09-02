@@ -18,6 +18,7 @@ import {
   type CommandResult,
   mergeBlocks,
   removeBlocks,
+  moveBlock,
   replaceText,
   setBlockType,
   splitBlock,
@@ -203,6 +204,11 @@ export class Editor {
   /** Replaces a range of one block's text, moving its marks with it. */
   public replaceText(key: number, range: { start: number; end: number }, text: string): void {
     this.#apply(replaceText(this.#document, key, range.start, range.end, text));
+  }
+
+  /** Moves a block before `beforeKey`, or to the end when it is undefined. */
+  public moveBlock(key: number, beforeKey: number | undefined): void {
+    this.#apply(moveBlock(this.#document, key, beforeKey));
   }
 
   /** Changes one block's type, normalizing what the new type does not allow. */

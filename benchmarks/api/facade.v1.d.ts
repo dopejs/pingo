@@ -64,6 +64,7 @@ export {
   type CommonProps,
   type ContainerProps,
   type DocumentBlockProps,
+  type DocumentBlockRect,
   type DocumentEditStream,
   type DocumentSelectionRect,
   type DocumentProps,

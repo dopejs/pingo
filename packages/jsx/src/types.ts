@@ -417,6 +417,23 @@ export interface DocumentProps {
    * range of characters ended up. A floating toolbar anchors to this.
    */
   readonly onSelectionGeometry?: (rect: DocumentSelectionRect) => void;
+  /**
+   * Where each block ended up on the canvas.
+   *
+   * Declaring this is what asks the engine to observe the blocks, so a document
+   * that does not need block geometry never pays for it. A drag handle and a
+   * drop indicator are what need it.
+   */
+  readonly onBlockGeometry?: (blocks: readonly DocumentBlockRect[]) => void;
+}
+
+/** One block's box on the canvas, with the key that identifies it. */
+export interface DocumentBlockRect {
+  readonly key: number;
+  readonly left: number;
+  readonly top: number;
+  readonly width: number;
+  readonly height: number;
 }
 
 /** A document selection's box on the canvas, in device-independent pixels. */
