@@ -1846,8 +1846,9 @@ impl CoreEngine {
         // Document commands and single-field commands never mix in one batch:
         // one names a document root and the other an editable node, and letting
         // them interleave would make "which caret moved" depend on order.
-        let (document_commands, edit_commands): (Vec<_>, Vec<_>) =
-            edit_commands.into_iter().partition(is_document_command);
+        let (document_commands, edit_commands): (Vec<_>, Vec<_>) = edit_commands
+            .into_iter()
+            .partition(|command| is_document_command(&self.documents, command));
         let mut candidate_scene = self.scene.clone();
         let mut candidate_scroll = self.scroll.clone();
         let mut candidate_editing = self.editing.clone();
@@ -2956,13 +2957,27 @@ fn saturating_u32(value: u64) -> u32 {
 }
 
 /// Returns whether a command targets a document rather than one editable node.
-const fn is_document_command(command: &InputCommand) -> bool {
-    matches!(
-        command,
+/// Whether a command belongs to the document controller rather than a session.
+///
+/// Three commands say so by name. The four composition commands do not: an
+/// input method addresses whichever node has the caret, and that is either an
+/// editable or a document root, so the target decides.
+fn is_document_command(
+    documents: &crate::document::DocumentController,
+    command: &InputCommand,
+) -> bool {
+    match command {
         InputCommand::SetDocumentSelection { .. }
-            | InputCommand::MoveDocumentCaret { .. }
-            | InputCommand::EditDocument { .. }
-    )
+        | InputCommand::MoveDocumentCaret { .. }
+        | InputCommand::EditDocument { .. } => true,
+        InputCommand::BeginComposition { node_id, .. }
+        | InputCommand::UpdateComposition { node_id, .. }
+        | InputCommand::CommitComposition { node_id, .. }
+        | InputCommand::CancelComposition { node_id, .. } => {
+            NodeId::from_raw(*node_id).is_ok_and(|node| documents.is_root(node))
+        }
+        _ => false,
+    }
 }
 
 fn is_scroll_command(command: &InputCommand) -> bool {

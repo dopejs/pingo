@@ -15,9 +15,19 @@ use pingo_abi::{
 };
 use pingo_collections::OrderedMap;
 use pingo_edit::{
-    BlockKey, BlockProjection, BlockReplacement, Direction, Document, DocumentBlock, DocumentEdit,
-    DocumentPosition, DocumentSelection, Granularity, MarkRuns, PositionMap, StructureRequest,
+    BlockKey, BlockProjection, BlockReplacement, Composition, Direction, Document, DocumentBlock,
+    DocumentEdit, DocumentPosition, DocumentSelection, Granularity, MarkRuns, PositionMap,
+    StructureRequest, Utf16Range,
 };
+
+/// One step of an input method composition.
+#[derive(Clone, Copy)]
+enum Composing<'a> {
+    Begin,
+    Update(&'a str),
+    Commit(Option<&'a str>),
+    Cancel,
+}
 use pingo_scene::{NodeId, Scene};
 
 use crate::CoreError;
@@ -204,6 +214,11 @@ impl DocumentController {
             .any(|active| active.nodes.values().any(|owned| *owned == node))
     }
 
+    /// Whether this node is a document root Core is holding.
+    pub(crate) fn is_root(&self, node: NodeId) -> bool {
+        self.documents.contains_key(&node)
+    }
+
     /// The document root and block key a Scene node draws, if any.
     ///
     /// A press lands on the node that painted the block, but a document
@@ -348,9 +363,110 @@ impl DocumentController {
                 .map_err(CoreError::Edit)?;
                 (root, edit)
             }
+            // A composition is a document-level edit like any other: it is
+            // addressed to the document root, so the same four commands an
+            // editable answers work here without a second opcode.
+            InputCommand::BeginComposition { node_id, .. } => {
+                return self.compose(NodeId::from_raw(*node_id)?, Composing::Begin);
+            }
+            InputCommand::UpdateComposition { node_id, text, .. } => {
+                return self.compose(NodeId::from_raw(*node_id)?, Composing::Update(text));
+            }
+            InputCommand::CommitComposition { node_id, text, .. } => {
+                return self.compose(
+                    NodeId::from_raw(*node_id)?,
+                    Composing::Commit(text.as_deref()),
+                );
+            }
+            InputCommand::CancelComposition { node_id, .. } => {
+                return self.compose(NodeId::from_raw(*node_id)?, Composing::Cancel);
+            }
             _ => return Ok(Vec::new()),
         };
         self.commit_edit(root, &edit)
+    }
+
+    /// Runs one step of an input method composition inside the caret's block.
+    ///
+    /// The composing range is recorded after the edit, not before, because it
+    /// is stated in the revision the edit produced. Committing and cancelling
+    /// both end the composition; what differs is whether the proposed text
+    /// stays.
+    fn compose(&mut self, root: NodeId, step: Composing<'_>) -> Result<Vec<NodeId>, CoreError> {
+        let Some(active) = self.documents.get(&root) else {
+            return Ok(Vec::new());
+        };
+        let (edit, next) = match step {
+            Composing::Begin => {
+                let edit = active
+                    .document
+                    .plan_begin_composition()
+                    .map_err(CoreError::Edit)?;
+                let anchor = match edit.selection {
+                    DocumentSelection::Text { focus, .. } => focus,
+                    // A gap or an object has no text to compose into; the
+                    // Shell has to make a block first.
+                    DocumentSelection::Node { .. } | DocumentSelection::Gap { .. } => {
+                        return Ok(Vec::new());
+                    }
+                };
+                (
+                    edit,
+                    Some(Composition {
+                        key: anchor.key,
+                        range: Utf16Range::collapsed(anchor.offset),
+                    }),
+                )
+            }
+            Composing::Update(text) => {
+                let (edit, composition) = self.plan_compose_text(root, text)?;
+                (edit, composition)
+            }
+            Composing::Commit(text) => {
+                let value = text.unwrap_or("");
+                let (edit, _) = self.plan_compose_text(root, value)?;
+                (edit, None)
+            }
+            Composing::Cancel => {
+                let (edit, _) = self.plan_compose_text(root, "")?;
+                (edit, None)
+            }
+        };
+        let changed = self.commit_edit(root, &edit)?;
+        if let Some(active) = self.documents.get_mut(&root) {
+            active.document.set_composition(next);
+        }
+        Ok(changed)
+    }
+
+    /// Plans replacing the composing range with `text`, and where it lands.
+    fn plan_compose_text(
+        &self,
+        root: NodeId,
+        text: &str,
+    ) -> Result<(DocumentEdit, Option<Composition>), CoreError> {
+        let active = self
+            .documents
+            .get(&root)
+            .ok_or(CoreError::InvalidEditableTarget { node: root })?;
+        let units = u32::try_from(text.encode_utf16().count()).map_err(|_| {
+            CoreError::InvalidEditableConfiguration("composition exceeds the offset space")
+        })?;
+        let edit = active
+            .document
+            .plan_composition_replace(text.to_owned(), MarkRuns::uniform(units, 0, 0))
+            .map_err(CoreError::Edit)?;
+        let composition = match edit.selection {
+            DocumentSelection::Text { focus, .. } => Some(Composition {
+                key: focus.key,
+                range: Utf16Range {
+                    start: focus.offset.saturating_sub(units),
+                    end: focus.offset,
+                },
+            }),
+            DocumentSelection::Node { .. } | DocumentSelection::Gap { .. } => None,
+        };
+        Ok((edit, composition))
     }
 
     /// Plans an Enter press: Core moves the caret, the Shell makes the block.

@@ -48,6 +48,10 @@ impl DocumentController {
         false
     }
 
+    pub(crate) const fn is_root(&self, _node: NodeId) -> bool {
+        false
+    }
+
     pub(crate) const fn text_anchor(&self, _root: NodeId) -> Option<(u64, u32)> {
         None
     }

@@ -15,8 +15,9 @@ mod types;
 
 #[cfg(feature = "document")]
 pub use document::{
-    BlockContent, BlockKey, BlockProjection, BlockReplacement, Direction, Document, DocumentBlock,
-    DocumentEdit, DocumentPosition, DocumentSelection, FlatPosition, Granularity, StructureRequest,
+    BlockContent, BlockKey, BlockProjection, BlockReplacement, Composition, Direction, Document,
+    DocumentBlock, DocumentEdit, DocumentPosition, DocumentSelection, FlatPosition, Granularity,
+    StructureRequest,
 };
 pub use error::EditError;
 pub use index::{OffsetBias, TextIndex, word_boundary_utf16, word_range_utf16};

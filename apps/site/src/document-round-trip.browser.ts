@@ -1,3 +1,4 @@
+import type { DocumentSelectionState } from "@dopejs/pingo";
 import {
   createElement,
   createHostedCanvasRoot,
@@ -25,6 +26,22 @@ import wasmManifest from "../../../packages/host/wasm/manifest.json";
  * requests and selections went straight into the floor.
  */
 const rich = wasmManifest.richText;
+
+/**
+ * The selection Core last reported, once one satisfying `want` has arrived.
+ *
+ * Configuring a document reports its initial selection, so waiting for "at
+ * least one report" reads that one and races whatever the test just asked for.
+ */
+async function waitForSelection(
+  harness: { readonly selections: readonly DocumentSelectionReport[] },
+  want: (selection: DocumentSelectionState) => boolean,
+): Promise<DocumentSelectionState> {
+  await waitUntil(() => harness.selections.some((report) => want(report.selection)));
+  const found = harness.selections.filter((report) => want(report.selection)).at(-1);
+  if (found === undefined) throw new Error("Core reported no matching selection");
+  return found.selection;
+}
 
 async function waitUntil(check: () => boolean, timeoutMs = 5000): Promise<boolean> {
   const end = performance.now() + timeoutMs;
@@ -289,10 +306,11 @@ describe.skipIf(!rich)("document round trip", () => {
     harness.send([
       { type: "placeCaret", nodeId: nodes[1]!, x: 60, y: 8, extend: false, word: false },
     ]);
-    await waitUntil(() => harness.selections.length > 0);
-    const placed = harness.selections.at(-1)?.selection;
-    expect(placed?.kind).toBe("text");
-    if (placed?.kind !== "text") throw new Error("expected a text selection");
+    const placed = await waitForSelection(
+      harness,
+      (selection) => selection.kind === "text" && selection.focusKey === 2,
+    );
+    if (placed.kind !== "text") throw new Error("expected a text selection");
     // The block the press was in, not the document's first block, and an
     // offset the press chose rather than zero.
     expect(placed.focusKey).toBe(2);
@@ -306,12 +324,11 @@ describe.skipIf(!rich)("document round trip", () => {
     harness.send([
       { type: "placeCaret", nodeId: nodes[0]!, x: 0, y: 4, extend: false, word: false },
     ]);
-    await waitUntil(
-      () =>
-        (harness.selections.at(-1)?.selection as { focusKey?: number } | undefined)?.focusKey === 1,
+    const start = await waitForSelection(
+      harness,
+      (selection) => selection.kind === "text" && selection.focusKey === 1,
     );
-    const start = harness.selections.at(-1)?.selection;
-    if (start?.kind !== "text") throw new Error("expected a text selection");
+    if (start.kind !== "text") throw new Error("expected a text selection");
     expect(start.focusKey).toBe(1);
     expect(start.focusOffset).toBe(0);
   });
@@ -323,9 +340,11 @@ describe.skipIf(!rich)("document round trip", () => {
     harness.send([
       { type: "placeCaret", nodeId: nodes[0]!, x: 20, y: 8, extend: false, word: false },
     ]);
-    await waitUntil(() => harness.selections.length > 0);
-    const first = harness.selections.at(-1)?.selection;
-    if (first?.kind !== "text") throw new Error("expected a text selection");
+    const first = await waitForSelection(
+      harness,
+      (selection) => selection.kind === "text" && selection.focusKey === 1,
+    );
+    if (first.kind !== "text") throw new Error("expected a text selection");
     const anchorOffset = first.anchorOffset;
 
     // Shift-press in the other block: the anchor stays where the Core already
@@ -333,15 +352,115 @@ describe.skipIf(!rich)("document round trip", () => {
     harness.send([
       { type: "placeCaret", nodeId: nodes[1]!, x: 40, y: 8, extend: true, word: false },
     ]);
-    await waitUntil(
-      () =>
-        (harness.selections.at(-1)?.selection as { focusKey?: number } | undefined)?.focusKey === 2,
+    const extended = await waitForSelection(
+      harness,
+      (selection) => selection.kind === "text" && selection.focusKey === 2,
     );
-    const extended = harness.selections.at(-1)?.selection;
-    if (extended?.kind !== "text") throw new Error("expected a text selection");
+    if (extended.kind !== "text") throw new Error("expected a text selection");
     expect(extended.anchorKey).toBe(1);
     expect(extended.anchorOffset).toBe(anchorOffset);
     expect(extended.focusKey).toBe(2);
+  });
+
+  it("composes an input method sequence inside the block the caret is in", async () => {
+    const harness = await mount();
+    const nodeId = harness.documentNodeId();
+
+    harness.send([
+      {
+        type: "setDocumentSelection",
+        nodeId,
+        baseRevision: 0n,
+        selection: { kind: "text", anchorKey: 2, anchorOffset: 6, focusKey: 2, focusOffset: 6 },
+      },
+    ]);
+    await waitUntil(() => harness.selections.length > 0);
+
+    // A pinyin sequence: the composing text is replaced in place each time the
+    // candidate changes, and only the commit is a finished edit. Replacing
+    // rather than appending is the whole point -- appending would leave every
+    // intermediate candidate in the block.
+    harness.send([{ type: "beginComposition", nodeId, baseRevision: 0n }]);
+    harness.send([{ type: "updateComposition", nodeId, baseRevision: 0n, text: "ni" }]);
+    await waitUntil(() => harness.transactions.length > 0);
+    harness.send([{ type: "updateComposition", nodeId, baseRevision: 0n, text: "nih" }]);
+    harness.send([{ type: "updateComposition", nodeId, baseRevision: 0n, text: "\u4f60" }]);
+    harness.send([{ type: "commitComposition", nodeId, baseRevision: 0n, text: "\u4f60\u597d" }]);
+    await waitUntil(() => harness.transactions.length >= 4);
+
+    // Replay every transaction into a Shell document and read the result: one
+    // committed word at the caret, not a trail of candidates.
+    const { Editor } = await import("@dopejs/pingo/editor");
+    const editor = new Editor({
+      document: {
+        blocks: BLOCKS.map((block) => ({
+          key: block.key,
+          type: "paragraph" as const,
+          attributes: {},
+          text: block.text,
+          marks: [],
+        })),
+      },
+    });
+    const nodeToKey = new Map(harness.blockNodeIds().map((node, index) => [node, index + 1]));
+    editor.applyEditStream(
+      { transactions: harness.transactions, structure: [], selections: harness.selections },
+      nodeToKey,
+    );
+    const before = BLOCKS[1]!.text;
+    expect(editor.document.blocks[1]?.text).toBe(
+      `${before.slice(0, 6)}\u4f60\u597d${before.slice(6)}`,
+    );
+    expect(editor.document.blocks[0]?.text).toBe(BLOCKS[0]!.text);
+  });
+
+  it("leaves nothing behind when a composition is cancelled", async () => {
+    const harness = await mount();
+    const nodeId = harness.documentNodeId();
+
+    harness.send([
+      {
+        type: "setDocumentSelection",
+        nodeId,
+        baseRevision: 0n,
+        selection: { kind: "text", anchorKey: 1, anchorOffset: 5, focusKey: 1, focusOffset: 5 },
+      },
+    ]);
+    await waitUntil(() => harness.selections.length > 0);
+    harness.send([{ type: "beginComposition", nodeId, baseRevision: 0n }]);
+    harness.send([{ type: "updateComposition", nodeId, baseRevision: 0n, text: "wo" }]);
+    await waitUntil(() => harness.transactions.length > 0);
+    harness.send([{ type: "cancelComposition", nodeId, baseRevision: 0n }]);
+    // Cancelling replaces the composing range with nothing, so the last
+    // transaction is the one whose delta is empty over a non-empty range.
+    await waitUntil(() =>
+      harness.transactions.some(
+        (transaction) =>
+          transaction.delta?.text === "" &&
+          transaction.delta.range.end > transaction.delta.range.start,
+      ),
+    );
+
+    const { Editor } = await import("@dopejs/pingo/editor");
+    const editor = new Editor({
+      document: {
+        blocks: BLOCKS.map((block) => ({
+          key: block.key,
+          type: "paragraph" as const,
+          attributes: {},
+          text: block.text,
+          marks: [],
+        })),
+      },
+    });
+    const nodeToKey = new Map(harness.blockNodeIds().map((node, index) => [node, index + 1]));
+    editor.applyEditStream(
+      { transactions: harness.transactions, structure: [], selections: harness.selections },
+      nodeToKey,
+    );
+    // Abandoning a candidate must restore the block, not leave the romanisation
+    // sitting in the text.
+    expect(editor.document.blocks[0]?.text).toBe(BLOCKS[0]!.text);
   });
 
   it("asks the Shell to split rather than splitting a document it does not own", async () => {

@@ -272,8 +272,25 @@ pub struct Document {
     starts: Vec<FlatPosition>,
     length: FlatPosition,
     selection: DocumentSelection,
+    /// The text an input method is still composing, if any.
+    ///
+    /// A composition never spans blocks: there is no candidate list that
+    /// crosses a paragraph break, and letting one span the boundary would make
+    /// the composing range meaningless the moment the block split. It lives
+    /// here rather than in a per-block session so that undo stays document-wide
+    /// and the block's text keeps one owner.
+    composition: Option<Composition>,
     /// Blocks the caret wanted to be in but the Shell has not sent yet.
     pending_materialization: Vec<BlockKey>,
+}
+
+/// Text an input method is still composing, inside one block.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct Composition {
+    /// Block the composition is anchored in.
+    pub key: BlockKey,
+    /// UTF-16 range the composing text currently occupies.
+    pub range: Utf16Range,
 }
 
 impl Document {
@@ -343,6 +360,17 @@ impl Document {
         let previous = std::mem::replace(&mut self.blocks, blocks);
         self.rebuild_starts()?;
         self.selection = self.recover_selection(&previous);
+        // A composing range describes offsets in a block the Shell may have
+        // just replaced, split or removed. Keeping it would leave the input
+        // method underlining text that is no longer the text it proposed.
+        if let Some(composition) = self.composition {
+            let survives = self
+                .index_of(composition.key)
+                .is_some_and(|index| self.blocks[index].len_utf16() >= composition.range.end);
+            if !survives {
+                self.composition = None;
+            }
+        }
         Ok(())
     }
 
@@ -401,6 +429,74 @@ impl Document {
     #[must_use]
     pub fn index_of(&self, key: BlockKey) -> Option<usize> {
         self.blocks.iter().position(|block| block.key == key)
+    }
+
+    /// The range an input method is still composing, if any.
+    #[must_use]
+    pub const fn composition(&self) -> Option<Composition> {
+        self.composition
+    }
+
+    /// Plans the edit that starts a composition at the caret.
+    ///
+    /// A selection is collapsed first, the way a browser does: the composing
+    /// range has to be somewhere, and the only place that is unambiguous is
+    /// where the caret ends up once the selected text is gone.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`EditError::CompositionAlreadyActive`] when one is running, or
+    /// a planning error from the collapse.
+    pub fn plan_begin_composition(&self) -> Result<DocumentEdit, EditError> {
+        if self.composition.is_some() {
+            return Err(EditError::CompositionAlreadyActive);
+        }
+        self.plan_replace(String::new(), MarkRuns::default())
+    }
+
+    /// Plans replacing the composing range, or the caret when none is running.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`EditError::UnknownBlock`] when the composing block is gone, or
+    /// a mark error when the table does not cover the text.
+    pub fn plan_composition_replace(
+        &self,
+        text: String,
+        marks: MarkRuns,
+    ) -> Result<DocumentEdit, EditError> {
+        let Some(composition) = self.composition else {
+            return self.plan_replace(text, marks);
+        };
+        let index = self
+            .index_of(composition.key)
+            .ok_or(EditError::UnknownBlock)?;
+        let inserted =
+            u32::try_from(text.encode_utf16().count()).map_err(|_| EditError::OffsetOverflow)?;
+        if marks.length() != inserted {
+            return Err(EditError::InvalidMarkRuns {
+                covered: marks.length(),
+                text_len: inserted,
+            });
+        }
+        let mut edit = self.single_block_edit(index, composition.range, text);
+        let start = composition.range.start;
+        if let Some(replacement) = edit.replacements.first_mut() {
+            replacement.marks = marks;
+        }
+        edit.selection = DocumentSelection::Text {
+            anchor: DocumentPosition::new(composition.key, start + inserted),
+            focus: DocumentPosition::new(composition.key, start + inserted),
+        };
+        Ok(edit)
+    }
+
+    /// Records where the composition now sits, or that it ended.
+    ///
+    /// Separate from applying the edit because the range is stated in the
+    /// revision the edit produced, not the one it consumed.
+    pub fn set_composition(&mut self, composition: Option<Composition>) {
+        self.composition = composition;
     }
 
     /// Sets the selection after normalizing it onto positions that exist.
