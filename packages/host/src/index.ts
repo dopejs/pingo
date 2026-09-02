@@ -56,6 +56,8 @@ export {
   type HostMutationTransportMetrics,
   type HostedCanvasRoot,
   type HostedCanvasRootOptions,
+  type ClipboardContent,
+  type ClipboardPayload,
   type DocumentFocus,
   type ScrollTarget,
 } from "./hosted-root";

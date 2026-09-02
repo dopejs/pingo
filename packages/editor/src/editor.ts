@@ -23,6 +23,7 @@ import {
   toggleMark,
 } from "./commands";
 import { applyBlockRule, applyInlineRule } from "./input-rules";
+import { fromHtml, fromMarkdown, toHtml, toMarkdown } from "./serialize";
 import {
   type Block,
   type DocumentModel,
@@ -212,6 +213,119 @@ export class Editor {
     return offset;
   }
 
+  /**
+   * Serializes the current selection for the clipboard.
+   *
+   * A selection that covers part of one block copies as that text; one that
+   * spans blocks copies as the blocks it covers, trimmed at both ends, so the
+   * structure survives the round trip. `undefined` means there is nothing
+   * selected to copy and the engine should do what it would have done.
+   */
+  public copySelection(): { html: string; markdown: string; text: string } | undefined {
+    const selection = this.#selection;
+    if (selection?.kind !== "text") return undefined;
+    const slice = this.#sliceSelection(selection);
+    if (slice.blocks.length === 0) return undefined;
+    return {
+      html: toHtml(slice),
+      markdown: toMarkdown(slice),
+      text: slice.blocks.map((block) => block.text).join("\n"),
+    };
+  }
+
+  /**
+   * Replaces the selection with pasted content, keeping its structure.
+   *
+   * Prefers the HTML flavour, because that is where a heading or a list
+   * survives; plain text becomes one paragraph per line. Returns `false` when
+   * there is nothing usable, so the caller can fall back to a text insertion.
+   */
+  public pasteContent(content: { readonly html: string; readonly text: string }): boolean {
+    const parsed =
+      content.html.trim() === ""
+        ? fromMarkdown(content.text, this.#allocator)
+        : fromHtml(content.html, this.#allocator);
+    if (parsed.blocks.length === 0) return false;
+    const selection = this.#selection;
+    if (selection?.kind !== "text") return false;
+    const spliced = this.#spliceAtSelection(selection, parsed.blocks);
+    if (spliced === undefined) return false;
+    this.#document = normalizeDocument({ blocks: spliced });
+    this.#allocator = new BlockKeyAllocator(this.#document);
+    this.#revision += 1n;
+    return true;
+  }
+
+  /** The blocks a text selection covers, trimmed to its two edges. */
+  #sliceSelection(selection: {
+    readonly anchorKey: number;
+    readonly anchorOffset: number;
+    readonly focusKey: number;
+    readonly focusOffset: number;
+  }): DocumentModel {
+    const blocks = this.#document.blocks;
+    const anchorIndex = blocks.findIndex((block) => block.key === selection.anchorKey);
+    const focusIndex = blocks.findIndex((block) => block.key === selection.focusKey);
+    if (anchorIndex < 0 || focusIndex < 0) return { blocks: [] };
+    const forward =
+      anchorIndex < focusIndex ||
+      (anchorIndex === focusIndex && selection.anchorOffset <= selection.focusOffset);
+    const [first, last] = forward ? [anchorIndex, focusIndex] : [focusIndex, anchorIndex];
+    const [from, to] = forward
+      ? [selection.anchorOffset, selection.focusOffset]
+      : [selection.focusOffset, selection.anchorOffset];
+    if (first === last) {
+      const block = blocks[first];
+      if (block === undefined || from === to) return { blocks: [] };
+      return { blocks: [sliceBlock(block, from, to)] };
+    }
+    const covered = blocks.slice(first, last + 1);
+    return {
+      blocks: covered.map((block, offset) => {
+        if (offset === 0) return sliceBlock(block, from, block.text.length);
+        if (offset === covered.length - 1) return sliceBlock(block, 0, to);
+        return block;
+      }),
+    };
+  }
+
+  /** Puts `pasted` where the selection was, keeping the blocks around it. */
+  #spliceAtSelection(
+    selection: {
+      readonly anchorKey: number;
+      readonly anchorOffset: number;
+      readonly focusKey: number;
+      readonly focusOffset: number;
+    },
+    pasted: readonly Block[],
+  ): Block[] | undefined {
+    const blocks = this.#document.blocks;
+    const anchorIndex = blocks.findIndex((block) => block.key === selection.anchorKey);
+    const focusIndex = blocks.findIndex((block) => block.key === selection.focusKey);
+    if (anchorIndex < 0 || focusIndex < 0) return undefined;
+    const forward =
+      anchorIndex < focusIndex ||
+      (anchorIndex === focusIndex && selection.anchorOffset <= selection.focusOffset);
+    const [first, last] = forward ? [anchorIndex, focusIndex] : [focusIndex, anchorIndex];
+    const [from, to] = forward
+      ? [selection.anchorOffset, selection.focusOffset]
+      : [selection.focusOffset, selection.anchorOffset];
+    const head = blocks[first];
+    const tail = blocks[last];
+    if (head === undefined || tail === undefined) return undefined;
+    // The head keeps what came before the selection and the tail what came
+    // after, so a paste in the middle of a paragraph does not lose either side.
+    const before = sliceBlock(head, 0, from);
+    const after = sliceBlock(tail, to, tail.text.length);
+    return [
+      ...blocks.slice(0, first),
+      ...(before.text === "" && pasted.length > 0 ? [] : [before]),
+      ...pasted,
+      ...(after.text === "" ? [] : [{ ...after, key: this.#allocator.allocate() }]),
+      ...blocks.slice(last + 1),
+    ];
+  }
+
   /** Replaces the document wholesale, keeping key allocation collision-free. */
   public setDocument(document: DocumentModel): void {
     this.#document = normalizeDocument(document);
@@ -224,4 +338,26 @@ export class Editor {
     this.#document = result.document;
     this.#revision += 1n;
   }
+}
+
+/**
+ * The part of a block between two offsets, marks trimmed with it.
+ *
+ * Copying the text without moving the marks would hand the clipboard ranges
+ * that point past the end of what was copied.
+ */
+function sliceBlock(block: Block, from: number, to: number): Block {
+  const start = Math.max(0, Math.min(from, block.text.length));
+  const end = Math.max(start, Math.min(to, block.text.length));
+  return {
+    ...block,
+    text: block.text.slice(start, end),
+    marks: block.marks
+      .map((mark) => ({
+        ...mark,
+        from: Math.max(0, mark.from - start),
+        to: Math.min(end - start, mark.to - start),
+      }))
+      .filter((mark) => mark.to > mark.from),
+  };
 }

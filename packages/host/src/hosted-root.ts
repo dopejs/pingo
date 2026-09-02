@@ -15,6 +15,8 @@ import {
   EVENT_FLAG_PRECISE_WHEEL,
   KEY_FLAG_REPEAT,
   NativeTextInputBridge,
+  type ClipboardContent,
+  type ClipboardPayload,
   type DocumentSelectionReport,
   type EditTransaction,
   type EditingGeometry,
@@ -107,6 +109,8 @@ const MINIMUM_FRAME_MS = 4;
 const MAXIMUM_FRAME_MS = 34;
 
 /** Generation-bearing scroll target accepted from a JSX ref or raw host handle. */
+export type { ClipboardContent, ClipboardPayload } from "@dopejs/pingo-editing";
+
 export type ScrollTarget = number | { readonly nodeId: number };
 
 /**
@@ -156,6 +160,21 @@ export interface HostedCanvasRootOptions extends RootOptions {
   readonly onStructureRequest?: (request: StructureRequest) => void;
   /** Core moved a document selection and is reporting where it landed. */
   readonly onDocumentSelection?: (report: DocumentSelectionReport) => void;
+  /**
+   * Serializes the document selection for a copy.
+   *
+   * The engine owns the clipboard event; what a document selection means as
+   * HTML or markdown is the Shell's, because only it has the schema. Returning
+   * `undefined` leaves the plain-text copy the engine would do on its own.
+   */
+  readonly onDocumentCopy?: () => ClipboardPayload | undefined;
+  /**
+   * Takes a paste the Shell wants to handle structurally.
+   *
+   * Return `true` when it did: pasting a heading or a list changes the block
+   * sequence, which is a schema decision rather than a text insertion.
+   */
+  readonly onDocumentPaste?: (content: ClipboardContent) => boolean;
   readonly onEventTransaction?: (transaction: EventTransaction) => void;
   readonly onNonPassiveRegions?: (regions: readonly NonPassiveRegion[]) => void;
   readonly onSemantics?: (nodes: readonly SemanticNode[]) => void;
@@ -1993,6 +2012,8 @@ class HostedCanvasRootController implements HostedCanvasRoot {
       ...(this.#options.nativeTextInputMode === "textarea-proxy" ? { editContext: null } : {}),
       onError: (error) => this.#options.onHostError?.(error),
       onSubmit: (nodeId) => this.#root?.submitEditable(nodeId),
+      onCopy: () => this.#options.onDocumentCopy?.(),
+      onPaste: (content) => this.#options.onDocumentPaste?.(content) === true,
       requestCharacterBounds: (nodeId, start, end) => {
         this.sendInputCommands([{ type: "requestCharacterBounds", nodeId, start, end }]);
       },

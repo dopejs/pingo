@@ -199,6 +199,8 @@ export {
   type HostTransportPreference,
   type HostedCanvasRoot,
   type HostedCanvasRootOptions,
+  type ClipboardContent,
+  type ClipboardPayload,
   type DocumentFocus,
   type ScrollTarget,
   type RenderClockMetrics,

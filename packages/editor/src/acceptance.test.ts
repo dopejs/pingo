@@ -186,6 +186,78 @@ describe("E15 acceptance", () => {
     expect(viaMarkdown.blocks[1]?.marks).toEqual(pasted.blocks[1]?.marks);
   });
 
+  it("8: copying a document selection yields HTML and markdown, and a paste keeps its structure", () => {
+    const editor = new Editor({
+      document: {
+        blocks: [
+          { key: 1, type: "heading", attributes: { level: 2 }, text: "Title", marks: [] },
+          {
+            key: 2,
+            type: "paragraph",
+            attributes: {},
+            text: "some bold text",
+            marks: [{ mark: "bold", from: 5, to: 9 }],
+          },
+        ],
+      },
+    });
+    editor.applyEditStream(
+      {
+        transactions: [],
+        structure: [],
+        selections: [
+          {
+            nodeId: 1,
+            selection: {
+              kind: "text",
+              anchorKey: 1,
+              anchorOffset: 0,
+              focusKey: 2,
+              focusOffset: 14,
+            },
+          },
+        ],
+      },
+      new Map([[1, 1]]),
+    );
+
+    const copied = editor.copySelection();
+    expect(copied).toBeDefined();
+    // Both flavours: HTML is what another editor reads, markdown is what a
+    // plain-text target gets instead of a structure-free paragraph.
+    expect(copied?.html).toContain("<h2>");
+    expect(copied?.html).toContain("<strong>bold</strong>");
+    expect(copied?.markdown).toContain("## Title");
+    expect(copied?.markdown).toContain("**bold**");
+
+    // Pasting that back into an empty document rebuilds the heading, the
+    // paragraph and the mark, rather than flattening to one line of text.
+    const target = new Editor({
+      document: {
+        blocks: [{ key: 1, type: "paragraph", attributes: {}, text: "", marks: [] }],
+      },
+    });
+    target.applyEditStream(
+      {
+        transactions: [],
+        structure: [],
+        selections: [
+          {
+            nodeId: 1,
+            selection: { kind: "text", anchorKey: 1, anchorOffset: 0, focusKey: 1, focusOffset: 0 },
+          },
+        ],
+      },
+      new Map([[1, 1]]),
+    );
+    expect(target.pasteContent({ html: copied?.html ?? "", text: copied?.markdown ?? "" })).toBe(
+      true,
+    );
+    expect(target.document.blocks.map((block) => block.type)).toEqual(["heading", "paragraph"]);
+    expect(target.document.blocks[0]?.attributes).toEqual({ level: 2 });
+    expect(target.document.blocks[1]?.marks).toEqual([{ mark: "bold", from: 5, to: 9 }]);
+  });
+
   it("9: a formatting rewrite is one undo step separate from the typing before it", () => {
     // Core owns the undo stack; what the Shell owes it is a rewrite expressed
     // as one replacement over an explicit range rather than as more typing.

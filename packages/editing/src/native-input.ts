@@ -60,8 +60,38 @@ export interface EditingGeometry {
   readonly selectionBounds: DOMRect;
 }
 
+/** What a copy puts on the clipboard, by MIME type. */
+export interface ClipboardPayload {
+  readonly html?: string;
+  readonly markdown?: string;
+  readonly text: string;
+}
+
+/** What a paste carried, by MIME type. */
+export interface ClipboardContent {
+  readonly html: string;
+  readonly text: string;
+}
+
 export interface NativeTextInputBridgeOptions {
   readonly dispatch: (command: InputCommand) => void;
+  /**
+   * Serializes the current selection for the clipboard.
+   *
+   * The bridge holds one value and one selection, which is all a single-value
+   * editable has. A document's selection can span blocks and carry structure,
+   * and only the Shell knows its schema, so it answers instead when it can.
+   * Returning `undefined` leaves the plain-text copy the bridge would do.
+   */
+  readonly onCopy?: () => ClipboardPayload | undefined;
+  /**
+   * Consumes a paste the Shell wants to handle structurally.
+   *
+   * Returning `true` means the Shell took it -- pasting a heading or a list
+   * changes the block sequence, which is the Shell's decision, not a text
+   * insertion. Returning `false` falls back to inserting the plain text.
+   */
+  readonly onPaste?: (content: ClipboardContent) => boolean;
   readonly editContext?: EditContextConstructor | null;
   readonly ownerDocument?: Document;
   readonly onSubmit?: (nodeId: number) => void;
@@ -75,6 +105,8 @@ export class NativeTextInputBridge {
   readonly #dispatch: (command: InputCommand) => void;
   readonly #editContext: EditContextLike | undefined;
   readonly #onSubmit: ((nodeId: number) => void) | undefined;
+  readonly #onCopy: (() => ClipboardPayload | undefined) | undefined;
+  readonly #onPaste: ((content: ClipboardContent) => boolean) | undefined;
   readonly #onError: ((error: Error) => void) | undefined;
   readonly #requestCharacterBounds:
     ((nodeId: number, start: number, end: number) => void) | undefined;
@@ -97,6 +129,8 @@ export class NativeTextInputBridge {
     this.#canvas = canvas;
     this.#dispatch = options.dispatch;
     this.#onSubmit = options.onSubmit;
+    this.#onCopy = options.onCopy;
+    this.#onPaste = options.onPaste;
     this.#onError = options.onError;
     this.#requestCharacterBounds = options.requestCharacterBounds;
     const ownerDocument = options.ownerDocument ?? canvas.ownerDocument;
@@ -385,7 +419,15 @@ export class NativeTextInputBridge {
     const target = this.#target;
     if (clipboard === null || target === undefined || target.password) return;
     event.preventDefault();
-    clipboard.setData("text/plain", selectedText(this.#value, this.#selection));
+    const supplied = this.#onCopy?.();
+    if (supplied === undefined) {
+      clipboard.setData("text/plain", selectedText(this.#value, this.#selection));
+      return;
+    }
+    // Markdown goes on `text/plain` so an editor that receives it keeps the
+    // structure a plain-text paste would otherwise flatten.
+    clipboard.setData("text/plain", supplied.markdown ?? supplied.text);
+    if (supplied.html !== undefined) clipboard.setData("text/html", supplied.html);
   };
 
   private readonly handleCut = (event: Event): void => {
@@ -401,7 +443,10 @@ export class NativeTextInputBridge {
     const target = this.#target;
     if (clipboard === null || target === undefined || target.readOnly) return;
     event.preventDefault();
-    this.emit({ type: "insert", text: clipboard.getData("text/plain") });
+    const text = clipboard.getData("text/plain");
+    const html = clipboard.getData("text/html");
+    if (this.#onPaste?.({ html, text }) === true) return;
+    this.emit({ type: "insert", text });
   };
 
   /** EditContext leaves navigation keys to the app; map them to Core moves. */

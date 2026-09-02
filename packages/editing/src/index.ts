@@ -44,6 +44,8 @@ export {
   type EditingGeometry,
   type EditingSelection,
   type EditingTargetState,
+  type ClipboardContent,
+  type ClipboardPayload,
   type NativeTextInputBridgeOptions,
   type NativeTextInputMode,
 } from "./native-input";
