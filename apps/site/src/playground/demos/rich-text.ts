@@ -227,11 +227,15 @@ export const richTextDemo: Demo = {
       element.style.background = "transparent";
       element.style.color = "#ffffff";
       element.style.cursor = "pointer";
-      element.addEventListener("mousedown", (event) => {
-        // The press must not take focus off the canvas: the OS input surface
-        // lives there, and losing it mid-selection ends the editing session.
-        event.preventDefault();
-      });
+      // The press must not take focus off the canvas: the OS input surface
+      // lives there, and losing it mid-selection ends the editing session.
+      // Both events, because the engine ends the session on the pointer event
+      // and the browser moves focus on the mouse one.
+      for (const kind of ["pointerdown", "mousedown"]) {
+        element.addEventListener(kind, (event) => {
+          event.preventDefault();
+        });
+      }
       element.addEventListener("click", () => editor.toggleMark(mark));
       buttons.set(mark, element);
       markRow.append(element);
@@ -333,7 +337,11 @@ export const richTextDemo: Demo = {
             row.style.textAlign = "left";
             row.style.cursor = "pointer";
             row.style.background = index === menu.activeIndex ? "#eef2ff" : "transparent";
-            row.addEventListener("mousedown", (event) => event.preventDefault());
+            for (const kind of ["pointerdown", "mousedown"]) {
+              row.addEventListener(kind, (event) => {
+                event.preventDefault();
+              });
+            }
             row.addEventListener("click", () => editor.applySlashItem(index));
             return row;
           }),

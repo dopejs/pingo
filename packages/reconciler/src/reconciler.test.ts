@@ -587,6 +587,33 @@ describe("reconciler", () => {
     expect(updated?.blocks[0]?.lenUtf16).toBe(11);
   });
 
+  it("tells a document the input surface left it", () => {
+    const sink = new RecordingSink();
+    const root = createRoot(sink);
+    const blurred: number[] = [];
+    root.render(
+      createElement(View, {
+        width: 300,
+        document: {
+          revision: 1n,
+          blocks: [{ key: 11, lenUtf16: 1 }],
+          onBlur: () => blurred.push(1),
+        },
+        children: createElement(Text, { blockKey: 11, value: "a" }),
+      }),
+    );
+    const configure = mutationsOfType(sink.batches[0], "configureDocument")[0];
+    const documentNode = configure?.blocks[0]?.nodeId;
+    expect(documentNode).toBeDefined();
+
+    // Addressed at the document root, which is the node the surface was
+    // activated over; a block reaches the same document.
+    root.applyDocumentBlur(documentNode ?? 0);
+    expect(blurred).toEqual([1]);
+    root.applyDocumentBlur(0x7fff_0000);
+    expect(blurred).toEqual([1]);
+  });
+
   it("refuses a projection whose keys repeat or are not positive", () => {
     const sink = new RecordingSink();
     expect(() =>

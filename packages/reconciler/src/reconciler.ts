@@ -197,6 +197,7 @@ export interface CoreDrivenPingoRoot extends PingoRoot {
   applyDocumentStructure(request: StructureRequest): void;
   applyDocumentGeometry(nodeId: number, rect: DocumentSelectionRect): void;
   applyDocumentSelection(report: DocumentSelectionReport): void;
+  applyDocumentBlur(nodeId: number): void;
   applyEventTransaction(transaction: EventTransaction): void;
   editableState(nodeId: number): EditableStateSnapshot | undefined;
   submitEditable(nodeId: number): void;
@@ -314,6 +315,7 @@ interface NormalizedDocument {
   readonly onEditStream: ((stream: DocumentEditStream) => void) | undefined;
   readonly onSelectionGeometry: ((rect: DocumentSelectionRect) => void) | undefined;
   readonly onBlockGeometry: ((blocks: readonly DocumentBlockRect[]) => void) | undefined;
+  readonly onBlur: (() => void) | undefined;
   readonly blocks: readonly {
     readonly key: number;
     readonly lenUtf16: number;
@@ -764,6 +766,15 @@ class ReconcilerRoot implements CoreDrivenPingoRoot {
     const instance = this.#hostsByNodeId.get(request.nodeId);
     if (instance === undefined || !instance.mounted) return;
     this.deliverToDocument(instance, { structure: [request] });
+  }
+
+  /** Tells a document the engine's input surface left it. */
+  public applyDocumentBlur(nodeId: number): void {
+    this.assertUsable();
+    const instance = this.#hostsByNodeId.get(nodeId);
+    if (instance === undefined || !instance.mounted) return;
+    const owner = instance.document === undefined ? this.#documentOfBlock.get(instance) : instance;
+    owner?.document?.onBlur?.();
   }
 
   /** Hands Core's selection report to the document it names. */
@@ -2916,6 +2927,7 @@ function normalizeHostProps(
         ((rect: DocumentSelectionRect) => void) | undefined,
       onBlockGeometry: normalizeDocumentCallback(declared.onBlockGeometry) as
         ((blocks: readonly DocumentBlockRect[]) => void) | undefined,
+      onBlur: normalizeDocumentCallback(declared.onBlur) as (() => void) | undefined,
       blocks,
     };
   }

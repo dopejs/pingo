@@ -1016,6 +1016,37 @@ describe("createHostedCanvasRoot", () => {
     await root.close();
   });
 
+  it("tells a document when the input surface leaves it", async () => {
+    installCanvasGlobal();
+    const canvas = new FakeCanvas();
+    const core = fakeCore();
+    const blurs: number[] = [];
+    core.editing_geometry = () => editingGeometry(0x0010_0001);
+    const root = await createHostedCanvasRoot(canvas as unknown as HTMLCanvasElement, {
+      capabilities: allCapabilities(),
+      coreFactory: () => Promise.resolve(core),
+      transport: { pageWorkerEnabled: false },
+    });
+    root.render(documentElement({ onBlur: () => blurs.push(1) }));
+    const node = decodeMutationBatch(core.commits.at(-1) ?? new Uint8Array()).mutations.find(
+      (mutation) => mutation.type === "configureDocument",
+    )?.nodeId;
+    expect(node).toBeDefined();
+    root.focusDocument(node ?? 0, { text: "ab cd", anchor: 1, focus: 1, revision: 1n });
+
+    // Core stops drawing the caret and the selection of a document the surface
+    // left, so whatever the Shell floats over that selection has to go too.
+    root.blurEditable();
+
+    expect(blurs).toEqual([1]);
+    const commands = core.inputs
+      .flatMap((bytes) => decodeInputBatch(bytes).commands)
+      .filter((command) => command.type === "blurEditable");
+    expect(commands).toHaveLength(1);
+    expect(commands[0]).toMatchObject({ nodeId: node });
+    await root.close();
+  });
+
   it("falls back before canvas transfer when Worker preparation fails", async () => {
     installCanvasGlobal();
     const canvas = new FakeCanvas();
@@ -1264,6 +1295,26 @@ function editableElement(width = 80): RenderNode {
     type: "editableText",
     key: null,
     props: { height: 40, revision: 1n, value: "ab cd", width },
+  } as unknown as RenderNode;
+}
+
+/** A one-block document, with whichever reverse callbacks a test watches. */
+function documentElement(handlers: { readonly onBlur?: () => void }): RenderNode {
+  return {
+    $$typeof: Symbol.for("dopejs.pingo.element"),
+    type: "container",
+    key: null,
+    props: {
+      width: 160,
+      height: 80,
+      document: { revision: 1n, blocks: [{ key: 11, lenUtf16: 5 }], ...handlers },
+      children: {
+        $$typeof: Symbol.for("dopejs.pingo.element"),
+        type: "text",
+        key: null,
+        props: { blockKey: 11, value: "ab cd" },
+      },
+    },
   } as unknown as RenderNode;
 }
 

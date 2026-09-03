@@ -2067,7 +2067,10 @@ impl CoreEngine {
             return self.poison(error);
         }
         let mut caret_changed = false;
-        if self.editing.active_visual().is_some() {
+        // A document blinks its caret the same way a session does: the caret is
+        // the same affordance, and one that never blinks reads as a stray rule
+        // between two words rather than as a place to type.
+        if self.editing.active_visual().is_some() || self.documents.focus_root_visual().is_some() {
             self.caret_elapsed_seconds += elapsed_seconds;
             while self.caret_elapsed_seconds >= 0.5 {
                 self.caret_elapsed_seconds -= 0.5;
@@ -3041,8 +3044,11 @@ fn is_document_command(
         | InputCommand::Redo { node_id, .. }
         // The host activates its input surface over the document root, which
         // is a container with no editing session. Treating that as a missing
-        // editable rejects the whole batch and takes the frame down.
-        | InputCommand::FocusEditable { node_id, .. } => {
+        // editable rejects the whole batch and takes the frame down. Blur is
+        // the same command in reverse and arrives whenever a press lands
+        // outside the document, so it has to be routed the same way.
+        | InputCommand::FocusEditable { node_id, .. }
+        | InputCommand::BlurEditable { node_id, .. } => {
             NodeId::from_raw(*node_id).is_ok_and(|node| documents.is_root(node))
         }
         _ => false,
@@ -7124,16 +7130,22 @@ mod tests {
         engine
             .input(&input(
                 2,
-                vec![InputCommand::SetDocumentSelection {
-                    node_id: id(1),
-                    base_revision: 0,
-                    selection: pingo_abi::WireDocumentSelection::Text {
-                        anchor_key: id(2),
-                        anchor_offset: 1,
-                        focus_key: id(2),
-                        focus_offset: 3,
+                vec![
+                    // The surface has to be activated first: an unfocused
+                    // document offers no caret geometry, because the surface it
+                    // would belong to is not there.
+                    InputCommand::FocusEditable { node_id: id(1) },
+                    InputCommand::SetDocumentSelection {
+                        node_id: id(1),
+                        base_revision: 0,
+                        selection: pingo_abi::WireDocumentSelection::Text {
+                            anchor_key: id(2),
+                            anchor_offset: 1,
+                            focus_key: id(2),
+                            focus_offset: 3,
+                        },
                     },
-                }],
+                ],
             ))
             .expect("selection");
         let _ = engine.take_glyph_resources();
@@ -7147,6 +7159,52 @@ mod tests {
         assert_eq!(words[1], id(1));
         assert_eq!(words[2], 1);
         assert_eq!(words[3], 3);
+    }
+
+    #[cfg(feature = "rich-text")]
+    #[test]
+    fn blurring_a_document_is_accepted_and_takes_its_caret_away() {
+        let mut engine = CoreEngine::new(320.0, 240.0).expect("Core");
+        engine
+            .commit(&document_tree(1, 1, &[(id(2), Some("abcdef"))]))
+            .expect("document frame");
+        let _ = engine.take_glyph_resources();
+        let _ = engine.take_edit_transactions().expect("drain");
+        engine
+            .input(&input(
+                2,
+                vec![
+                    InputCommand::FocusEditable { node_id: id(1) },
+                    InputCommand::SetDocumentSelection {
+                        node_id: id(1),
+                        base_revision: 0,
+                        selection: pingo_abi::WireDocumentSelection::Text {
+                            anchor_key: id(2),
+                            anchor_offset: 2,
+                            focus_key: id(2),
+                            focus_offset: 2,
+                        },
+                    },
+                ],
+            ))
+            .expect("focus");
+        let _ = engine.take_glyph_resources();
+        let _ = engine.take_edit_transactions().expect("drain");
+        assert!(!engine.documents.visuals().is_empty());
+
+        // A press outside the document blurs it. The document root has no
+        // editing session, so routing the blur to the session table rejected
+        // the whole batch and took the frame down with it.
+        engine
+            .input(&input(
+                3,
+                vec![InputCommand::BlurEditable { node_id: id(1) }],
+            ))
+            .expect("blur");
+        let _ = engine.take_glyph_resources();
+        let _ = engine.take_edit_transactions().expect("drain");
+        assert!(engine.documents.visuals().is_empty());
+        assert_eq!(engine.editing_geometry(), super::empty_editing_geometry());
     }
 
     #[cfg(feature = "rich-text")]

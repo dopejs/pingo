@@ -425,6 +425,14 @@ export interface DocumentProps {
    * drop indicator are what need it.
    */
   readonly onBlockGeometry?: (blocks: readonly DocumentBlockRect[]) => void;
+  /**
+   * The engine's input surface stopped being activated over this document.
+   *
+   * A press outside the document ends the editing session, and the caret and
+   * the selection stop being drawn. Anything the Shell floats over the
+   * selection has to go with them.
+   */
+  readonly onBlur?: () => void;
 }
 
 /** One block's box on the canvas, with the key that identifies it. */

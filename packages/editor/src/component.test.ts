@@ -444,6 +444,31 @@ function mount(instance: DocumentEditorController): void {
   node.props.ref({ nodeId: 7 });
 }
 
+describe("DocumentEditorController blur", () => {
+  it("forgets where the selection was drawn once the surface leaves", () => {
+    const { instance } = controller();
+    instance.applyEditStream({
+      transactions: [],
+      structure: [],
+      selections: [
+        {
+          nodeId: 1,
+          selection: { kind: "text", anchorKey: 1, anchorOffset: 0, focusKey: 1, focusOffset: 5 },
+        },
+      ],
+    });
+    instance.applySelectionGeometry({ left: 10, top: 20, width: 40, height: 18 });
+    expect(instance.selectionRect).toBeDefined();
+    expect(instance.hasSelection).toBe(true);
+
+    // Core stops drawing the selection of a document the surface left, so a
+    // toolbar anchored to it would be pointing at nothing.
+    instance.blur();
+
+    expect(instance.selectionRect).toBeUndefined();
+  });
+});
+
 describe("DocumentEditorController block handles", () => {
   it("drops the box of a block the document no longer has", () => {
     const { instance } = controller();

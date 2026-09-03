@@ -410,6 +410,20 @@ export class DocumentEditorController {
     this.#onInvalidate?.();
   }
 
+  /**
+   * Forgets where the selection was drawn, because it is no longer drawn.
+   *
+   * Core stops painting the caret and the selection of a document the input
+   * surface left, so anything the Shell floats over that selection would be
+   * pointing at nothing.
+   */
+  public blur(): void {
+    this.#slash = undefined;
+    if (this.#selectionRect === undefined) return;
+    this.#selectionRect = undefined;
+    this.#onInvalidate?.();
+  }
+
   /** Replaces one block's whole text, for tests and for a caller that owns it. */
   public replaceBlockText(key: number, text: string): void {
     const block = this.#editor.document.blocks.find((entry) => entry.key === key);
@@ -511,6 +525,7 @@ export class DocumentEditorController {
         }) => this.applyEditStream(stream),
         onSelectionGeometry: (rect: DocumentSelectionRect) => this.applySelectionGeometry(rect),
         onBlockGeometry: (blocks: readonly DocumentBlockRect[]) => this.applyBlockGeometry(blocks),
+        onBlur: () => this.blur(),
       },
       children: blocks.map((block) =>
         createElement("text", {

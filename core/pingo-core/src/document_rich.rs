@@ -156,6 +156,12 @@ impl ActiveDocument {
 #[derive(Clone, Default)]
 pub(crate) struct DocumentController {
     documents: OrderedMap<NodeId, ActiveDocument>,
+    /// The document the host's input surface is activated over, if any.
+    ///
+    /// A document holds its selection whether or not it is focused, the way an
+    /// editing session does, but an unfocused one draws no caret and offers no
+    /// caret geometry: the surface it would belong to is not there.
+    focused: Option<NodeId>,
     metrics: DocumentMetrics,
 }
 
@@ -172,6 +178,9 @@ impl DocumentController {
             .filter(|node| scene.document(*node).is_some())
             .collect::<Vec<_>>();
         self.documents.retain(|node, _| roots.contains(node));
+        if self.focused.is_some_and(|node| !roots.contains(&node)) {
+            self.focused = None;
+        }
         for root in roots {
             let Some(declared) = scene.document(root) else {
                 continue;
@@ -260,7 +269,11 @@ impl DocumentController {
     /// reported against the block the caret is actually in, which is where an
     /// input method's candidate window and a selection toolbar belong.
     pub(crate) fn focus_root_visual(&self) -> Option<(NodeId, NodeId, [u32; 2])> {
+        let focused = self.focused?;
         for (root, active) in self.documents.iter() {
+            if *root != focused {
+                continue;
+            }
             let DocumentSelection::Text { anchor, focus } = active.document.selection() else {
                 continue;
             };
@@ -401,12 +414,13 @@ impl DocumentController {
             // Focus over a document is the surface's, not a session's: the
             // caret already lives in the document, so there is nothing to
             // move -- but the command must be accepted rather than rejected.
-            InputCommand::FocusEditable { node_id } => {
+            InputCommand::FocusEditable { node_id } | InputCommand::BlurEditable { node_id } => {
                 let root = NodeId::from_raw(*node_id)?;
                 if !self.documents.contains_key(&root) {
                     return Err(CoreError::InvalidEditableTarget { node: root });
                 }
-                return Ok(Vec::new());
+                self.focused = matches!(command, InputCommand::FocusEditable { .. }).then_some(root);
+                return Ok(self.block_nodes(root).into_iter().map(|(_, node)| node).collect());
             }
             // Undo is Core's, over the whole document rather than per block:
             // one flat position space means one history, so a burst that
@@ -923,7 +937,13 @@ impl DocumentController {
     /// than one active editor.
     pub(crate) fn visuals(&self) -> Vec<BlockVisual> {
         let mut visuals = Vec::new();
-        for active in self.documents.values() {
+        let Some(focused) = self.focused else {
+            return visuals;
+        };
+        for (root, active) in self.documents.iter() {
+            if *root != focused {
+                continue;
+            }
             let document = &active.document;
             match document.selection() {
                 DocumentSelection::Text { .. } => {

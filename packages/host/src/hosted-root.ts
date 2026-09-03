@@ -570,6 +570,14 @@ class HostedCanvasRootController implements HostedCanvasRoot {
       this.#eventSequence = nextSequence(eventId);
       this.sendInputCommands([{ type: "blurNode", eventId, nodeId }]);
       this.sendInputCommands([{ type: "blurEditable", nodeId }]);
+      // A document that is no longer the surface's draws neither caret nor
+      // selection, so whatever the Shell floats over that selection has to go
+      // too. Nothing happens for a node that is not a document.
+      try {
+        this.#root?.applyDocumentBlur(nodeId);
+      } catch (cause) {
+        this.#options.onHostError?.(toError(cause, "Shell document blur handler failed"));
+      }
     }
     this.#inputBridge.deactivate();
   }
@@ -1291,6 +1299,10 @@ class HostedCanvasRootController implements HostedCanvasRoot {
     if (!(target instanceof Node)) return;
     if (this.#canvas === target || this.#canvas.contains(target)) return;
     if (this.#inputBridge.ownsNode(target)) return;
+    // A press the application already answered keeps the session: a toolbar
+    // floating over the selection is pressed to act on that selection, and
+    // ending the session under it is the one thing it must not do.
+    if (event.defaultPrevented) return;
     if (this.#semanticMirror?.container.contains(target) === true) return;
     try {
       this.blurEditable();
@@ -2142,16 +2154,15 @@ class HostedCanvasRootController implements HostedCanvasRoot {
   private handleEditingGeometry(frame: EditingGeometryFrame): void {
     this.#editingGeometry = frame;
     this.flushPendingWordSelection();
-    // Delivered whether or not the OS surface is over this node: a document's
-    // toolbar anchors to the selection even when the surface has not been
-    // activated yet, and the bridge check below is about the surface, not the
-    // geometry.
+    if (this.#inputBridge.activeNodeId !== frame.nodeId) return;
+    // Behind the surface check, because a frame produced before a blur can
+    // still be in flight after it: delivering that one put a toolbar back over
+    // a selection Core had already stopped drawing.
     try {
       this.#root?.applyDocumentGeometry(frame.nodeId, frame.selectionBounds);
     } catch (cause) {
       this.#options.onHostError?.(toError(cause, "document selection geometry handler failed"));
     }
-    if (this.#inputBridge.activeNodeId !== frame.nodeId) return;
     const toDomRect = (rect: EditingGeometryRect): DOMRect =>
       new DOMRect(rect.left, rect.top, rect.width, rect.height);
     const characters = frame.characterBounds;
