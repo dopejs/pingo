@@ -2448,7 +2448,10 @@ class ReconcilerRoot implements CoreDrivenPingoRoot {
         for (const nodeId of nodes.values()) {
           if (nodeId === NULL_NODE_ID || observed.has(nodeId)) continue;
           observed.add(nodeId);
-          this.observeGeometry(nodeId, true);
+          // Through the slot pool, not straight to `observeGeometry`: claiming
+          // a slot is what turns the engine's geometry reporting on, so the
+          // low-level call alone observed nodes nobody was reporting.
+          this.claimObservationSlot(nodeId);
         }
         this.#observedBlocks.set(instance, observed);
         this.#blockKeyOfNode.set(instance, new Map([...nodes].map(([key, id]) => [id, key])));

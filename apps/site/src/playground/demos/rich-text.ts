@@ -263,8 +263,11 @@ export const richTextDemo: Demo = {
       // Handles: one per block, only while nothing is being dragged elsewhere.
       const rects = editor.blockRects;
       const drag = editor.blockDrag;
-      handleLayer.replaceChildren(dropLine);
-      for (const rect of rects) {
+      // Not while a drag is running: rebuilding the handles destroys the one
+      // that captured the pointer, and every later move and release goes
+      // nowhere.
+      if (drag === undefined) handleLayer.replaceChildren(dropLine);
+      for (const rect of drag === undefined ? rects : []) {
         const handle = document.createElement("button");
         handle.type = "button";
         handle.textContent = "⋮⋮";
