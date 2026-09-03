@@ -454,6 +454,10 @@ export class NativeTextInputBridge {
     const key = event as KeyboardEvent;
     const target = this.#target;
     if (target === undefined || this.#composing) return;
+    // A key the Shell already answered is not ours to answer again: a document
+    // editor consumes the arrows that drive its own menus, and moving the caret
+    // as well would move it behind the reader's back.
+    if (key.defaultPrevented) return;
     // No historyUndo/historyRedo beforeinput arrives on an EditContext host —
     // the browser undo stack is disabled there — so the shortcut itself is the
     // only signal. Core owns the actual history.

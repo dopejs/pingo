@@ -52,7 +52,7 @@ impl DocumentController {
         Vec::new()
     }
 
-    pub(crate) const fn focus_visual(&self) -> Option<(NodeId, [u32; 2])> {
+    pub(crate) const fn focus_root_visual(&self) -> Option<(NodeId, NodeId, [u32; 2])> {
         None
     }
 

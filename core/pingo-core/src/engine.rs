@@ -2674,14 +2674,24 @@ impl CoreEngine {
         // the caret geometry an input method and a selection toolbar need is
         // the same question either way, asked of whichever node holds the
         // caret.
-        let (node, selection_span) = match self.editing.active_visual() {
-            Some(visual) => (visual.node, visual.selection),
-            None => match self.documents.focus_visual() {
-                Some(found) => found,
+        //
+        // `surface` is the node the host activated its input surface over and
+        // matches every geometry frame against; `node` is where the caret
+        // actually is. For a document they differ: the surface sits on the
+        // root, the caret in a block. Reporting the block as the surface made
+        // the host reject its own geometry, which is what stopped drag
+        // selection and candidate-window placement from working at all.
+        let (surface, node, selection_span) = match self.editing.active_visual() {
+            Some(visual) => (visual.node, visual.node, visual.selection),
+            None => match self.documents.focus_root_visual() {
+                Some((root, block, span)) => (root, block, span),
                 None => return empty_editing_geometry(),
             },
         };
         let Some(geometry) = self.hit.geometry(node) else {
+            return empty_editing_geometry();
+        };
+        let Some(surface_geometry) = self.hit.geometry(surface) else {
             return empty_editing_geometry();
         };
         let Some(carets) =
@@ -2694,7 +2704,7 @@ impl CoreEngine {
             selection_span[0].min(selection_span[1]),
             selection_span[0].max(selection_span[1]),
         ];
-        let control = geometry.aabb;
+        let control = surface_geometry.aabb;
         let scroll = self.editing.scroll_offset(node);
         let selection_rect =
             editor_range_rect(&carets, selection, geometry, scroll).unwrap_or(WorldRect {
@@ -2718,7 +2728,7 @@ impl CoreEngine {
         let mut words = Vec::with_capacity(capacity);
         words.extend_from_slice(&[
             EDITING_GEOMETRY_VERSION,
-            node.raw(),
+            surface.raw(),
             selection[0],
             selection[1],
             u32::try_from(characters.len()).unwrap_or(u32::MAX),
@@ -7100,6 +7110,116 @@ mod tests {
             assert_eq!(reported.len(), 1);
             assert_eq!(reported[0].node_id, id(1));
         }
+    }
+
+    #[cfg(feature = "rich-text")]
+    #[test]
+    fn a_document_reports_its_root_as_the_surface_the_geometry_belongs_to() {
+        let mut engine = CoreEngine::new(320.0, 240.0).expect("Core");
+        engine
+            .commit(&document_tree(1, 1, &[(id(2), Some("abcdef"))]))
+            .expect("document frame");
+        let _ = engine.take_glyph_resources();
+        let _ = engine.take_edit_transactions().expect("drain");
+        engine
+            .input(&input(
+                2,
+                vec![InputCommand::SetDocumentSelection {
+                    node_id: id(1),
+                    base_revision: 0,
+                    selection: pingo_abi::WireDocumentSelection::Text {
+                        anchor_key: id(2),
+                        anchor_offset: 1,
+                        focus_key: id(2),
+                        focus_offset: 3,
+                    },
+                }],
+            ))
+            .expect("selection");
+        let _ = engine.take_glyph_resources();
+        let _ = engine.take_edit_transactions().expect("drain");
+
+        // The host activates its input surface over the document, matches every
+        // geometry frame against that node, and drops the ones that name
+        // anything else. Reporting the focused block made it reject its own
+        // geometry, which is what stopped drag selection from extending.
+        let words = engine.editing_geometry();
+        assert_eq!(words[1], id(1));
+        assert_eq!(words[2], 1);
+        assert_eq!(words[3], 3);
+    }
+
+    #[cfg(feature = "rich-text")]
+    #[test]
+    fn home_and_end_reach_the_block_edges_rather_than_stepping_one_character() {
+        let mut engine = CoreEngine::new(320.0, 240.0).expect("Core");
+        engine
+            .commit(&document_tree(1, 1, &[(id(2), Some("abcdef"))]))
+            .expect("document frame");
+        let _ = engine.take_glyph_resources();
+        let _ = engine.take_edit_transactions().expect("drain");
+
+        let root = NodeId::from_raw(id(1)).expect("root");
+        let at = |offset: u32| pingo_edit::DocumentSelection::Text {
+            anchor: pingo_edit::DocumentPosition::new(u64::from(id(2)), offset),
+            focus: pingo_edit::DocumentPosition::new(u64::from(id(2)), offset),
+        };
+        engine
+            .input(&input(
+                2,
+                vec![InputCommand::SetDocumentSelection {
+                    node_id: id(1),
+                    base_revision: 0,
+                    selection: pingo_abi::WireDocumentSelection::Text {
+                        anchor_key: id(2),
+                        anchor_offset: 3,
+                        focus_key: id(2),
+                        focus_offset: 3,
+                    },
+                }],
+            ))
+            .expect("selection");
+        let _ = engine.take_glyph_resources();
+        let _ = engine.take_edit_transactions().expect("drain");
+
+        // A document has no line geometry of its own, so End degrades to the
+        // block's end. Stepping one character instead made it the right arrow.
+        engine
+            .input(&input(
+                3,
+                vec![InputCommand::MoveDocumentCaret {
+                    node_id: id(1),
+                    direction: pingo_abi::CaretDirection::LineEnd,
+                    granularity: pingo_abi::CaretGranularity::Grapheme,
+                    extend: false,
+                }],
+            ))
+            .expect("end");
+        let _ = engine.take_glyph_resources();
+        let _ = engine.take_edit_transactions().expect("drain");
+        assert_eq!(engine.documents.selection(root), Some(at(6)));
+
+        engine
+            .input(&input(
+                4,
+                vec![InputCommand::MoveDocumentCaret {
+                    node_id: id(1),
+                    direction: pingo_abi::CaretDirection::LineStart,
+                    granularity: pingo_abi::CaretGranularity::Grapheme,
+                    extend: true,
+                }],
+            ))
+            .expect("home");
+        let _ = engine.take_glyph_resources();
+        let _ = engine.take_edit_transactions().expect("drain");
+        // Extending keeps the anchor, so shift-Home selects to the block start.
+        assert_eq!(
+            engine.documents.selection(root),
+            Some(pingo_edit::DocumentSelection::Text {
+                anchor: pingo_edit::DocumentPosition::new(u64::from(id(2)), 6),
+                focus: pingo_edit::DocumentPosition::new(u64::from(id(2)), 0),
+            })
+        );
     }
 
     #[cfg(feature = "rich-text")]

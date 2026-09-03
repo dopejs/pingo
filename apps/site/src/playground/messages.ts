@@ -33,6 +33,7 @@ export interface PlaygroundMessages {
   readonly richTextTitle: string;
   readonly richTextDescription: string;
   readonly richTextHint: string;
+  readonly richTextUnavailable: string;
   readonly selectedSpan: string;
   readonly styledSpans: string;
   readonly markRanges: string;
@@ -91,6 +92,8 @@ const MESSAGES: Record<string, PlaygroundMessages> = {
     richTextDescription:
       "在 canvas 上打字。点击定位光标,方向键跨块,输入法组合、撤销与选区都在 Core 里;选中文字浮出工具栏,「/」唤出块类型菜单,拖左侧手柄重排。下方 Markdown 由同一份文档序列化而来。",
     richTextHint: "点进文档开始输入。选中一段文字看工具栏,行首打「/」看菜单,拖左侧手柄换块的顺序。",
+    richTextUnavailable:
+      "这个引擎构建没有编译富文本档位，文档是只读的。用 pnpm core:wasm:rich 重新构建 Core。",
     selectedSpan: "选中区间",
     styledSpans: "run 表跨度",
     markRanges: "mark 区间",
@@ -160,6 +163,8 @@ const MESSAGES: Record<string, PlaygroundMessages> = {
       "在 canvas 上打字。點擊定位游標,方向鍵跨區塊,輸入法組合、復原與選取範圍都在 Core 裡;選取文字浮出工具列,「/」喚出區塊類型選單,拖左側控制點重新排序。下方 Markdown 由同一份文件序列化而來。",
     richTextHint:
       "點進文件開始輸入。選取一段文字看工具列,行首打「/」看選單,拖左側控制點換區塊順序。",
+    richTextUnavailable:
+      "這個引擎建置沒有編譯富文本檔位，文件是唯讀的。用 pnpm core:wasm:rich 重新建置 Core。",
     selectedSpan: "選取區間",
     styledSpans: "run 表跨度",
     markRanges: "mark 區間",
@@ -229,6 +234,8 @@ const MESSAGES: Record<string, PlaygroundMessages> = {
       "canvas 上で入力できます。クリックでキャレットを置き、矢印キーはブロックを越え、IME の変換・取り消し・選択はすべて Core が持ちます。選択するとツールバーが浮かび、「/」でブロック種別メニュー、左のハンドルで並べ替え。下の Markdown は同じ文書を直列化したものです。",
     richTextHint:
       "文書をクリックして入力を始めてください。文字を選ぶとツールバー、行頭の「/」でメニュー、左のハンドルで並べ替えです。",
+    richTextUnavailable:
+      "このエンジンビルドにはリッチテキストのプロファイルが含まれていないため、ドキュメントは読み取り専用です。pnpm core:wasm:rich で Core を再ビルドしてください。",
     selectedSpan: "選択範囲",
     styledSpans: "run の数",
     markRanges: "mark の数",
@@ -300,6 +307,8 @@ const MESSAGES: Record<string, PlaygroundMessages> = {
       "canvas 위에서 입력합니다. 클릭으로 캐럿을 놓고, 화살표는 블록을 넘나들며, 입력기 조합과 실행 취소와 선택은 모두 Core에 있습니다. 문자를 선택하면 툴바가 뜨고, 「/」로 블록 종류 메뉴가 열리며, 왼쪽 핸들로 순서를 바꿉니다. 아래 Markdown은 같은 문서를 직렬화한 것입니다.",
     richTextHint:
       "문서를 클릭해 입력을 시작하세요. 문자를 선택하면 툴바가, 줄 앞에서 「/」를 누르면 메뉴가 나옵니다.",
+    richTextUnavailable:
+      "이 엔진 빌드에는 리치 텍스트 프로파일이 없어 문서가 읽기 전용입니다. pnpm core:wasm:rich 로 Core를 다시 빌드하세요.",
     selectedSpan: "선택 구간",
     styledSpans: "run 개수",
     markRanges: "mark 개수",
@@ -371,6 +380,8 @@ const MESSAGES: Record<string, PlaygroundMessages> = {
       "Escribe en el canvas. El clic coloca el cursor, las flechas cruzan bloques, y la composición del IME, el deshacer y la selección viven en el Core. Seleccionar texto muestra una barra flotante, «/» abre el menú de tipos de bloque y el asa de la izquierda reordena. El Markdown de abajo es el mismo documento serializado.",
     richTextHint:
       "Haz clic en el documento para escribir. Selecciona texto para la barra, escribe «/» al principio de una línea para el menú.",
+    richTextUnavailable:
+      "Esta compilación del motor no incluye el perfil de texto enriquecido, así que el documento es de solo lectura. Reconstruye Core con pnpm core:wasm:rich.",
     selectedSpan: "Tramo seleccionado",
     styledSpans: "Tramos con estilo",
     markRanges: "Rangos de marca",
@@ -444,6 +455,8 @@ const MESSAGES: Record<string, PlaygroundMessages> = {
       "Tapez dans le canvas. Le clic place le curseur, les flèches franchissent les blocs, et la composition IME, l'annulation et la sélection vivent dans le Core. Sélectionner du texte fait apparaître une barre flottante, « / » ouvre le menu des types de bloc, et la poignée de gauche réordonne. Le Markdown ci-dessous est le même document sérialisé.",
     richTextHint:
       "Déplacez ou redimensionnez la plage avec les boutons du haut, puis appliquez une marque.",
+    richTextUnavailable:
+      "Cette version du moteur n'inclut pas le profil texte enrichi ; le document est en lecture seule. Reconstruisez Core avec pnpm core:wasm:rich.",
     selectedSpan: "Plage sélectionnée",
     styledSpans: "Segments stylés",
     markRanges: "Plages de marque",
@@ -517,6 +530,8 @@ const MESSAGES: Record<string, PlaygroundMessages> = {
       "Tippen Sie im Canvas. Ein Klick setzt die Einfügemarke, Pfeiltasten überschreiten Blockgrenzen, und IME-Komposition, Rückgängig und Auswahl liegen im Core. Eine Auswahl blendet eine schwebende Leiste ein, „/“ öffnet das Blocktyp-Menü, und der Griff links sortiert um. Das Markdown unten ist dasselbe Dokument, serialisiert.",
     richTextHint:
       "Verschieben oder ändern Sie den Bereich mit den oberen Schaltflächen, dann setzen Sie eine Marke.",
+    richTextUnavailable:
+      "Dieser Engine-Build enthält kein Rich-Text-Profil, das Dokument ist schreibgeschützt. Core mit pnpm core:wasm:rich neu bauen.",
     selectedSpan: "Ausgewählter Bereich",
     styledSpans: "Gestylte Abschnitte",
     markRanges: "Markenbereiche",
@@ -590,6 +605,8 @@ const MESSAGES: Record<string, PlaygroundMessages> = {
       "Печатайте прямо в canvas. Щелчок ставит курсор, стрелки пересекают блоки, а ввод через IME, отмена и выделение живут в Core. Выделение показывает плавающую панель, «/» открывает меню типов блока, а ручка слева меняет порядок. Markdown ниже — тот же документ, сериализованный.",
     richTextHint:
       "Щёлкните по документу и начните печатать. Выделите текст для панели, наберите «/» в начале строки для меню.",
+    richTextUnavailable:
+      "В этой сборке движка не собран профиль форматированного текста, документ доступен только для чтения. Пересоберите Core через pnpm core:wasm:rich.",
     selectedSpan: "Выбранный диапазон",
     styledSpans: "Стилевые отрезки",
     markRanges: "Диапазоны пометок",
@@ -662,6 +679,8 @@ const MESSAGES: Record<string, PlaygroundMessages> = {
       "اكتب داخل canvas مباشرة. النقر يضع المؤشر، والأسهم تعبر الكتل، وتركيب مدخل النص والتراجع والتحديد كلها في Core. تحديد النص يُظهر شريطًا عائمًا، و«/» يفتح قائمة أنواع الكتل، والمقبض على اليسار يعيد الترتيب. أما Markdown في الأسفل فهو المستند نفسه مُسلسَلًا.",
     richTextHint:
       "انقر داخل المستند وابدأ الكتابة. حدّد نصًا لإظهار الشريط، واكتب «/» في بداية السطر لفتح القائمة.",
+    richTextUnavailable:
+      "لم يُبنَ هذا الإصدار من المحرك بملف النص المنسّق، لذا المستند للقراءة فقط. أعد بناء Core باستخدام pnpm core:wasm:rich.",
     selectedSpan: "المدى المحدد",
     styledSpans: "المقاطع المنسقة",
     markRanges: "مديات العلامات",
@@ -728,6 +747,8 @@ const MESSAGES: Record<string, PlaygroundMessages> = {
     richTextDescription:
       "הקלידו ישירות ב-canvas. לחיצה ממקמת את הסמן, מקשי החיצים חוצים בלוקים, והקלט מהמעבד, הביטול והבחירה כולם ב-Core. בחירת טקסט מציגה סרגל צף, «/» פותח תפריט סוגי בלוק, והידית משמאל משנה סדר. ה-Markdown שלמטה הוא אותו מסמך, מסודר לטקסט.",
     richTextHint: "לחצו על המסמך והתחילו להקליד. בחרו טקסט לסרגל, הקלידו «/» בתחילת שורה לתפריט.",
+    richTextUnavailable:
+      "בניית המנוע הזו אינה כוללת פרופיל טקסט עשיר, ולכן המסמך לקריאה בלבד. בנו מחדש את Core עם pnpm core:wasm:rich.",
     selectedSpan: "הטווח הנבחר",
     styledSpans: "מקטעים מעוצבים",
     markRanges: "טווחי סימון",

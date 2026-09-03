@@ -22,6 +22,7 @@ export function Playground({ lang }: PlaygroundProps): ReactNode {
   const generation = useRef(0);
   const metricRows = useRef(new Map<string, string>());
   const lastPublish = useRef(0);
+  const pendingPublish = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const [catalog, setCatalog] = useState<readonly Demo[]>([]);
   const [active, setActive] = useState<Demo>();
@@ -32,7 +33,21 @@ export function Playground({ lang }: PlaygroundProps): ReactNode {
 
   const publish = useCallback((force = false): void => {
     const now = performance.now();
-    if (!force && now - lastPublish.current < 100) return;
+    const elapsed = now - lastPublish.current;
+    if (!force && elapsed < 100) {
+      // Deferred, not dropped: the last write of a burst is the one worth
+      // seeing, and discarding it left the panel showing the value before the
+      // interaction that produced it.
+      pendingPublish.current ??= setTimeout(() => {
+        pendingPublish.current = undefined;
+        publish(true);
+      }, 100 - elapsed);
+      return;
+    }
+    if (pendingPublish.current !== undefined) {
+      clearTimeout(pendingPublish.current);
+      pendingPublish.current = undefined;
+    }
     lastPublish.current = now;
     setMetrics([...metricRows.current]);
   }, []);
@@ -201,6 +216,8 @@ export function Playground({ lang }: PlaygroundProps): ReactNode {
     return () => {
       cancelled = true;
       generation.current += 1;
+      if (pendingPublish.current !== undefined) clearTimeout(pendingPublish.current);
+      pendingPublish.current = undefined;
       void teardown();
     };
   }, [messages.loading, mount, teardown]);

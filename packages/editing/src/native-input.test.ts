@@ -236,6 +236,23 @@ describe("NativeTextInputBridge (unit)", () => {
     expect(commands.length).toBe(before);
   });
 
+  it("leaves a key the Shell already answered alone", () => {
+    const { bridge, canvas, commands } = harness({ editContext: true });
+    bridge.activate(target());
+    // A document editor consumes the arrows that drive its own menus, in the
+    // capture phase. Moving the caret as well moved it behind the reader's
+    // back.
+    const event = Object.assign(
+      new Event("keydown", { cancelable: true }),
+      { altKey: false, ctrlKey: false, metaKey: false, shiftKey: false },
+      { key: "ArrowDown" },
+    );
+    event.preventDefault();
+    canvas.dispatchEvent(event);
+
+    expect(commands).toEqual([]);
+  });
+
   it("maps EditContext keydown navigation onto Core caret movement", () => {
     const { bridge, canvas, commands } = harness({ editContext: true });
     bridge.activate(target());

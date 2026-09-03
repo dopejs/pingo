@@ -170,9 +170,13 @@ export class Editor {
         });
       }
     }
+    const before = this.#selection;
     for (const request of stream.structure) this.applyStructureRequest(request);
     const last = stream.selections.at(-1);
-    if (last !== undefined) this.#selection = last.selection;
+    // A structure request that placed the caret wins over the report in the
+    // same batch: Core answered from the document as it was before the split,
+    // and a block it has not seen yet is where the caret now belongs.
+    if (last !== undefined && this.#selection === before) this.#selection = last.selection;
   }
 
   /**
@@ -190,9 +194,24 @@ export class Editor {
       case "merge":
         this.#apply(mergeBlocks(this.#document, request.target, request.source));
         return;
-      case "split":
-        this.#apply(splitBlock(this.#document, request.target, request.offset, this.#allocator));
+      case "split": {
+        const result = splitBlock(this.#document, request.target, request.offset, this.#allocator);
+        this.#apply(result);
+        // The caret follows the text that moved. The tail block starts where
+        // the caret was, so leaving it behind put everything typed after Enter
+        // on the wrong side of the break.
+        const tail = result.created[0];
+        if (tail !== undefined) {
+          this.#selection = {
+            kind: "text",
+            anchorKey: tail,
+            anchorOffset: 0,
+            focusKey: tail,
+            focusOffset: 0,
+          };
+        }
         return;
+      }
     }
   }
 

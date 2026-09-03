@@ -259,8 +259,8 @@ impl DocumentController {
     /// The focus edge, not the anchor: a selection that crosses blocks is
     /// reported against the block the caret is actually in, which is where an
     /// input method's candidate window and a selection toolbar belong.
-    pub(crate) fn focus_visual(&self) -> Option<(NodeId, [u32; 2])> {
-        for active in self.documents.values() {
+    pub(crate) fn focus_root_visual(&self) -> Option<(NodeId, NodeId, [u32; 2])> {
+        for (root, active) in self.documents.iter() {
             let DocumentSelection::Text { anchor, focus } = active.document.selection() else {
                 continue;
             };
@@ -275,7 +275,7 @@ impl DocumentController {
                 // from its own edge to the caret.
                 [focus.offset, focus.offset]
             };
-            return Some((node, span));
+            return Some((*root, node, span));
         }
         None
     }
@@ -383,26 +383,7 @@ impl DocumentController {
                 direction,
                 granularity,
                 extend,
-            } => {
-                let root = NodeId::from_raw(*node_id)?;
-                let active = self
-                    .documents
-                    .get_mut(&root)
-                    .ok_or(CoreError::InvalidEditableTarget { node: root })?;
-                let moved = active
-                    .document
-                    .moved(
-                        caret_direction(*direction),
-                        caret_granularity(*granularity),
-                        *extend,
-                    )
-                    .map_err(CoreError::Edit)?;
-                active
-                    .document
-                    .set_selection(moved)
-                    .map_err(CoreError::Edit)?;
-                return Ok(Vec::new());
-            }
+            } => return self.move_caret(*node_id, *direction, *granularity, *extend),
             // Everything that replaces text, whichever command said so.
             InputCommand::EditDocument { .. }
             | InputCommand::Insert { .. }
@@ -721,6 +702,45 @@ impl DocumentController {
         Ok((edit, composition))
     }
 
+    /// Moves the document caret, which is one caret over one position space.
+    fn move_caret(
+        &mut self,
+        node_id: u32,
+        direction: CaretDirection,
+        granularity: CaretGranularity,
+        extend: bool,
+    ) -> Result<Vec<NodeId>, CoreError> {
+        let root = NodeId::from_raw(node_id)?;
+        let active = self
+            .documents
+            .get_mut(&root)
+            .ok_or(CoreError::InvalidEditableTarget { node: root })?;
+        let moved = match direction {
+            // Home and End have no line to go to at document level: line
+            // geometry lives with the block's layout, so they degrade to the
+            // block's own edges. Stepping one character instead, which is what
+            // the shared mapping did, made End the right arrow over again.
+            CaretDirection::LineStart | CaretDirection::LineEnd => block_edge_selection(
+                &active.document,
+                matches!(direction, CaretDirection::LineEnd),
+                extend,
+            )?,
+            _ => active
+                .document
+                .moved(
+                    caret_direction(direction),
+                    caret_granularity(granularity),
+                    extend,
+                )
+                .map_err(CoreError::Edit)?,
+        };
+        active
+            .document
+            .set_selection(moved)
+            .map_err(CoreError::Edit)?;
+        Ok(Vec::new())
+    }
+
     /// Plans an Enter press: Core moves the caret, the Shell makes the block.
     fn plan_split(&mut self, root: NodeId) -> Result<Vec<NodeId>, CoreError> {
         let active = self
@@ -1020,6 +1040,34 @@ fn block_content(scene: &Scene, node: NodeId) -> Option<(String, Option<MarkRuns
 /// Narrows a block key for the wire, which carries the Shell's own u32 keys.
 fn wire_key(key: BlockKey) -> u32 {
     u32::try_from(key).unwrap_or(u32::MAX)
+}
+
+/// Moves the caret to the edge of the block it is in.
+///
+/// The anchor stays put when the movement extends, so shift-End selects to the
+/// end of the block rather than collapsing there.
+fn block_edge_selection(
+    document: &Document,
+    forward: bool,
+    extend: bool,
+) -> Result<DocumentSelection, CoreError> {
+    let selection = document.selection();
+    let DocumentSelection::Text { anchor, focus } = selection else {
+        return Ok(selection);
+    };
+    let Some(block) = document
+        .blocks()
+        .iter()
+        .find(|candidate| candidate.key() == focus.key)
+    else {
+        return Err(CoreError::Edit(pingo_edit::EditError::UnknownBlock));
+    };
+    let offset = if forward { block.len_utf16() } else { 0 };
+    let moved = DocumentPosition::new(focus.key, offset);
+    Ok(DocumentSelection::Text {
+        anchor: if extend { anchor } else { moved },
+        focus: moved,
+    })
 }
 
 const fn caret_direction(direction: CaretDirection) -> Direction {

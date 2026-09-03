@@ -177,30 +177,49 @@ export class DocumentEditorController {
     readonly selections: readonly DocumentSelectionReport[];
   }): void {
     this.#editor.applyEditStream(stream, this.#nodeToKey);
+    // A split is answered by the Shell, so the caret it implies is the Shell's
+    // to state: it belongs at the start of a block Core has not seen yet.
+    //
+    // Only a caret the Shell moved is pushed back. Core drains a transaction
+    // and the selection that transaction produced in separate batches, so
+    // reading a batch without a report as "Core does not know where the caret
+    // is" pushed a stale offset over the one the keystroke had just produced,
+    // and every character landed on top of the last.
+    let placed = stream.structure.some((request) => request.kind === "split");
     // Auto-formatting is the Shell's: "# " means a heading because the schema
     // says so, and the Core has no schema.
     const caret = this.#editor.selection;
-    if (caret?.kind === "text" && caret.anchorKey === caret.focusKey) {
+    let collapsed: { key: number; offset: number } | undefined;
+    if (
+      caret?.kind === "text" &&
+      caret.anchorKey === caret.focusKey &&
+      caret.anchorOffset === caret.focusOffset
+    ) {
       const moved = this.#editor.runInputRules(caret.focusKey, caret.focusOffset);
-      if (moved !== caret.focusOffset) {
-        this.#host.dispatch([
-          {
-            type: "setDocumentSelection",
-            nodeId: this.#documentNodeId,
-            baseRevision: 0n,
-            selection: {
-              kind: "text",
-              anchorKey: caret.focusKey,
-              anchorOffset: moved,
-              focusKey: caret.focusKey,
-              focusOffset: moved,
-            },
-          },
-        ]);
-      }
+      if (moved !== caret.focusOffset) placed = true;
+      collapsed = { key: caret.focusKey, offset: moved };
     }
     this.#syncSlashMenu();
+    // Before the dispatch, not after: a split leaves the caret in a block Core
+    // has never seen, and the projection this commit carries is what teaches
+    // it that block exists.
     this.#invalidate();
+    if (placed && collapsed !== undefined) {
+      this.#host.dispatch([
+        {
+          type: "setDocumentSelection",
+          nodeId: this.#documentNodeId,
+          baseRevision: 0n,
+          selection: {
+            kind: "text",
+            anchorKey: collapsed.key,
+            anchorOffset: collapsed.offset,
+            focusKey: collapsed.key,
+            focusOffset: collapsed.offset,
+          },
+        },
+      ]);
+    }
     this.#refocus();
   }
 
@@ -308,7 +327,11 @@ export class DocumentEditorController {
 
   /** Where each block ended up on the canvas, once the engine reported it. */
   public get blockRects(): readonly DocumentBlockRect[] {
-    return this.#blockRects;
+    // Only blocks the document still has. A merge removes one before Core
+    // reports geometry again, and a handle over a block that no longer exists
+    // is a handle that does nothing.
+    const keys = new Set(this.#editor.document.blocks.map((block) => block.key));
+    return this.#blockRects.filter((rect) => keys.has(rect.key));
   }
 
   /** The block being dragged and where it would land, or nothing. */
@@ -439,30 +462,14 @@ export class DocumentEditorController {
     }
     const node = this.#documentNodeId;
     if (node === 0) return false;
-    const move = (direction: "backward" | "forward" | "up" | "down"): void => {
-      this.#host.dispatch([
-        {
-          type: "moveDocumentCaret",
-          nodeId: node,
-          direction,
-          granularity: "grapheme",
-          extend: event.shiftKey,
-        },
-      ]);
-    };
+    // Caret movement is not handled here. The engine's own input surface
+    // already turns an arrow key into a Core caret move for whatever it is
+    // activated over, documents included, and answering it a second time moved
+    // the caret twice per press.
     switch (event.key) {
-      case "ArrowLeft":
-        move("backward");
-        return true;
-      case "ArrowRight":
-        move("forward");
-        return true;
-      case "ArrowUp":
-        move("up");
-        return true;
-      case "ArrowDown":
-        move("down");
-        return true;
+      case "Backspace":
+      case "Delete":
+        return this.#deleteAcrossBlocks(node, event.key === "Backspace");
       case "Enter":
         this.#host.dispatch([
           {
@@ -599,6 +606,48 @@ export class DocumentEditorController {
       focus: selection.focusOffset,
       revision: this.revision,
     });
+  }
+
+  /**
+   * Deletes across a block boundary, which the OS surface cannot ask for.
+   *
+   * The native input surface carries one block's text. A caret at the start of
+   * a block therefore has nothing before it as far as the browser is
+   * concerned, so no input event arrives at all and Backspace does nothing.
+   * The boundary is the Shell's to notice; Core turns the delete into the
+   * merge request that answers it.
+   *
+   * Returns whether the key was consumed, leaving every other case to the
+   * surface.
+   */
+  #deleteAcrossBlocks(node: number, backward: boolean): boolean {
+    const caret = this.#editor.selection;
+    if (
+      caret?.kind !== "text" ||
+      caret.anchorKey !== caret.focusKey ||
+      caret.anchorOffset !== caret.focusOffset
+    ) {
+      return false;
+    }
+    const blocks = this.#editor.document.blocks;
+    const index = blocks.findIndex((block) => block.key === caret.focusKey);
+    const block = blocks[index];
+    if (block === undefined) return false;
+    const atEdge = backward ? caret.focusOffset === 0 : caret.focusOffset === block.text.length;
+    const neighbour = backward ? index > 0 : index < blocks.length - 1;
+    if (!atEdge || !neighbour) return false;
+    this.#host.dispatch([
+      {
+        type: "editDocument",
+        nodeId: node,
+        baseRevision: 0n,
+        operation: backward ? "deleteBackward" : "deleteForward",
+        style: 0,
+        font: 0,
+        text: "",
+      },
+    ]);
+    return true;
   }
 
   #invalidate(): void {

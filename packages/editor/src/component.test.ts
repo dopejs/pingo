@@ -367,3 +367,166 @@ describe("DocumentEditorController", () => {
     expect(instance.document.blocks.map((block) => block.key)).toEqual([2, 1]);
   });
 });
+
+describe("DocumentEditorController caret ownership", () => {
+  it("puts the caret in the block a split created and tells Core", () => {
+    const { instance, dispatched } = controller();
+    instance.applyEditStream({
+      transactions: [],
+      structure: [
+        { nodeId: 1, sequence: 1, kind: "split", target: 1, source: 0, offset: 5, keys: [] },
+      ],
+      selections: [],
+    });
+
+    const created = instance.document.blocks[1];
+    expect(created?.text).toBe(" block");
+    expect(instance.selection).toEqual({
+      kind: "text",
+      anchorKey: created?.key,
+      anchorOffset: 0,
+      focusKey: created?.key,
+      focusOffset: 0,
+    });
+    // Core split nothing itself, so it has to be told where the caret went.
+    expect(dispatched).toContainEqual({
+      type: "setDocumentSelection",
+      nodeId: 0,
+      baseRevision: 0n,
+      selection: {
+        kind: "text",
+        anchorKey: created?.key,
+        anchorOffset: 0,
+        focusKey: created?.key,
+        focusOffset: 0,
+      },
+    });
+  });
+
+  it("leaves a caret Core moved alone when the Shell did not move it", () => {
+    const { instance, dispatched } = controller();
+    // Core drains a transaction and the selection it produced in separate
+    // batches. Pushing the Shell's older caret back on the first of the two
+    // undid the keystroke's own movement.
+    instance.applyEditStream({
+      transactions: [
+        {
+          nodeId: 1,
+          baseRevision: 0n,
+          revision: 1n,
+          kind: "edit",
+          delta: { range: { start: 0, end: 0 }, text: "A" },
+          selection: {
+            anchor: 1,
+            anchorAffinity: "downstream",
+            focus: 1,
+            focusAffinity: "downstream",
+          },
+          map: [],
+        },
+      ],
+      structure: [],
+      selections: [],
+    });
+
+    expect(dispatched).toHaveLength(0);
+  });
+});
+
+/** Runs the ref the reconciler would run, which is what gives Core a node. */
+function mount(instance: DocumentEditorController): void {
+  const node = instance.render({
+    document: instance.document,
+    host: { dispatch: () => undefined, focusBlock: () => undefined },
+  }) as unknown as {
+    readonly props: { readonly ref: (handle: { readonly nodeId: number }) => void };
+  };
+  node.props.ref({ nodeId: 7 });
+}
+
+describe("DocumentEditorController block handles", () => {
+  it("drops the box of a block the document no longer has", () => {
+    const { instance } = controller();
+    instance.applyBlockGeometry([
+      { key: 1, left: 0, top: 0, width: 100, height: 20 },
+      { key: 2, left: 0, top: 24, width: 100, height: 20 },
+    ]);
+    expect(instance.blockRects.map((rect) => rect.key)).toEqual([1, 2]);
+
+    // A merge removes a block before Core reports geometry again, and a handle
+    // over a block that no longer exists is a handle that does nothing.
+    instance.applyEditStream({
+      transactions: [],
+      structure: [
+        { nodeId: 1, sequence: 1, kind: "merge", target: 1, source: 2, offset: 0, keys: [] },
+      ],
+      selections: [],
+    });
+
+    expect(instance.blockRects.map((rect) => rect.key)).toEqual([1]);
+  });
+});
+
+describe("DocumentEditorController block-boundary deletion", () => {
+  const key = (name: string, shiftKey = false): KeyboardEvent =>
+    ({ key: name, shiftKey, metaKey: false, ctrlKey: false, altKey: false }) as KeyboardEvent;
+
+  it("asks Core to merge when Backspace lands at the start of a block", () => {
+    const { instance, dispatched } = controller();
+    mount(instance);
+    instance.applyEditStream({
+      transactions: [],
+      structure: [],
+      selections: [
+        {
+          nodeId: 1,
+          selection: { kind: "text", anchorKey: 2, anchorOffset: 0, focusKey: 2, focusOffset: 0 },
+        },
+      ],
+    });
+    dispatched.length = 0;
+
+    expect(instance.handleKeyDown(key("Backspace"))).toBe(true);
+    expect(dispatched).toContainEqual(
+      expect.objectContaining({ type: "editDocument", operation: "deleteBackward" }),
+    );
+  });
+
+  it("leaves a Backspace inside a block to the input surface", () => {
+    const { instance, dispatched } = controller();
+    mount(instance);
+    instance.applyEditStream({
+      transactions: [],
+      structure: [],
+      selections: [
+        {
+          nodeId: 1,
+          selection: { kind: "text", anchorKey: 2, anchorOffset: 3, focusKey: 2, focusOffset: 3 },
+        },
+      ],
+    });
+    dispatched.length = 0;
+
+    expect(instance.handleKeyDown(key("Backspace"))).toBe(false);
+    expect(dispatched).toHaveLength(0);
+  });
+
+  it("leaves Backspace at the very start of the document alone", () => {
+    const { instance, dispatched } = controller();
+    mount(instance);
+    instance.applyEditStream({
+      transactions: [],
+      structure: [],
+      selections: [
+        {
+          nodeId: 1,
+          selection: { kind: "text", anchorKey: 1, anchorOffset: 0, focusKey: 1, focusOffset: 0 },
+        },
+      ],
+    });
+    dispatched.length = 0;
+
+    expect(instance.handleKeyDown(key("Backspace"))).toBe(false);
+    expect(dispatched).toHaveLength(0);
+  });
+});

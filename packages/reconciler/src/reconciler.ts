@@ -1067,6 +1067,11 @@ class ReconcilerRoot implements CoreDrivenPingoRoot {
       // resolve to Scene nodes only once this commit's children exist, and the
       // projection has to ride the same frame as the nodes it names.
       this.emitDocumentProjections();
+      // Again, because a document claims an observation slot for a block it
+      // has just declared. Draining only at the top of the commit left a block
+      // Enter created unobserved until some later frame, so it had no box and
+      // the shell could draw no handle for it.
+      this.drainPendingObservations();
       const mutations = this.mutations();
       if (mutations.length > 0) {
         const bytes = encodeMutationBatch({

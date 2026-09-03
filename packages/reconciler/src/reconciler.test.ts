@@ -536,6 +536,35 @@ describe("reconciler", () => {
     expect(configure?.blocks[2]?.nodeId).toBe(NULL_NODE_ID);
   });
 
+  it("observes a block in the same frame that declares it", () => {
+    const sink = new RecordingSink();
+    const root = createRoot(sink);
+    const tree = (keys: readonly number[]) =>
+      createElement(View, {
+        width: 300,
+        document: {
+          revision: BigInt(keys.length),
+          blocks: keys.map((key) => ({ key, lenUtf16: 1 })),
+          onBlockGeometry: () => undefined,
+        },
+        children: keys.map((key) => createElement(Text, { key, blockKey: key, value: "a" })),
+      });
+
+    root.render(tree([11]));
+    root.render(tree([11, 12]));
+
+    // Observation used to be drained only at the top of a commit, which left a
+    // block Enter created without a box until some later frame -- long enough
+    // for a shell to draw no handle for it.
+    const configure = mutationsOfType(sink.batches[1], "configureDocument")[0];
+    const added = configure?.blocks[1]?.nodeId;
+    expect(added).toBeDefined();
+    const observed = mutationsOfType(sink.batches[1], "observeGeometry")
+      .filter((mutation) => mutation.flags === 1)
+      .map((mutation) => mutation.nodeId);
+    expect(observed).toContain(added);
+  });
+
   it("re-declares a projection only when it changed", () => {
     const sink = new RecordingSink();
     const root = createRoot(sink);

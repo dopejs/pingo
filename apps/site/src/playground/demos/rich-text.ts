@@ -9,6 +9,7 @@ import {
   type MarkName,
 } from "@dopejs/pingo/editor";
 
+import wasmManifest from "../../../../../packages/host/wasm/manifest.json";
 import type { Demo, DemoContext } from "../demo";
 
 /** Marks the toolbar offers, in button order. */
@@ -146,7 +147,12 @@ export const richTextDemo: Demo = {
     panel.style.gap = "8px";
     const hint = document.createElement("p");
     hint.style.margin = "0";
-    hint.textContent = context.messages.richTextHint;
+    // The document subsystem is compiled in by profile. Without it every
+    // keystroke fails inside Core with a generic editing error, which reads as
+    // the editor being broken rather than absent.
+    hint.textContent = wasmManifest.richText
+      ? context.messages.richTextHint
+      : context.messages.richTextUnavailable;
 
     // The toolbar floats over the canvas rather than sitting in the panel: it
     // anchors to where the Core drew the selection, which is the only side that
@@ -343,7 +349,10 @@ export const richTextDemo: Demo = {
     const onKeyDown = (event: KeyboardEvent): void => {
       if (editor.handleKeyDown(event)) event.preventDefault();
     };
-    canvas.addEventListener("keydown", onKeyDown);
+    // Capture phase: the engine's input surface listens on the same canvas and
+    // was attached first, so only capturing gets the slash menu its keys before
+    // the caret moves.
+    canvas.addEventListener("keydown", onKeyDown, true);
     const onPointerDown = (): void => canvas.focus();
     canvas.addEventListener("pointerdown", onPointerDown);
 
@@ -357,7 +366,7 @@ export const richTextDemo: Demo = {
       markRow.remove();
       slashBox.remove();
       handleLayer.remove();
-      canvas.removeEventListener("keydown", onKeyDown);
+      canvas.removeEventListener("keydown", onKeyDown, true);
       canvas.removeEventListener("pointerdown", onPointerDown);
       editor.onInvalidate = undefined;
       editor = create();
