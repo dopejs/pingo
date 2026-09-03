@@ -48,6 +48,10 @@ impl DocumentController {
         false
     }
 
+    pub(crate) fn block_nodes(&self, _root: NodeId) -> Vec<(u64, NodeId)> {
+        Vec::new()
+    }
+
     pub(crate) const fn focus_visual(&self) -> Option<(NodeId, [u32; 2])> {
         None
     }

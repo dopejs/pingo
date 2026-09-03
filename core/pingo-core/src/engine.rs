@@ -1291,6 +1291,34 @@ impl CoreEngine {
         if let Some((root, key)) = self.documents.locate(node) {
             return self.resolve_document_place_caret(root, key, node, position, flags);
         }
+        // The host addresses the document itself once its input surface is
+        // active, because that is the node the surface was activated over. The
+        // block has to be found before the offset can be: the nearest one
+        // vertically, so a press in the padding still lands somewhere.
+        if self.documents.is_root(node) {
+            let blocks = self.documents.block_nodes(node);
+            let nearest = blocks.into_iter().min_by(|left, right| {
+                let distance = |candidate: NodeId| {
+                    self.hit
+                        .geometry(candidate)
+                        .map_or(f32::INFINITY, |geometry| {
+                            let box_ = geometry.aabb;
+                            if position[1] < box_.top {
+                                box_.top - position[1]
+                            } else if position[1] > box_.bottom {
+                                position[1] - box_.bottom
+                            } else {
+                                0.0
+                            }
+                        })
+                };
+                distance(left.1).total_cmp(&distance(right.1))
+            });
+            let Some((key, block)) = nearest else {
+                return Err(CoreError::InvalidEditableTarget { node });
+            };
+            return self.resolve_document_place_caret(node, key, block, position, flags);
+        }
         let session = self
             .editing
             .session(node)
@@ -1598,6 +1626,18 @@ impl CoreEngine {
         desired_x: &mut Option<(NodeId, f32)>,
     ) -> Result<InputCommand, CoreError> {
         let node = NodeId::from_raw(node_id)?;
+        // A document has no session to resolve against. Its own caret movement
+        // is a document command, and the controller answers it later in this
+        // same batch, so the command passes through unchanged.
+        if self.documents.is_root(node) {
+            *desired_x = None;
+            return Ok(InputCommand::MoveCaret {
+                node_id,
+                direction,
+                granularity,
+                extend,
+            });
+        }
         let session = self
             .editing
             .session(node)

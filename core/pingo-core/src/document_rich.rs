@@ -232,6 +232,28 @@ impl DocumentController {
             .any(|active| active.nodes.values().any(|owned| *owned == node))
     }
 
+    /// The materialized blocks of a document, in order, with their nodes.
+    ///
+    /// A press on the document itself rather than on a block -- which is what
+    /// the host sends once its input surface is active -- has to find the block
+    /// before it can find an offset.
+    pub(crate) fn block_nodes(&self, root: NodeId) -> Vec<(BlockKey, NodeId)> {
+        let Some(active) = self.documents.get(&root) else {
+            return Vec::new();
+        };
+        active
+            .document
+            .blocks()
+            .iter()
+            .filter_map(|block| {
+                active
+                    .nodes
+                    .get(&block.key())
+                    .map(|node| (block.key(), *node))
+            })
+            .collect()
+    }
+
     /// The block the caret is in and its selection span inside that block.
     ///
     /// The focus edge, not the anchor: a selection that crosses blocks is
