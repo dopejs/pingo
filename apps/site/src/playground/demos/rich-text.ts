@@ -1,6 +1,6 @@
 import interBoldUrl from "@fontsource/inter/files/inter-latin-700-normal.woff2?url";
 import interRegularUrl from "@fontsource/inter/files/inter-latin-400-normal.woff2?url";
-import { encodeInputBatch, loadFont, type PingoFont, type TextRunProps } from "@dopejs/pingo";
+import { loadFont, type PingoFont, type TextRunProps } from "@dopejs/pingo";
 import {
   DocumentEditorController,
   toMarkdown,
@@ -133,10 +133,10 @@ export const richTextDemo: Demo = {
     editor = new DocumentEditorController({
       document: INITIAL,
       host: {
-        dispatch: (commands) => {
-          if (commands.length === 0) return;
-          context.root.dispatchInput(encodeInputBatch({ frameSeq: 1, commands }));
-        },
+        // The host stamps the sequence: it writes to the same input stream for
+        // focus and events, so numbering batches here would interleave with
+        // those and be refused.
+        dispatch: (commands) => context.root.sendInput(commands),
         focusBlock: (nodeId, block) => context.root.focusDocument(nodeId, block),
       },
     });

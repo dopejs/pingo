@@ -13,6 +13,8 @@ export {
   type DocumentSelection,
   type InputBatch,
   type InputCommand,
+  INPUT_EVENT_KINDS,
+  isInputEventKind,
   type InputEventKind,
   type InputFocusOrigin,
   type InputPointerType,

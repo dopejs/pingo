@@ -2982,6 +2982,8 @@ fn is_document_command(
         | InputCommand::CommitComposition { node_id, .. }
         | InputCommand::CancelComposition { node_id, .. }
         | InputCommand::Insert { node_id, .. }
+        | InputCommand::Replace { node_id, .. }
+        | InputCommand::SetSelection { node_id, .. }
         | InputCommand::DeleteBackward { node_id, .. }
         | InputCommand::DeleteForward { node_id, .. }
         | InputCommand::MoveCaret { node_id, .. }
@@ -6811,6 +6813,83 @@ mod tests {
 
     /// Root, a document container, and three blocks: text, object, text.
     #[cfg(feature = "rich-text")]
+    #[test]
+    fn the_gesture_a_press_produces_is_accepted_end_to_end() {
+        // The order a mounted editor actually produces: a press on a block,
+        // then the focus handoff the caret report triggers. Each command was
+        // tested on its own; nothing had sent them the way a press does.
+        let mut engine = CoreEngine::new(400.0, 200.0).expect("viewport");
+        engine
+            .commit(&document_tree(
+                1,
+                1,
+                &[(id(2), Some("first block")), (id(3), Some("second block"))],
+            ))
+            .expect("document frame");
+        let _ = engine.take_edit_transactions().expect("drain");
+
+        engine
+            .input(&input(
+                1,
+                vec![InputCommand::PlaceCaret {
+                    node_id: id(2),
+                    position: [8.0, 8.0],
+                    flags: 0,
+                }],
+            ))
+            .expect("a press inside a block");
+        let _ = engine.take_edit_transactions().expect("drain");
+
+        engine
+            .input(&input(
+                2,
+                vec![InputCommand::FocusNode {
+                    event_id: 1,
+                    node_id: id(1),
+                    origin: pingo_abi::InputFocusOrigin::Programmatic,
+                }],
+            ))
+            .expect("focusing the document root");
+        let _ = engine.take_edit_transactions().expect("drain");
+        let _ = engine.take_event_transactions().expect("drain events");
+
+        engine
+            .input(&input(
+                3,
+                vec![InputCommand::FocusEditable { node_id: id(1) }],
+            ))
+            .expect("activating the input surface over the document");
+        let _ = engine.take_edit_transactions().expect("drain");
+        let _ = engine.take_event_transactions().expect("drain events");
+
+        // What the OS surface sends once it is active: a range inside the block
+        // it holds. Leaving these two out of the planner's dispatch dropped
+        // every keystroke that came through it, without an error.
+        engine
+            .input(&input(
+                4,
+                vec![InputCommand::Replace {
+                    node_id: id(1),
+                    base_revision: 0,
+                    start: 2,
+                    end: 2,
+                    text: "X".to_owned(),
+                }],
+            ))
+            .expect("typing through the surface");
+        let batch = engine.take_edit_transactions().expect("drain");
+        let decoded = pingo_abi::EditTransactionBatch::decode(&batch).expect("transactions");
+        assert_eq!(
+            decoded
+                .records
+                .iter()
+                .filter_map(|record| record.delta.as_ref().map(|(_, text)| text.as_str()))
+                .collect::<Vec<_>>(),
+            vec!["X"],
+            "a keystroke through the native surface reaches the document"
+        );
+    }
+
     fn document_tree(frame_seq: u32, revision: u64, blocks: &[(u32, Option<&str>)]) -> Vec<u8> {
         let mut mutations = vec![
             Mutation::CreateNode {

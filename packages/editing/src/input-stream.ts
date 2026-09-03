@@ -83,26 +83,41 @@ export type DocumentSelection =
   | { readonly kind: "node"; readonly key: number }
   | { readonly kind: "gap"; readonly index: number };
 
-export type InputEventKind =
-  | "blur"
-  | "click"
-  | "focus"
-  | "focusin"
-  | "focusout"
-  | "gotpointercapture"
-  | "lostpointercapture"
-  | "pointercancel"
-  | "pointerdown"
-  | "pointerenter"
-  | "pointerleave"
-  | "pointermove"
-  | "pointerout"
-  | "pointerover"
-  | "pointerup"
-  | "wheel"
-  | "keydown"
-  | "keyup"
-  | "contextmenu";
+/**
+ * Every event kind Core reports, as values rather than only as a type.
+ *
+ * A second hand-written copy of this list is how `keydown` came to be rejected
+ * by the Worker transport while the encoder happily produced it: pressing a key
+ * on the canvas killed the Worker as a protocol violation.
+ */
+export const INPUT_EVENT_KINDS = [
+  "blur",
+  "click",
+  "contextmenu",
+  "focus",
+  "focusin",
+  "focusout",
+  "gotpointercapture",
+  "keydown",
+  "keyup",
+  "lostpointercapture",
+  "pointercancel",
+  "pointerdown",
+  "pointerenter",
+  "pointerleave",
+  "pointermove",
+  "pointerout",
+  "pointerover",
+  "pointerup",
+  "wheel",
+] as const;
+
+export type InputEventKind = (typeof INPUT_EVENT_KINDS)[number];
+
+/** Whether `value` is an event kind Core can report. */
+export function isInputEventKind(value: unknown): value is InputEventKind {
+  return (INPUT_EVENT_KINDS as readonly unknown[]).includes(value);
+}
 
 export type InputPointerType = "mouse" | "none" | "pen" | "touch";
 export type InputFocusOrigin = "accessibility" | "keyboard" | "pointer" | "programmatic";

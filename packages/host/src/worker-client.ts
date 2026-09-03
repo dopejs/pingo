@@ -362,7 +362,17 @@ export class RenderWorkerClient {
           candidateSession !== this.#sessionId
         )
           return;
-        this.fail(new Error("render Worker response is malformed"));
+        // Naming the kind is the difference between a message a operator can
+        // act on and one that says only that something, somewhere, was wrong.
+        const kind: unknown =
+          typeof message === "object" && message !== null
+            ? (message as { kind?: unknown }).kind
+            : undefined;
+        this.fail(
+          new Error(
+            `render Worker response is malformed${typeof kind === "string" ? `: ${kind}` : ""}`,
+          ),
+        );
       }
       return;
     }

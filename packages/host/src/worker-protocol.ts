@@ -13,6 +13,7 @@ import type {
 } from "./main-thread";
 import type { HostTransportMode } from "./capabilities";
 import type { RenderClockMetrics } from "./render-clock";
+import { isInputEventKind } from "@dopejs/pingo-editing";
 import type {
   DocumentSelectionReport,
   EditTransaction,
@@ -555,27 +556,6 @@ function isEventTransaction(value: unknown): value is EventTransaction {
     value.path.every(isU32) &&
     new Set(value.path).size === value.path.length &&
     value.path.at(-1) === value.target
-  );
-}
-
-function isInputEventKind(value: unknown): boolean {
-  return (
-    value === "pointerdown" ||
-    value === "pointerup" ||
-    value === "pointermove" ||
-    value === "pointercancel" ||
-    value === "pointerover" ||
-    value === "pointerout" ||
-    value === "pointerenter" ||
-    value === "pointerleave" ||
-    value === "gotpointercapture" ||
-    value === "lostpointercapture" ||
-    value === "focus" ||
-    value === "blur" ||
-    value === "focusin" ||
-    value === "focusout" ||
-    value === "click" ||
-    value === "wheel"
   );
 }
 

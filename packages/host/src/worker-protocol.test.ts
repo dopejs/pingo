@@ -1,3 +1,4 @@
+import { INPUT_EVENT_KINDS } from "@dopejs/pingo-editing";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -333,5 +334,46 @@ describe("render Worker protocol validation", () => {
         sessionId: 9,
       }),
     ).toBe(false);
+  });
+
+  it("accepts every event kind Core can report, keyboard included", () => {
+    // A second hand-written copy of the kind list is how `keydown` came to be
+    // rejected: pressing a key on the canvas killed the Worker as a protocol
+    // violation, while the encoder produced it happily.
+    const base = {
+      eventId: 1,
+      target: 0x0010_0001,
+      x: 0,
+      y: 0,
+      deltaX: 0,
+      deltaY: 0,
+      buttons: 0,
+      modifiers: 0,
+      pointerId: 0,
+      elapsedMicros: 16_667,
+      relatedTarget: null,
+      pointerType: "none" as const,
+      isPrimary: false,
+      pressure: 0,
+      tiltX: 0,
+      tiltY: 0,
+      width: 0,
+      height: 0,
+      cursor: "auto",
+      code: "KeyH",
+      key: "H",
+      repeat: false,
+      path: [0x0010_0000, 0x0010_0001],
+    };
+    for (const kind of INPUT_EVENT_KINDS) {
+      expect(
+        isRenderWorkerOutboundMessage({
+          kind: "pingo:event-transaction",
+          sessionId: 1,
+          transaction: { ...base, kind },
+        }),
+        `${kind} must survive the Worker transport`,
+      ).toBe(true);
+    }
   });
 });

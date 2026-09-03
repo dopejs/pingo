@@ -232,6 +232,8 @@ export interface HostedCanvasRoot extends PingoRoot {
   readonly mode: HostTransportMode;
   close(): Promise<void>;
   dispatchInput(bytes: Uint8Array): void;
+  /** Sends input commands stamped with the host's own sequence. */
+  sendInput(commands: readonly InputCommand[]): void;
   beginScroll(target: ScrollTarget): void;
   scrollBy(target: ScrollTarget, deltaX: number, deltaY: number, elapsedMs: number): void;
   endScroll(target: ScrollTarget): void;
@@ -403,6 +405,20 @@ class HostedCanvasRootController implements HostedCanvasRoot {
   }
 
   /** Routes one versioned Input Stream transaction to the current Core owner. */
+  /**
+   * Sends input commands, stamped with the host's own sequence.
+   *
+   * The Core refuses a batch whose sequence is not newer than the last one it
+   * accepted, and a refusal fails the frame. The host writes to that stream
+   * too -- focus, scrolling and events all go through it -- so an application
+   * that numbered its own batches would interleave with those and be rejected.
+   * Callers pass commands; the sequence is not theirs to choose.
+   */
+  public sendInput(commands: readonly InputCommand[]): void {
+    if (commands.length === 0) return;
+    this.dispatchInput(encodeInputBatch({ frameSeq: this.#inputSequence, commands }));
+  }
+
   public dispatchInput(bytes: Uint8Array): void {
     if (!(bytes instanceof Uint8Array)) throw new TypeError("input must be Uint8Array");
     if (bytes.byteLength > MAX_INPUT_BYTES) throw new RangeError("input exceeds protocol limit");
@@ -729,8 +745,7 @@ class HostedCanvasRootController implements HostedCanvasRoot {
   }
 
   private sendInputCommands(commands: readonly InputCommand[]): void {
-    const frameSeq = this.#inputSequence;
-    this.dispatchInput(encodeInputBatch({ frameSeq, commands }));
+    this.sendInput(commands);
   }
 
   private reconcilerOptions(): RootOptions {

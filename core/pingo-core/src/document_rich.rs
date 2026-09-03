@@ -30,6 +30,14 @@ enum Planned {
     Nothing,
 }
 
+/// The block a text selection's caret is in, if it is in text at all.
+const fn focus_key(selection: DocumentSelection) -> Option<BlockKey> {
+    match selection {
+        DocumentSelection::Text { focus, .. } => Some(focus.key),
+        DocumentSelection::Node { .. } | DocumentSelection::Gap { .. } => None,
+    }
+}
+
 /// One step of an input method composition.
 #[derive(Clone, Copy)]
 enum Composing<'a> {
@@ -377,7 +385,12 @@ impl DocumentController {
             InputCommand::EditDocument { .. }
             | InputCommand::Insert { .. }
             | InputCommand::DeleteBackward { .. }
-            | InputCommand::DeleteForward { .. } => match self.plan_text_command(command)? {
+            | InputCommand::DeleteForward { .. }
+            // The native surface's two block-local commands plan the same way;
+            // leaving them out of this list dropped every keystroke that came
+            // through the OS input surface, silently.
+            | InputCommand::Replace { .. }
+            | InputCommand::SetSelection { .. } => match self.plan_text_command(command)? {
                 Planned::Edit(root, edit) => (root, edit),
                 Planned::Split(root) => return self.plan_split(root),
                 Planned::Nothing => return Ok(Vec::new()),
@@ -501,6 +514,11 @@ impl DocumentController {
                     .map_err(CoreError::Edit)?;
                 (root, edit)
             }
+            // The native surface addresses a range inside one block; it is the
+            // block the caret is in, which is what it was activated over.
+            InputCommand::Replace { .. } | InputCommand::SetSelection { .. } => {
+                return self.plan_surface_command(command);
+            }
             InputCommand::DeleteBackward { node_id, .. } => {
                 let root = NodeId::from_raw(*node_id)?;
                 let active = self
@@ -524,6 +542,74 @@ impl DocumentController {
                     .plan_delete(Direction::Forward)
                     .map_err(CoreError::Edit)?;
                 (root, edit)
+            }
+            _ => return Ok(Planned::Nothing),
+        };
+        Ok(Planned::Edit(planned.0, planned.1))
+    }
+
+    /// Answers the two commands the native input surface states block-locally.
+    ///
+    /// It holds one block's value, so its offsets are inside that block; Core
+    /// resolves them against the caret rather than against the whole document.
+    fn plan_surface_command(&mut self, command: &InputCommand) -> Result<Planned, CoreError> {
+        let planned = match command {
+            // The native surface holds one block's value, so it addresses a
+            // range inside that block. Core knows which block the caret is in,
+            // which is the one the surface was activated over.
+            InputCommand::Replace {
+                node_id,
+                start,
+                end,
+                text,
+                ..
+            } => {
+                let root = NodeId::from_raw(*node_id)?;
+                let active = self
+                    .documents
+                    .get_mut(&root)
+                    .ok_or(CoreError::InvalidEditableTarget { node: root })?;
+                let Some(key) = focus_key(active.document.selection()) else {
+                    return Ok(Planned::Nothing);
+                };
+                active
+                    .document
+                    .set_selection(DocumentSelection::Text {
+                        anchor: DocumentPosition::new(key, *start),
+                        focus: DocumentPosition::new(key, *end),
+                    })
+                    .map_err(CoreError::Edit)?;
+                let units = u32::try_from(text.encode_utf16().count()).map_err(|_| {
+                    CoreError::InvalidEditableConfiguration(
+                        "document replacement exceeds the offset space",
+                    )
+                })?;
+                let edit = active
+                    .document
+                    .plan_replace(text.clone(), MarkRuns::uniform(units, 0, 0))
+                    .map_err(CoreError::Edit)?;
+                (root, edit)
+            }
+            InputCommand::SetSelection {
+                node_id, selection, ..
+            } => {
+                let root = NodeId::from_raw(*node_id)?;
+                let active = self
+                    .documents
+                    .get_mut(&root)
+                    .ok_or(CoreError::InvalidEditableTarget { node: root })?;
+                let Some(key) = focus_key(active.document.selection()) else {
+                    return Ok(Planned::Nothing);
+                };
+                let moved = DocumentSelection::Text {
+                    anchor: DocumentPosition::new(key, selection.anchor.offset),
+                    focus: DocumentPosition::new(key, selection.focus.offset),
+                };
+                active
+                    .document
+                    .set_selection(moved)
+                    .map_err(CoreError::Edit)?;
+                return Ok(Planned::Nothing);
             }
             _ => return Ok(Planned::Nothing),
         };
