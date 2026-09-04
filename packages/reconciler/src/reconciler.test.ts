@@ -565,6 +565,47 @@ describe("reconciler", () => {
     expect(observed).toContain(added);
   });
 
+  it("withdraws the observation of a block node it replaced", () => {
+    const sink = new RecordingSink();
+    const root = createRoot(sink);
+    // A block's element changes shape when the application decides its type
+    // draws differently -- a list item gains a marker, a quote a rule. The
+    // node behind it is destroyed and a new one takes its place.
+    const tree = (boxed: boolean) =>
+      createElement(View, {
+        width: 300,
+        document: {
+          revision: boxed ? 2n : 1n,
+          blocks: [{ key: 11, lenUtf16: 1 }],
+          onBlockGeometry: () => undefined,
+        },
+        children: boxed
+          ? createElement(View, {
+              width: 300,
+              children: createElement(Text, { blockKey: 11, value: "a" }),
+            })
+          : createElement(Text, { blockKey: 11, value: "a" }),
+      });
+
+    root.render(tree(false));
+    const before = mutationsOfType(sink.batches[0], "configureDocument")[0]?.blocks[0]?.nodeId;
+    root.render(tree(true));
+    const after = mutationsOfType(sink.batches[1], "configureDocument")[0]?.blocks[0]?.nodeId;
+    expect(before).toBeDefined();
+    expect(after).toBeDefined();
+    expect(after).not.toBe(before);
+
+    // The observation follows the node. Leaving the old one claimed spends a
+    // slot on a node that no longer exists, and never observing the new one
+    // leaves the block without a box for as long as the document is mounted.
+    const observed = mutationsOfType(sink.batches[1], "observeGeometry");
+    expect(observed.map((mutation) => mutation.nodeId)).toContain(after);
+    const stale = mutationsOfType(sink.batches[1], "observeGeometry").find(
+      (mutation) => mutation.nodeId === before && mutation.flags === 1,
+    );
+    expect(stale, "the destroyed node is not re-observed").toBeUndefined();
+  });
+
   it("re-declares a projection only when it changed", () => {
     const sink = new RecordingSink();
     const root = createRoot(sink);

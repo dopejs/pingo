@@ -776,16 +776,33 @@ impl CoreTextSystem {
         #[cfg(not(feature = "rich-text"))]
         let styled: Option<ResolvedRuns> = None;
         #[cfg(feature = "rich-text")]
-        let styled = if !self.rich_text_enabled {
-            None
-        } else if let Some(marks) = self
-            .edit_overrides
-            .get(&node)
-            .and_then(|display| display.marks.clone())
-        {
-            self.resolve_marks(scene, &marks, font_id, font, style, string)
-        } else if text_run.runs_id != 0 && !self.edit_overrides.contains_key(&node) {
-            self.resolve_runs(scene, text_run, font_id, font, string)
+        let styled = if self.rich_text_enabled {
+            let from_session = self
+                .edit_overrides
+                .get(&node)
+                .and_then(|display| display.marks.clone())
+                .and_then(|marks| self.resolve_marks(scene, &marks, font_id, font, style, string));
+            // A session's mark table is what has been moving with every
+            // keystroke, so it wins. When it says nothing -- a document block
+            // the reader has not typed in -- the Scene's own table is the
+            // styling the Shell declared, and ignoring it left every mark a
+            // document was loaded with unpainted until the block was edited.
+            //
+            // The table's offsets describe the Scene's string. Whenever the
+            // session is showing something else, a composition in flight or a
+            // value the Shell has not caught up with, they describe the wrong
+            // text and are not applied.
+            let describes_value = self
+                .edit_overrides
+                .get(&node)
+                .is_none_or(|display| display.text.as_ref() == string);
+            match from_session {
+                Some(resolved) => Some(resolved),
+                None if text_run.runs_id != 0 && describes_value => {
+                    self.resolve_runs(scene, text_run, font_id, font, string)
+                }
+                None => None,
+            }
         } else {
             None
         };
@@ -1772,14 +1789,30 @@ fn text_content_hash(
                 u64::from(run.length) ^ (u64::from(run.style) << 21) ^ (u64::from(run.font) << 42);
             hash = hash.wrapping_mul(0x0000_0100_0000_01b3);
         }
-        return Some(hash);
+        return Some(mix_binding(hash, scene, node));
     }
     let run = scene.text_run(node)?;
     let bytes = &scene
         .resource(run.string_id)
         .filter(|resource| resource.kind == ResourceKind::Utf8String)?
         .bytes;
-    Some(hash_bytes(bytes))
+    Some(mix_binding(hash_bytes(bytes), scene, node))
+}
+
+/// Folds the node's style and run-table bindings into its content hash.
+///
+/// What was shaped is the value under a styling, not the value alone: the run
+/// table decides where one style ends and the next begins, and the base style
+/// decides the face and the size. A table that changed while the text did not
+/// -- a mark applied to a document that has not been edited, a font arriving
+/// after first paint -- left the old shaping in place, so the styling was
+/// accepted and never drawn.
+fn mix_binding(hash: u64, scene: &Scene, node: NodeId) -> u64 {
+    let Some(run) = scene.text_run(node) else {
+        return hash;
+    };
+    let mixed = hash ^ (u64::from(run.style_id) << 8) ^ (u64::from(run.runs_id) << 40);
+    mixed.wrapping_mul(0x0000_0100_0000_01b3)
 }
 
 fn read_u32(bytes: &[u8], offset: usize) -> Option<u32> {

@@ -5,6 +5,7 @@ import {
   DocumentEditorController,
   toMarkdown,
   type Block,
+  type BlockBox,
   type DocumentModel,
   type MarkName,
 } from "@dopejs/pingo/editor";
@@ -13,7 +14,7 @@ import wasmManifest from "../../../../../packages/host/wasm/manifest.json";
 import type { Demo, DemoContext } from "../demo";
 
 /** Marks the toolbar offers, in button order. */
-const OFFERED: readonly MarkName[] = ["bold", "code", "link", "strike"];
+const OFFERED: readonly MarkName[] = ["bold", "italic", "code", "link", "strike"];
 
 /**
  * The two faces the document draws with.
@@ -42,26 +43,160 @@ const INITIAL: DocumentModel = {
     {
       key: 1,
       type: "heading",
-      attributes: { level: 2 },
-      text: "Type in this document",
+      attributes: { level: 1 },
+      text: "A document the engine owns",
       marks: [],
     },
     {
       key: 2,
       type: "paragraph",
       attributes: {},
-      text: "The caret, the selection, composition and undo live in the engine core, over one flat position space across every block. Arrow keys cross a block boundary without the shell being asked.",
-      marks: [{ mark: "bold", from: 0, to: 9 }],
+      text: "The caret, the selection, composition and undo live in the Core, over one flat position space that spans every block. Arrow keys cross a block boundary without the shell being asked, and so does a drag.",
+      marks: [
+        { mark: "bold", from: 0, to: 9 },
+        // Nested on purpose: a run table has to flatten marks that overlap,
+        // and giving the reader both is the case a naive editor gets wrong.
+        { mark: "italic", from: 55, to: 78 },
+        { mark: "code", from: 59, to: 63 },
+      ],
     },
     {
       key: 3,
+      type: "heading",
+      attributes: { level: 2 },
+      text: "Blocks",
+      marks: [],
+    },
+    {
+      key: 4,
+      type: "listItem",
+      attributes: { depth: 0, ordered: false },
+      text: "Type / at the start of a block to change what it is.",
+      marks: [{ mark: "code", from: 5, to: 6 }],
+    },
+    {
+      key: 5,
+      type: "listItem",
+      attributes: { depth: 1, ordered: false },
+      text: "A nested item is the same block with a deeper indent.",
+      marks: [],
+    },
+    {
+      key: 6,
+      type: "listItem",
+      attributes: { depth: 0, ordered: true },
+      text: "An ordered item counts itself from the blocks above it.",
+      marks: [],
+    },
+    {
+      key: 7,
+      type: "listItem",
+      attributes: { depth: 0, ordered: true },
+      text: "Drag the handle on the left to move a block, and the number follows.",
+      marks: [],
+    },
+    {
+      key: 8,
+      type: "blockquote",
+      attributes: {},
+      text: "A quote is inset behind a rule. The rule is drawn beside the text, never inside it: a character the reader cannot put a caret in is a character the document does not have.",
+      marks: [],
+    },
+    {
+      key: 9,
+      type: "codeBlock",
+      attributes: { language: "ts" },
+      text: "const editor = new DocumentEditorController({ document, host });",
+      marks: [],
+    },
+    {
+      key: 10,
+      type: "heading",
+      attributes: { level: 2 },
+      text: "Marks",
+      marks: [],
+    },
+    {
+      key: 11,
       type: "paragraph",
       attributes: {},
-      text: "Select a phrase and the toolbar above lights up. Everything below the canvas is the same document, serialized.",
-      marks: [],
+      text: "Select a phrase for the toolbar. A link carries a target, so it survives being split and moved. Everything below the canvas is this same document, serialized.",
+      marks: [
+        { mark: "link", from: 34, to: 38, href: "https://example.com" },
+        { mark: "strike", from: 63, to: 82 },
+      ],
     },
   ],
 };
+
+/** How each block type draws: font first, then the box around it. */
+function blockTextStyle(
+  block: Block,
+  regular: PingoFont,
+  bold: PingoFont,
+): Omit<TextRunProps, "start" | "end"> {
+  const level = block.attributes.level ?? 2;
+  switch (block.type) {
+    case "heading":
+      return {
+        font: bold,
+        fontSize: level === 1 ? 26 : level === 2 ? 20 : 16,
+        lineHeight: level === 1 ? 34 : level === 2 ? 28 : 24,
+        color: "#0d1117ff",
+      };
+    case "codeBlock":
+      return {
+        font: regular,
+        fontFamily: "ui-monospace, monospace",
+        fontSize: 13,
+        lineHeight: 22,
+        color: "#1f2329ff",
+      };
+    case "blockquote":
+      return { font: regular, fontSize: 14, lineHeight: 24, color: "#4a5568ff" };
+    default:
+      return { font: regular, fontSize: 14, lineHeight: 24, color: "#1f2329ff" };
+  }
+}
+
+/** The inset and marker a block type draws beside its own text. */
+function blockBox(block: Block, document: DocumentModel): BlockBox {
+  switch (block.type) {
+    case "listItem": {
+      const depth = block.attributes.depth ?? 0;
+      const marker =
+        block.attributes.ordered === true ? `${String(ordinal(block, document))}.` : "•";
+      return { indent: 18 + depth * 18, marker, markerColor: "#8a94a3ff" };
+    }
+    case "blockquote":
+      return { indent: 14, marker: "▎", markerColor: "#c3c9d4ff" };
+    case "codeBlock":
+      return { indent: 12, backgroundColor: "#f3f4f6ff" };
+    default:
+      return {};
+  }
+}
+
+/**
+ * Which number an ordered item carries.
+ *
+ * Counted from the blocks above it rather than stored, so moving one item
+ * renumbers the list without touching any other block's data.
+ */
+function ordinal(block: Block, document: DocumentModel): number {
+  const depth = block.attributes.depth ?? 0;
+  let count = 1;
+  for (const candidate of document.blocks) {
+    if (candidate.key === block.key) break;
+    const sameList =
+      candidate.type === "listItem" &&
+      candidate.attributes.ordered === true &&
+      (candidate.attributes.depth ?? 0) === depth;
+    if (sameList) count += 1;
+    else if (candidate.type !== "listItem" || (candidate.attributes.depth ?? 0) < depth) count = 1;
+  }
+  return count;
+}
 
 /**
  * The mounted editor.
@@ -87,6 +222,7 @@ function markStyles(
     code: { fontFamily: "ui-monospace, monospace", color: "#b02a37" },
     // A run carries no font style yet, so drawing italic as something else
     // would be showing a mark the engine did not apply.
+    italic: { color: "#5a3ea8" },
     link: { color: "#1a6fd4" },
     strike: { color: "#8a94a3" },
   };
@@ -95,26 +231,25 @@ function markStyles(
 function scene(context: DemoContext) {
   const loaded = faces;
   if (loaded === undefined) {
+    // The same shape as the loaded scene, only without the faces. Changing
+    // the element a block renders as destroys its Scene node and makes a new
+    // one, which costs a re-layout of the whole document for nothing.
     return editor.render({
       document: editor.document,
       host: { dispatch: () => {}, focusBlock: () => {} },
       width: context.width,
+      gap: 8,
+      blockBox: (block: Block) => blockBox(block, editor.document),
     });
   }
   return editor.render({
     document: editor.document,
     host: { dispatch: () => {}, focusBlock: () => {} },
     width: context.width,
+    gap: 8,
     marks: markStyles(loaded.bold),
-    blockStyle: (block: Block) => {
-      const heading = block.type === "heading";
-      return {
-        font: heading ? loaded.bold : loaded.regular,
-        fontSize: heading ? 20 : 14,
-        lineHeight: heading ? 30 : 24,
-        color: "#1f2329ff",
-      };
-    },
+    blockStyle: (block: Block) => blockTextStyle(block, loaded.regular, loaded.bold),
+    blockBox: (block: Block) => blockBox(block, editor.document),
   });
 }
 

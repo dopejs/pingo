@@ -1,5 +1,6 @@
 export {
   DocumentEditorController,
+  type BlockBox,
   type SlashMenuItem,
   type SlashMenuState,
   type DocumentEditorHost,

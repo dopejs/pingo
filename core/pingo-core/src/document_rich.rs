@@ -200,6 +200,14 @@ impl DocumentController {
                 .collect::<OrderedMap<_, _>>();
             if let Some(active) = self.documents.get_mut(&root) {
                 if active.shell_revision == revision {
+                    // The revision guards the text, not the topology. A Shell
+                    // may re-parent a block without editing it -- a block type
+                    // that draws differently, a wrapper appearing, a
+                    // virtualized block materializing -- and the node behind
+                    // the key changes at the same revision. Keeping the old
+                    // node made every press on that block name a node the
+                    // document no longer had.
+                    active.nodes = nodes;
                     continue;
                 }
                 if let Some(predicted) = active.predicted.take()
@@ -269,11 +277,10 @@ impl DocumentController {
     /// reported against the block the caret is actually in, which is where an
     /// input method's candidate window and a selection toolbar belong.
     pub(crate) fn focus_root_visual(&self) -> Option<(NodeId, NodeId, [u32; 2])> {
-        let focused = self.focused?;
+        // Not gated on focus. A selection has a place on screen whether or not
+        // the input surface is over it, and a toolbar that anchors to it needs
+        // that place before the reader has touched anything.
         for (root, active) in self.documents.iter() {
-            if *root != focused {
-                continue;
-            }
             let DocumentSelection::Text { anchor, focus } = active.document.selection() else {
                 continue;
             };

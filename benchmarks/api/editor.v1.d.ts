@@ -49,6 +49,7 @@ export {
   type RuleContext,
   type RuleOutcome,
   DocumentEditorController,
+  type BlockBox,
   type DocumentEditorHost,
   type DocumentEditorProps,
   type MarkStyles,

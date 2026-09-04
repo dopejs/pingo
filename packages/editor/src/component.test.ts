@@ -493,6 +493,36 @@ describe("DocumentEditorController blur", () => {
     instance.blur();
 
     expect(instance.selectionRect).toBeUndefined();
+
+    // A frame produced before the blur can still arrive after it. Core reports
+    // where a selection is drawn whether or not the surface is over it -- a
+    // toolbar has to be placeable before anyone has touched the document -- so
+    // only the Shell knows this one is stale.
+    instance.applySelectionGeometry({ left: 10, top: 20, width: 40, height: 18 });
+    expect(instance.selectionRect).toBeUndefined();
+  });
+});
+
+describe("DocumentEditorController block boxes", () => {
+  it("draws a marker beside the block rather than inside its value", () => {
+    const { instance } = controller();
+    const node = instance.render({
+      document: instance.document,
+      host: { dispatch: () => undefined, focusBlock: () => undefined },
+      blockBox: (block) => (block.key === 1 ? { indent: 18, marker: "•" } : {}),
+    }) as unknown as { readonly props: { readonly children: readonly unknown[] } };
+
+    const [first, second] = node.props.children as {
+      readonly type: string;
+      readonly props: { readonly children?: readonly { props: Record<string, unknown> }[] };
+    }[];
+    // The marked block is wrapped; the plain one is not. A bullet the caret
+    // could stand in front of would be a character the document does not have.
+    expect(first?.type).toBe("container");
+    expect(first?.props.children?.[0]?.props.value).toBe("•");
+    expect(first?.props.children?.[0]?.props.blockKey).toBeUndefined();
+    expect(first?.props.children?.[1]?.props.blockKey).toBe(1);
+    expect(second?.type).toBe("text");
   });
 });
 

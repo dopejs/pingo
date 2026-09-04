@@ -127,6 +127,34 @@ describe("styled runs", () => {
     );
   });
 
+  it("styles a document block from the table the Shell declared", async () => {
+    const face = await codicon();
+    const document_ = createElement("container", {
+      width: 400,
+      height: 160,
+      backgroundColor: "#ffffffff",
+      padding: 12,
+      document: { revision: 1n, blocks: [{ key: 11, lenUtf16: VALUE.length }] },
+      children: createElement("text", {
+        blockKey: 11,
+        value: VALUE,
+        font: face,
+        fontSize: 18,
+        lineHeight: 28,
+        color: "#000000ff",
+        runs: [{ start: 2, end: 5, color: "#ff0000" }],
+      }),
+    });
+    const painted = await paint(document_);
+
+    // A block carries an editing display, because Core owns the caret in it.
+    // That display's own mark table describes what is being typed and says
+    // nothing about a document nobody has typed in, and taking its silence for
+    // "no styling" left every mark a document was loaded with unpainted.
+    expect(painted.records).toHaveLength(rich ? 3 : 1);
+    expect(new Set(painted.records.map((record) => record.nodeId)).size).toBe(1);
+  });
+
   it("returns to one span when the table is dropped, releasing what it interned", async () => {
     const face = await codicon();
     const canvas = document.createElement("canvas");

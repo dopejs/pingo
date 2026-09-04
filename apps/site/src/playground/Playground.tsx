@@ -11,6 +11,20 @@ interface PlaygroundProps {
   readonly lang: string;
 }
 
+/**
+ * The whole chain, not just the outermost link.
+ *
+ * An engine failure is usually reported by the layer that noticed it rather
+ * than the one that caused it, and "render Worker failed" on its own says
+ * nothing about which frame did what.
+ */
+function describeFailure(cause: unknown, depth = 0): string {
+  if (!(cause instanceof Error)) return String(cause);
+  const head = `${cause.name}: ${cause.message}`;
+  if (depth >= 4 || cause.cause === undefined) return head;
+  return `${head}\n  caused by ${describeFailure(cause.cause, depth + 1)}`;
+}
+
 export function Playground({ lang }: PlaygroundProps): ReactNode {
   const messages = useMemo(() => playgroundMessages(lang), [lang]);
   const host = useRef<HTMLDivElement>(null);
@@ -137,7 +151,7 @@ export function Playground({ lang }: PlaygroundProps): ReactNode {
             (globalThis as { __pingoClock?: unknown }).__pingoClock = clockMetrics;
           },
           onHostError: (error) => {
-            if (token === generation.current) setFailure(`${error.name}: ${error.message}`);
+            if (token === generation.current) setFailure(describeFailure(error));
           },
           onVirtualRefills: (requests) => {
             const log = ((globalThis as { __pingoRefills?: unknown[] }).__pingoRefills ??= []);
@@ -178,7 +192,7 @@ export function Playground({ lang }: PlaygroundProps): ReactNode {
       } catch (cause) {
         if (token !== generation.current) return;
         setStatus("");
-        setFailure(cause instanceof Error ? `${cause.name}: ${cause.message}` : String(cause));
+        setFailure(describeFailure(cause));
       }
     },
     [messages, publish, teardown],
@@ -211,7 +225,7 @@ export function Playground({ lang }: PlaygroundProps): ReactNode {
       .catch((cause: unknown) => {
         if (cancelled) return;
         setStatus("");
-        setFailure(cause instanceof Error ? `${cause.name}: ${cause.message}` : String(cause));
+        setFailure(describeFailure(cause));
       });
     return () => {
       cancelled = true;

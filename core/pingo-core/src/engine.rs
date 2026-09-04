@@ -7324,6 +7324,73 @@ mod tests {
 
     #[cfg(feature = "rich-text")]
     #[test]
+    fn a_block_that_moved_to_another_node_is_addressable_at_the_same_revision() {
+        let mut engine = CoreEngine::new(320.0, 240.0).expect("Core");
+        engine
+            .commit(&document_tree(1, 1, &[(id(2), Some("abcdef"))]))
+            .expect("document frame");
+        let _ = engine.take_glyph_resources();
+        let _ = engine.take_edit_transactions().expect("drain");
+        let root = NodeId::from_raw(id(1)).expect("root");
+        assert_eq!(
+            engine
+                .documents
+                .locate(NodeId::from_raw(id(2)).expect("block")),
+            Some((root, u64::from(id(2))))
+        );
+
+        // The same document, the same revision, a different node behind the
+        // key. A Shell re-parents a block without editing it whenever its type
+        // starts drawing differently or a virtualized block materializes; the
+        // revision guards the text, not the topology.
+        engine
+            .commit(&frame(
+                2,
+                vec![
+                    Mutation::RemoveNode { node_id: id(2) },
+                    Mutation::CreateNode {
+                        node_id: id(3),
+                        kind: NodeKind::EditableText,
+                        parent: id(1),
+                        before_sibling: NULL_NODE_ID,
+                    },
+                    Mutation::DefineResource {
+                        resource_id: 32,
+                        kind: ResourceKind::Utf8String,
+                        bytes: b"abcdef".to_vec(),
+                    },
+                    Mutation::SetTextRun {
+                        node_id: id(3),
+                        string_id: 32,
+                        style_id: 2,
+                    },
+                    Mutation::ConfigureDocument {
+                        node_id: id(1),
+                        revision: 1,
+                        flags: 0,
+                        blocks: vec![pingo_abi::DocumentBlockRecord {
+                            key: id(2),
+                            node_id: id(3),
+                            len_utf16: 6,
+                            atomic: false,
+                        }],
+                    },
+                ],
+            ))
+            .expect("second frame");
+        let _ = engine.take_glyph_resources();
+
+        assert_eq!(
+            engine
+                .documents
+                .locate(NodeId::from_raw(id(3)).expect("block")),
+            Some((root, u64::from(id(2)))),
+            "the key now resolves through the node that carries it"
+        );
+    }
+
+    #[cfg(feature = "rich-text")]
+    #[test]
     fn blurring_a_document_is_accepted_and_takes_its_caret_away() {
         let mut engine = CoreEngine::new(320.0, 240.0).expect("Core");
         engine
@@ -7364,8 +7431,11 @@ mod tests {
             .expect("blur");
         let _ = engine.take_glyph_resources();
         let _ = engine.take_edit_transactions().expect("drain");
+        // The caret goes; the geometry does not. A selection still has a place
+        // on screen, and the toolbar a Shell floats over it is placed from
+        // there whether or not the input surface is over the document.
         assert!(engine.documents.visuals().is_empty());
-        assert_eq!(engine.editing_geometry(), super::empty_editing_geometry());
+        assert_ne!(engine.editing_geometry(), super::empty_editing_geometry());
     }
 
     #[cfg(feature = "rich-text")]

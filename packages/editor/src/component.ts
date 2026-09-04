@@ -69,6 +69,18 @@ export interface DocumentEditorHost {
   ) => void;
 }
 
+/** The shape a block type draws in, beside and behind its own text. */
+export interface BlockBox {
+  /** Left inset in logical pixels, for a nested list or a quote. */
+  readonly indent?: number;
+  /** Panel colour behind the block, as `#rrggbbaa`. */
+  readonly backgroundColor?: string;
+  /** A marker drawn in the inset: a bullet, a number, a quote rule. */
+  readonly marker?: string;
+  /** The marker's colour, defaulting to the block's own. */
+  readonly markerColor?: string;
+}
+
 export interface DocumentEditorProps {
   /** The document to edit. */
   readonly document: DocumentModel;
@@ -80,6 +92,15 @@ export interface DocumentEditorProps {
   readonly marks?: MarkStyles;
   /** Per-block-type text style, so a heading is not a paragraph. */
   readonly blockStyle?: (block: Block) => Omit<TextRunProps, "start" | "end">;
+  /**
+   * Per-block-type box, for the block types that are a shape and not a font.
+   *
+   * A list item is indented and carries a marker, a quote is inset behind a
+   * rule, a code block sits on a panel. None of that is text styling, and none
+   * of it may enter the block's own text: the marker is drawn beside the value
+   * because the position space counts what the reader can put a caret in.
+   */
+  readonly blockBox?: (block: Block) => BlockBox;
   readonly width?: number;
   readonly padding?: number;
   readonly gap?: number;
@@ -104,6 +125,8 @@ export class DocumentEditorController {
   #selectionRect: DocumentSelectionRect | undefined;
   #slash: { readonly key: number; readonly start: number; activeIndex: number } | undefined;
   #blockRects: readonly DocumentBlockRect[] = [];
+  /** Whether the engine's input surface is over this document. */
+  #focused = true;
   #drag: { readonly key: number; beforeKey: number | undefined } | undefined;
   readonly #slashItems: readonly SlashMenuItem[];
 
@@ -327,8 +350,14 @@ export class DocumentEditorController {
 
   /** Records where the engine laid the blocks out. */
   public applyBlockGeometry(blocks: readonly DocumentBlockRect[]): void {
+    const previous = this.#blockRects;
     this.#blockRects = blocks;
-    if (this.#drag !== undefined) this.#onInvalidate?.();
+    // Only the view has to react, and only when a box actually moved. Core
+    // reports geometry every frame, so notifying unconditionally would render
+    // on every frame; notifying only during a drag left every handle where the
+    // first measured layout put it, which is nowhere near the text once a font
+    // has loaded and changed every line's height.
+    if (!sameRects(previous, blocks)) this.#onInvalidate?.();
   }
 
   /** Starts dragging a block. */
@@ -379,6 +408,7 @@ export class DocumentEditorController {
 
   /** Records where the Core drew the selection. */
   public applySelectionGeometry(rect: DocumentSelectionRect): void {
+    if (!this.#focused) return;
     const previous = this.#selectionRect;
     if (
       previous !== undefined &&
@@ -404,6 +434,11 @@ export class DocumentEditorController {
    */
   public blur(): void {
     this.#slash = undefined;
+    // Remembered, because a geometry frame produced before the blur can still
+    // arrive after it. Core reports where a selection is drawn whether or not
+    // the surface is over it -- a toolbar has to be placeable before anyone
+    // has touched the document -- so only the Shell knows this one is stale.
+    this.#focused = false;
     if (this.#selectionRect === undefined) return;
     this.#selectionRect = undefined;
     this.#onInvalidate?.();
@@ -516,34 +551,69 @@ export class DocumentEditorController {
         onBlockGeometry: (blocks: readonly DocumentBlockRect[]) => this.applyBlockGeometry(blocks),
         onBlur: () => this.blur(),
       },
-      children: blocks.map((block) =>
+      children: blocks.map((block) => this.#renderBlock(block, props)),
+    });
+  }
+
+  /**
+   * Renders one block, inside the box its type asks for.
+   *
+   * The block's own node carries the key and the value; anything the type
+   * draws around it -- a marker, an inset, a panel -- is a wrapper, so the
+   * text node stays exactly the box the caret is measured against.
+   */
+  #renderBlock(block: Block, props: DocumentEditorProps): PingoNode {
+    const box = props.blockBox?.(block) ?? {};
+    const text = createElement("text", {
+      key: block.key,
+      blockKey: block.key,
+      value: block.text,
+      ...(props.blockStyle?.(block) ?? {}),
+      ref: (handle: { readonly nodeId: number } | null) => {
+        if (handle !== null) this.#nodeToKey.set(handle.nodeId, block.key);
+      },
+      onPointerDown: (event: PingoEvent) => {
+        // A press inside the document is what puts the surface back over it.
+        this.#focused = true;
+        // Hit testing is the Core's, so the press carries the node it hit
+        // and the Core turns the point into an offset.
+        this.#host.dispatch([
+          {
+            type: "placeCaret",
+            nodeId: event.target.nodeId,
+            x: event.x,
+            y: event.y,
+            extend: event.shiftKey,
+            word: false,
+          },
+        ]);
+      },
+      ...(this.#runsOf(block, props.marks) === undefined
+        ? {}
+        : { runs: this.#runsOf(block, props.marks) }),
+    });
+    const indent = box.indent ?? 0;
+    if (indent === 0 && box.backgroundColor === undefined && box.marker === undefined) {
+      return text;
+    }
+    const style = props.blockStyle?.(block) ?? {};
+    return createElement("container", {
+      key: block.key,
+      direction: "row",
+      ...(box.backgroundColor === undefined ? {} : { backgroundColor: box.backgroundColor }),
+      children: [
+        // The marker sits in the inset rather than in the value: a bullet the
+        // caret could stand in front of would be a character the document does
+        // not have.
         createElement("text", {
-          key: block.key,
-          blockKey: block.key,
-          value: block.text,
-          ...(props.blockStyle?.(block) ?? {}),
-          ref: (handle: { readonly nodeId: number } | null) => {
-            if (handle !== null) this.#nodeToKey.set(handle.nodeId, block.key);
-          },
-          onPointerDown: (event: PingoEvent) => {
-            // Hit testing is the Core's, so the press carries the node it hit
-            // and the Core turns the point into an offset.
-            this.#host.dispatch([
-              {
-                type: "placeCaret",
-                nodeId: event.target.nodeId,
-                x: event.x,
-                y: event.y,
-                extend: event.shiftKey,
-                word: false,
-              },
-            ]);
-          },
-          ...(this.#runsOf(block, props.marks) === undefined
-            ? {}
-            : { runs: this.#runsOf(block, props.marks) }),
+          key: -1,
+          width: indent,
+          value: box.marker ?? "",
+          ...style,
+          ...(box.markerColor === undefined ? {} : { color: box.markerColor }),
         }),
-      ),
+        text,
+      ],
     });
   }
 
@@ -705,4 +775,23 @@ function collapsedCaret(
     return undefined;
   }
   return { key: selection.focusKey, offset: selection.focusOffset };
+}
+
+/** Whether two block-box lists describe the same layout. */
+function sameRects(
+  left: readonly DocumentBlockRect[],
+  right: readonly DocumentBlockRect[],
+): boolean {
+  if (left.length !== right.length) return false;
+  return left.every((rect, index) => {
+    const other = right[index];
+    return (
+      other !== undefined &&
+      rect.key === other.key &&
+      rect.left === other.left &&
+      rect.top === other.top &&
+      rect.width === other.width &&
+      rect.height === other.height
+    );
+  });
 }
