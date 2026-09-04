@@ -222,3 +222,70 @@ describe("paste normalization", () => {
     expect(editor.projection().revision).toBe(before);
   });
 });
+
+describe("Editor paste", () => {
+  const heading = (key: number, text: string): Block => ({
+    key,
+    type: "heading",
+    attributes: { level: 2 },
+    text,
+    marks: [],
+  });
+
+  it("joins a single pasted block to the one it lands in", () => {
+    const editor = new Editor({ document: { blocks: [heading(1, "Type in this document")] } });
+    editor.applyEditStream(
+      stream({
+        selections: [
+          {
+            nodeId: 1,
+            selection: { kind: "text", anchorKey: 1, anchorOffset: 6, focusKey: 1, focusOffset: 6 },
+          },
+        ],
+      }),
+      new Map(),
+    );
+
+    // Pasting a word into a heading has to leave one heading, not a heading, a
+    // paragraph and a second heading.
+    expect(editor.pasteContent({ html: "", text: "XY" })).toBe(true);
+
+    expect(editor.document.blocks).toHaveLength(1);
+    expect(editor.document.blocks[0]).toMatchObject({
+      type: "heading",
+      text: "Type iXYn this document",
+    });
+    // The caret follows what was pasted, the way it follows what was typed.
+    expect(editor.selection).toEqual({
+      kind: "text",
+      anchorKey: 1,
+      anchorOffset: 8,
+      focusKey: 1,
+      focusOffset: 8,
+    });
+  });
+
+  it("opens and closes a multi-block paste into the blocks it spans", () => {
+    const editor = new Editor({ document: { blocks: [paragraph(1, "abcd")] } });
+    editor.applyEditStream(
+      stream({
+        selections: [
+          {
+            nodeId: 1,
+            selection: { kind: "text", anchorKey: 1, anchorOffset: 2, focusKey: 1, focusOffset: 2 },
+          },
+        ],
+      }),
+      new Map(),
+    );
+
+    expect(editor.pasteContent({ html: "", text: "one\n\ntwo" })).toBe(true);
+
+    expect(editor.document.blocks.map((block) => block.text)).toEqual(["abone", "twocd"]);
+    const closing = editor.document.blocks[1];
+    expect(editor.selection).toMatchObject({
+      focusKey: closing?.key,
+      focusOffset: 3,
+    });
+  });
+});

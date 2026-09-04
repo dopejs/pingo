@@ -1296,28 +1296,7 @@ impl CoreEngine {
         // block has to be found before the offset can be: the nearest one
         // vertically, so a press in the padding still lands somewhere.
         if self.documents.is_root(node) {
-            let blocks = self.documents.block_nodes(node);
-            let nearest = blocks.into_iter().min_by(|left, right| {
-                let distance = |candidate: NodeId| {
-                    self.hit
-                        .geometry(candidate)
-                        .map_or(f32::INFINITY, |geometry| {
-                            let box_ = geometry.aabb;
-                            if position[1] < box_.top {
-                                box_.top - position[1]
-                            } else if position[1] > box_.bottom {
-                                position[1] - box_.bottom
-                            } else {
-                                0.0
-                            }
-                        })
-                };
-                distance(left.1).total_cmp(&distance(right.1))
-            });
-            let Some((key, block)) = nearest else {
-                return Err(CoreError::InvalidEditableTarget { node });
-            };
-            return self.resolve_document_place_caret(node, key, block, position, flags);
+            return self.resolve_document_point(node, position, flags);
         }
         let session = self
             .editing
@@ -1383,6 +1362,119 @@ impl CoreEngine {
     /// block is an ordinary text node until the document says otherwise. What
     /// differs is the answer: a position in the Shell's block keys, against the
     /// document root, so it can cross into another block on a later press.
+    /// Resolves a canvas point inside a document into a selection.
+    ///
+    /// The block has to be found before the offset can be: the nearest one
+    /// vertically, so a press in the padding still lands somewhere.
+    fn resolve_document_point(
+        &self,
+        root: NodeId,
+        position: [f32; 2],
+        flags: u32,
+    ) -> Result<InputCommand, CoreError> {
+        let blocks = self.documents.block_nodes(root);
+        let nearest = blocks.into_iter().min_by(|left, right| {
+            let distance = |candidate: NodeId| {
+                self.hit
+                    .geometry(candidate)
+                    .map_or(f32::INFINITY, |geometry| {
+                        let box_ = geometry.aabb;
+                        if position[1] < box_.top {
+                            box_.top - position[1]
+                        } else if position[1] > box_.bottom {
+                            position[1] - box_.bottom
+                        } else {
+                            0.0
+                        }
+                    })
+            };
+            distance(left.1).total_cmp(&distance(right.1))
+        });
+        let Some((key, block)) = nearest else {
+            return Err(CoreError::InvalidEditableTarget { node: root });
+        };
+        self.resolve_document_place_caret(root, key, block, position, flags)
+    }
+
+    /// Resolves caret movement addressed at a document.
+    ///
+    /// A document has no session to resolve against, so its own caret movement
+    /// is a document command the controller answers later in this same batch
+    /// and the command passes through. Vertical movement is the exception: the
+    /// controller owns offsets, and a line is geometry.
+    fn resolve_document_move(
+        &self,
+        node_id: u32,
+        node: NodeId,
+        direction: CaretDirection,
+        granularity: CaretGranularity,
+        extend: bool,
+        desired_x: &mut Option<(NodeId, f32)>,
+    ) -> Result<InputCommand, CoreError> {
+        if matches!(direction, CaretDirection::Up | CaretDirection::Down) {
+            return self.resolve_document_vertical(
+                node,
+                direction == CaretDirection::Down,
+                extend,
+                desired_x,
+            );
+        }
+        *desired_x = None;
+        Ok(InputCommand::MoveCaret {
+            node_id,
+            direction,
+            granularity,
+            extend,
+        })
+    }
+
+    /// Moves a document caret one line up or down, across blocks if need be.
+    ///
+    /// A line is a geometric fact, not a document one: a block wraps into
+    /// several and the line below the last one belongs to the next block. So
+    /// the caret's own rectangle is stepped one line and the result resolves
+    /// the way a press at that point would.
+    fn resolve_document_vertical(
+        &self,
+        root: NodeId,
+        down: bool,
+        extend: bool,
+        desired_x: &mut Option<(NodeId, f32)>,
+    ) -> Result<InputCommand, CoreError> {
+        let (block, offset) = self
+            .documents
+            .focus_position(root)
+            .ok_or(CoreError::InvalidEditableTarget { node: root })?;
+        let geometry = self
+            .hit
+            .geometry(block)
+            .ok_or(CoreError::InvalidEditableTarget { node: block })?;
+        let carets = self
+            .text
+            .editor_caret_stops(&self.scene, block, self.node_box_width(block))
+            .filter(|carets| !carets.is_empty())
+            .ok_or(CoreError::InvalidEditableTarget { node: block })?;
+        let current = closest_editor_caret(&carets, offset)
+            .ok_or(CoreError::InvalidEditableTarget { node: block })?;
+        let rect = transform_local_rect(
+            geometry,
+            [current.x, current.y, CARET_WIDTH, current.height],
+        );
+        // The column survives a run of vertical moves, so a caret that passed
+        // through a short line comes back out at the column it started in.
+        let column = desired_x
+            .filter(|(desired_node, _)| *desired_node == root)
+            .map_or(rect.left, |(_, x)| x);
+        let height = (rect.bottom - rect.top).max(1.0);
+        let target_y = if down {
+            rect.bottom + height * 0.5
+        } else {
+            rect.top - height * 0.5
+        };
+        *desired_x = Some((root, column));
+        self.resolve_document_point(root, [column, target_y], u32::from(extend))
+    }
+
     fn resolve_document_place_caret(
         &self,
         root: NodeId,
@@ -1566,7 +1658,17 @@ impl CoreEngine {
                     *desired_x = None;
                     self.resolve_place_caret(node_id, position, flags, &boundaries)?
                 }
+                // Both spellings resolve the same way. The surface speaks
+                // MoveCaret and the Shell MoveDocumentCaret, and a down arrow
+                // that crossed a line from one and a character from the other
+                // would be two different editors.
                 InputCommand::MoveCaret {
+                    node_id,
+                    direction,
+                    granularity,
+                    extend,
+                }
+                | InputCommand::MoveDocumentCaret {
                     node_id,
                     direction,
                     granularity,
@@ -1626,17 +1728,15 @@ impl CoreEngine {
         desired_x: &mut Option<(NodeId, f32)>,
     ) -> Result<InputCommand, CoreError> {
         let node = NodeId::from_raw(node_id)?;
-        // A document has no session to resolve against. Its own caret movement
-        // is a document command, and the controller answers it later in this
-        // same batch, so the command passes through unchanged.
         if self.documents.is_root(node) {
-            *desired_x = None;
-            return Ok(InputCommand::MoveCaret {
+            return self.resolve_document_move(
                 node_id,
+                node,
                 direction,
                 granularity,
                 extend,
-            });
+                desired_x,
+            );
         }
         let session = self
             .editing
@@ -7159,6 +7259,67 @@ mod tests {
         assert_eq!(words[1], id(1));
         assert_eq!(words[2], 1);
         assert_eq!(words[3], 3);
+    }
+
+    #[cfg(feature = "rich-text")]
+    #[test]
+    fn a_document_caret_moves_down_into_the_block_below_it() {
+        let mut engine = CoreEngine::new(320.0, 240.0).expect("Core");
+        engine
+            .commit(&document_tree(
+                1,
+                1,
+                &[(id(2), Some("abcdef")), (id(3), Some("ghijkl"))],
+            ))
+            .expect("document frame");
+        let _ = engine.take_glyph_resources();
+        let _ = engine.take_edit_transactions().expect("drain");
+        let root = NodeId::from_raw(id(1)).expect("root");
+        engine
+            .input(&input(
+                2,
+                vec![
+                    InputCommand::FocusEditable { node_id: id(1) },
+                    InputCommand::SetDocumentSelection {
+                        node_id: id(1),
+                        base_revision: 0,
+                        selection: pingo_abi::WireDocumentSelection::Text {
+                            anchor_key: id(2),
+                            anchor_offset: 3,
+                            focus_key: id(2),
+                            focus_offset: 3,
+                        },
+                    },
+                ],
+            ))
+            .expect("selection");
+        let _ = engine.take_glyph_resources();
+        let _ = engine.take_edit_transactions().expect("drain");
+
+        // A line is geometry, not an offset: the line below the last one of a
+        // block belongs to the next block. Stepping one character instead, the
+        // way the shared direction mapping did, made the down arrow the right
+        // arrow over again.
+        engine
+            .input(&input(
+                3,
+                vec![InputCommand::MoveDocumentCaret {
+                    node_id: id(1),
+                    direction: pingo_abi::CaretDirection::Down,
+                    granularity: pingo_abi::CaretGranularity::Grapheme,
+                    extend: false,
+                }],
+            ))
+            .expect("down");
+        let _ = engine.take_glyph_resources();
+        let _ = engine.take_edit_transactions().expect("drain");
+
+        let Some(pingo_edit::DocumentSelection::Text { focus, .. }) =
+            engine.documents.selection(root)
+        else {
+            panic!("the caret is in text");
+        };
+        assert_eq!(focus.key, u64::from(id(3)));
     }
 
     #[cfg(feature = "rich-text")]

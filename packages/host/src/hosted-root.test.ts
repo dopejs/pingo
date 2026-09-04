@@ -1047,6 +1047,51 @@ describe("createHostedCanvasRoot", () => {
     await root.close();
   });
 
+  it("keeps the session for a press the application answered", async () => {
+    installCanvasGlobal();
+    // The host only listens for the press that ends a session when there is a
+    // document to listen on; this environment has none of its own.
+    class FakeNode extends EventTarget {}
+    const pageDocument = Object.assign(new EventTarget(), { body: new FakeNode() });
+    vi.stubGlobal("document", pageDocument);
+    vi.stubGlobal("Node", FakeNode);
+    const canvas = Object.assign(new FakeCanvas(), { contains: () => false });
+    const core = fakeCore();
+    const blurs: number[] = [];
+    core.editing_geometry = () => editingGeometry(0x0010_0001);
+    const root = await createHostedCanvasRoot(canvas as unknown as HTMLCanvasElement, {
+      capabilities: allCapabilities(),
+      coreFactory: () => Promise.resolve(core),
+      transport: { pageWorkerEnabled: false },
+    });
+    root.render(documentElement({ onBlur: () => blurs.push(1) }));
+    const node = decodeMutationBatch(core.commits.at(-1) ?? new Uint8Array()).mutations.find(
+      (mutation) => mutation.type === "configureDocument",
+    )?.nodeId;
+    root.focusDocument(node ?? 0, { text: "ab cd", anchor: 1, focus: 1, revision: 1n });
+
+    // The blur listener captures, so that a handler which stops propagation
+    // cannot strand the session -- which also puts it ahead of the
+    // application. A control that belongs to the editor keeps the session by
+    // preventing the press: a toolbar over the selection, a handle being
+    // dragged. Pressing one used to end the session and destroy the control
+    // under the pointer.
+    const press = (prevented: boolean): void => {
+      const event = new Event("pointerdown", { bubbles: true, cancelable: true });
+      Object.defineProperty(event, "target", { value: new FakeNode() });
+      if (prevented) event.preventDefault();
+      pageDocument.dispatchEvent(event);
+    };
+    press(true);
+    await Promise.resolve();
+    expect(blurs, "a press the application claimed").toEqual([]);
+
+    press(false);
+    await Promise.resolve();
+    expect(blurs, "a press nobody claimed").toEqual([1]);
+    await root.close();
+  });
+
   it("falls back before canvas transfer when Worker preparation fails", async () => {
     installCanvasGlobal();
     const canvas = new FakeCanvas();

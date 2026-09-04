@@ -204,22 +204,7 @@ export class DocumentEditorController {
     // has never seen, and the projection this commit carries is what teaches
     // it that block exists.
     this.#invalidate();
-    if (placed && collapsed !== undefined) {
-      this.#host.dispatch([
-        {
-          type: "setDocumentSelection",
-          nodeId: this.#documentNodeId,
-          baseRevision: 0n,
-          selection: {
-            kind: "text",
-            anchorKey: collapsed.key,
-            anchorOffset: collapsed.offset,
-            focusKey: collapsed.key,
-            focusOffset: collapsed.offset,
-          },
-        },
-      ]);
-    }
+    if (placed && collapsed !== undefined) this.#stateCaret(collapsed);
     this.#refocus();
   }
 
@@ -440,7 +425,11 @@ export class DocumentEditorController {
   /** Takes a paste structurally; `false` leaves it to a plain-text insertion. */
   public pasteContent(content: { readonly html: string; readonly text: string }): boolean {
     if (!this.#editor.pasteContent(content)) return false;
+    // Before the caret is stated, because the paste can land in a block Core
+    // has never seen: the projection this commit carries is what teaches it
+    // that block exists.
     this.#invalidate();
+    this.#stateCaret();
     this.#refocus();
     return true;
   }
@@ -609,16 +598,49 @@ export class DocumentEditorController {
     return runs.length === 0 ? undefined : runs;
   }
 
+  /**
+   * Tells Core where the Shell put the caret.
+   *
+   * Core answers from the document as it was before an edit the Shell made
+   * alone -- a split, a paste, an input rule -- so the caret those imply is
+   * the Shell's to state.
+   */
+  #stateCaret(caret?: { readonly key: number; readonly offset: number }): void {
+    const placed = caret ?? collapsedCaret(this.#editor.selection);
+    if (placed === undefined) return;
+    this.#host.dispatch([
+      {
+        type: "setDocumentSelection",
+        nodeId: this.#documentNodeId,
+        baseRevision: 0n,
+        selection: {
+          kind: "text",
+          anchorKey: placed.key,
+          anchorOffset: placed.offset,
+          focusKey: placed.key,
+          focusOffset: placed.offset,
+        },
+      },
+    ]);
+  }
+
   #refocus(): void {
     const selection = this.#editor.selection;
     if (selection?.kind !== "text" || this.#documentNodeId === 0) return;
     const block = this.#editor.document.blocks.find((entry) => entry.key === selection.focusKey);
     if (block === undefined) return;
+    // Clamped, because the two halves of an edit arrive separately: Core
+    // drains the text a cut removed in one batch and the caret that followed
+    // it in the next, so between them the Shell holds a selection that reaches
+    // past the block it names. The surface rejects an offset outside its value
+    // and the whole session goes down with it.
+    const clamp = (offset: number): number => Math.max(0, Math.min(offset, block.text.length));
     this.#host.focusBlock(this.#documentNodeId, {
       text: block.text,
-      anchor:
+      anchor: clamp(
         selection.anchorKey === selection.focusKey ? selection.anchorOffset : selection.focusOffset,
-      focus: selection.focusOffset,
+      ),
+      focus: clamp(selection.focusOffset),
       revision: this.revision,
     });
   }
@@ -669,4 +691,18 @@ export class DocumentEditorController {
     this.#onChange?.(this.#editor.document);
     this.#onInvalidate?.();
   }
+}
+
+/** A selection that is one caret, or nothing. */
+function collapsedCaret(
+  selection: DocumentSelectionState | undefined,
+): { readonly key: number; readonly offset: number } | undefined {
+  if (
+    selection?.kind !== "text" ||
+    selection.anchorKey !== selection.focusKey ||
+    selection.anchorOffset !== selection.focusOffset
+  ) {
+    return undefined;
+  }
+  return { key: selection.focusKey, offset: selection.focusOffset };
 }

@@ -291,9 +291,19 @@ export class Editor {
     if (selection?.kind !== "text") return false;
     const spliced = this.#spliceAtSelection(selection, parsed.blocks);
     if (spliced === undefined) return false;
-    this.#document = normalizeDocument({ blocks: spliced });
+    this.#document = normalizeDocument({ blocks: spliced.blocks });
     this.#allocator = new BlockKeyAllocator(this.#document);
     this.#revision += 1n;
+    // The caret follows what was pasted, the way it follows what was typed.
+    // Core did not make this edit and has no opinion about where the caret
+    // went, so the Shell states it.
+    this.#selection = {
+      kind: "text",
+      anchorKey: spliced.caret.key,
+      anchorOffset: spliced.caret.offset,
+      focusKey: spliced.caret.key,
+      focusOffset: spliced.caret.offset,
+    };
     return true;
   }
 
@@ -339,7 +349,7 @@ export class Editor {
       readonly focusOffset: number;
     },
     pasted: readonly Block[],
-  ): Block[] | undefined {
+  ): { readonly blocks: Block[]; readonly caret: { key: number; offset: number } } | undefined {
     const blocks = this.#document.blocks;
     const anchorIndex = blocks.findIndex((block) => block.key === selection.anchorKey);
     const focusIndex = blocks.findIndex((block) => block.key === selection.focusKey);
@@ -358,13 +368,39 @@ export class Editor {
     // after, so a paste in the middle of a paragraph does not lose either side.
     const before = sliceBlock(head, 0, from);
     const after = sliceBlock(tail, to, tail.text.length);
-    return [
-      ...blocks.slice(0, first),
-      ...(before.text === "" && pasted.length > 0 ? [] : [before]),
-      ...pasted,
-      ...(after.text === "" ? [] : [{ ...after, key: this.#allocator.allocate() }]),
-      ...blocks.slice(last + 1),
-    ];
+    const opening = pasted[0];
+    const closing = pasted.at(-1);
+    if (opening === undefined || closing === undefined) return undefined;
+    // The pasted content joins the text it landed in rather than breaking it
+    // apart: pasting a word into a heading has to leave one heading, not a
+    // heading, a paragraph and a second heading. A block the paste starts in
+    // keeps its own type unless it was empty, where the pasted type is the
+    // only one anybody stated.
+    const opened =
+      before.text === ""
+        ? { ...opening, key: before.key }
+        : concatBlock(before, opening, before.key);
+    if (pasted.length === 1) {
+      return {
+        blocks: [
+          ...blocks.slice(0, first),
+          after.text === "" ? opened : concatBlock(opened, after, opened.key),
+          ...blocks.slice(last + 1),
+        ],
+        caret: { key: opened.key, offset: utf16Length(opened.text) },
+      };
+    }
+    const closed = after.text === "" ? closing : concatBlock(closing, after, closing.key);
+    return {
+      blocks: [
+        ...blocks.slice(0, first),
+        opened,
+        ...pasted.slice(1, -1),
+        closed,
+        ...blocks.slice(last + 1),
+      ],
+      caret: { key: closed.key, offset: utf16Length(closing.text) },
+    };
   }
 
   /** Replaces the document wholesale, keeping key allocation collision-free. */
@@ -387,6 +423,20 @@ export class Editor {
  * Copying the text without moving the marks would hand the clipboard ranges
  * that point past the end of what was copied.
  */
+/** Appends `tail`'s text and marks to `head`, keeping `head`'s type. */
+function concatBlock(head: Block, tail: Block, key: number): Block {
+  const offset = utf16Length(head.text);
+  return {
+    ...head,
+    key,
+    text: head.text + tail.text,
+    marks: [
+      ...head.marks,
+      ...tail.marks.map((mark) => ({ ...mark, from: mark.from + offset, to: mark.to + offset })),
+    ],
+  };
+}
+
 function sliceBlock(block: Block, from: number, to: number): Block {
   const start = Math.max(0, Math.min(from, block.text.length));
   const end = Math.max(start, Math.min(to, block.text.length));

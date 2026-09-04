@@ -293,9 +293,12 @@ export const richTextDemo: Demo = {
         handle.style.cursor = "grab";
         handle.style.pointerEvents = "auto";
         handle.addEventListener("pointerdown", (event) => {
+          // The drag is declared before the pointer is captured: declaring it
+          // is what stops the handle layer being rebuilt, and capturing on an
+          // element a rebuild has already replaced throws.
           event.preventDefault();
-          handle.setPointerCapture(event.pointerId);
           editor.beginBlockDrag(rect.key);
+          handle.setPointerCapture(event.pointerId);
         });
         handle.addEventListener("pointermove", (event) => {
           if (editor.blockDrag === undefined) return;

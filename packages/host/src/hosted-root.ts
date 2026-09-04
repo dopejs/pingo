@@ -1299,16 +1299,23 @@ class HostedCanvasRootController implements HostedCanvasRoot {
     if (!(target instanceof Node)) return;
     if (this.#canvas === target || this.#canvas.contains(target)) return;
     if (this.#inputBridge.ownsNode(target)) return;
-    // A press the application already answered keeps the session: a toolbar
-    // floating over the selection is pressed to act on that selection, and
-    // ending the session under it is the one thing it must not do.
-    if (event.defaultPrevented) return;
     if (this.#semanticMirror?.container.contains(target) === true) return;
-    try {
-      this.blurEditable();
-    } catch (cause) {
-      this.#options.onHostError?.(toError(cause, "editable blur failed"));
-    }
+    // Decided after the event has finished dispatching, not during it. This
+    // listener captures, so that a handler which stops propagation cannot
+    // strand the session -- but that also puts it ahead of the application,
+    // whose own controls have not had their say yet. A microtask runs once
+    // dispatch is over, so the session still ends for a press nobody claimed,
+    // and a control that belongs to the editor keeps it by preventing the
+    // press: a toolbar over the selection, a handle being dragged.
+    queueMicrotask(() => {
+      if (this.#closing || this.#unmounted || event.defaultPrevented) return;
+      if (this.#inputBridge.activeNodeId === undefined) return;
+      try {
+        this.blurEditable();
+      } catch (cause) {
+        this.#options.onHostError?.(toError(cause, "editable blur failed"));
+      }
+    });
   };
 
   private readonly handleWindowBlur = (): void => {

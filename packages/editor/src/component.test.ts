@@ -444,6 +444,33 @@ function mount(instance: DocumentEditorController): void {
   node.props.ref({ nodeId: 7 });
 }
 
+describe("DocumentEditorController refocus", () => {
+  it("clamps a selection that outruns the block it names", () => {
+    const { instance, focused } = controller();
+    mount(instance);
+    // The two halves of an edit arrive separately: Core drains the text a cut
+    // removed in one batch and the caret that followed it in the next. Between
+    // them the Shell holds a selection reaching past the block it names, and
+    // the surface rejects an offset outside its value -- taking the session
+    // down with it.
+    instance.applyEditStream({
+      transactions: [],
+      structure: [],
+      selections: [
+        {
+          nodeId: 1,
+          selection: { kind: "text", anchorKey: 1, anchorOffset: 99, focusKey: 1, focusOffset: 99 },
+        },
+      ],
+    });
+
+    const last = focused.at(-1) as { block: { text: string; anchor: number; focus: number } };
+    expect(last.block.text).toBe("first block");
+    expect(last.block.anchor).toBe(11);
+    expect(last.block.focus).toBe(11);
+  });
+});
+
 describe("DocumentEditorController blur", () => {
   it("forgets where the selection was drawn once the surface leaves", () => {
     const { instance } = controller();

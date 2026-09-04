@@ -303,6 +303,18 @@ impl DocumentController {
     /// A press lands on the node that painted the block, but a document
     /// selection is stated in the Shell's block keys against the document root,
     /// so the caret cannot be placed without translating one into the other.
+    /// The block the caret is in and where it sits inside it.
+    ///
+    /// Vertical movement needs a point, not an offset: the answer is whichever
+    /// block the line above or below belongs to, which only geometry knows.
+    pub(crate) fn focus_position(&self, root: NodeId) -> Option<(NodeId, u32)> {
+        let active = self.documents.get(&root)?;
+        let DocumentSelection::Text { focus, .. } = active.document.selection() else {
+            return None;
+        };
+        Some((active.nodes.get(&focus.key).copied()?, focus.offset))
+    }
+
     pub(crate) fn locate(&self, node: NodeId) -> Option<(NodeId, BlockKey)> {
         self.documents.iter().find_map(|(root, active)| {
             active
