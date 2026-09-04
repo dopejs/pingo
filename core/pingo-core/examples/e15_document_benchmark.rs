@@ -8,6 +8,9 @@
 //! The long fixture is the one the design asks for: at least five thousand
 //! blocks, mixed mark density, nested list structure, and inline atomic
 //! objects, with only a viewport's worth of blocks materialized.
+//!
+//! Printing its report is the whole point.
+#![allow(clippy::print_stdout, clippy::print_stderr)]
 
 use std::hint::black_box;
 use std::time::Instant;

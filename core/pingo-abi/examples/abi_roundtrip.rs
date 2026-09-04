@@ -1,3 +1,8 @@
+//! Round-trips ABI fixtures between Rust and TypeScript.
+//!
+//! Printing its report is the whole point.
+#![allow(clippy::print_stdout, clippy::print_stderr)]
+
 use std::io::{self, Read};
 
 use pingo_abi::{

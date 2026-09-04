@@ -21,3 +21,8 @@ unsafe_code = "deny"
 [lints.clippy]
 all = "deny"
 pedantic = "deny"
+# Debug output has no business in a Core that ships to a browser, and a stray
+# line survives a review far more easily than it survives a lint. Tests say
+# `#[allow]` where they mean to print.
+print_stderr = "deny"
+print_stdout = "deny"

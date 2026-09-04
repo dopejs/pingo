@@ -1,3 +1,8 @@
+//! Immutable-picture soak run.
+//!
+//! Printing its report is the whole point.
+#![allow(clippy::print_stdout, clippy::print_stderr)]
+
 use std::time::Instant;
 
 use pingo_abi::{

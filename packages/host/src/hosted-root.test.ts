@@ -1248,6 +1248,22 @@ class FakeCanvas {
 
   public setAttribute(): void {}
 
+  /** Pointers this canvas captured, in the order it took them. */
+  public readonly captured: number[] = [];
+  public released: number[] = [];
+
+  public setPointerCapture(pointerId: number): void {
+    this.captured.push(pointerId);
+  }
+
+  public hasPointerCapture(pointerId: number): boolean {
+    return this.captured.includes(pointerId) && !this.released.includes(pointerId);
+  }
+
+  public releasePointerCapture(pointerId: number): void {
+    this.released.push(pointerId);
+  }
+
   public cloneNode(): FakeCanvas {
     const clone = new FakeCanvas();
     clone.height = this.height;
@@ -1344,13 +1360,13 @@ function editableElement(width = 80): RenderNode {
 }
 
 /** A one-block document, with whichever reverse callbacks a test watches. */
-function documentElement(handlers: { readonly onBlur?: () => void }): RenderNode {
+function documentElement(handlers: { readonly onBlur?: () => void }, width = 160): RenderNode {
   return {
     $$typeof: Symbol.for("dopejs.pingo.element"),
     type: "container",
     key: null,
     props: {
-      width: 160,
+      width,
       height: 80,
       document: { revision: 1n, blocks: [{ key: 11, lenUtf16: 5 }], ...handlers },
       children: {

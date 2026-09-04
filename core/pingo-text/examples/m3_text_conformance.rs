@@ -1,3 +1,8 @@
+//! Text-layout conformance report.
+//!
+//! Printing its report is the whole point.
+#![allow(clippy::print_stdout)]
+
 use std::{env, fs, sync::Arc};
 
 use pingo_text::{

@@ -1,3 +1,8 @@
+//! Immutable-picture differential against the inline path.
+//!
+//! Printing its report is the whole point.
+#![allow(clippy::print_stdout, clippy::print_stderr)]
+
 use std::fmt::Write;
 
 use pingo_abi::{

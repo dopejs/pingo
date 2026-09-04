@@ -1481,17 +1481,6 @@ impl CoreEngine {
             rect.top - height * 0.5
         };
         *desired_x = Some((root, column));
-        eprintln!(
-            "VERT block={block:?} rect={rect:?} target_y={target_y} scroll={:?}",
-            self.scene
-                .scroll_position(NodeId::from_raw(0x0010_0001).unwrap())
-        );
-        for (key, candidate) in self.documents.block_nodes(root) {
-            eprintln!(
-                "   {key} layout={:?}",
-                self.layout.snapshot().geometry(candidate)
-            );
-        }
         self.resolve_document_point(root, [column, target_y], u32::from(extend))
     }
 
@@ -1701,7 +1690,14 @@ impl CoreEngine {
                     extend,
                 } => self.resolve_move_caret(node_id, direction, granularity, extend, desired_x)?,
                 ref command => {
-                    if !matches!(command, InputCommand::RequestCharacterBounds { .. }) {
+                    // The column a run of vertical moves keeps aiming at is
+                    // discarded by anything that moves the caret some other
+                    // way. Commands that only say where the input surface is,
+                    // or ask about text, move nothing -- and a Shell that
+                    // re-states the focused block after every reverse batch,
+                    // which is how an input method is kept in step, was
+                    // throwing the column away between one arrow and the next.
+                    if !keeps_desired_column(command) {
                         *desired_x = None;
                     }
                     command.clone()
@@ -3200,6 +3196,18 @@ fn is_document_command(
         }
         _ => false,
     }
+}
+
+/// Whether a command leaves the caret, and so its remembered column, alone.
+const fn keeps_desired_column(command: &InputCommand) -> bool {
+    matches!(
+        command,
+        InputCommand::RequestCharacterBounds { .. }
+            | InputCommand::FocusEditable { .. }
+            | InputCommand::BlurEditable { .. }
+            | InputCommand::FocusNode { .. }
+            | InputCommand::BlurNode { .. }
+    )
 }
 
 fn is_scroll_command(command: &InputCommand) -> bool {
@@ -7409,6 +7417,82 @@ mod tests {
 
     #[cfg(feature = "rich-text")]
     #[test]
+    fn a_document_caret_keeps_its_column_across_a_short_line() {
+        let mut engine = CoreEngine::new(320.0, 240.0).expect("Core");
+        engine
+            .commit(&document_tree(
+                1,
+                1,
+                &[
+                    (id(2), Some("aaaaaaaaaa")),
+                    (id(3), Some("bb")),
+                    (id(4), Some("cccccccccc")),
+                ],
+            ))
+            .expect("document frame");
+        let _ = engine.take_glyph_resources();
+        let _ = engine.take_edit_transactions().expect("drain");
+        let root = NodeId::from_raw(id(1)).expect("root");
+        engine
+            .input(&input(
+                2,
+                vec![
+                    InputCommand::FocusEditable { node_id: id(1) },
+                    InputCommand::SetDocumentSelection {
+                        node_id: id(1),
+                        base_revision: 0,
+                        selection: pingo_abi::WireDocumentSelection::Text {
+                            anchor_key: id(2),
+                            anchor_offset: 8,
+                            focus_key: id(2),
+                            focus_offset: 8,
+                        },
+                    },
+                ],
+            ))
+            .expect("selection");
+        let _ = engine.take_glyph_resources();
+        let _ = engine.take_edit_transactions().expect("drain");
+
+        // Down through a two-character line and out the other side. The column
+        // is what brings the caret back out where it went in, and a Shell that
+        // re-states the focused block after every reverse batch -- which is how
+        // an input method is kept in step -- was discarding it in between.
+        for step in 0..2_u32 {
+            engine
+                .input(&input(
+                    3 + step * 2,
+                    vec![InputCommand::MoveDocumentCaret {
+                        node_id: id(1),
+                        direction: pingo_abi::CaretDirection::Down,
+                        granularity: pingo_abi::CaretGranularity::Grapheme,
+                        extend: false,
+                    }],
+                ))
+                .expect("down");
+            let _ = engine.take_glyph_resources();
+            let _ = engine.take_edit_transactions().expect("drain");
+            engine
+                .input(&input(
+                    4 + step * 2,
+                    vec![InputCommand::FocusEditable { node_id: id(1) }],
+                ))
+                .expect("refocus");
+            let _ = engine.take_glyph_resources();
+            let _ = engine.take_edit_transactions().expect("drain");
+        }
+
+        let Some(pingo_edit::DocumentSelection::Text { focus, .. }) =
+            engine.documents.selection(root)
+        else {
+            panic!("the caret is in text");
+        };
+        assert_eq!(focus.key, u64::from(id(4)));
+        assert_eq!(focus.offset, 8);
+    }
+
+    #[cfg(feature = "rich-text")]
+    #[test]
     fn a_document_caret_brings_the_scroll_container_with_it() {
         let mut engine = CoreEngine::new(320.0, 240.0).expect("Core");
         let blocks = [
@@ -9722,7 +9806,12 @@ mod tests {
             let settled = frames_to_materialize_after_a_gesture(latency).unwrap_or_else(|| {
                 panic!("viewport never materialized with a {latency}-frame Shell round trip")
             });
-            println!("latency {latency} -> settled after {settled} frames");
+            // Printed so a failure reports the shape of the curve, not just
+            // the one latency that broke the bound.
+            #[allow(clippy::print_stdout)]
+            {
+                println!("latency {latency} -> settled after {settled} frames");
+            }
             assert!(
                 settled <= latency + 8,
                 "a viewport at rest took {settled} frames to lose its skeletons \

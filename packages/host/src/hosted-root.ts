@@ -1382,6 +1382,11 @@ class HostedCanvasRootController implements HostedCanvasRoot {
           y < geometry.controlBounds.top + geometry.controlBounds.height;
         if (!inside) return;
         this.#textDragPointer = pointerId;
+        // Captured, so the drag survives leaving the canvas. Selecting text and
+        // pulling past the edge is how a reader selects more than a screenful,
+        // and without the capture every move outside the element goes to
+        // whatever is under the pointer instead.
+        this.captureTextDrag(pointerId);
         send(shiftKey, false);
         return;
       }
@@ -1391,9 +1396,38 @@ class HostedCanvasRootController implements HostedCanvasRoot {
       case "pointerup":
       case "pointercancel":
       case "pointerleave":
-        if (this.#textDragPointer === pointerId) this.#textDragPointer = undefined;
+        if (this.#textDragPointer === pointerId) this.releaseTextDrag(pointerId);
         return;
       default:
+    }
+  }
+
+  /** Routes a drag's later moves to the canvas even once it leaves. */
+  private captureTextDrag(pointerId: number): void {
+    const canvas = this.#canvas as unknown as {
+      setPointerCapture?: (pointer: number) => void;
+    };
+    try {
+      canvas.setPointerCapture?.(pointerId);
+    } catch {
+      // A pointer the browser has already released cannot be captured, and a
+      // drag that has ended needs no capture. Selection still works inside the
+      // canvas either way.
+    }
+  }
+
+  private releaseTextDrag(pointerId: number): void {
+    this.#textDragPointer = undefined;
+    const canvas = this.#canvas as unknown as {
+      releasePointerCapture?: (pointer: number) => void;
+      hasPointerCapture?: (pointer: number) => boolean;
+    };
+    try {
+      if (canvas.hasPointerCapture?.(pointerId) === true) {
+        canvas.releasePointerCapture?.(pointerId);
+      }
+    } catch {
+      // Already released, which is the state this wanted.
     }
   }
 
@@ -1733,11 +1767,23 @@ class HostedCanvasRootController implements HostedCanvasRoot {
   private autoFocusEditableTarget(transaction: EventTransaction): void {
     if (transaction.kind !== "pointerdown") return;
     if (this.#inputBridge.activeNodeId === transaction.target) return;
-    const state = this.#root?.editableState(transaction.target);
+    // A transaction can arrive after the root is gone: the press that produced
+    // it was answered by a Core running in a worker, and nothing about closing
+    // recalls a message already in flight. Asking a torn-down Shell about a
+    // node threw where every neighbouring handler reports.
+    let state;
+    try {
+      if (this.#closing || this.#unmounted) return;
+      state = this.#root?.editableState(transaction.target);
+    } catch (cause) {
+      this.#options.onHostError?.(toError(cause, "editable state lookup failed"));
+      return;
+    }
     if (state === undefined) return;
     try {
       this.focusEditable(transaction.target);
       this.#textDragPointer = transaction.pointerId;
+      this.captureTextDrag(transaction.pointerId);
       this.sendInputCommands([
         {
           type: "placeCaret",

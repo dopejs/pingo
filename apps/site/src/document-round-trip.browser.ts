@@ -83,6 +83,7 @@ describe.skipIf(!rich)("document round trip", () => {
 
   interface Harness {
     readonly root: Awaited<ReturnType<typeof createHostedCanvasRoot>>;
+    readonly canvas: HTMLCanvasElement;
     readonly transactions: EditTransaction[];
     readonly structure: StructureRequest[];
     readonly selections: DocumentSelectionReport[];
@@ -161,6 +162,7 @@ describe.skipIf(!rich)("document round trip", () => {
     draw();
     return {
       root,
+      canvas,
       /** Changes a block's text the way a Shell-side rule or paste would. */
       rewrite: (key: number, text: string) => {
         blocks = blocks.map((block) => (block.key === key ? { ...block, text } : block));
@@ -594,6 +596,46 @@ describe.skipIf(!rich)("document round trip", () => {
     // It reached the document that declared the block, which is what lets a
     // document be a component rather than root-level wiring.
     expect(harness.streamed.length).toBeGreaterThan(0);
+  });
+
+  it("captures the pointer that starts a text drag, so it can leave the canvas", async () => {
+    const harness = await mount();
+    const nodeId = harness.documentNodeId();
+    harness.send([
+      {
+        type: "setDocumentSelection",
+        nodeId,
+        baseRevision: 0n,
+        selection: { kind: "text", anchorKey: 1, anchorOffset: 0, focusKey: 1, focusOffset: 3 },
+      },
+    ]);
+    harness.root.focusDocument(nodeId, {
+      text: BLOCKS[0]!.text,
+      anchor: 0,
+      focus: 3,
+      revision: 1n,
+    });
+    await waitUntil(() => harness.rects.some((rect) => rect.width > 0));
+
+    // Selecting text and pulling past the edge is how a reader selects more
+    // than a screenful. Without the capture every move outside the canvas goes
+    // to whatever is under the pointer, and the selection stops at the edge.
+    // Recorded rather than observed: a synthetic pointer has no capture to
+    // take, and the call is the contract.
+    const captured: number[] = [];
+    harness.canvas.setPointerCapture = (pointerId: number) => captured.push(pointerId);
+    const box = harness.canvas.getBoundingClientRect();
+    harness.canvas.dispatchEvent(
+      new PointerEvent("pointerdown", {
+        bubbles: true,
+        pointerId: 7,
+        clientX: box.left + 20,
+        clientY: box.top + 10,
+      }),
+    );
+
+    expect(captured).toEqual([7]);
+    expect(harness.hostErrors.map((error) => error.message)).toEqual([]);
   });
 
   it("reports where it drew the selection, which is what a toolbar anchors to", async () => {

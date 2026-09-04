@@ -10,6 +10,9 @@
 //!
 //! Three scenarios, one report. Each states the axis it stresses so a
 //! regression points somewhere.
+//!
+//! Printing its report is the whole point.
+#![allow(clippy::print_stdout, clippy::print_stderr)]
 
 use std::hint::black_box;
 use std::time::Instant;

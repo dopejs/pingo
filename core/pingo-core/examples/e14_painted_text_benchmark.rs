@@ -9,6 +9,9 @@
 //!
 //! And the query itself has to stay cheap enough to poll from an end-to-end
 //! test, which is what `probeP50Micros`/`probeP95Micros` bound.
+//!
+//! Printing its report is the whole point.
+#![allow(clippy::print_stdout, clippy::print_stderr)]
 
 use std::hint::black_box;
 use std::time::Instant;

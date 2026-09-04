@@ -8,6 +8,9 @@
 //! Two scene widths with identical depth isolate the variable: if the exported
 //! cost tracked scene size instead of the observed set, the wide scene would be
 //! proportionally slower at the same observation count.
+//!
+//! Printing its report is the whole point.
+#![allow(clippy::print_stdout, clippy::print_stderr)]
 
 use std::hint::black_box;
 use std::time::Instant;

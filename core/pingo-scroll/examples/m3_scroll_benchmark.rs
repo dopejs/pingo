@@ -1,3 +1,8 @@
+//! Scroll frame-time benchmark.
+//!
+//! Printing its report is the whole point.
+#![allow(clippy::print_stdout, clippy::print_stderr)]
+
 use std::{hint::black_box, time::Instant};
 
 use pingo_scroll::{ExtentIndex, ScrollPlatform, Virtualizer, VirtualizerConfig};
