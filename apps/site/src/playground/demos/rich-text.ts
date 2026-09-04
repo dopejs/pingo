@@ -1,6 +1,6 @@
 import interBoldUrl from "@fontsource/inter/files/inter-latin-700-normal.woff2?url";
 import interRegularUrl from "@fontsource/inter/files/inter-latin-400-normal.woff2?url";
-import { loadFont, type PingoFont, type TextRunProps } from "@dopejs/pingo";
+import { createElement, loadFont, type PingoFont, type TextRunProps } from "@dopejs/pingo";
 import {
   DocumentEditorController,
   toMarkdown,
@@ -126,6 +126,48 @@ const INITIAL: DocumentModel = {
         { mark: "strike", from: 63, to: 82 },
       ],
     },
+    {
+      key: 12,
+      type: "heading",
+      attributes: { level: 2 },
+      text: "Scrolling",
+      marks: [],
+    },
+    {
+      key: 13,
+      type: "paragraph",
+      attributes: {},
+      text: "This document is taller than the canvas, so it sits in a scroll container the Core owns. Scrolling never calls back into the shell, and the caret, the selection and the drag handles all follow the offset because every one of them is a box the Core measured.",
+      marks: [{ mark: "bold", from: 45, to: 62 }],
+    },
+    {
+      key: 14,
+      type: "listItem",
+      attributes: { depth: 0, ordered: false },
+      text: "Scroll with the wheel, then click into a line: the caret lands where the reader is looking, not where the text started.",
+      marks: [],
+    },
+    {
+      key: 15,
+      type: "listItem",
+      attributes: { depth: 0, ordered: false },
+      text: "Select across the fold and the toolbar follows the selection up the page.",
+      marks: [],
+    },
+    {
+      key: 16,
+      type: "blockquote",
+      attributes: {},
+      text: "A scrolled document is the same document. Nothing about a position space changes because part of it is off screen.",
+      marks: [],
+    },
+    {
+      key: 17,
+      type: "paragraph",
+      attributes: {},
+      text: "Everything below the canvas is this same document, serialized to Markdown by the shell that owns the schema.",
+      marks: [],
+    },
   ],
 };
 
@@ -228,7 +270,23 @@ function markStyles(
   };
 }
 
+/**
+ * The document, inside the scroll container that owns its offset.
+ *
+ * Taller than the canvas on purpose: scrolling is the Core's, and a caret, a
+ * selection and a drag handle are each a box the Core measured, so they follow
+ * the offset without the shell being told it moved.
+ */
 function scene(context: DemoContext) {
+  return createElement("scroll", {
+    width: context.width,
+    height: context.height,
+    backgroundColor: "#ffffffff",
+    children: document_(context),
+  });
+}
+
+function document_(context: DemoContext) {
   const loaded = faces;
   if (loaded === undefined) {
     // The same shape as the loaded scene, only without the faces. Changing
@@ -412,7 +470,13 @@ export const richTextDemo: Demo = {
       // that captured the pointer, and every later move and release goes
       // nowhere.
       if (drag === undefined) handleLayer.replaceChildren(dropLine);
-      for (const rect of drag === undefined ? rects : []) {
+      // Only what is on screen. A scrolled document keeps reporting the boxes
+      // of the blocks above and below the fold, and a handle for one of them
+      // would be drawn over the page around the canvas.
+      const onScreen = rects.filter(
+        (rect) => rect.top + rect.height > 0 && rect.top < context.height,
+      );
+      for (const rect of drag === undefined ? onScreen : []) {
         const handle = document.createElement("button");
         handle.type = "button";
         handle.textContent = "⋮⋮";
@@ -446,8 +510,8 @@ export const richTextDemo: Demo = {
       if (drag === undefined) {
         dropLine.style.visibility = "hidden";
       } else {
-        const target = rects.find((entry) => entry.key === drag.beforeKey);
-        const last = rects.at(-1);
+        const target = onScreen.find((entry) => entry.key === drag.beforeKey);
+        const last = onScreen.at(-1);
         const y = target?.top ?? (last === undefined ? 0 : last.top + last.height);
         dropLine.style.visibility = "visible";
         dropLine.style.left = `${String(target?.left ?? last?.left ?? 0)}px`;

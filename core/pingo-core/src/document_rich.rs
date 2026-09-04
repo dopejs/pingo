@@ -322,6 +322,15 @@ impl DocumentController {
         Some((active.nodes.get(&focus.key).copied()?, focus.offset))
     }
 
+    /// The caret of the document the input surface is over, if it is over one.
+    ///
+    /// Gated on focus where the geometry report is not: bringing a caret into
+    /// view moves the page under the reader, and a document nobody is typing
+    /// in has no business doing that.
+    pub(crate) fn focused_caret(&self) -> Option<(NodeId, u32)> {
+        self.focus_position(self.focused?)
+    }
+
     pub(crate) fn locate(&self, node: NodeId) -> Option<(NodeId, BlockKey)> {
         self.documents.iter().find_map(|(root, active)| {
             active

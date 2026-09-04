@@ -56,6 +56,10 @@ impl DocumentController {
         None
     }
 
+    pub(crate) const fn focused_caret(&self) -> Option<(NodeId, u32)> {
+        None
+    }
+
     pub(crate) const fn focus_root_visual(&self) -> Option<(NodeId, NodeId, [u32; 2])> {
         None
     }

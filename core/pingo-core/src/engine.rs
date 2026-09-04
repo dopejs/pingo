@@ -1373,20 +1373,29 @@ impl CoreEngine {
         flags: u32,
     ) -> Result<InputCommand, CoreError> {
         let blocks = self.documents.block_nodes(root);
+        // The laid-out box, placed by the hit tree's transform. The hit tree's
+        // own box is clipped to whatever scrolls it, so every block past the
+        // fold reports the same zero-height sliver at the viewport edge and a
+        // press below it resolved to whichever of them came first. The layout
+        // box alone is no good either: it is in the content's space, and the
+        // point being resolved is in the viewport's.
+        let snapshot = self.layout.snapshot();
         let nearest = blocks.into_iter().min_by(|left, right| {
             let distance = |candidate: NodeId| {
-                self.hit
-                    .geometry(candidate)
-                    .map_or(f32::INFINITY, |geometry| {
-                        let box_ = geometry.aabb;
-                        if position[1] < box_.top {
-                            box_.top - position[1]
-                        } else if position[1] > box_.bottom {
-                            position[1] - box_.bottom
-                        } else {
-                            0.0
-                        }
-                    })
+                let Some(geometry) = self.hit.geometry(candidate) else {
+                    return f32::INFINITY;
+                };
+                let Some((_, size)) = snapshot.geometry(candidate) else {
+                    return f32::INFINITY;
+                };
+                let box_ = transform_local_rect(geometry, [0.0, 0.0, size.width, size.height]);
+                if position[1] < box_.top {
+                    box_.top - position[1]
+                } else if position[1] > box_.bottom {
+                    position[1] - box_.bottom
+                } else {
+                    0.0
+                }
             };
             distance(left.1).total_cmp(&distance(right.1))
         });
@@ -1472,6 +1481,17 @@ impl CoreEngine {
             rect.top - height * 0.5
         };
         *desired_x = Some((root, column));
+        eprintln!(
+            "VERT block={block:?} rect={rect:?} target_y={target_y} scroll={:?}",
+            self.scene
+                .scroll_position(NodeId::from_raw(0x0010_0001).unwrap())
+        );
+        for (key, candidate) in self.documents.block_nodes(root) {
+            eprintln!(
+                "   {key} layout={:?}",
+                self.layout.snapshot().geometry(candidate)
+            );
+        }
         self.resolve_document_point(root, [column, target_y], u32::from(extend))
     }
 
@@ -1590,20 +1610,26 @@ impl CoreEngine {
     /// Uses the last committed frame's world geometry; the subsequent relayout
     /// clamps the jump against fresh extents, keeping the frame deterministic.
     fn caret_reveal_target(&self) -> Option<(NodeId, [f32; 2])> {
-        let visual = self.editing.active_visual()?;
-        let node = visual.node;
+        // A document's caret needs this as much as a field's, and more: a field
+        // scrolls its own value, while a document block cannot, so the only
+        // thing that can follow the caret past the fold is the scroll container
+        // around it.
+        let (node, focus, scroll) = if let Some(visual) = self.editing.active_visual() {
+            (
+                visual.node,
+                visual.selection[1],
+                self.editing.scroll_offset(visual.node),
+            )
+        } else {
+            let (block, offset) = self.documents.focused_caret()?;
+            (block, offset, [0.0, 0.0])
+        };
         let geometry = self.hit.geometry(node)?;
         let carets = self
             .text
             .editor_caret_stops(&self.scene, node, self.node_box_width(node))
             .filter(|carets| !carets.is_empty())?;
-        let focus = visual.selection[1];
-        let caret = editor_range_rect(
-            &carets,
-            [focus, focus],
-            geometry,
-            self.editing.scroll_offset(node),
-        )?;
+        let caret = editor_range_rect(&carets, [focus, focus], geometry, scroll)?;
         let mut ancestor = self.scene.parent(node);
         while let Some(candidate) = ancestor {
             if self.scene.is_scroll_container(candidate) {
@@ -2048,28 +2074,49 @@ impl CoreEngine {
             self.layout
                 .mark_text_measurements_changed(&document_changed);
         }
-        if edit_outcome.changed_nodes.is_empty() && document_changed.is_empty() {
-            if !scroll_outcome.changed && document_commands.is_empty() {
-                return Ok(None);
-            }
-            let frame_seq = self
-                .last_frame_seq
-                .ok_or(CoreError::MissingCommittedFrame)?;
-            let output =
-                self.paint_frame(frame_seq, &BitSet::with_len(self.scene.len()), 0, false)?;
-            return Ok(Some(output));
-        }
-        let reveal = if edit_outcome.accepted_commands > 0 {
+        // Document commands count as much as session ones. A caret that moved
+        // out of the viewport has to bring the viewport with it whether it
+        // moved inside a field or across a document's blocks, and a document's
+        // caret moves without changing any text at all.
+        let reveal = if edit_outcome.accepted_commands > 0 || !document_commands.is_empty() {
             self.caret_reveal_target()
         } else {
             None
         };
+        if edit_outcome.changed_nodes.is_empty() && document_changed.is_empty() {
+            return self.repaint_without_text_change(
+                reveal,
+                scroll_outcome.changed || !document_commands.is_empty(),
+            );
+        }
         let mut changed = edit_outcome.changed_nodes;
         changed.extend(document_changed);
         changed.sort_unstable();
         changed.dedup();
         let output = self.repaint_after_edit(&changed, reveal)?;
         Ok(Some(output))
+    }
+
+    /// Repaints a batch that moved something but changed no text.
+    ///
+    /// A caret that moved out of the viewport still has to bring the viewport
+    /// with it, and a document's caret moves without editing anything.
+    fn repaint_without_text_change(
+        &mut self,
+        reveal: Option<(NodeId, [f32; 2])>,
+        anything_moved: bool,
+    ) -> Result<Option<FrameOutput>, CoreError> {
+        if reveal.is_some() {
+            return self.repaint_after_edit(&[], reveal).map(Some);
+        }
+        if !anything_moved {
+            return Ok(None);
+        }
+        let frame_seq = self
+            .last_frame_seq
+            .ok_or(CoreError::MissingCommittedFrame)?;
+        self.paint_frame(frame_seq, &BitSet::with_len(self.scene.len()), 0, false)
+            .map(Some)
     }
 
     /// Relays out and repaints after accepted editing commands changed text.
@@ -7259,6 +7306,239 @@ mod tests {
         assert_eq!(words[1], id(1));
         assert_eq!(words[2], 1);
         assert_eq!(words[3], 3);
+    }
+
+    /// A document inside a scroll container shorter than its content.
+    #[cfg(feature = "rich-text")]
+    fn scrolled_document_tree(frame_seq: u32, blocks: &[(u32, &str)]) -> Vec<u8> {
+        let mut mutations = vec![
+            Mutation::CreateNode {
+                node_id: id(0),
+                kind: NodeKind::Root,
+                parent: NULL_NODE_ID,
+                before_sibling: NULL_NODE_ID,
+            },
+            Mutation::CreateNode {
+                node_id: id(1),
+                kind: NodeKind::Scroll,
+                parent: id(0),
+                before_sibling: NULL_NODE_ID,
+            },
+            Mutation::SetF32 {
+                node_id: id(1),
+                prop: Prop::Width,
+                value: 320.0,
+            },
+            Mutation::SetF32 {
+                node_id: id(1),
+                prop: Prop::Height,
+                value: 60.0,
+            },
+            Mutation::CreateNode {
+                node_id: id(2),
+                kind: NodeKind::Container,
+                parent: id(1),
+                before_sibling: NULL_NODE_ID,
+            },
+            Mutation::DefineResource {
+                resource_id: 1,
+                kind: ResourceKind::Paint,
+                bytes: SolidPaint {
+                    red: 0,
+                    green: 0,
+                    blue: 0,
+                    alpha: 255,
+                }
+                .encode()
+                .to_vec(),
+            },
+            Mutation::DefineResource {
+                resource_id: 2,
+                kind: ResourceKind::TextStyle,
+                bytes: TextStyleResource {
+                    paint_id: 1,
+                    font_size: 16.0,
+                    line_height: 20.0,
+                    weight: 400,
+                    family: "sans-serif".to_owned(),
+                    font_style: StyleKeyword::Normal,
+                    text_align: StyleKeyword::Start,
+                    white_space: StyleKeyword::PreWrap,
+                    overflow_wrap: StyleKeyword::Anywhere,
+                    text_overflow: StyleKeyword::Clip,
+                }
+                .encode()
+                .expect("text style"),
+            },
+        ];
+        for (index, (node, text)) in blocks.iter().enumerate() {
+            let resource = 16 + u32::try_from(index).expect("small index");
+            mutations.push(Mutation::CreateNode {
+                node_id: *node,
+                kind: NodeKind::EditableText,
+                parent: id(2),
+                before_sibling: NULL_NODE_ID,
+            });
+            mutations.push(Mutation::DefineResource {
+                resource_id: resource,
+                kind: ResourceKind::Utf8String,
+                bytes: (*text).as_bytes().to_vec(),
+            });
+            mutations.push(Mutation::SetTextRun {
+                node_id: *node,
+                string_id: resource,
+                style_id: 2,
+            });
+        }
+        mutations.push(Mutation::ConfigureDocument {
+            node_id: id(2),
+            revision: 1,
+            flags: 0,
+            blocks: blocks
+                .iter()
+                .map(|(node, text)| pingo_abi::DocumentBlockRecord {
+                    key: *node,
+                    node_id: *node,
+                    len_utf16: u32::try_from(text.encode_utf16().count()).expect("small block"),
+                    atomic: false,
+                })
+                .collect(),
+        });
+        frame(frame_seq, mutations)
+    }
+
+    #[cfg(feature = "rich-text")]
+    #[test]
+    fn a_document_caret_brings_the_scroll_container_with_it() {
+        let mut engine = CoreEngine::new(320.0, 240.0).expect("Core");
+        let blocks = [
+            (id(3), "one"),
+            (id(4), "two"),
+            (id(5), "three"),
+            (id(6), "four"),
+            (id(7), "five"),
+        ];
+        engine
+            .commit(&scrolled_document_tree(1, &blocks))
+            .expect("document frame");
+        let _ = engine.take_glyph_resources();
+        let _ = engine.take_edit_transactions().expect("drain");
+        let root = NodeId::from_raw(id(2)).expect("root");
+        engine
+            .input(&input(
+                2,
+                vec![
+                    InputCommand::FocusEditable { node_id: id(2) },
+                    InputCommand::SetDocumentSelection {
+                        node_id: id(2),
+                        base_revision: 0,
+                        selection: pingo_abi::WireDocumentSelection::Text {
+                            anchor_key: id(3),
+                            anchor_offset: 0,
+                            focus_key: id(3),
+                            focus_offset: 0,
+                        },
+                    },
+                ],
+            ))
+            .expect("focus");
+        let _ = engine.take_glyph_resources();
+        let _ = engine.take_edit_transactions().expect("drain");
+
+        // Walking down past the fold has to bring the viewport along, and the
+        // caret has to keep moving once it has: a document block cannot scroll
+        // its own value, so the container around it is the only thing that can
+        // follow the caret.
+        let mut seen = Vec::new();
+        for step in 0..4_u32 {
+            engine
+                .input(&input(
+                    3 + step,
+                    vec![InputCommand::MoveDocumentCaret {
+                        node_id: id(2),
+                        direction: pingo_abi::CaretDirection::Down,
+                        granularity: pingo_abi::CaretGranularity::Grapheme,
+                        extend: false,
+                    }],
+                ))
+                .expect("down");
+            let _ = engine.take_glyph_resources();
+            let _ = engine.take_edit_transactions().expect("drain");
+            let Some(pingo_edit::DocumentSelection::Text { focus, .. }) =
+                engine.documents.selection(root)
+            else {
+                panic!("the caret is in text");
+            };
+            seen.push(focus.key);
+        }
+
+        assert_eq!(
+            seen,
+            vec![
+                u64::from(id(4)),
+                u64::from(id(5)),
+                u64::from(id(6)),
+                u64::from(id(7))
+            ],
+            "the caret stopped once the container scrolled under it"
+        );
+        assert!(
+            engine
+                .scene
+                .scroll_position(NodeId::from_raw(id(1)).expect("scroll"))
+                .is_some_and(|position| position[1] > 0.0),
+            "the viewport followed the caret"
+        );
+    }
+
+    #[cfg(feature = "rich-text")]
+    #[test]
+    fn a_press_below_the_fold_lands_in_the_block_that_is_drawn_there() {
+        let mut engine = CoreEngine::new(320.0, 240.0).expect("Core");
+        engine
+            .commit(&scrolled_document_tree(
+                1,
+                &[
+                    (id(3), "one"),
+                    (id(4), "two"),
+                    (id(5), "three"),
+                    (id(6), "four"),
+                    (id(7), "five"),
+                ],
+            ))
+            .expect("document frame");
+        let _ = engine.take_glyph_resources();
+        let _ = engine.take_edit_transactions().expect("drain");
+        let root = NodeId::from_raw(id(2)).expect("root");
+
+        // The viewport is sixty tall and the fifth block is laid out well below
+        // it, past a fourth that is also out of sight.
+        // A hit box is clipped to whatever scrolls it, so that block and every
+        // other one past the fold report the same zero-height sliver at the
+        // edge; resolving against those made a press land in whichever came
+        // first rather than the one under the pointer.
+        engine
+            .input(&input(
+                2,
+                vec![
+                    InputCommand::FocusEditable { node_id: id(2) },
+                    InputCommand::PlaceCaret {
+                        node_id: id(2),
+                        position: [10.0, 90.0],
+                        flags: 0,
+                    },
+                ],
+            ))
+            .expect("press");
+        let _ = engine.take_glyph_resources();
+        let _ = engine.take_edit_transactions().expect("drain");
+
+        let Some(pingo_edit::DocumentSelection::Text { focus, .. }) =
+            engine.documents.selection(root)
+        else {
+            panic!("the caret is in text");
+        };
+        assert_eq!(focus.key, u64::from(id(7)));
     }
 
     #[cfg(feature = "rich-text")]
