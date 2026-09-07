@@ -476,15 +476,27 @@ export const richTextDemo: Demo = {
       const onScreen = rects.filter(
         (rect) => rect.top + rect.height > 0 && rect.top < context.height,
       );
+      const gutter = rects.reduce(
+        (left, rect) => Math.min(left, rect.left),
+        Number.POSITIVE_INFINITY,
+      );
       for (const rect of drag === undefined ? onScreen : []) {
         const handle = document.createElement("button");
         handle.type = "button";
         handle.textContent = "⋮⋮";
         handle.setAttribute("aria-label", `Move block ${String(rect.key)}`);
         handle.style.position = "absolute";
-        handle.style.left = `${String(Math.max(0, rect.left - 18))}px`;
-        handle.style.top = `${String(stageTop() + rect.top)}px`;
-        handle.style.height = `${String(Math.min(rect.height, 20))}px`;
+        // One gutter for every block, not one per box. A list item's text
+        // starts after its marker, so placing each handle beside its own box
+        // put the handle on top of the bullet it belongs to.
+        handle.style.left = `${String(Math.max(0, gutter - 18))}px`;
+        // Kept inside the canvas: a block whose top sits a few pixels above the
+        // fold would otherwise hang its handle over the page below, where the
+        // stage takes the press instead.
+        const height = Math.min(rect.height, 20);
+        const top = Math.min(rect.top, context.height - height);
+        handle.style.top = `${String(stageTop() + Math.max(0, top))}px`;
+        handle.style.height = `${String(height)}px`;
         handle.style.border = "0";
         handle.style.padding = "0 2px";
         handle.style.background = "transparent";
