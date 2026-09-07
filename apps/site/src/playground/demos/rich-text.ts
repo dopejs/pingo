@@ -396,6 +396,25 @@ export const richTextDemo: Demo = {
     handleLayer.append(dropLine);
     stage.append(handleLayer);
 
+    /** The handle of each block that has one, so hover can toggle it alone. */
+    const handles = new Map<number, HTMLButtonElement>();
+    let hovered: number | undefined;
+
+    /**
+     * Shows the handle of the block under the pointer, and only that one.
+     *
+     * A row of grips down the margin is a row of controls for something the
+     * reader is not doing. The one being dragged stays whatever the pointer is
+     * over, because a drag leaves the block it started from.
+     */
+    const applyHover = (): void => {
+      const dragged = editor.blockDrag?.key;
+      for (const [key, handle] of handles) {
+        const shown = key === dragged || key === hovered || handle === document.activeElement;
+        handle.style.opacity = shown ? "1" : "0";
+      }
+    };
+
     const stageTop = (): number => {
       const box = canvas.getBoundingClientRect();
       const outer = stage.getBoundingClientRect();
@@ -469,7 +488,10 @@ export const richTextDemo: Demo = {
       // Not while a drag is running: rebuilding the handles destroys the one
       // that captured the pointer, and every later move and release goes
       // nowhere.
-      if (drag === undefined) handleLayer.replaceChildren(dropLine);
+      if (drag === undefined) {
+        handleLayer.replaceChildren(dropLine);
+        handles.clear();
+      }
       // Only what is on screen. A scrolled document keeps reporting the boxes
       // of the blocks above and below the fold, and a handle for one of them
       // would be drawn over the page around the canvas.
@@ -517,8 +539,19 @@ export const richTextDemo: Demo = {
         });
         handle.addEventListener("pointerup", () => editor.endBlockDrag());
         handle.addEventListener("pointercancel", () => editor.endBlockDrag());
+        handle.style.opacity = "0";
+        // Focus reveals it too. These are buttons a keyboard reaches, and one
+        // that is focused but invisible is a control nobody can see they are
+        // about to press.
+        handle.addEventListener("focus", applyHover);
+        handle.addEventListener("blur", applyHover);
+        // Faded rather than removed: a handle that appears under the pointer
+        // has to be pressable in the same gesture that revealed it.
+        handle.style.transition = "opacity 90ms linear";
+        handles.set(rect.key, handle);
         handleLayer.append(handle);
       }
+      applyHover();
       if (drag === undefined) {
         dropLine.style.visibility = "hidden";
       } else {
@@ -578,6 +611,38 @@ export const richTextDemo: Demo = {
     const onPointerDown = (): void => canvas.focus();
     canvas.addEventListener("pointerdown", onPointerDown);
 
+    /** Which block the pointer is over, in the canvas's own coordinates. */
+    const blockUnder = (event: PointerEvent): number | undefined => {
+      const target = event.target;
+      if (target instanceof HTMLElement) {
+        const label = target.getAttribute("aria-label");
+        // Over the grip itself, which sits in the margin beside its block and
+        // outside the box that revealed it.
+        if (label?.startsWith("Move block") === true) {
+          return Number.parseInt(label.slice("Move block ".length), 10);
+        }
+      }
+      const y = event.clientY - canvas.getBoundingClientRect().top;
+      const x = event.clientX - canvas.getBoundingClientRect().left;
+      const found = editor.blockRects.find(
+        (rect) => y >= rect.top && y < rect.top + rect.height && x < rect.left + rect.width,
+      );
+      return found?.key;
+    };
+    const onPointerMove = (event: PointerEvent): void => {
+      const key = blockUnder(event);
+      if (key === hovered) return;
+      hovered = key;
+      applyHover();
+    };
+    const onPointerLeave = (): void => {
+      if (hovered === undefined) return;
+      hovered = undefined;
+      applyHover();
+    };
+    stage.addEventListener("pointermove", onPointerMove);
+    stage.addEventListener("pointerleave", onPointerLeave);
+
     refresh();
     // The first frame has no faces yet, so it draws unshaped; loading them
     // re-renders. Awaiting them instead would leave the canvas blank with no
@@ -590,6 +655,8 @@ export const richTextDemo: Demo = {
       handleLayer.remove();
       canvas.removeEventListener("keydown", onKeyDown, true);
       canvas.removeEventListener("pointerdown", onPointerDown);
+      stage.removeEventListener("pointermove", onPointerMove);
+      stage.removeEventListener("pointerleave", onPointerLeave);
       editor.onInvalidate = undefined;
       editor = create();
     };
