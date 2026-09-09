@@ -436,7 +436,13 @@ describe.skipIf(!rich)("document round trip", () => {
     harness.send([{ type: "updateComposition", nodeId, baseRevision: 0n, text: "nih" }]);
     harness.send([{ type: "updateComposition", nodeId, baseRevision: 0n, text: "\u4f60" }]);
     harness.send([{ type: "commitComposition", nodeId, baseRevision: 0n, text: "\u4f60\u597d" }]);
-    await waitUntil(() => harness.transactions.length >= 4);
+    // Waited for by what it carries, not by how many have arrived. A count is
+    // a guess at how many transactions a composition produces, and this one
+    // guessed low: the replay ran on the candidates alone often enough to fail
+    // roughly one run in three.
+    await waitUntil(() =>
+      harness.transactions.some((transaction) => transaction.delta?.text === "\u4f60\u597d"),
+    );
 
     // Replay every transaction into a Shell document and read the result: one
     // committed word at the caret, not a trail of candidates.

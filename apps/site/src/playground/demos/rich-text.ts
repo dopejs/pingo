@@ -462,7 +462,10 @@ export const richTextDemo: Demo = {
       if (visible && rect !== undefined) {
         const height = markRow.offsetHeight || 28;
         markRow.style.left = `${String(Math.max(0, rect.left + rect.width / 2 - markRow.offsetWidth / 2))}px`;
-        // Above the selection, or below it when there is no room above.
+        // Above the selection, or below it when there is no room above. The
+        // canvas frame clips, so it cannot escape upwards: below the selection
+        // it covers the following line, and a press that lands on the toolbar
+        // is a press the document never sees.
         const above = rect.top - height - 6;
         markRow.style.top = `${String(above >= 0 ? above : rect.top + rect.height + 6)}px`;
       }

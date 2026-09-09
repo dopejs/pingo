@@ -444,6 +444,54 @@ function mount(instance: DocumentEditorController): void {
   node.props.ref({ nodeId: 7 });
 }
 
+describe("DocumentEditorController presses", () => {
+  /** Invokes the press handler the controller puts on the first block. */
+  const pressFirstBlock = (instance: DocumentEditorController): void => {
+    const node = instance.render({
+      document: instance.document,
+      host: { dispatch: () => undefined, focusBlock: () => undefined },
+    }) as unknown as {
+      readonly props: {
+        readonly children: readonly {
+          readonly props: { readonly onPointerDown: (event: unknown) => void };
+        }[];
+      };
+    };
+    node.props.children[0]?.props.onPointerDown({ target: { nodeId: 21 }, x: 4, y: 4 });
+  };
+
+  it("answers the press that brings the surface here, and no later one", () => {
+    const { instance, dispatched } = controller();
+    mount(instance);
+
+    // Nothing has focused the document yet, so this press is what does.
+    pressFirstBlock(instance);
+    expect(
+      dispatched.filter((command) => (command as { type: string }).type === "placeCaret"),
+    ).toHaveLength(1);
+
+    // The surface is over the document now. It answers every press itself,
+    // synchronously and knowing the click count, while this one has been to
+    // Core for a hit test and back. Answering it too put a collapsed caret on
+    // top of the word a double click had just selected.
+    instance.applyEditStream({
+      transactions: [],
+      structure: [],
+      selections: [
+        {
+          nodeId: 1,
+          selection: { kind: "text", anchorKey: 1, anchorOffset: 1, focusKey: 1, focusOffset: 1 },
+        },
+      ],
+    });
+    pressFirstBlock(instance);
+
+    expect(
+      dispatched.filter((command) => (command as { type: string }).type === "placeCaret"),
+    ).toHaveLength(1);
+  });
+});
+
 describe("DocumentEditorController refocus", () => {
   it("clamps a selection that outruns the block it names", () => {
     const { instance, focused } = controller();

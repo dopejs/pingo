@@ -127,6 +127,13 @@ export class DocumentEditorController {
   #blockRects: readonly DocumentBlockRect[] = [];
   /** Whether the engine's input surface is over this document. */
   #focused = true;
+  /**
+   * Whether the engine's input surface is activated over this document.
+   *
+   * Narrower than `#focused`, which is about whether a geometry frame is still
+   * worth believing: this one says who owns a press.
+   */
+  #surfaceActive = false;
   #drag: { readonly key: number; beforeKey: number | undefined } | undefined;
   readonly #slashItems: readonly SlashMenuItem[];
 
@@ -439,6 +446,7 @@ export class DocumentEditorController {
     // the surface is over it -- a toolbar has to be placeable before anyone
     // has touched the document -- so only the Shell knows this one is stale.
     this.#focused = false;
+    this.#surfaceActive = false;
     if (this.#selectionRect === undefined) return;
     this.#selectionRect = undefined;
     this.#onInvalidate?.();
@@ -644,7 +652,16 @@ export class DocumentEditorController {
       },
       onPointerDown: (event: PingoEvent) => {
         // A press inside the document is what puts the surface back over it.
+        const answered = this.#surfaceActive;
         this.#focused = true;
+        // Only the press that brings the surface here is this one's to answer.
+        // Once the engine's input surface is activated over the document it
+        // answers every press itself -- synchronously, and knowing the click
+        // count -- while this one arrives late, having gone to Core for a hit
+        // test and come back. Two producers for one press put a collapsed
+        // caret on top of the word a double click had just selected, which is
+        // why word selection looked unimplemented.
+        if (answered) return;
         // Hit testing is the Core's, so the press carries the node it hit
         // and the Core turns the point into an offset.
         this.#host.dispatch([
@@ -775,6 +792,7 @@ export class DocumentEditorController {
     // past the block it names. The surface rejects an offset outside its value
     // and the whole session goes down with it.
     const clamp = (offset: number): number => Math.max(0, Math.min(offset, block.text.length));
+    this.#surfaceActive = true;
     this.#host.focusBlock(this.#documentNodeId, {
       text: block.text,
       anchor: clamp(

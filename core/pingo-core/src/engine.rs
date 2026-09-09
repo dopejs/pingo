@@ -7417,6 +7417,50 @@ mod tests {
 
     #[cfg(feature = "rich-text")]
     #[test]
+    fn a_double_press_selects_the_word_under_it() {
+        let mut engine = CoreEngine::new(320.0, 240.0).expect("Core");
+        engine
+            .commit(&document_tree(1, 1, &[(id(2), Some("one two three"))]))
+            .expect("document frame");
+        let _ = engine.take_glyph_resources();
+        let _ = engine.take_edit_transactions().expect("drain");
+        let root = NodeId::from_raw(id(1)).expect("root");
+
+        // Flag 0x02 is the second press of a double click. Every character is
+        // 9.6 wide in the fallback face, so 50 is inside `two`.
+        engine
+            .input(&input(
+                2,
+                vec![
+                    InputCommand::FocusEditable { node_id: id(1) },
+                    // The host sends the platform's own segmentation with the
+                    // press, because ICU has a dictionary and UAX #29 does not.
+                    InputCommand::SetWordBoundaries {
+                        node_id: id(1),
+                        base_revision: 1,
+                        boundaries: vec![0, 3, 4, 7, 8, 13],
+                    },
+                    InputCommand::PlaceCaret {
+                        node_id: id(1),
+                        position: [50.0, 10.0],
+                        flags: 0x02,
+                    },
+                ],
+            ))
+            .expect("word press");
+        let _ = engine.take_glyph_resources();
+        let _ = engine.take_edit_transactions().expect("drain");
+
+        let Some(pingo_edit::DocumentSelection::Text { anchor, focus }) =
+            engine.documents.selection(root)
+        else {
+            panic!("the caret is in text");
+        };
+        assert_eq!((anchor.offset, focus.offset), (4, 7));
+    }
+
+    #[cfg(feature = "rich-text")]
+    #[test]
     fn a_document_caret_keeps_its_column_across_a_short_line() {
         let mut engine = CoreEngine::new(320.0, 240.0).expect("Core");
         engine
