@@ -207,6 +207,47 @@ describe("paste normalization", () => {
     expect(editor.projection().revision).toBeGreaterThan(before);
   });
 
+  it("marks a phrase the reader typed one delimiter at a time", () => {
+    const editor = new Editor({
+      document: {
+        blocks: [{ key: 1, type: "paragraph", attributes: {}, text: "", marks: [] }],
+      },
+    });
+
+    // Typed, not assigned. `**b**` passes through `**b*`, where the
+    // single-asterisk rule used to take the second asterisk as an opening one
+    // and italicise `b`; the fifth keystroke then toggled that back off. A test
+    // that sets the finished string never sees either step, and bold was
+    // unreachable from the keyboard for as long as this was only tested that
+    // way.
+    let offset = 0;
+    for (const character of "**b**") {
+      editor.replaceText(1, { start: offset, end: offset }, character);
+      offset = editor.runInputRules(1, offset + 1);
+    }
+
+    expect(editor.document.blocks[0]?.text).toBe("b");
+    expect(editor.document.blocks[0]?.marks).toEqual([{ mark: "bold", from: 0, to: 1 }]);
+    expect(offset).toBe(1);
+  });
+
+  it("still italicises a phrase in single asterisks", () => {
+    const editor = new Editor({
+      document: {
+        blocks: [{ key: 1, type: "paragraph", attributes: {}, text: "", marks: [] }],
+      },
+    });
+
+    let offset = 0;
+    for (const character of "*i*") {
+      editor.replaceText(1, { start: offset, end: offset }, character);
+      offset = editor.runInputRules(1, offset + 1);
+    }
+
+    expect(editor.document.blocks[0]?.text).toBe("i");
+    expect(editor.document.blocks[0]?.marks).toEqual([{ mark: "italic", from: 0, to: 1 }]);
+  });
+
   it("leaves a caret that matches no rule exactly where it was", () => {
     const editor = new Editor({
       document: {

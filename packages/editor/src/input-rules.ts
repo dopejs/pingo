@@ -166,6 +166,14 @@ function matchInline(before: string, delimiter: string): InlineSpan | undefined 
   // A delimiter run longer than the rule's own is a different rule's business:
   // `***x***` must not be read as italic around `*x*`.
   if (before.slice(contentStart, contentStart + delimiter.length) === delimiter) return undefined;
+  // Nor may the run continue to the left of the opening delimiter. Typing
+  // `**b**` passes through `**b*`, where the single-asterisk rule would take
+  // the second asterisk as an opening one and italicise `b` -- and the fifth
+  // keystroke would then toggle that back off, leaving `b` unmarked. Bold was
+  // unreachable from the keyboard for exactly this reason.
+  if (open >= delimiter.length && before.startsWith(delimiter, open - delimiter.length)) {
+    return undefined;
+  }
   return { open, contentStart, contentEnd };
 }
 

@@ -24,7 +24,7 @@ import {
   splitBlock,
   toggleMark,
 } from "./commands";
-import { applyBlockRule, applyInlineRule } from "./input-rules";
+import { applyBlockRule, applyInlineRule, indentRule } from "./input-rules";
 import { fromHtml, fromMarkdown, toHtml, toMarkdown } from "./serialize";
 import {
   type Block,
@@ -237,6 +237,16 @@ export class Editor {
     attributes: Record<string, unknown> = {},
   ): void {
     this.#apply(setBlockType(this.#document, key, type, attributes));
+  }
+
+  /**
+   * Indents or outdents one block, as far as the schema allows.
+   *
+   * Depth is a schema question -- how deep a list may nest, and what a block
+   * becomes when it runs out of levels -- so the Core never sees it.
+   */
+  public indent(key: number, outdent: boolean): void {
+    this.#apply(indentRule(this.#document, key, outdent));
   }
 
   /** Runs the input rules for a caret that just moved inside a block. */

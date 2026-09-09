@@ -477,7 +477,8 @@ export class DocumentEditorController {
    * handler sees a committed character, never a candidate.
    */
   public handleKeyDown(event: KeyboardEvent): boolean {
-    if (event.metaKey || event.ctrlKey || event.altKey) return false;
+    if (event.altKey) return false;
+    if (event.metaKey || event.ctrlKey) return this.#handleShortcut(event);
     // The menu is Shell state: moving its highlight and dismissing it need no
     // Core, so they are answered before the document node is required.
     if (this.slashMenu !== undefined) {
@@ -500,6 +501,13 @@ export class DocumentEditorController {
     }
     const node = this.#documentNodeId;
     if (node === 0) return false;
+    if (event.key === "Tab") {
+      // Indentation is a schema question -- how deep a list may nest, and what
+      // a block becomes when it runs out of levels -- so it is answered here
+      // and never reaches Core. Answering it is also what stops Tab walking
+      // the browser's focus out of the canvas mid-sentence.
+      return this.indent(!event.shiftKey);
+    }
     // Caret movement is not handled here. The engine's own input surface
     // already turns an arrow key into a Core caret move for whatever it is
     // activated over, documents included, and answering it a second time moved
@@ -524,6 +532,68 @@ export class DocumentEditorController {
       default:
         return false;
     }
+  }
+
+  /**
+   * Answers the editing shortcuts a modifier key carries.
+   *
+   * The OS input surface delivers text, composition and undo; a shortcut that
+   * changes the document rather than its text is the Shell's, because what
+   * bold means over a selection is a schema question.
+   */
+  #handleShortcut(event: KeyboardEvent): boolean {
+    if (this.#documentNodeId === 0) return false;
+    const key = event.key.toLowerCase();
+    if (key === "a") return this.selectAll();
+    const mark = MARK_SHORTCUTS[key];
+    if (mark === undefined || event.shiftKey) return false;
+    this.toggleMark(mark);
+    return true;
+  }
+
+  /**
+   * Selects the whole document, from the first block to the last.
+   *
+   * Stated as a position in each end block rather than as a flag: the Core has
+   * one selection kind for text and no notion of "everything", and a caret
+   * that lands here has to be able to move out of it the way any other does.
+   */
+  public selectAll(): boolean {
+    const blocks = this.#editor.document.blocks;
+    const first = blocks[0];
+    const last = blocks.at(-1);
+    if (first === undefined || last === undefined) return false;
+    this.#host.dispatch([
+      {
+        type: "setDocumentSelection",
+        nodeId: this.#documentNodeId,
+        baseRevision: 0n,
+        selection: {
+          kind: "text",
+          anchorKey: first.key,
+          anchorOffset: 0,
+          focusKey: last.key,
+          focusOffset: last.text.length,
+        },
+      },
+    ]);
+    return true;
+  }
+
+  /**
+   * Indents or outdents the block the caret is in.
+   *
+   * Returns whether the schema had anything to say. A Tab that changes nothing
+   * still counts as handled: letting it through would move the browser's focus
+   * off the canvas and end the editing session.
+   */
+  public indent(deeper: boolean): boolean {
+    const selection = this.#editor.selection;
+    if (selection?.kind !== "text") return true;
+    this.#editor.indent(selection.focusKey, !deeper);
+    this.#invalidate();
+    this.#refocus();
+    return true;
   }
 
   /** Renders the document, blocks and all. */
@@ -762,6 +832,14 @@ export class DocumentEditorController {
     this.#onInvalidate?.();
   }
 }
+
+/** The mark each shortcut toggles, by the key that carries it. */
+const MARK_SHORTCUTS: Readonly<Record<string, MarkName | undefined>> = {
+  b: "bold",
+  e: "code",
+  i: "italic",
+  u: "strike",
+};
 
 /** A selection that is one caret, or nothing. */
 function collapsedCaret(
