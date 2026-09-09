@@ -216,6 +216,13 @@ export class NativeTextInputBridge {
   public activate(target: EditingTargetState): void {
     this.assertUsable();
     validateTarget(target);
+    // While the platform is composing, the surface is the platform's. A Shell
+    // re-states the focused block after every reverse batch -- which is how an
+    // input method is kept in step -- and during a composition that arrives
+    // mid-word. Tearing the surface down and putting it back lost the
+    // composition here while the Core still held it, so the next candidate
+    // began a second one on top of the first and the frame was rejected.
+    if (this.#composing && this.#target?.nodeId === target.nodeId) return;
     this.#target = { ...target, selection: { ...target.selection } };
     this.#value = target.value;
     this.#selection = { ...target.selection };

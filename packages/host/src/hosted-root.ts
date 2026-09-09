@@ -954,6 +954,12 @@ class HostedCanvasRootController implements HostedCanvasRoot {
   };
 
   private readonly handleCanvasClick = (event: MouseEvent): void => {
+    // A third click has no event of its own: the browser reports it as a click
+    // whose count says three.
+    if (event.detail >= 3) {
+      const point = this.canvasPoint(event);
+      if (point !== undefined) this.selectBlockAt(point[0], point[1]);
+    }
     this.dispatchCanvasEvent("click", event, 0, 0);
   };
 
@@ -1431,12 +1437,67 @@ class HostedCanvasRootController implements HostedCanvasRoot {
     }
   }
 
+  /** The canvas-space point a mouse event names, or nothing when unsized. */
+  private canvasPoint(event: MouseEvent): [number, number] | undefined {
+    const rect = this.#canvas.getBoundingClientRect();
+    if (!(rect.width > 0) || !(rect.height > 0)) return undefined;
+    return [
+      ((event.clientX - rect.left) * this.logicalWidth()) / rect.width,
+      ((event.clientY - rect.top) * this.logicalHeight()) / rect.height,
+    ];
+  }
+
+  /**
+   * Selects the block under a third click.
+   *
+   * Composed from commands that already exist rather than given a flag of its
+   * own: a press to land in the block, then its two edges. The Core resolves
+   * each against the state the one before it left, so the three arrive as one
+   * frame and the reader never sees the caret on its way.
+   */
+  private selectBlockAt(x: number, y: number): void {
+    const activeNodeId = this.#inputBridge.activeNodeId;
+    const geometry = this.#editingGeometry;
+    if (activeNodeId === undefined || geometry === undefined || geometry.nodeId !== activeNodeId) {
+      return;
+    }
+    const bounds = geometry.controlBounds;
+    if (
+      x < bounds.left ||
+      x >= bounds.left + bounds.width ||
+      y < bounds.top ||
+      y >= bounds.top + bounds.height
+    ) {
+      return;
+    }
+    try {
+      this.sendInputCommands([
+        { type: "placeCaret", nodeId: activeNodeId, x, y, extend: false, word: false },
+        {
+          type: "moveCaret",
+          nodeId: activeNodeId,
+          direction: "lineStart",
+          granularity: "grapheme",
+          extend: false,
+        },
+        {
+          type: "moveCaret",
+          nodeId: activeNodeId,
+          direction: "lineEnd",
+          granularity: "grapheme",
+          extend: true,
+        },
+      ]);
+    } catch (cause) {
+      this.#options.onHostError?.(toError(cause, "block selection failed"));
+    }
+  }
+
   private readonly handleCanvasDoubleClick = (event: Event): void => {
     const mouse = event as MouseEvent;
-    const rect = this.#canvas.getBoundingClientRect();
-    if (!(rect.width > 0) || !(rect.height > 0)) return;
-    const x = ((mouse.clientX - rect.left) * this.logicalWidth()) / rect.width;
-    const y = ((mouse.clientY - rect.top) * this.logicalHeight()) / rect.height;
+    const point = this.canvasPoint(mouse);
+    if (point === undefined) return;
+    const [x, y] = point;
     if (this.selectWordAt(x, y)) return;
     // The press that focuses an editor round-trips through Core, and with a
     // Worker transport that has not landed by the time the browser reports the

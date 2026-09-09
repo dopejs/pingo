@@ -463,6 +463,29 @@ describe("NativeTextInputBridge (unit)", () => {
     );
   });
 
+  it("keeps a composition through a Shell that re-states the block mid-word", () => {
+    const { bridge, proxy, commands } = harness();
+    bridge.activate(target());
+    proxy?.dispatchEvent(new Event("compositionstart"));
+    proxy?.dispatchEvent(Object.assign(new Event("compositionupdate"), { data: "に" }));
+
+    // A Shell re-states the focused block after every reverse batch, which is
+    // how an input method is kept in step -- and during a composition that
+    // arrives mid-word. Tearing the surface down and putting it back lost the
+    // composition here while the Core still held it, so the next candidate
+    // began a second one on top of the first and the Core rejected the frame.
+    bridge.activate(target({ value: "abにc", revision: 8n }));
+    proxy?.dispatchEvent(Object.assign(new Event("compositionupdate"), { data: "日本" }));
+    proxy?.dispatchEvent(Object.assign(new Event("compositionend"), { data: "日本" }));
+
+    expect(commands.map((command) => command.type)).toEqual([
+      "beginComposition",
+      "updateComposition",
+      "updateComposition",
+      "commitComposition",
+    ]);
+  });
+
   it("rolls back the optimistic revision when dispatch fails", () => {
     const commands: InputCommand[] = [];
     const errors: Error[] = [];

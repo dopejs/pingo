@@ -1172,6 +1172,28 @@ impl CoreEngine {
         self.input_scroll_and_edit(&batch)
     }
 
+    /// Checks a character range against the block a document's surface mirrors.
+    fn validate_document_character_range(
+        &self,
+        node: NodeId,
+        start: u32,
+        end: u32,
+    ) -> Result<(), CoreError> {
+        let length = self
+            .documents
+            .focus_block_len(node)
+            .ok_or(CoreError::InvalidEditableTarget { node })?;
+        if start > end || end > length {
+            return Err(CoreError::InvalidEditableCharacterRange {
+                node,
+                start,
+                end,
+                length,
+            });
+        }
+        Ok(())
+    }
+
     /// Applies one isolated `RequestCharacterBounds` batch to the editing session.
     fn input_character_bounds(
         &mut self,
@@ -1184,7 +1206,17 @@ impl CoreEngine {
         }
         let (node_id, start, end) = requests[0];
         let node = NodeId::from_raw(node_id)?;
-        if let Err(error) = self.editing.validate_character_range(node, start, end) {
+        // A document is addressed here the way every other editing command
+        // addresses it: at its root, which owns no session. Sending this one to
+        // the session table rejected the frame, and an input method asks for
+        // these bounds the moment composition starts -- so the first key of the
+        // first Chinese word took the renderer down.
+        let validated = if self.documents.is_root(node) {
+            self.validate_document_character_range(node, start, end)
+        } else {
+            self.editing.validate_character_range(node, start, end)
+        };
+        if let Err(error) = validated {
             self.metrics.input_rejections = self.metrics.input_rejections.saturating_add(1);
             return Err(error);
         }
@@ -2859,9 +2891,12 @@ impl CoreEngine {
                 right: control.left,
                 bottom: control.top,
             });
+        // Matched against the surface, not the caret's block: the host asks
+        // about a range on the node its input surface is activated over, and
+        // for a document that is the root.
         let requested = self
             .requested_character_range
-            .filter(|(candidate, _)| *candidate == node)
+            .filter(|(candidate, _)| *candidate == surface)
             .map_or([0, 0], |(_, range)| range);
         let characters = editor_character_rects(&carets, requested, geometry, scroll);
         let capacity = EDITING_GEOMETRY_HEADER_WORDS
@@ -7457,6 +7492,129 @@ mod tests {
             panic!("the caret is in text");
         };
         assert_eq!((anchor.offset, focus.offset), (4, 7));
+    }
+
+    #[cfg(feature = "rich-text")]
+    #[test]
+    fn a_document_answers_the_character_bounds_an_input_method_asks_for() {
+        let mut engine = CoreEngine::new(320.0, 240.0).expect("Core");
+        engine
+            .commit(&document_tree(1, 1, &[(id(2), Some("abcdef"))]))
+            .expect("document frame");
+        let _ = engine.take_glyph_resources();
+        let _ = engine.take_edit_transactions().expect("drain");
+        engine
+            .input(&input(
+                2,
+                vec![
+                    InputCommand::FocusEditable { node_id: id(1) },
+                    InputCommand::SetDocumentSelection {
+                        node_id: id(1),
+                        base_revision: 0,
+                        selection: pingo_abi::WireDocumentSelection::Text {
+                            anchor_key: id(2),
+                            anchor_offset: 2,
+                            focus_key: id(2),
+                            focus_offset: 2,
+                        },
+                    },
+                ],
+            ))
+            .expect("focus");
+        let _ = engine.take_glyph_resources();
+        let _ = engine.take_edit_transactions().expect("drain");
+
+        // Asked at the document's root, the way every other editing command
+        // addresses it. Sending it to the session table instead rejected the
+        // frame, and an input method asks the moment composition starts -- so
+        // the first key of the first Chinese word took the renderer down.
+        engine
+            .input(&input(
+                3,
+                vec![InputCommand::RequestCharacterBounds {
+                    node_id: id(1),
+                    start: 1,
+                    end: 3,
+                }],
+            ))
+            .expect("character bounds");
+        let _ = engine.take_glyph_resources();
+        let _ = engine.take_edit_transactions().expect("drain");
+
+        let geometry = engine.editing_geometry();
+        assert_ne!(geometry, super::empty_editing_geometry());
+        // The count of character rectangles is the fifth word of the header.
+        assert_eq!(geometry.get(4).copied(), Some(2));
+
+        // A range past the block is still refused rather than answered wrongly.
+        assert!(
+            engine
+                .input(&input(
+                    4,
+                    vec![InputCommand::RequestCharacterBounds {
+                        node_id: id(1),
+                        start: 0,
+                        end: 99,
+                    }],
+                ))
+                .is_err()
+        );
+    }
+
+    #[cfg(feature = "rich-text")]
+    #[test]
+    fn a_press_and_two_edges_select_a_whole_block_in_one_frame() {
+        let mut engine = CoreEngine::new(320.0, 240.0).expect("Core");
+        engine
+            .commit(&document_tree(
+                1,
+                1,
+                &[(id(2), Some("one two three")), (id(3), Some("second"))],
+            ))
+            .expect("document frame");
+        let _ = engine.take_glyph_resources();
+        let _ = engine.take_edit_transactions().expect("drain");
+        let root = NodeId::from_raw(id(1)).expect("root");
+
+        // What a third click sends. It has no flag of its own: a press to land
+        // in the block, then its two edges. Each command has to resolve against
+        // the state the one before it left, or the edges would answer for
+        // wherever the caret was before the press.
+        engine
+            .input(&input(
+                2,
+                vec![
+                    InputCommand::FocusEditable { node_id: id(1) },
+                    InputCommand::PlaceCaret {
+                        node_id: id(1),
+                        position: [50.0, 10.0],
+                        flags: 0,
+                    },
+                    InputCommand::MoveCaret {
+                        node_id: id(1),
+                        direction: pingo_abi::CaretDirection::LineStart,
+                        granularity: pingo_abi::CaretGranularity::Grapheme,
+                        extend: false,
+                    },
+                    InputCommand::MoveCaret {
+                        node_id: id(1),
+                        direction: pingo_abi::CaretDirection::LineEnd,
+                        granularity: pingo_abi::CaretGranularity::Grapheme,
+                        extend: true,
+                    },
+                ],
+            ))
+            .expect("triple press");
+        let _ = engine.take_glyph_resources();
+        let _ = engine.take_edit_transactions().expect("drain");
+
+        let Some(pingo_edit::DocumentSelection::Text { anchor, focus }) =
+            engine.documents.selection(root)
+        else {
+            panic!("the caret is in text");
+        };
+        assert_eq!(anchor.key, u64::from(id(2)));
+        assert_eq!((anchor.offset, focus.offset), (0, 13));
     }
 
     #[cfg(feature = "rich-text")]

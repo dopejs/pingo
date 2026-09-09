@@ -331,6 +331,24 @@ impl DocumentController {
         self.focus_position(self.focused?)
     }
 
+    /// How long the focused block's text is, in UTF-16 units.
+    ///
+    /// An input method asks for the bounds of a character range so it can put
+    /// its candidate window under the text being composed, and the range it
+    /// asks about is stated in the block the surface mirrors.
+    pub(crate) fn focus_block_len(&self, root: NodeId) -> Option<u32> {
+        let active = self.documents.get(&root)?;
+        let DocumentSelection::Text { focus, .. } = active.document.selection() else {
+            return None;
+        };
+        active
+            .document
+            .blocks()
+            .iter()
+            .find(|block| block.key() == focus.key)
+            .map(DocumentBlock::len_utf16)
+    }
+
     pub(crate) fn locate(&self, node: NodeId) -> Option<(NodeId, BlockKey)> {
         self.documents.iter().find_map(|(root, active)| {
             active

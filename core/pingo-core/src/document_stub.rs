@@ -60,6 +60,10 @@ impl DocumentController {
         None
     }
 
+    pub(crate) const fn focus_block_len(&self, _root: NodeId) -> Option<u32> {
+        None
+    }
+
     pub(crate) const fn focus_root_visual(&self) -> Option<(NodeId, NodeId, [u32; 2])> {
         None
     }
